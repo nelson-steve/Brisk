@@ -5,5 +5,5 @@
 #if _DEBUG
 #define VK_LOG(status, message) if(status != VK_SUCCESS) {printf(message);}
 #else
-#define VK_LOG(status, message) if(status != VK_SUCCESS) {printf(message);}
+#define VK_LOG(status, message)
 #endif

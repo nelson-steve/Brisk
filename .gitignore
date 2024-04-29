@@ -1,5 +1,6 @@
 .vs/
 **Brisk/vendors/
+**x64/
 # Files
 *.user
 *.json

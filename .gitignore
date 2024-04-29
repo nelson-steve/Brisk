@@ -1,0 +1,6 @@
+.vs/
+**Brisk/vendors/
+# Files
+*.user
+*.json
+*.sln

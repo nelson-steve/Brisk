@@ -1,0 +1,8 @@
+﻿  GraphicsDeviceVulkan.cpp
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\GraphicsDeviceVulkan.hpp(12,3): warning C4091: 'static ': ignored on left of 'Brisk::GraphicsDeviceVulkan' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/GraphicsDeviceVulkan.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\Engine.hpp(26,3): warning C4091: 'static ': ignored on left of 'Brisk::Engine' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/GraphicsDeviceVulkan.cpp')
+  
+  Brisk.vcxproj -> C:\dev\Brisk\x64\Debug\Brisk.exe

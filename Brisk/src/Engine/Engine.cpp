@@ -1,15 +1,15 @@
 #include "Engine/Engine.hpp"
+#include "Graphics/Vulkan/GraphicsDeviceVulkan.hpp"
 
 namespace Brisk
 {
-	Engine::Engine() {
+	Engine* s_Instance;
+	EngineInfo Engine::s_EngineInfo;
 
+	Engine::Engine() {
 	}
 
 	void Engine::Init() {
-		if (Instance != nullptr) {
-			delete Instance;
-		}
-		Instance = new Engine();
+		GraphicsDeviceVulkan::Create();
 	}
 }

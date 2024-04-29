@@ -21,7 +21,10 @@
     <ClInclude Include="src\Core\Timer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Vulkan\GraphicsDevice.hpp">
+    <ClInclude Include="src\Graphics\Vulkan\GraphicsDeviceVulkan.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Vulkan\Defines.h">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -30,6 +33,9 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Engine.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Vulkan\GraphicsDeviceVulkan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

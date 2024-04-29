@@ -1,5 +1,17 @@
+#include <string>
+
 namespace Brisk 
 {
+	enum class GraphicsAPI {
+		Vulkan,
+		DirectX
+	};
+
+	struct EngineInfo {
+		std::string EngineName = "Brisk";
+		GraphicsAPI API = GraphicsAPI::Vulkan;
+	};
+
 	static class Engine 
 	{
 	public:
@@ -8,7 +20,8 @@ namespace Brisk
 		Engine();
 
 	public:
-		static Engine* Instance;
+		//static Engine* s_Instance;
+		static EngineInfo s_EngineInfo;
 	private:
 	};
 }

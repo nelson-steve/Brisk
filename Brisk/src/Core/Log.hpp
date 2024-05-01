@@ -31,6 +31,7 @@ namespace Brisk
 #define BRISK_APP_INFO(...)  ::Brisk::Log::GetAppLogger()->info(__VA_ARGS__)
 #define BRISK_APP_WARN(...)  ::Brisk::Log::GetAppLogger()->warn(__VA_ARGS__)
 #define BRISK_APP_ERROR(...) ::Brisk::Log::GetAppLogger()->error(__VA_ARGS__)
+#define BRISK_APP_FATAL(...) ::Brisk::Log::GetAppLogger()->critical(__VA_ARGS__)
 #else 
 //Core Log Macors
 #define BRISK_CORE_TRACE(...)

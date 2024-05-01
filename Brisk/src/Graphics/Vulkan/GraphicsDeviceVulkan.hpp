@@ -28,10 +28,7 @@ namespace Brisk
 		static std::vector<const char*> s_Extensions;
 		static std::vector<const char*> s_Layers;
 		static VkDebugUtilsMessengerCreateInfoEXT s_DebugCreateInfo;
-		static VkDebugReportCallbackCreateInfoEXT s_ReportCreateInfo;
 		static VkDebugUtilsMessengerEXT s_DebugMessenger;
-		static VkDebugReportCallbackEXT s_ReportCallback;
-
 		static bool m_ValidationLayersFound;
 
 		/// <summary>

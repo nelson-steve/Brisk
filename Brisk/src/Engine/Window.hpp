@@ -76,7 +76,7 @@ namespace Brisk {
 		/// <summary>
 		/// Constructor to create the window
 		/// </summary>
-		Window();
+		Window(int width, int height);
 	private:
 		GLFWwindow* m_Window = nullptr;
 		uint32_t m_Width = 1280;

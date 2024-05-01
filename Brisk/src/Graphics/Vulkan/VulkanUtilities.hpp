@@ -8,8 +8,6 @@ namespace Brisk {
 		static std::vector<const char*> GetRequiredExtensions();
 		static bool CheckValidationLayerSupport(const std::vector<const char*> validationLayers);
 		static void PopulateDebugMessengerCreateInfo();
-		static void PopulateReportMessengerCreateInfo();
 		static VkResult CreateDebugUtilsMessengerEXT();
-		static VkResult CreateReportMessengerEXT();
 	};
 }

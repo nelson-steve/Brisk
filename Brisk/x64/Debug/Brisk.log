@@ -1,5 +1,5 @@
 ﻿  GraphicsDeviceVulkan.cpp
-C:\dev\Brisk\Brisk\src\Graphics\Vulkan\GraphicsDeviceVulkan.hpp(41,3): warning C4091: 'static ': ignored on left of 'Brisk::GraphicsDeviceVulkan' when no variable is declared
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\GraphicsDeviceVulkan.hpp(38,3): warning C4091: 'static ': ignored on left of 'Brisk::GraphicsDeviceVulkan' when no variable is declared
   (compiling source file 'src/Graphics/Vulkan/GraphicsDeviceVulkan.cpp')
   
 C:\dev\Brisk\Brisk\src\Engine\Window.hpp(102,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
@@ -13,7 +13,8 @@ C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared\minwindef.h(1
   C:\dev\Brisk\Brisk\vendors\include\GLFW\glfw3.h(123,1):
   see previous definition of 'APIENTRY'
   
-C:\dev\Brisk\Brisk\src\Graphics\Vulkan\VulkanUtilities.hpp(14,3): warning C4091: 'static ': ignored on left of 'Brisk::VulkanUtilities' when no variable is declared
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\VulkanUtilities.hpp(12,3): warning C4091: 'static ': ignored on left of 'Brisk::VulkanUtilities' when no variable is declared
   (compiling source file 'src/Graphics/Vulkan/GraphicsDeviceVulkan.cpp')
   
+LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
   Brisk.vcxproj -> C:\dev\Brisk\x64\Debug\Brisk.exe

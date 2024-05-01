@@ -59,16 +59,16 @@ namespace Brisk
 
 	}
 
+	/// <summary>
+	/// Static memebers declarations
+	/// </summary>
 	VkInstance GraphicsDeviceVulkan::s_Instance;
 	VkSurfaceKHR GraphicsDeviceVulkan::m_Surface;
 
 	std::vector<const char*> GraphicsDeviceVulkan::s_Extensions;
 	std::vector<const char*> GraphicsDeviceVulkan::s_Layers;
 	VkDebugUtilsMessengerCreateInfoEXT GraphicsDeviceVulkan::s_DebugCreateInfo;
-	VkDebugReportCallbackCreateInfoEXT GraphicsDeviceVulkan::s_ReportCreateInfo;
 	VkDebugUtilsMessengerEXT GraphicsDeviceVulkan::s_DebugMessenger;
-	VkDebugReportCallbackEXT GraphicsDeviceVulkan::s_ReportCallback;
-
 	bool GraphicsDeviceVulkan::m_ValidationLayersFound;
 
 	void GraphicsDeviceVulkan::Create(){
@@ -79,38 +79,37 @@ namespace Brisk
 		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.apiVersion = VK_API_VERSION_1_0;
 
-		VulkanUtilities::GetRequiredExtensions();
+		s_Extensions = VulkanUtilities::GetRequiredExtensions();
+		m_ValidationLayersFound = false;
 #if _DEBUG
-		if (!VulkanUtilities::CheckValidationLayerSupport(validationLayers)) {
-			m_ValidationLayersFound = false;
+		m_ValidationLayersFound = VulkanUtilities::CheckValidationLayerSupport(validationLayers);
+		if (!m_ValidationLayersFound) {
 			BRISK_APP_ERROR("Validation layers not found");
 		}
-		VulkanUtilities::PopulateDebugMessengerCreateInfo();
-		VulkanUtilities::PopulateReportMessengerCreateInfo();
 #endif
 		VkInstanceCreateInfo createInfo{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
 		createInfo.pApplicationInfo = &appInfo;
+		createInfo.enabledExtensionCount = static_cast<uint32_t>(s_Extensions.size());
+		createInfo.ppEnabledExtensionNames = s_Extensions.data();
 #if _DEBUG
 		createInfo.enabledLayerCount =
 			m_ValidationLayersFound ? static_cast<uint32_t>(validationLayers.size()) : 0;
 		createInfo.ppEnabledLayerNames =
 			m_ValidationLayersFound ? validationLayers.data() : nullptr;
-#endif
-		createInfo.enabledExtensionCount = static_cast<uint32_t>(s_Extensions.size());
-		createInfo.ppEnabledExtensionNames = s_Extensions.data();
+
+		VulkanUtilities::PopulateDebugMessengerCreateInfo();
 		createInfo.pNext = &s_DebugCreateInfo;
-		s_DebugCreateInfo.pNext = &s_ReportCreateInfo;
-		
+#endif
 		VK_LOG(vkCreateInstance(&createInfo, nullptr, &s_Instance), 
 			"Failed to create Vulkan instance");
-
-		CheckAvailableExtensions();
 #if _DEBUG
-		//VkResult result = VulkanUtilities::CreateDebugUtilsMessengerEXT();
-		//if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
-		//	VK_LOG(VulkanUtilities::CreateReportMessengerEXT(),
-		//		"Failed to setup debug messenger");
-		//}
+		VkResult result = VulkanUtilities::CreateDebugUtilsMessengerEXT();
+		if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
+			BRISK_APP_ERROR("Debug Utils extension not present");
+		}
+		else if(result != VK_SUCCESS) {
+			BRISK_APP_ERROR("Failed to create debug messenger");
+		}
 #endif
 	}
 

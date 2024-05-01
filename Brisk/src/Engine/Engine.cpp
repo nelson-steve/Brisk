@@ -10,8 +10,7 @@ namespace Brisk
 
 	void Engine::Init() {
 		Log::Init();
-		BRISK_APP_INFO("SpdLog has been initialized successfully");
-		s_MainWindow = WindowCreator::CreateWindowsWindow(640, 480);
+		s_MainWindow = WindowCreator::CreateWindowsWindow(1280, 720);
 		GraphicsDeviceVulkan::Create();
 	}
 

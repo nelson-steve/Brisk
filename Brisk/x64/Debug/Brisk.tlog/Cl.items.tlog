@@ -1,0 +1,6 @@
+C:\dev\Brisk\Brisk\src\Core\Log.cpp;C:\dev\Brisk\Brisk\x64\Debug\Log.obj
+C:\dev\Brisk\Brisk\src\Engine\Engine.cpp;C:\dev\Brisk\Brisk\x64\Debug\Engine.obj
+C:\dev\Brisk\Brisk\src\Engine\Window.cpp;C:\dev\Brisk\Brisk\x64\Debug\Window.obj
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\GraphicsDeviceVulkan.cpp;C:\dev\Brisk\Brisk\x64\Debug\GraphicsDeviceVulkan.obj
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\VulkanUtilities.cpp;C:\dev\Brisk\Brisk\x64\Debug\VulkanUtilities.obj
+C:\dev\Brisk\Brisk\src\Main\main.cpp;C:\dev\Brisk\Brisk\x64\Debug\main.obj

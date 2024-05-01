@@ -1,5 +1,6 @@
 #include "Engine/Engine.hpp"
 #include "Graphics/Vulkan/GraphicsDeviceVulkan.hpp"
+#include "Core/Log.hpp"
 
 namespace Brisk
 {
@@ -8,8 +9,10 @@ namespace Brisk
 	Window* Engine::s_MainWindow;
 
 	void Engine::Init() {
-		GraphicsDeviceVulkan::Create();
+		Log::Init();
+		BRISK_APP_INFO("SpdLog has been initialized successfully");
 		s_MainWindow = WindowCreator::CreateWindowsWindow(640, 480);
+		GraphicsDeviceVulkan::Create();
 	}
 
 	void Engine::Update() {

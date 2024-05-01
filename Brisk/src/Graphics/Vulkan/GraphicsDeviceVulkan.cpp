@@ -3,6 +3,8 @@
 #include "Defines.h"
 #include "VulkanUtilities.hpp"
 
+#include <Volk/volk.h>
+
 namespace Brisk 
 {
 	static std::vector<const char*> validationLayers = {
@@ -72,6 +74,8 @@ namespace Brisk
 	bool GraphicsDeviceVulkan::m_ValidationLayersFound;
 
 	void GraphicsDeviceVulkan::Create(){
+		volkInitialize();
+
 		VkApplicationInfo appInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
 		appInfo.pApplicationName = "Demo";
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -102,6 +106,9 @@ namespace Brisk
 #endif
 		VK_LOG(vkCreateInstance(&createInfo, nullptr, &s_Instance), 
 			"Failed to create Vulkan instance");
+
+		volkLoadInstance(s_Instance);
+
 #if _DEBUG
 		VkResult result = VulkanUtilities::CreateDebugUtilsMessengerEXT();
 		if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
@@ -114,6 +121,8 @@ namespace Brisk
 	}
 
 	void GraphicsDeviceVulkan::Release() {
+		vkDestroyDebugUtilsMessengerEXT(s_Instance, s_DebugMessenger, nullptr);
+
 		vkDestroyInstance(s_Instance, nullptr);
 	}
 }

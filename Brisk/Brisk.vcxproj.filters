@@ -30,13 +30,13 @@
     <ClInclude Include="src\Engine\Window.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Core\LogOLD.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Graphics\Vulkan\VulkanUtilities.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Core\Log.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Vulkan\volk.cpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>

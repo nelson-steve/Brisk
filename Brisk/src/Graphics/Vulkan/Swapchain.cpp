@@ -5,7 +5,7 @@
 #include <glfw3.h>
 
 namespace Brisk {
-	Swapchain::Swapchain(Window* window) {
+	Swapchain::Swapchain(WindowBase* window) {
 		m_Window = window;
 	}
 
@@ -16,7 +16,7 @@ namespace Brisk {
 	}
 
 	void Swapchain::Create() {
-		if (glfwCreateWindowSurface(Engine::m_GPUDeviceVulkan->GetInstance(), m_Window->window(), nullptr, &m_Surface) != VK_SUCCESS) {
+		if (glfwCreateWindowSurface(Engine::m_GPUDeviceVulkan->GetInstance(), (GLFWwindow*)m_Window->GetWindowHandle(), nullptr, &m_Surface) != VK_SUCCESS) {
 			BRISK_CORE_ERROR("Failed to create window surface!");
 		}
 

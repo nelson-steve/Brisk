@@ -1,6 +1,6 @@
 #include "VulkanUtilities.hpp"
 #include "GraphicsDeviceVulkan.hpp"
-#include "Engine/Window.hpp"
+#include "Engine/WindowBase.hpp"
 
 #include <Volk/volk.h>
 

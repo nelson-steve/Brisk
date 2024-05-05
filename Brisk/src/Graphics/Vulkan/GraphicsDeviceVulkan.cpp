@@ -126,7 +126,7 @@ namespace Brisk
 		vkDestroyInstance(s_Instance, nullptr);
 	}
 
-	[[nodiscard]] Swapchain* GraphicsDeviceVulkan::CreateSwapchain(Window* window) {
+	[[nodiscard]] Swapchain* GraphicsDeviceVulkan::CreateSwapchain(WindowBase* window) {
 		return new Swapchain(window);
 	}
 }

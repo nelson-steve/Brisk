@@ -6,7 +6,7 @@ namespace Brisk
 {
 	Engine* s_Instance;
 	EngineInfo Engine::s_EngineInfo;
-	Window* Engine::s_MainWindow;
+	WindowBase* Engine::s_MainWindow;
 
 	GraphicsDeviceVulkan* Engine::m_GPUDeviceVulkan;
 	Swapchain* Engine::m_Swapchain;
@@ -24,7 +24,7 @@ namespace Brisk
 
 	void Engine::Update() {
 		while (!s_MainWindow->WindowShouldClose()) {
-			s_MainWindow->PollEvents();
+			s_MainWindow->ProcessEvents();
 		}
 	}
 

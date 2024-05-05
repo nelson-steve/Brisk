@@ -1,7 +1,7 @@
 #pragma once
 
 #include "PhysicalDevice.hpp"
-#include "Engine/Window.hpp"
+#include "Engine/WindowBase.hpp"
 
 #include <Volk/volk.h>
 
@@ -26,7 +26,7 @@ namespace Brisk
 		/// </summary>
 		void Release();
 
-		Swapchain* CreateSwapchain(Window* window);
+		Swapchain* CreateSwapchain(WindowBase* window);
 
 		/// <summary>
 		/// Getters for Vulkan handles

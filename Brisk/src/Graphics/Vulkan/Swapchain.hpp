@@ -1,12 +1,12 @@
 #pragma once
 
 #include "GraphicsDeviceVulkan.hpp"
-#include "Engine/Window.hpp"
+#include "Engine/WindowBase.hpp"
 
 namespace Brisk {
 	class Swapchain {
 	public:
-		Swapchain(Window* window);
+		Swapchain(WindowBase* window);
 
 		void Create();
 		void Release();
@@ -30,7 +30,7 @@ namespace Brisk {
 	private:
 		VkSwapchainKHR m_Swapchain;
 		VkSurfaceKHR m_Surface;
-		Window* m_Window;
+		WindowBase* m_Window;
 		std::vector<VkSemaphore> m_render_complete_semaphores;
 		std::vector<VkSemaphore> m_present_complete_semaphores;
 		std::vector<VkImage> m_swapchain_images;

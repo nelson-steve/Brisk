@@ -1,6 +1,6 @@
 #include <string>
 
-#include "Window.hpp"
+#include "WindowBase.hpp"
 #include "Graphics/Vulkan/GraphicsDeviceVulkan.hpp"
 
 namespace Brisk 
@@ -53,7 +53,7 @@ namespace Brisk
 		/// <summary>
 		/// Main window of the engine aka the Editor window
 		/// </summary>
-		static Window* s_MainWindow;
+		static WindowBase* s_MainWindow;
 		/// <summary>
 		/// Stores basic information about the engine
 		/// </summary>

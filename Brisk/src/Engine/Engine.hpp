@@ -1,6 +1,7 @@
 #include <string>
 
 #include "Window.hpp"
+#include "Graphics/Vulkan/GraphicsDeviceVulkan.hpp"
 
 namespace Brisk 
 {
@@ -12,6 +13,12 @@ namespace Brisk
 		Vulkan,
 		DirectX
 	};
+
+	//struct GlobalGPUDevice {
+	//	static GraphicsDeviceVulkan* m_GPUDeviceVulkan;
+	//	static Swapchain* m_Swapchain;
+	//	static PhysicalDevice* s_PhysicalDevice;
+	//};
 
 	/// <summary>
 	/// Store engine information with default values
@@ -51,6 +58,10 @@ namespace Brisk
 		/// Stores basic information about the engine
 		/// </summary>
 		static EngineInfo s_EngineInfo;
+
+		static GraphicsDeviceVulkan* m_GPUDeviceVulkan;
+		static Swapchain* m_Swapchain;
+		static PhysicalDevice* s_PhysicalDevice;
 	private:
 	};
 }

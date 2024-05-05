@@ -1,19 +1,13 @@
-﻿  GraphicsDeviceVulkan.cpp
-C:\dev\Brisk\Brisk\src\Graphics\Vulkan\GraphicsDeviceVulkan.hpp(41,3): warning C4091: 'static ': ignored on left of 'Brisk::GraphicsDeviceVulkan' when no variable is declared
-  (compiling source file 'src/Graphics/Vulkan/GraphicsDeviceVulkan.cpp')
-  
+﻿  Swapchain.cpp
 C:\dev\Brisk\Brisk\src\Engine\Window.hpp(101,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
-  (compiling source file 'src/Graphics/Vulkan/GraphicsDeviceVulkan.cpp')
-  
-C:\dev\Brisk\Brisk\src\Engine\Engine.hpp(55,3): warning C4091: 'static ': ignored on left of 'Brisk::Engine' when no variable is declared
-  (compiling source file 'src/Graphics/Vulkan/GraphicsDeviceVulkan.cpp')
+  (compiling source file 'src/Graphics/Vulkan/Swapchain.cpp')
   
 C:\Program Files (x86)\Windows Kits\10\Include\10.0.22621.0\shared\minwindef.h(130,1): warning C4005: 'APIENTRY': macro redefinition
-  (compiling source file 'src/Graphics/Vulkan/GraphicsDeviceVulkan.cpp')
+  (compiling source file 'src/Graphics/Vulkan/Swapchain.cpp')
   C:\dev\Brisk\Brisk\vendors\include\GLFW\glfw3.h(123,1):
   see previous definition of 'APIENTRY'
   
-C:\dev\Brisk\Brisk\src\Graphics\Vulkan\VulkanUtilities.hpp(13,3): warning C4091: 'static ': ignored on left of 'Brisk::VulkanUtilities' when no variable is declared
-  (compiling source file 'src/Graphics/Vulkan/GraphicsDeviceVulkan.cpp')
+C:\dev\Brisk\Brisk\src\Engine\Engine.hpp(66,3): warning C4091: 'static ': ignored on left of 'Brisk::Engine' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/Swapchain.cpp')
   
   Brisk.vcxproj -> C:\dev\Brisk\x64\Debug\Brisk.exe

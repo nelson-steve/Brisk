@@ -1,35 +1,52 @@
 #pragma once
 
-#define VK_NO_PROTOTYPES
-#include <vulkan/vulkan.hpp>
+#include "PhysicalDevice.hpp"
+#include "Engine/Window.hpp"
+
+#include <Volk/volk.h>
 
 #include <vector>
 
 namespace Brisk 
 {
-	static class GraphicsDeviceVulkan {
+	/// <summary>
+	/// Forward declarations
+	/// </summary>
+	class Swapchain;
+
+	class GraphicsDeviceVulkan {
 	public:
 		/// <summary>
 		/// Create Vulkan Device
 		/// </summary>
-		static void Create();
+		void Create();
 
 		/// <summary>
 		/// Release all Vulkan resources cleanly
 		/// </summary>
-		static void Release();
+		void Release();
+
+		Swapchain* CreateSwapchain(Window* window);
+
+		/// <summary>
+		/// Getters for Vulkan handles
+		/// </summary>
+		static VkInstance GetInstance() { return s_Instance; }
+		static std::vector<const char*> GetRequiredExtenstions() { return s_RequiredExtensions; }
+		static std::vector<const char*> GetValidationLayers() { return s_ValidationLayers; }
 	private:
 		/// <summary>
 		/// Vulkan handles
 		/// </summary>
 		static VkInstance s_Instance;
-		static VkSurfaceKHR m_Surface;
 
 		/// <summary>
 		/// Vulkan helper variables
 		/// </summary>
 		static std::vector<const char*> s_Extensions;
 		static std::vector<const char*> s_Layers;
+		static std::vector<const char*> s_RequiredExtensions;
+		static std::vector<const char*> s_ValidationLayers;
 		static VkDebugUtilsMessengerCreateInfoEXT s_DebugCreateInfo;
 		static VkDebugUtilsMessengerEXT s_DebugMessenger;
 		static bool m_ValidationLayersFound;

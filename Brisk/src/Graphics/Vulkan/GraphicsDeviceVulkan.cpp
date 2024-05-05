@@ -1,16 +1,11 @@
 #include "GraphicsDeviceVulkan.hpp"
 #include "Engine/Engine.hpp"
+#include "Swapchain.hpp"
 #include "Defines.h"
 #include "VulkanUtilities.hpp"
 
-#include <Volk/volk.h>
-
 namespace Brisk 
 {
-	static std::vector<const char*> validationLayers = {
-	"VK_LAYER_KHRONOS_validation"
-	};
-
 	static void CheckAvailableExtensions() {
 		VkResult result;
 
@@ -65,16 +60,19 @@ namespace Brisk
 	/// Static memebers declarations
 	/// </summary>
 	VkInstance GraphicsDeviceVulkan::s_Instance;
-	VkSurfaceKHR GraphicsDeviceVulkan::m_Surface;
 
 	std::vector<const char*> GraphicsDeviceVulkan::s_Extensions;
 	std::vector<const char*> GraphicsDeviceVulkan::s_Layers;
 	VkDebugUtilsMessengerCreateInfoEXT GraphicsDeviceVulkan::s_DebugCreateInfo;
 	VkDebugUtilsMessengerEXT GraphicsDeviceVulkan::s_DebugMessenger;
 	bool GraphicsDeviceVulkan::m_ValidationLayersFound;
+		std::vector<const char*> GraphicsDeviceVulkan::s_RequiredExtensions;
+		std::vector<const char*> GraphicsDeviceVulkan::s_ValidationLayers;
 
 	void GraphicsDeviceVulkan::Create(){
 		volkInitialize();
+
+		s_ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
 
 		VkApplicationInfo appInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
 		appInfo.pApplicationName = "Demo";
@@ -86,7 +84,7 @@ namespace Brisk
 		s_Extensions = VulkanUtilities::GetRequiredExtensions();
 		m_ValidationLayersFound = false;
 #if _DEBUG
-		m_ValidationLayersFound = VulkanUtilities::CheckValidationLayerSupport(validationLayers);
+		m_ValidationLayersFound = VulkanUtilities::CheckValidationLayerSupport(s_ValidationLayers);
 		if (!m_ValidationLayersFound) {
 			BRISK_APP_ERROR("Validation layers not found");
 		}
@@ -97,9 +95,9 @@ namespace Brisk
 		createInfo.ppEnabledExtensionNames = s_Extensions.data();
 #if _DEBUG
 		createInfo.enabledLayerCount =
-			m_ValidationLayersFound ? static_cast<uint32_t>(validationLayers.size()) : 0;
+			m_ValidationLayersFound ? static_cast<uint32_t>(s_ValidationLayers.size()) : 0;
 		createInfo.ppEnabledLayerNames =
-			m_ValidationLayersFound ? validationLayers.data() : nullptr;
+			m_ValidationLayersFound ? s_ValidationLayers.data() : nullptr;
 
 		VulkanUtilities::PopulateDebugMessengerCreateInfo();
 		createInfo.pNext = &s_DebugCreateInfo;
@@ -118,11 +116,17 @@ namespace Brisk
 			BRISK_APP_ERROR("Failed to create debug messenger");
 		}
 #endif
+
+		s_RequiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 	}
 
 	void GraphicsDeviceVulkan::Release() {
 		vkDestroyDebugUtilsMessengerEXT(s_Instance, s_DebugMessenger, nullptr);
 
 		vkDestroyInstance(s_Instance, nullptr);
+	}
+
+	[[nodiscard]] Swapchain* GraphicsDeviceVulkan::CreateSwapchain(Window* window) {
+		return new Swapchain(window);
 	}
 }

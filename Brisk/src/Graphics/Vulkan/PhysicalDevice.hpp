@@ -7,6 +7,8 @@ namespace Brisk
 	struct QueueFamilyIndices {
 		bool HasGraphicsSupport = false;
 		bool HasPresentSupport = false;
+		int32_t GraphicsIndex = -1;
+		int32_t PresentIndex = -1;
 
 		inline bool IsComplete() { return (HasGraphicsSupport && HasPresentSupport); }
 		inline void Reset() { HasGraphicsSupport = false; HasPresentSupport = false; }

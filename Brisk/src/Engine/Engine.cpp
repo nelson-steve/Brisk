@@ -1,24 +1,24 @@
 #include "Engine/Engine.hpp"
 #include "Core/Log.hpp"
-#include "Graphics/Vulkan/Swapchain.hpp"
+#include "Graphics/GPUDevice.hpp"
+#include "Graphics/Factories/SwapchainFactory.hpp"
 
 namespace Brisk
 {
-	Engine* s_Instance;
 	EngineInfo Engine::s_EngineInfo;
 	WindowBase* Engine::s_MainWindow;
 
-	GraphicsDeviceVulkan* Engine::m_GPUDeviceVulkan;
+	GPUDevice* Engine::m_GPUDevice;
 	Swapchain* Engine::m_Swapchain;
 	PhysicalDevice* Engine::s_PhysicalDevice;
-
 
 	void Engine::Init() {
 		Log::Init();
 		s_MainWindow = WindowCreator::CreateWindowsWindow(1280, 720);
-		m_GPUDeviceVulkan = new GraphicsDeviceVulkan();
-		m_GPUDeviceVulkan->Create();
-		m_Swapchain = m_GPUDeviceVulkan->CreateSwapchain(s_MainWindow);
+
+		m_GPUDevice = GPUDevice::CreateDevice();
+		m_GPUDevice->Create();
+		m_Swapchain =  SwapchainFactory::CreateSwapchain(s_MainWindow);
 		m_Swapchain->Create();
 	}
 
@@ -31,7 +31,7 @@ namespace Brisk
 	void Engine::Terminate() {
 		s_MainWindow->DestroyWindow();
 		delete s_MainWindow;
-		m_GPUDeviceVulkan->Release();
-		delete m_GPUDeviceVulkan;
+		m_GPUDevice->Release();
+		delete m_GPUDevice;
 	}
 }

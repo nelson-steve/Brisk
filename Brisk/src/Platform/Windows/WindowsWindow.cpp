@@ -2,6 +2,9 @@
 #include "Core/Log.hpp"
 #include "Engine/Engine.hpp"
 
+#define GLFW_INCLUDE_VULKAN
+#include <glfw3.h>
+
 namespace Brisk {
 	void FramebufferResizeCallback(GLFWwindow* window, int width, int height) {
 		auto win = reinterpret_cast<WindowsWindow*>(glfwGetWindowUserPointer(window));

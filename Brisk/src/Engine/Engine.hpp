@@ -1,18 +1,16 @@
+#pragma once
+
 #include <string>
 
-#include "WindowBase.hpp"
-#include "Graphics/Vulkan/GraphicsDeviceVulkan.hpp"
+#include "Graphics/GPUDevice.hpp"
+#include "Graphics/Vulkan/PhysicalDevice.hpp"
+#include "EngineGlobal.hpp"
 
 namespace Brisk 
 {
-	/// <summary>
-	/// Different Graphics APIs used
-	/// Only support Vulkan at the moment
-	/// </summary>
-	enum class GraphicsAPI {
-		Vulkan,
-		DirectX
-	};
+	//namespace Globals{
+	//	static GraphicsAPI GPU_API = GraphicsAPI::Vulkan;
+	//}
 
 	//struct GlobalGPUDevice {
 	//	static GraphicsDeviceVulkan* m_GPUDeviceVulkan;
@@ -21,17 +19,9 @@ namespace Brisk
 	//};
 
 	/// <summary>
-	/// Store engine information with default values
-	/// </summary>
-	struct EngineInfo {
-		std::string EngineName = "Brisk";
-		GraphicsAPI API = GraphicsAPI::Vulkan;
-	};
-
-	/// <summary>
 	/// Main Engine class holding all major systems of the engine
 	/// </summary>
-	static class Engine 
+	class Engine 
 	{
 	public:
 		/// <summary>
@@ -59,7 +49,7 @@ namespace Brisk
 		/// </summary>
 		static EngineInfo s_EngineInfo;
 
-		static GraphicsDeviceVulkan* m_GPUDeviceVulkan;
+		static GPUDevice* m_GPUDevice;
 		static Swapchain* m_Swapchain;
 		static PhysicalDevice* s_PhysicalDevice;
 	private:

@@ -2,7 +2,10 @@
 
 #include "Engine/WindowBase.hpp"
 
+struct GLFWwindow;
+
 namespace Brisk {
+
 	class WindowsWindow : public WindowBase {
 	public:
 		WindowsWindow(int width, int height);

@@ -1,7 +1,4 @@
 #pragma once
-
-#include <glfw3.h>
-
 #include <iostream>
 
 namespace Brisk {

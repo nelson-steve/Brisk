@@ -2,6 +2,7 @@
 
 #include "PhysicalDevice.hpp"
 #include "Engine/WindowBase.hpp"
+#include "Graphics/GPUDevice.hpp"
 
 #include <Volk/volk.h>
 
@@ -14,19 +15,17 @@ namespace Brisk
 	/// </summary>
 	class Swapchain;
 
-	class GraphicsDeviceVulkan {
+	class GraphicsDeviceVulkan : public GPUDevice {
 	public:
 		/// <summary>
 		/// Create Vulkan Device
 		/// </summary>
-		void Create();
+		virtual void Create() override;
 
 		/// <summary>
 		/// Release all Vulkan resources cleanly
 		/// </summary>
-		void Release();
-
-		Swapchain* CreateSwapchain(WindowBase* window);
+		virtual void Release() override;
 
 		/// <summary>
 		/// Getters for Vulkan handles

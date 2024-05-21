@@ -1,6 +1,6 @@
 #include "GraphicsDeviceVulkan.hpp"
 #include "Engine/Engine.hpp"
-#include "Swapchain.hpp"
+#include "VulkanSwapchain.hpp"
 #include "Defines.h"
 #include "VulkanUtilities.hpp"
 
@@ -124,9 +124,5 @@ namespace Brisk
 		vkDestroyDebugUtilsMessengerEXT(s_Instance, s_DebugMessenger, nullptr);
 
 		vkDestroyInstance(s_Instance, nullptr);
-	}
-
-	[[nodiscard]] Swapchain* GraphicsDeviceVulkan::CreateSwapchain(WindowBase* window) {
-		return new Swapchain(window);
 	}
 }

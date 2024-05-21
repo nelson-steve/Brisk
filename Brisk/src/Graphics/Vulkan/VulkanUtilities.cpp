@@ -3,6 +3,8 @@
 #include "Engine/WindowBase.hpp"
 
 #include <Volk/volk.h>
+#define GLFW_INCLUDE_VULKAN
+#include <glfw3.h>
 
 #include <iostream>
 

@@ -102,7 +102,7 @@ namespace Brisk
 		VulkanUtilities::PopulateDebugMessengerCreateInfo();
 		createInfo.pNext = &s_DebugCreateInfo;
 #endif
-		VK_LOG(vkCreateInstance(&createInfo, nullptr, &s_Instance), 
+		VK_LOG(vkCreateInstance(&createInfo, nullptr, &s_Instance),
 			"Failed to create Vulkan instance");
 
 		volkLoadInstance(s_Instance);

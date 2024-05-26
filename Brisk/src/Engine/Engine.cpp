@@ -31,6 +31,8 @@ namespace Brisk
 	void Engine::Terminate() {
 		s_MainWindow->DestroyWindow();
 		delete s_MainWindow;
+		m_Swapchain->Release();
+		s_PhysicalDevice->Release();
 		m_GPUDevice->Release();
 		delete m_GPUDevice;
 	}

@@ -12,6 +12,7 @@ namespace Brisk {
 		//for (auto imageView : m_swapchain_image_views)
 		//	vkDestroyImageView(m_device->Device(), imageView, nullptr);
 		vkDestroySwapchainKHR(Engine::s_PhysicalDevice->GetDevice(), m_Swapchain, nullptr);
+		vkDestroySurfaceKHR(dynamic_cast<GraphicsDeviceVulkan*>(Engine::m_GPUDevice)->GetInstance(), m_Surface, nullptr);
 	}
 
 	void VulkanSwapchain::Create() {

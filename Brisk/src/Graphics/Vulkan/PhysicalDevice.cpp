@@ -69,6 +69,10 @@ namespace Brisk
 		vkGetDeviceQueue(m_Device, 0, 0, &m_PresentQueue);
 	}
 
+	void PhysicalDevice::Release() {
+		vkDestroyDevice(m_Device, nullptr);
+	}
+
 	void PhysicalDevice::CreateQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface) {
 		uint32_t queueFamilyCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);

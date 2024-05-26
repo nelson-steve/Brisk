@@ -18,6 +18,7 @@ namespace Brisk
 	public:
 		PhysicalDevice();
 		void Create(VkSurfaceKHR surface);
+		void Release();
 		void CreateQueueFamilies(VkPhysicalDevice device, VkSurfaceKHR surface);
 		bool IsDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface);
 		QueueFamilyIndices GetQueueFamilies() { return m_Indices; }

@@ -9,8 +9,9 @@ namespace Brisk {
 		: Swapchain(window, 1280, 720) {} // TODO: Dont use hardcoded values
 
 	void VulkanSwapchain::Release() {
-		//for (auto imageView : m_swapchain_image_views)
-		//	vkDestroyImageView(m_device->Device(), imageView, nullptr);
+		for (auto imageView : m_SwapchainImageViews) {
+			vkDestroyImageView(Engine::s_PhysicalDevice->GetDevice(), imageView, nullptr);
+		}
 		vkDestroySwapchainKHR(Engine::s_PhysicalDevice->GetDevice(), m_Swapchain, nullptr);
 		vkDestroySurfaceKHR(dynamic_cast<GraphicsDeviceVulkan*>(Engine::m_GPUDevice)->GetInstance(), m_Surface, nullptr);
 	}
@@ -103,34 +104,31 @@ namespace Brisk {
 		VK_LOG(vkCreateSwapchainKHR(Engine::s_PhysicalDevice->GetDevice(), &swapChainCreateInfo, nullptr, &m_Swapchain),
 			"Failed to create swapchain!");
 
-		return;
+		vkGetSwapchainImagesKHR(Engine::s_PhysicalDevice->GetDevice(), m_Swapchain, &m_ImageCount, nullptr);
+		m_SwapchainImages.resize(m_ImageCount);
+		vkGetSwapchainImagesKHR(Engine::s_PhysicalDevice->GetDevice(), m_Swapchain, &m_ImageCount, m_SwapchainImages.data());
 
-		//vkGetSwapchainImagesKHR(m_device->Device(), m_swapchain, &m_image_count, nullptr);
-		//m_swapchain_images.resize(m_image_count);
-		//vkGetSwapchainImagesKHR(m_device->Device(), m_swapchain, &m_image_count, m_swapchain_images.data());
-
-		// Create Image Views
-		//m_swapchain_image_views.resize(m_swapchain_images.size());
-		//
-		//for (size_t i = 0; i < m_swapchain_images.size(); i++) {
-		//	VkImageViewCreateInfo image_views_create_info{};
-		//	image_views_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		//	image_views_create_info.image = m_swapchain_images[i];
-		//	image_views_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		//	image_views_create_info.format = m_format;
-		//	image_views_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-		//	image_views_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-		//	image_views_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-		//	image_views_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-		//	image_views_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		//	image_views_create_info.subresourceRange.baseMipLevel = 0;
-		//	image_views_create_info.subresourceRange.levelCount = 1;
-		//	image_views_create_info.subresourceRange.baseArrayLayer = 0;
-		//	image_views_create_info.subresourceRange.layerCount = 1;
-		//
-		//	if (vkCreateImageView(m_device->Device(), &image_views_create_info, nullptr, &m_swapchain_image_views[i]) != VK_SUCCESS) {
-		//		throw std::runtime_error("Failed to create Swapchain Image Views!");
-		//	}
-		//}
+		m_SwapchainImageViews.resize(m_SwapchainImages.size());
+		
+		for (size_t i = 0; i < m_SwapchainImages.size(); i++) {
+			VkImageViewCreateInfo image_views_create_info{};
+			image_views_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+			image_views_create_info.image = m_SwapchainImages[i];
+			image_views_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+			image_views_create_info.format = m_format;
+			image_views_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+			image_views_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+			image_views_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+			image_views_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+			image_views_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+			image_views_create_info.subresourceRange.baseMipLevel = 0;
+			image_views_create_info.subresourceRange.levelCount = 1;
+			image_views_create_info.subresourceRange.baseArrayLayer = 0;
+			image_views_create_info.subresourceRange.layerCount = 1;
+		
+			if (vkCreateImageView(Engine::s_PhysicalDevice->GetDevice(), &image_views_create_info, nullptr, &m_SwapchainImageViews[i]) != VK_SUCCESS) {
+				throw std::runtime_error("Failed to create Swapchain Image Views!");
+			}
+		}
 	}
 }

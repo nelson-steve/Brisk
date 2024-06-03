@@ -27,8 +27,8 @@ namespace Brisk {
 		virtual uint32_t GetImageCount() const = 0;
 	protected:
 		WindowBase* m_Window;
-	private:
 		uint32_t m_ImageCount;
+	private:
 		SwapchainExtent2D m_Extent;
 		//VkPresentModeKHR m_present_mode; // TODO: Define your own Present modes
 	};

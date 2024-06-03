@@ -96,4 +96,8 @@
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
+  <ItemGroup>
+    <None Include="Shaders\Vulkan\TriangleVS.glsl" />
+    <None Include="Shaders\Vulkan\TriangleFS.glsl" />
+  </ItemGroup>
 </Project>

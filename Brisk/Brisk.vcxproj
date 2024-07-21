@@ -157,12 +157,14 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Engine\WindowBase.hpp" />
     <ClInclude Include="src\Graphics\Factories\SwapchainFactory.hpp" />
     <ClInclude Include="src\Graphics\GPUDevice.hpp" />
+    <ClInclude Include="src\Graphics\ShaderManager.hpp" />
     <ClInclude Include="src\Graphics\Swapchain.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\Defines.h" />
     <ClInclude Include="src\Graphics\Vulkan\GraphicsDeviceVulkan.hpp" />
+    <ClInclude Include="src\Graphics\Vulkan\GraphicsPipelineVulkan.hpp" />
+    <ClInclude Include="src\Graphics\Vulkan\SwapchainVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\PhysicalDevice.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\volk.cpp" />
-    <ClInclude Include="src\Graphics\Vulkan\VulkanSwapchain.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\VulkanUtilities.hpp" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.hpp" />
   </ItemGroup>
@@ -171,17 +173,15 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClCompile Include="src\Engine\Engine.cpp" />
     <ClCompile Include="src\Engine\WindowBase.cpp" />
     <ClCompile Include="src\Graphics\GPUDevice.cpp" />
+    <ClCompile Include="src\Graphics\ShaderManager.cpp" />
     <ClCompile Include="src\Graphics\Swapchain.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\GraphicsDeviceVulkan.cpp" />
+    <ClCompile Include="src\Graphics\Vulkan\GraphicsPipelineVulkan.cpp" />
+    <ClCompile Include="src\Graphics\Vulkan\SwapchainVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\PhysicalDevice.cpp" />
-    <ClCompile Include="src\Graphics\Vulkan\VulkanSwapchain.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\VulkanUtilities.cpp" />
     <ClCompile Include="src\Main\main.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
-  </ItemGroup>
-  <ItemGroup>
-    <None Include="Shaders\Vulkan\TriangleFS.glsl" />
-    <None Include="Shaders\Vulkan\TriangleVS.glsl" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Engine/Engine.hpp"
-#include "Graphics/Vulkan/VulkanSwapchain.hpp"
+#include "Graphics/Vulkan/SwapchainVulkan.hpp"
 #include "Core/Log.hpp"
 
 namespace Brisk {
@@ -9,7 +9,7 @@ namespace Brisk {
 	public:
 		[[nodiscard]] static Swapchain* CreateSwapchain(WindowBase* win) {
 			if (Engine::s_EngineInfo.API == EngineInfo::GraphicsAPI::Vulkan) {
-				return new VulkanSwapchain(win);
+				return new SwapchainVulkan(win);
 			}
 			else {
 				BRISK_CORE_ERROR("Only Vulkan supported");

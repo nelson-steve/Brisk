@@ -3,6 +3,7 @@
 #include "PhysicalDevice.hpp"
 #include "Engine/WindowBase.hpp"
 #include "Graphics/GPUDevice.hpp"
+#include "GraphicsPipelineVulkan.hpp"
 
 #include <Volk/volk.h>
 
@@ -22,10 +23,13 @@ namespace Brisk
 		/// </summary>
 		virtual void Create() override;
 
+		virtual void SetupGraphicsPipeline(std::vector<ShaderInfo> shaders) override;
+
 		/// <summary>
 		/// Release all Vulkan resources cleanly
 		/// </summary>
 		virtual void Release() override;
+
 
 		/// <summary>
 		/// Getters for Vulkan handles
@@ -33,6 +37,8 @@ namespace Brisk
 		static VkInstance GetInstance() { return s_Instance; }
 		static std::vector<const char*> GetRequiredExtenstions() { return s_RequiredExtensions; }
 		static std::vector<const char*> GetValidationLayers() { return s_ValidationLayers; }
+	private:
+		void CreateGraphicsPipeline();
 	private:
 		/// <summary>
 		/// Vulkan handles
@@ -49,6 +55,9 @@ namespace Brisk
 		static VkDebugUtilsMessengerCreateInfoEXT s_DebugCreateInfo;
 		static VkDebugUtilsMessengerEXT s_DebugMessenger;
 		static bool m_ValidationLayersFound;
+
+		// TODO: This should not exist here I think
+		static GraphicsPipelineVulkan* m_GraphicsPipeline;
 
 		/// <summary>
 		/// Friend class declaration

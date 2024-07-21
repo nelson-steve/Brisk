@@ -20,6 +20,21 @@ namespace Brisk
 		m_GPUDevice->Create();
 		m_Swapchain =  SwapchainFactory::CreateSwapchain(s_MainWindow);
 		m_Swapchain->Create();
+
+		ShaderInfo vertexShader;
+		vertexShader.Path = "Shaders/Vulkan/Compiled/TriangleVS.spv";
+		vertexShader.Type = ShaderType::Vertex;
+
+		ShaderInfo fragmentShader;
+		fragmentShader.Path = "Shaders/Vulkan/Compiled/TriangleFS.spv";
+		fragmentShader.Type = ShaderType::Fragment;
+
+		m_GPUDevice->SetupGraphicsPipeline(
+			{
+				vertexShader,
+				fragmentShader,
+			}
+		);
 	}
 
 	void Engine::Update() {

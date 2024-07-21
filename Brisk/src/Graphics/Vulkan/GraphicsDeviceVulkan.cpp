@@ -1,8 +1,9 @@
 #include "GraphicsDeviceVulkan.hpp"
 #include "Engine/Engine.hpp"
-#include "VulkanSwapchain.hpp"
+#include "SwapchainVulkan.hpp"
 #include "Defines.h"
 #include "VulkanUtilities.hpp"
+#include "Graphics/ShaderManager.hpp"
 
 namespace Brisk 
 {
@@ -61,6 +62,7 @@ namespace Brisk
 	/// </summary>
 	VkInstance GraphicsDeviceVulkan::s_Instance;
 
+	GraphicsPipelineVulkan* GraphicsDeviceVulkan::m_GraphicsPipeline;
 	std::vector<const char*> GraphicsDeviceVulkan::s_Extensions;
 	std::vector<const char*> GraphicsDeviceVulkan::s_Layers;
 	VkDebugUtilsMessengerCreateInfoEXT GraphicsDeviceVulkan::s_DebugCreateInfo;
@@ -118,6 +120,16 @@ namespace Brisk
 #endif
 
 		s_RequiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+	}
+
+	void GraphicsDeviceVulkan::SetupGraphicsPipeline(std::vector<ShaderInfo> shaders) {
+		std::vector<ShaderModule> modules;
+		for (ShaderInfo shader : shaders) {
+			modules.push_back(ShaderManager::CreateShaderModule(shader));
+		}
+
+		m_GraphicsPipeline = new GraphicsPipelineVulkan();
+		m_GraphicsPipeline->Create(modules);
 	}
 
 	void GraphicsDeviceVulkan::Release() {

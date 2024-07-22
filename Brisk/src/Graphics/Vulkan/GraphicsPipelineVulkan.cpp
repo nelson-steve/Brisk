@@ -5,6 +5,7 @@
 namespace Brisk {
 	void GraphicsPipelineVulkan::Create(std::vector<ShaderModule> modules) {
         CreateRenderPass();
+        m_Modules = modules;
 
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
         for (ShaderModule module : modules) {
@@ -154,8 +155,9 @@ namespace Brisk {
     }
 
     void GraphicsPipelineVulkan::Release() {
-        vkDestroyShaderModule(Engine::s_PhysicalDevice->GetDevice(), vertShader, nullptr);
-        vkDestroyShaderModule(Engine::s_PhysicalDevice->GetDevice(), fragShader, nullptr);
+        for (ShaderModule module : m_Modules) {
+            vkDestroyShaderModule(Engine::s_PhysicalDevice->GetDevice(), module.Module, nullptr);
+        }
 
         vkDestroyPipelineLayout(Engine::s_PhysicalDevice->GetDevice(), m_PipelineLayout, nullptr);
         vkDestroyRenderPass(Engine::s_PhysicalDevice->GetDevice(), m_RenderPass, nullptr);

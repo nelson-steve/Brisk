@@ -37,8 +37,10 @@ namespace Brisk
 		static VkInstance GetInstance() { return s_Instance; }
 		static std::vector<const char*> GetRequiredExtenstions() { return s_RequiredExtensions; }
 		static std::vector<const char*> GetValidationLayers() { return s_ValidationLayers; }
-	private:
-		void CreateGraphicsPipeline();
+
+	public:
+		// TODO: This should not exist here I think
+		static GraphicsPipelineVulkan* m_GraphicsPipeline;
 	private:
 		/// <summary>
 		/// Vulkan handles
@@ -55,9 +57,6 @@ namespace Brisk
 		static VkDebugUtilsMessengerCreateInfoEXT s_DebugCreateInfo;
 		static VkDebugUtilsMessengerEXT s_DebugMessenger;
 		static bool m_ValidationLayersFound;
-
-		// TODO: This should not exist here I think
-		static GraphicsPipelineVulkan* m_GraphicsPipeline;
 
 		/// <summary>
 		/// Friend class declaration

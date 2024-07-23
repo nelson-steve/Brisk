@@ -158,8 +158,8 @@ namespace Brisk {
         for (ShaderModule module : m_Modules) {
             vkDestroyShaderModule(Engine::s_PhysicalDevice->GetDevice(), module.Module, nullptr);
         }
-
         vkDestroyPipelineLayout(Engine::s_PhysicalDevice->GetDevice(), m_PipelineLayout, nullptr);
+        vkDestroyPipeline(Engine::s_PhysicalDevice->GetDevice(), m_GraphicsPipeline, nullptr);
         vkDestroyRenderPass(Engine::s_PhysicalDevice->GetDevice(), m_RenderPass, nullptr);
     }
 }

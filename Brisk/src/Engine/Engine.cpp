@@ -47,6 +47,7 @@ namespace Brisk
 		s_MainWindow->DestroyWindow();
 		delete s_MainWindow;
 		m_Swapchain->Release();
+		m_GPUDevice->ReleaseGraphicsPipeline();
 		s_PhysicalDevice->Release();
 		m_GPUDevice->Release();
 		delete m_GPUDevice;

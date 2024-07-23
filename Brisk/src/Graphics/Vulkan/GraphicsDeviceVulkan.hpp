@@ -24,6 +24,10 @@ namespace Brisk
 		virtual void Create() override;
 
 		virtual void SetupGraphicsPipeline(std::vector<ShaderInfo> shaders) override;
+		virtual void ReleaseGraphicsPipeline() override;
+
+		void CreateCommandPoolAndBuffer();
+		void RecordCommandBuffer();
 
 		/// <summary>
 		/// Release all Vulkan resources cleanly
@@ -50,6 +54,8 @@ namespace Brisk
 		/// <summary>
 		/// Vulkan helper variables
 		/// </summary>
+		static VkCommandPool m_CommandPool;
+		static VkCommandBuffer m_CommandBuffer;
 		static std::vector<const char*> s_Extensions;
 		static std::vector<const char*> s_Layers;
 		static std::vector<const char*> s_RequiredExtensions;

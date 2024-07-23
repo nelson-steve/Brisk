@@ -68,9 +68,10 @@ namespace Brisk
 	VkDebugUtilsMessengerCreateInfoEXT GraphicsDeviceVulkan::s_DebugCreateInfo;
 	VkDebugUtilsMessengerEXT GraphicsDeviceVulkan::s_DebugMessenger;
 	bool GraphicsDeviceVulkan::m_ValidationLayersFound;
-		std::vector<const char*> GraphicsDeviceVulkan::s_RequiredExtensions;
-		std::vector<const char*> GraphicsDeviceVulkan::s_ValidationLayers;
-
+	std::vector<const char*> GraphicsDeviceVulkan::s_RequiredExtensions;
+	std::vector<const char*> GraphicsDeviceVulkan::s_ValidationLayers;
+	VkCommandPool m_CommandPool;
+	VkCommandBuffer m_CommandBuffer;
 	void GraphicsDeviceVulkan::Create(){
 		volkInitialize();
 
@@ -130,11 +131,49 @@ namespace Brisk
 
 		m_GraphicsPipeline = new GraphicsPipelineVulkan();
 		m_GraphicsPipeline->Create(modules);
+
+		dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->CreateFramebuffer();
+	}
+
+	void GraphicsDeviceVulkan::ReleaseGraphicsPipeline() {
+		m_GraphicsPipeline->Release();
+	}
+
+	void GraphicsDeviceVulkan::CreateCommandPoolAndBuffer() {
+
+		VkCommandPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		poolInfo.queueFamilyIndex = Engine::s_PhysicalDevice->GetQueueFamilies().PresentIndex;
+
+		if (vkCreateCommandPool(Engine::s_PhysicalDevice->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create command pool!");
+		}
+
+		VkCommandBufferAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		allocInfo.commandPool = m_CommandPool;
+		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		allocInfo.commandBufferCount = 1;
+
+		if (vkAllocateCommandBuffers(Engine::s_PhysicalDevice->GetDevice(), &allocInfo, &m_CommandBuffer) != VK_SUCCESS) {
+			throw std::runtime_error("failed to allocate command buffers!");
+		}
+	}
+
+	void GraphicsDeviceVulkan::RecordCommandBuffer() {
+		VkCommandBufferBeginInfo beginInfo{};
+		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		beginInfo.flags = 0; // Optional
+		beginInfo.pInheritanceInfo = nullptr; // Optional
+
+		if (vkBeginCommandBuffer(m_CommandBuffer, &beginInfo) != VK_SUCCESS) {
+			throw std::runtime_error("failed to begin recording command buffer!");
+		}
 	}
 
 	void GraphicsDeviceVulkan::Release() {
 		vkDestroyDebugUtilsMessengerEXT(s_Instance, s_DebugMessenger, nullptr);
-
 		vkDestroyInstance(s_Instance, nullptr);
 	}
 }

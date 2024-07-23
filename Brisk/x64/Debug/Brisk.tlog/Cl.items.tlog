@@ -4,6 +4,7 @@ C:\dev\Brisk\Brisk\src\Engine\WindowBase.cpp;C:\dev\Brisk\Brisk\x64\Debug\Window
 C:\dev\Brisk\Brisk\src\Graphics\GPUDevice.cpp;C:\dev\Brisk\Brisk\x64\Debug\GPUDevice.obj
 C:\dev\Brisk\Brisk\src\Graphics\ShaderManager.cpp;C:\dev\Brisk\Brisk\x64\Debug\ShaderManager.obj
 C:\dev\Brisk\Brisk\src\Graphics\Swapchain.cpp;C:\dev\Brisk\Brisk\x64\Debug\Swapchain.obj
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\FramebufferVulkan.cpp;C:\dev\Brisk\Brisk\x64\Debug\FramebufferVulkan.obj
 C:\dev\Brisk\Brisk\src\Graphics\Vulkan\GraphicsDeviceVulkan.cpp;C:\dev\Brisk\Brisk\x64\Debug\GraphicsDeviceVulkan.obj
 C:\dev\Brisk\Brisk\src\Graphics\Vulkan\GraphicsPipelineVulkan.cpp;C:\dev\Brisk\Brisk\x64\Debug\GraphicsPipelineVulkan.obj
 C:\dev\Brisk\Brisk\src\Graphics\Vulkan\SwapchainVulkan.cpp;C:\dev\Brisk\Brisk\x64\Debug\SwapchainVulkan.obj

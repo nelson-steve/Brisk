@@ -4,6 +4,7 @@
 
 namespace Brisk {
 	void FramebufferVulkan::Create() {
+        m_SwapchainFramebuffers.resize(dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetSwapchainImageViews().size());
         for (size_t i = 0; i < m_SwapchainFramebuffers.size(); i++) {
             VkImageView attachments[] = {
                 dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetSwapchainImageViews()[i]
@@ -19,7 +20,7 @@ namespace Brisk {
             framebufferInfo.layers = 1;
 
             if (vkCreateFramebuffer(Engine::s_PhysicalDevice->GetDevice(), &framebufferInfo, nullptr, &m_SwapchainFramebuffers[i]) != VK_SUCCESS) {
-                //throw std::runtime_error("failed to create framebuffer!");
+                throw std::runtime_error("failed to create framebuffer!");
             }
         }
 	}

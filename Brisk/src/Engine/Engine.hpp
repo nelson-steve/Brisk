@@ -38,7 +38,6 @@ namespace Brisk
 		static void Terminate();
 	private:
 		Engine() {};
-
 	public:
 		/// <summary>
 		/// Main window of the engine aka the Editor window

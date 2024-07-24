@@ -26,6 +26,9 @@ namespace Brisk {
 		virtual void SetupGraphicsPipeline(std::vector<ShaderInfo> shaders) = 0;
 		virtual void ReleaseGraphicsPipeline() = 0;
 
+		virtual void Draw() = 0;
+		virtual void WaitDeviceIdle() = 0;
+
 		/// <summary>
 		/// Release all Vulkan resources cleanly
 		/// </summary>

@@ -23,11 +23,15 @@ namespace Brisk
 		/// </summary>
 		virtual void Create() override;
 
+		virtual void Draw() override;
+		virtual void WaitDeviceIdle() override;
+
 		virtual void SetupGraphicsPipeline(std::vector<ShaderInfo> shaders) override;
 		virtual void ReleaseGraphicsPipeline() override;
 
+		void CreateSyncObjects();
 		void CreateCommandPoolAndBuffer();
-		void RecordCommandBuffer();
+		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
 
 		/// <summary>
 		/// Release all Vulkan resources cleanly
@@ -63,6 +67,10 @@ namespace Brisk
 		static VkDebugUtilsMessengerCreateInfoEXT s_DebugCreateInfo;
 		static VkDebugUtilsMessengerEXT s_DebugMessenger;
 		static bool m_ValidationLayersFound;
+
+		static VkFence m_InFlightFence;
+		static VkSemaphore m_ImageAvailableSemaphore;
+		static VkSemaphore m_RenderFinishedSemaphore;
 
 		/// <summary>
 		/// Friend class declaration

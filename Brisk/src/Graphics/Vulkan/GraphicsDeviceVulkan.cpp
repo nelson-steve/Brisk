@@ -62,6 +62,9 @@ namespace Brisk
 	/// </summary>
 	VkInstance GraphicsDeviceVulkan::s_Instance;
 
+	VkFence GraphicsDeviceVulkan::m_InFlightFence;
+	VkSemaphore GraphicsDeviceVulkan::m_ImageAvailableSemaphore;
+	VkSemaphore GraphicsDeviceVulkan::m_RenderFinishedSemaphore;
 	GraphicsPipelineVulkan* GraphicsDeviceVulkan::m_GraphicsPipeline;
 	std::vector<const char*> GraphicsDeviceVulkan::s_Extensions;
 	std::vector<const char*> GraphicsDeviceVulkan::s_Layers;
@@ -70,8 +73,9 @@ namespace Brisk
 	bool GraphicsDeviceVulkan::m_ValidationLayersFound;
 	std::vector<const char*> GraphicsDeviceVulkan::s_RequiredExtensions;
 	std::vector<const char*> GraphicsDeviceVulkan::s_ValidationLayers;
-	VkCommandPool m_CommandPool;
-	VkCommandBuffer m_CommandBuffer;
+	VkCommandPool GraphicsDeviceVulkan::m_CommandPool;
+	VkCommandBuffer GraphicsDeviceVulkan::m_CommandBuffer;
+
 	void GraphicsDeviceVulkan::Create(){
 		volkInitialize();
 
@@ -133,9 +137,18 @@ namespace Brisk
 		m_GraphicsPipeline->Create(modules);
 
 		dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->CreateFramebuffer();
+
+		CreateCommandPoolAndBuffer();
+		CreateSyncObjects();
 	}
 
 	void GraphicsDeviceVulkan::ReleaseGraphicsPipeline() {
+		vkDestroySemaphore(Engine::s_PhysicalDevice->GetDevice(), m_ImageAvailableSemaphore, nullptr);
+		vkDestroySemaphore(Engine::s_PhysicalDevice->GetDevice(), m_RenderFinishedSemaphore, nullptr);
+		vkDestroyFence(Engine::s_PhysicalDevice->GetDevice(), m_InFlightFence, nullptr);
+
+		vkDestroyCommandPool(Engine::s_PhysicalDevice->GetDevice(), m_CommandPool, nullptr);
+
 		m_GraphicsPipeline->Release();
 	}
 
@@ -161,7 +174,57 @@ namespace Brisk
 		}
 	}
 
-	void GraphicsDeviceVulkan::RecordCommandBuffer() {
+	void GraphicsDeviceVulkan::Draw() {
+		vkWaitForFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
+		vkResetFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence);
+
+		uint32_t imageIndex;
+		vkAcquireNextImageKHR(Engine::s_PhysicalDevice->GetDevice(), 
+			dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetSwapchain(), UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+
+		vkResetCommandBuffer(m_CommandBuffer, /*VkCommandBufferResetFlagBits*/ 0);
+		RecordCommandBuffer(m_CommandBuffer, imageIndex);
+
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+		VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore };
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pWaitSemaphores = waitSemaphores;
+		submitInfo.pWaitDstStageMask = waitStages;
+
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &m_CommandBuffer;
+
+		VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = signalSemaphores;
+
+		if (vkQueueSubmit(Engine::s_PhysicalDevice->GetGraphicsQueue(), 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
+			throw std::runtime_error("failed to submit draw command buffer!");
+		}
+
+		VkPresentInfoKHR presentInfo{};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = signalSemaphores;
+
+		VkSwapchainKHR swapChains[] = { dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetSwapchain() };
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = swapChains;
+
+		presentInfo.pImageIndices = &imageIndex;
+
+		vkQueuePresentKHR(Engine::s_PhysicalDevice->GetPresentQueue(), &presentInfo);
+	}
+
+	void GraphicsDeviceVulkan::WaitDeviceIdle() {
+		vkDeviceWaitIdle(Engine::s_PhysicalDevice->GetDevice());
+	}
+
+	void GraphicsDeviceVulkan::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		beginInfo.flags = 0; // Optional
@@ -170,6 +233,59 @@ namespace Brisk
 		if (vkBeginCommandBuffer(m_CommandBuffer, &beginInfo) != VK_SUCCESS) {
 			throw std::runtime_error("failed to begin recording command buffer!");
 		}
+
+		VkRenderPassBeginInfo renderPassInfo{};
+		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		renderPassInfo.renderPass = m_GraphicsPipeline->GetRenderPass();
+		renderPassInfo.framebuffer = dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetFramebuffer()->GetSwapChainFramebuffers()[imageIndex];
+		renderPassInfo.renderArea.offset = { 0, 0 };
+		renderPassInfo.renderArea.extent = dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetExtent();
+
+		VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
+		renderPassInfo.clearValueCount = 1;
+		renderPassInfo.pClearValues = &clearColor;
+
+		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline->GetPipeline());
+
+		VkViewport viewport{};
+		viewport.x = 0.0f;
+		viewport.y = 0.0f;
+		viewport.width = static_cast<float>(dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetExtentWidth());
+		viewport.height = static_cast<float>(dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetExtentHeight());
+		viewport.minDepth = 0.0f;
+		viewport.maxDepth = 1.0f;
+		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
+
+		VkRect2D scissor{};
+		scissor.offset = { 0, 0 };
+		scissor.extent = dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetExtent();
+		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
+
+		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+
+		vkCmdEndRenderPass(commandBuffer);
+
+		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+			throw std::runtime_error("failed to record command buffer!");
+		}
+	}
+
+	void GraphicsDeviceVulkan::CreateSyncObjects() {
+		VkSemaphoreCreateInfo semaphoreInfo{};
+		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+		VkFenceCreateInfo fenceInfo{};
+		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+		if (vkCreateSemaphore(Engine::s_PhysicalDevice->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore) != VK_SUCCESS ||
+			vkCreateSemaphore(Engine::s_PhysicalDevice->GetDevice(), &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore) != VK_SUCCESS ||
+			vkCreateFence(Engine::s_PhysicalDevice->GetDevice(), &fenceInfo, nullptr, &m_InFlightFence) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create synchronization objects for a frame!");
+		}
+
 	}
 
 	void GraphicsDeviceVulkan::Release() {

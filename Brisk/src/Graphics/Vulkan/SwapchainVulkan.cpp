@@ -71,6 +71,7 @@ namespace Brisk {
 		swapChainCreateInfo.imageExtent = surfaceCapabilities.currentExtent;
 		swapChainCreateInfo.imageArrayLayers = 1;
 		swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		m_extent = surfaceCapabilities.currentExtent;
 
 		uint32_t queueFamilyCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(Engine::s_PhysicalDevice->GetPhysicalDevice(), &queueFamilyCount, nullptr);

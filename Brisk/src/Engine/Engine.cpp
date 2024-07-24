@@ -34,13 +34,17 @@ namespace Brisk
 				vertexShader,
 				fragmentShader,
 			}
+
 		);
 	}
 
 	void Engine::Update() {
 		while (!s_MainWindow->WindowShouldClose()) {
 			s_MainWindow->ProcessEvents();
+			m_GPUDevice->Draw();
 		}
+
+		m_GPUDevice->WaitDeviceIdle();
 	}
 
 	void Engine::Terminate() {
@@ -49,6 +53,7 @@ namespace Brisk
 		m_Swapchain->Release();
 		m_GPUDevice->ReleaseGraphicsPipeline();
 		s_PhysicalDevice->Release();
+
 		m_GPUDevice->Release();
 		delete m_GPUDevice;
 	}

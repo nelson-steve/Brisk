@@ -24,6 +24,8 @@ namespace Brisk
 		QueueFamilyIndices GetQueueFamilies() { return m_Indices; }
 		VkPhysicalDevice GetPhysicalDevice() { return m_PhysicalDevice; }
 		VkDevice GetDevice() { return m_Device; }
+		const VkQueue GetGraphicsQueue() const { return m_GraphicsQueue; }
+		const VkQueue GetPresentQueue() const { return m_PresentQueue; }
 	private:
 		VkPhysicalDevice m_PhysicalDevice;
 		VkDevice m_Device;

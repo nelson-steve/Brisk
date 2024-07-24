@@ -14,6 +14,7 @@ namespace Brisk
 		void Create(std::vector<ShaderModule> modules);
 		void Release();
 
+		const VkPipeline GetPipeline() const { return m_GraphicsPipeline; }
 		const VkRenderPass GetRenderPass() const { return m_RenderPass; }
 	private:
 		void CreateRenderPass();

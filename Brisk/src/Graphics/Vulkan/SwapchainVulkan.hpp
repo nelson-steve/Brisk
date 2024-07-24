@@ -15,6 +15,8 @@ namespace Brisk {
 
 		void CreateFramebuffer();
 
+		const FramebufferVulkan* GetFramebuffer() const { return m_Framebuffer; }
+
 		VkSurfaceKHR GetSurface() const { return m_Surface; }
 		VkSwapchainKHR GetSwapchain() const { return m_Swapchain; }
 		std::vector<VkImage> GetSwapchainImages() const { return m_SwapchainImages; }

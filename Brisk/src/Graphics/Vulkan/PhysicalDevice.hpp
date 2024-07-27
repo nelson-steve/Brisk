@@ -14,6 +14,8 @@ namespace Brisk
 		inline void Reset() { HasGraphicsSupport = false; HasPresentSupport = false; }
 	};
 
+
+
 	class PhysicalDevice {
 	public:
 		PhysicalDevice();

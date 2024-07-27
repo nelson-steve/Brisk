@@ -1,6 +1,7 @@
 C:\dev\Brisk\Brisk\src\Core\Log.cpp;C:\dev\Brisk\Brisk\x64\Debug\Log.obj
 C:\dev\Brisk\Brisk\src\Engine\Engine.cpp;C:\dev\Brisk\Brisk\x64\Debug\Engine.obj
 C:\dev\Brisk\Brisk\src\Engine\WindowBase.cpp;C:\dev\Brisk\Brisk\x64\Debug\WindowBase.obj
+C:\dev\Brisk\Brisk\src\Graphics\DirectX11\GraphicsDeviceDirectX11.cpp;C:\dev\Brisk\Brisk\x64\Debug\GraphicsDeviceDirectX11.obj
 C:\dev\Brisk\Brisk\src\Graphics\GPUDevice.cpp;C:\dev\Brisk\Brisk\x64\Debug\GPUDevice.obj
 C:\dev\Brisk\Brisk\src\Graphics\ShaderManager.cpp;C:\dev\Brisk\Brisk\x64\Debug\ShaderManager.obj
 C:\dev\Brisk\Brisk\src\Graphics\Swapchain.cpp;C:\dev\Brisk\Brisk\x64\Debug\Swapchain.obj

@@ -1,4 +1,14 @@
-﻿  GraphicsDeviceVulkan.cpp
+﻿  FramebufferVulkan.cpp
+C:\dev\Brisk\Brisk\src\Engine\WindowBase.hpp(81,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/FramebufferVulkan.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(16,3): warning C4091: 'static ': ignored on left of 'EngineInfo::GraphicsAPI' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/FramebufferVulkan.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(19,2): warning C4091: 'static ': ignored on left of 'EngineInfo' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/FramebufferVulkan.cpp')
+  
+  GraphicsDeviceVulkan.cpp
 C:\dev\Brisk\Brisk\src\Engine\WindowBase.hpp(81,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
   (compiling source file 'src/Graphics/Vulkan/GraphicsDeviceVulkan.cpp')
   
@@ -11,4 +21,27 @@ C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(19,2): warning C4091: 'static ': 
 C:\dev\Brisk\Brisk\src\Graphics\Vulkan\VulkanUtilities.hpp(13,3): warning C4091: 'static ': ignored on left of 'Brisk::VulkanUtilities' when no variable is declared
   (compiling source file 'src/Graphics/Vulkan/GraphicsDeviceVulkan.cpp')
   
+  PhysicalDevice.cpp
+C:\dev\Brisk\Brisk\src\Engine\WindowBase.hpp(81,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/PhysicalDevice.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(16,3): warning C4091: 'static ': ignored on left of 'EngineInfo::GraphicsAPI' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/PhysicalDevice.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(19,2): warning C4091: 'static ': ignored on left of 'EngineInfo' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/PhysicalDevice.cpp')
+  
+  SwapchainVulkan.cpp
+C:\dev\Brisk\Brisk\src\Engine\WindowBase.hpp(81,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/SwapchainVulkan.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(16,3): warning C4091: 'static ': ignored on left of 'EngineInfo::GraphicsAPI' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/SwapchainVulkan.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(19,2): warning C4091: 'static ': ignored on left of 'EngineInfo' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/SwapchainVulkan.cpp')
+  
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\SwapchainVulkan.cpp(89,48): warning C4838: conversion from 'int32_t' to 'uint32_t' requires a narrowing conversion
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\SwapchainVulkan.cpp(90,48): warning C4838: conversion from 'int32_t' to 'uint32_t' requires a narrowing conversion
+  Generating Code...
   Brisk.vcxproj -> C:\dev\Brisk\x64\Debug\Brisk.exe

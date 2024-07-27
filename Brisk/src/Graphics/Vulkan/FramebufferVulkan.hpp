@@ -10,7 +10,7 @@ namespace Brisk {
 		void Create();
 		void Release();
 
-		const std::vector<VkFramebuffer> GetSwapChainFramebuffers() const 
+		const std::vector<VkFramebuffer>& GetSwapChainFramebuffers() const 
 		{ 
 			return m_SwapchainFramebuffers; 
 		}

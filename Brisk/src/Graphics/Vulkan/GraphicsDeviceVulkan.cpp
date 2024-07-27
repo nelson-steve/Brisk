@@ -136,7 +136,7 @@ namespace Brisk
 		m_GraphicsPipeline = new GraphicsPipelineVulkan();
 		m_GraphicsPipeline->Create(modules);
 
-		dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->CreateFramebuffer();
+		static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->CreateFramebuffer();
 
 		CreateCommandPoolAndBuffer();
 		CreateSyncObjects();
@@ -180,7 +180,7 @@ namespace Brisk
 
 		uint32_t imageIndex;
 		vkAcquireNextImageKHR(Engine::s_PhysicalDevice->GetDevice(), 
-			dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetSwapchain(), UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+			static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetSwapchain(), UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
 		vkResetCommandBuffer(m_CommandBuffer, /*VkCommandBufferResetFlagBits*/ 0);
 		RecordCommandBuffer(m_CommandBuffer, imageIndex);
@@ -211,7 +211,7 @@ namespace Brisk
 		presentInfo.waitSemaphoreCount = 1;
 		presentInfo.pWaitSemaphores = signalSemaphores;
 
-		VkSwapchainKHR swapChains[] = { dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetSwapchain() };
+		VkSwapchainKHR swapChains[] = { static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetSwapchain() };
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = swapChains;
 
@@ -237,9 +237,9 @@ namespace Brisk
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassInfo.renderPass = m_GraphicsPipeline->GetRenderPass();
-		renderPassInfo.framebuffer = dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetFramebuffer()->GetSwapChainFramebuffers()[imageIndex];
+		renderPassInfo.framebuffer = static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetFramebuffer()->GetSwapChainFramebuffers()[imageIndex];
 		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetExtent();
+		renderPassInfo.renderArea.extent = static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetExtent();
 
 		VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
 		renderPassInfo.clearValueCount = 1;
@@ -252,15 +252,15 @@ namespace Brisk
 		VkViewport viewport{};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
-		viewport.width = static_cast<float>(dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetExtentWidth());
-		viewport.height = static_cast<float>(dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetExtentHeight());
+		viewport.width = static_cast<float>(static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetExtentWidth());
+		viewport.height = static_cast<float>(static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetExtentHeight());
 		viewport.minDepth = 0.0f;
 		viewport.maxDepth = 1.0f;
 		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
 
 		VkRect2D scissor{};
 		scissor.offset = { 0, 0 };
-		scissor.extent = dynamic_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetExtent();
+		scissor.extent = static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetExtent();
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
 		vkCmdDraw(commandBuffer, 3, 1, 0, 0);

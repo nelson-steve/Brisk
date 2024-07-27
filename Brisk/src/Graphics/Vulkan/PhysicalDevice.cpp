@@ -13,12 +13,12 @@ namespace Brisk
 
 	void PhysicalDevice::Create(VkSurfaceKHR surface) {
 		uint32_t device_count = 0;
-		vkEnumeratePhysicalDevices(dynamic_cast<GraphicsDeviceVulkan*>(Engine::m_GPUDevice)->GetInstance(), &device_count, nullptr);
+		vkEnumeratePhysicalDevices(static_cast<GraphicsDeviceVulkan*>(Engine::m_GPUDevice)->GetInstance(), &device_count, nullptr);
 		if (device_count == 0) {
 			BRISK_CORE_ERROR("failed to find GPUs with Vulkan support!");
 		}
 		std::vector<VkPhysicalDevice> devices(device_count);
-		vkEnumeratePhysicalDevices(dynamic_cast<GraphicsDeviceVulkan*>(Engine::m_GPUDevice)->GetInstance(), &device_count, devices.data());
+		vkEnumeratePhysicalDevices(static_cast<GraphicsDeviceVulkan*>(Engine::m_GPUDevice)->GetInstance(), &device_count, devices.data());
 		for (const auto& device : devices) {
 			if (IsDeviceSuitable(device, surface)) {
 				m_PhysicalDevice = device;
@@ -65,8 +65,8 @@ namespace Brisk
 		if (vkCreateDevice(m_PhysicalDevice, &device_create_info, nullptr, &m_Device) != VK_SUCCESS) {
 			BRISK_CORE_ERROR("Failed to create logical device!");
 		}
-		vkGetDeviceQueue(m_Device, 0, 0, &m_GraphicsQueue);
-		vkGetDeviceQueue(m_Device, 0, 0, &m_PresentQueue);
+		vkGetDeviceQueue(m_Device, m_Indices.GraphicsIndex, 0, &m_GraphicsQueue);
+		vkGetDeviceQueue(m_Device, m_Indices.PresentIndex, 0, &m_PresentQueue);
 	}
 
 	void PhysicalDevice::Release() {
@@ -109,7 +109,7 @@ namespace Brisk
 	bool PhysicalDevice::IsDeviceSuitable(VkPhysicalDevice device, VkSurfaceKHR surface) {
 		CreateQueueFamilies(device, surface);
 
-		std::vector<const char*> extensions = dynamic_cast<GraphicsDeviceVulkan*>(Engine::m_GPUDevice)->GetRequiredExtenstions();
+		std::vector<const char*>& extensions = static_cast<GraphicsDeviceVulkan*>(Engine::m_GPUDevice)->GetRequiredExtenstions();
 		bool extensionsSupported = false;
 		{
 			uint32_t extensionCount;

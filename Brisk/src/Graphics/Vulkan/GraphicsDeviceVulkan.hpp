@@ -43,8 +43,8 @@ namespace Brisk
 		/// Getters for Vulkan handles
 		/// </summary>
 		static VkInstance GetInstance() { return s_Instance; }
-		static std::vector<const char*> GetRequiredExtenstions() { return s_RequiredExtensions; }
-		static std::vector<const char*> GetValidationLayers() { return s_ValidationLayers; }
+		static std::vector<const char*>& GetRequiredExtenstions() { return s_RequiredExtensions; }
+		static std::vector<const char*>& GetValidationLayers() { return s_ValidationLayers; }
 
 	public:
 		// TODO: This should not exist here I think

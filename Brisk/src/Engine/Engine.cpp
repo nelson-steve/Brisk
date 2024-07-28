@@ -29,7 +29,7 @@ namespace Brisk
 		fragmentShader.Path = "Shaders/Vulkan/Compiled/TriangleFS.spv";
 		fragmentShader.Type = ShaderType::Fragment;
 
-		m_GPUDevice->SetupGraphicsPipeline(
+		m_GPUDevice->SetupGraphicsPipeline( 
 			{
 				vertexShader,
 				fragmentShader,

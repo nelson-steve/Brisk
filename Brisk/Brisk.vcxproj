@@ -150,7 +150,6 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     </PreBuildEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="src\Core\bnew.hpp" />
     <ClInclude Include="src\Core\Log.hpp" />
     <ClInclude Include="src\Core\Timer.hpp" />
     <ClInclude Include="src\Engine\Engine.hpp" />
@@ -165,6 +164,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Graphics\Vulkan\FramebufferVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\GraphicsDeviceVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\GraphicsPipelineVulkan.hpp" />
+    <ClInclude Include="src\Graphics\Vulkan\RenderpassVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\SwapchainVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\PhysicalDevice.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\volk.cpp" />

@@ -5,26 +5,29 @@
 #include <vector>
 
 namespace Brisk {
-    class RenderPassManager {
+    class RenderpassVulkan {
     public:
-        RenderPassManager(VkDevice device);
-        ~RenderPassManager();
+        RenderpassVulkan();
+        ~RenderpassVulkan();
 
-        void addAttachment(VkFormat format, VkAttachmentLoadOp loadOp, VkAttachmentStoreOp storeOp, VkImageLayout initialLayout, VkImageLayout finalLayout);
-        void addSubpass(VkPipelineBindPoint pipelineBindPoint, const std::vector<VkAttachmentReference>& colorAttachments, const VkAttachmentReference* depthStencilAttachment = nullptr);
-        void createRenderPass();
-        void createFramebuffer(VkExtent2D extent, const std::vector<VkImageView>& attachments);
+        void Create(std::vector<VkFramebuffer> framebuffers = {});
+        void Release();
 
-        VkRenderPass getRenderPass() const;
-        VkFramebuffer getFramebuffer() const;
+        void AddAttachment(VkFormat format, VkAttachmentLoadOp loadOp, VkAttachmentStoreOp storeOp, VkImageLayout initialLayout, VkImageLayout finalLayout);
+        void AddSubpass(VkPipelineBindPoint pipelineBindPoint, const std::vector<VkAttachmentReference>& colorAttachments, const VkAttachmentReference* depthStencilAttachment = nullptr);
+        void CreateRenderPass();
+        //void CreateFramebuffer(VkExtent2D extent, const std::vector<VkImageView>& attachments);
+        void CreateFramebuffer(VkExtent2D extent, const std::vector<VkImageView>& attachments);
+
+        VkRenderPass GetRenderPass() const;
+        VkFramebuffer GetFramebuffer() const;
 
     private:
-        VkDevice device;
-        VkRenderPass renderPass;
-        VkFramebuffer framebuffer;
+        VkRenderPass m_RenderPass;
+        std::vector<VkFramebuffer> m_Framebuffers;
 
-        std::vector<VkAttachmentDescription> attachments;
-        std::vector<VkSubpassDescription> subpasses;
-        std::vector<VkSubpassDependency> dependencies;
+        std::vector<VkAttachmentDescription> m_Attachments;
+        std::vector<VkSubpassDescription> m_Subpasses;
+        std::vector<VkSubpassDependency> m_Dependencies;
     };
 }

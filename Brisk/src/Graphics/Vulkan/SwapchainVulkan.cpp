@@ -14,8 +14,6 @@ namespace Brisk {
 		}
 		vkDestroySwapchainKHR(Engine::s_PhysicalDevice->GetDevice(), m_Swapchain, nullptr);
 		vkDestroySurfaceKHR(static_cast<GraphicsDeviceVulkan*>(Engine::m_GPUDevice)->GetInstance(), m_Surface, nullptr);
-
-		m_Framebuffer->Release();
 	}
 
 	void SwapchainVulkan::Create() {
@@ -133,10 +131,5 @@ namespace Brisk {
 				throw std::runtime_error("Failed to create Swapchain Image Views!");
 			}
 		}
-	}
-
-	void SwapchainVulkan::CreateFramebuffer() {
-		m_Framebuffer = new FramebufferVulkan();
-		m_Framebuffer->Create();
 	}
 }

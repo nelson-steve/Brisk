@@ -2,7 +2,6 @@
 
 #include "Graphics/Swapchain.hpp"
 #include "Graphics/Vulkan/GraphicsDeviceVulkan.hpp"
-#include "FramebufferVulkan.hpp"
 
 namespace Brisk {
 	class SwapchainVulkan : public Swapchain {
@@ -12,10 +11,6 @@ namespace Brisk {
 		virtual void Create() override;
 		virtual void Release() override;
 		//void Resize();
-
-		void CreateFramebuffer();
-
-		const FramebufferVulkan* GetFramebuffer() const { return m_Framebuffer; }
 
 		VkSurfaceKHR GetSurface() const { return m_Surface; }
 		VkSwapchainKHR GetSwapchain() const { return m_Swapchain; }
@@ -27,7 +22,6 @@ namespace Brisk {
 		uint32_t GetImageCount() const { return m_ImageCount; }
 		VkPresentModeKHR GetPresentMode() const { return m_present_mode; }
 	private:
-		FramebufferVulkan* m_Framebuffer;
 		VkSwapchainKHR m_Swapchain;
 		VkSurfaceKHR m_Surface;
 		std::vector<VkSemaphore> m_render_complete_semaphores;

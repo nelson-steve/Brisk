@@ -1,9 +1,10 @@
 #include "RenderpassVulkan.hpp"
 
 #include "Engine/Engine.hpp"
+#include "SwapchainVulkan.hpp"
 
 namespace Brisk {
-    void RenderpassVulkan::Create(std::vector<VkFramebuffer> framebuffers) {
+    void RenderpassVulkan::Create(uint16_t noOfFrameBuffers) {
         VkAttachmentDescription colorAttachment{};
         //colorAttachment.format = Engine::m_Swapchain->GetFormat();
         colorAttachment.format = VK_FORMAT_B8G8R8A8_SRGB; // TODO: DO NOT use hardcoded value
@@ -34,13 +35,32 @@ namespace Brisk {
         if (vkCreateRenderPass(Engine::s_PhysicalDevice->GetDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
             throw std::runtime_error("failed to create render pass!");
         }
+
+        m_Framebuffers.resize(noOfFrameBuffers);
+        for (size_t i = 0; i < m_Framebuffers.size(); i++) {
+            VkImageView attachments[] = {
+                static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetSwapchainImageViews()[i]
+            };
+
+            VkFramebufferCreateInfo framebufferInfo{};
+            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            framebufferInfo.renderPass = m_RenderPass;
+            framebufferInfo.attachmentCount = 1;
+            framebufferInfo.pAttachments = attachments;
+            framebufferInfo.width = static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetExtentWidth();
+            framebufferInfo.height = static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetExtentHeight();
+            framebufferInfo.layers = 1;
+
+            if (vkCreateFramebuffer(Engine::s_PhysicalDevice->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create framebuffer!");
+            }
+        }
     }
 
     void RenderpassVulkan::Release() {
-
-    }
-
-    void RenderpassVulkan::CreateFramebuffer() {
-
+        for (int i = 0; i < m_Framebuffers.size(); i++) {
+            vkDestroyFramebuffer(Engine::s_PhysicalDevice->GetDevice(), m_Framebuffers[i], nullptr);
+        }
+        vkDestroyRenderPass(Engine::s_PhysicalDevice->GetDevice(), m_RenderPass, nullptr);
     }
 }

@@ -69,10 +69,7 @@
     <ClInclude Include="src\Graphics\DirectX11\GraphicsDeviceDirectX11.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Vulkan\FramebufferVulkan.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Core\bnew.hpp">
+    <ClInclude Include="src\Graphics\Vulkan\RenderpassVulkan.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -119,7 +116,7 @@
     <ClCompile Include="src\Graphics\ShaderManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Vulkan\FramebufferVulkan.cpp">
+    <ClCompile Include="src\Graphics\Vulkan\RenderpassVulkan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

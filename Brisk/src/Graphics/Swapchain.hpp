@@ -24,7 +24,6 @@ namespace Brisk {
 
 		virtual uint32_t GetExtentWidth() const = 0;
 		virtual uint32_t GetExtentHeight() const = 0;
-		virtual uint32_t GetImageCount() const = 0;
 	protected:
 		WindowBase* m_Window;
 		uint32_t m_ImageCount;

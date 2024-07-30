@@ -136,7 +136,8 @@ namespace Brisk
 		m_GraphicsPipeline = new GraphicsPipelineVulkan();
 		m_GraphicsPipeline->Create(modules);
 
-		static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->CreateFramebuffer();
+		m_Renderpass = new RenderpassVulkan();
+		m_Renderpass->Create(static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetImageCount());
 
 		CreateCommandPoolAndBuffer();
 		CreateSyncObjects();
@@ -149,6 +150,7 @@ namespace Brisk
 
 		vkDestroyCommandPool(Engine::s_PhysicalDevice->GetDevice(), m_CommandPool, nullptr);
 
+		m_Renderpass->Release();
 		m_GraphicsPipeline->Release();
 	}
 
@@ -237,7 +239,7 @@ namespace Brisk
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
 		renderPassInfo.renderPass = m_GraphicsPipeline->GetRenderPass();
-		renderPassInfo.framebuffer = static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetFramebuffer()->GetSwapChainFramebuffers()[imageIndex];
+		renderPassInfo.framebuffer = m_Renderpass->GetFramebuffers()[imageIndex];
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetExtent();
 
@@ -289,6 +291,8 @@ namespace Brisk
 	}
 
 	void GraphicsDeviceVulkan::Release() {
+		delete m_Renderpass;
+
 		vkDestroyDebugUtilsMessengerEXT(s_Instance, s_DebugMessenger, nullptr);
 		vkDestroyInstance(s_Instance, nullptr);
 	}

@@ -7,10 +7,7 @@
 namespace Brisk {
     class RenderpassVulkan {
     public:
-        RenderpassVulkan();
-        ~RenderpassVulkan();
-
-        void Create(std::vector<VkFramebuffer> framebuffers = {});
+        void Create(uint16_t noOfFrameBuffers);
         void Release();
 
         void AddAttachment(VkFormat format, VkAttachmentLoadOp loadOp, VkAttachmentStoreOp storeOp, VkImageLayout initialLayout, VkImageLayout finalLayout);
@@ -21,6 +18,8 @@ namespace Brisk {
 
         VkRenderPass GetRenderPass() const;
         VkFramebuffer GetFramebuffer() const;
+
+        const std::vector<VkFramebuffer> GetFramebuffers() const { return m_Framebuffers; }
 
     private:
         VkRenderPass m_RenderPass;

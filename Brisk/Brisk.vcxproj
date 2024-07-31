@@ -154,6 +154,8 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Core\Timer.hpp" />
     <ClInclude Include="src\Engine\Engine.hpp" />
     <ClInclude Include="src\Engine\EngineGlobal.hpp" />
+    <ClInclude Include="src\Engine\Renderer\Renderer.hpp" />
+    <ClInclude Include="src\Engine\Renderer\Renderer2D.hpp" />
     <ClInclude Include="src\Engine\WindowBase.hpp" />
     <ClInclude Include="src\Graphics\DirectX11\GraphicsDeviceDirectX11.hpp" />
     <ClInclude Include="src\Graphics\Factories\SwapchainFactory.hpp" />
@@ -173,6 +175,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
   <ItemGroup>
     <ClCompile Include="src\Core\Log.cpp" />
     <ClCompile Include="src\Engine\Engine.cpp" />
+    <ClCompile Include="src\Engine\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Engine\WindowBase.cpp" />
     <ClCompile Include="src\Graphics\DirectX11\GraphicsDeviceDirectX11.cpp" />
     <ClCompile Include="src\Graphics\GPUDevice.cpp" />

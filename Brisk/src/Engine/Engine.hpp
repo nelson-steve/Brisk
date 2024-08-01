@@ -48,8 +48,8 @@ namespace Brisk
 		/// </summary>
 		static EngineInfo s_EngineInfo;
 
-		static GPUDevice* m_GPUDevice;
-		static Swapchain* m_Swapchain;
+		static GPUContext* s_GPUContext;
+		static Swapchain* s_Swapchain;
 		static PhysicalDevice* s_PhysicalDevice;
 	private:
 	};

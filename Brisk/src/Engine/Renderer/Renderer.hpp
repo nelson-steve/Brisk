@@ -1,17 +1,18 @@
 #pragma once
 
 #include "Graphics/GPUDevice.hpp"
+#include "Graphics/Vulkan/GraphicsPipelineVulkan.hpp"
 
 namespace Brisk {
 	class Renderer {
 	public:
-		void Create(GPUDevice* device);
+		void Initialize();
 		void Release();
 
 		void PreProcess();
 		void Render();
 		void PostProcess();
 	private:
-		GPUDevice* m_GPUDevice;
+		GraphicsPipelineVulkan* m_DefaultGraphicsPipeline;
 	};
 }

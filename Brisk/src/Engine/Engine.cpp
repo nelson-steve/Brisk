@@ -8,53 +8,37 @@ namespace Brisk
 	EngineInfo Engine::s_EngineInfo;
 	WindowBase* Engine::s_MainWindow;
 
-	GPUDevice* Engine::m_GPUDevice;
-	Swapchain* Engine::m_Swapchain;
+	GPUContext* Engine::s_GPUContext;
+	Swapchain* Engine::s_Swapchain;
 	PhysicalDevice* Engine::s_PhysicalDevice;
 
 	void Engine::Init() {
 		Log::Init();
 		s_MainWindow = WindowCreator::CreateWindowsWindow(1280, 720);
 
-		m_GPUDevice = GPUDevice::CreateDevice();
-		m_GPUDevice->Create();
-		m_Swapchain =  SwapchainFactory::CreateSwapchain(s_MainWindow);
-		m_Swapchain->Create();
-
-		ShaderInfo vertexShader;
-		vertexShader.Path = "Shaders/Vulkan/Compiled/TriangleVS.spv";
-		vertexShader.Type = ShaderType::Vertex;
-
-		ShaderInfo fragmentShader;
-		fragmentShader.Path = "Shaders/Vulkan/Compiled/TriangleFS.spv";
-		fragmentShader.Type = ShaderType::Fragment;
-
-		m_GPUDevice->SetupGraphicsPipeline( 
-			{
-				vertexShader,
-				fragmentShader,
-			}
-
-		);
+		s_GPUContext = GPUContext::CreateContext();
+		s_GPUContext->Create();
+		s_Swapchain =  SwapchainFactory::CreateSwapchain(s_MainWindow);
+		s_Swapchain->Create();
 	}
 
 	void Engine::Update() {
 		while (!s_MainWindow->WindowShouldClose()) {
 			s_MainWindow->ProcessEvents();
-			m_GPUDevice->Draw();
+			s_GPUContext->Draw();
 		}
 
-		m_GPUDevice->WaitDeviceIdle();
+		s_GPUContext->WaitDeviceIdle();
 	}
 
 	void Engine::Terminate() {
 		s_MainWindow->DestroyWindow();
 		delete s_MainWindow;
-		m_Swapchain->Release();
-		m_GPUDevice->ReleaseGraphicsPipeline();
+		s_Swapchain->Release();
+		s_GPUContext->ReleaseGraphicsPipeline();
 		s_PhysicalDevice->Release();
 
-		m_GPUDevice->Release();
-		delete m_GPUDevice;
+		s_GPUContext->Release();
+		delete s_GPUContext;
 	}
 }

@@ -17,13 +17,12 @@ namespace Brisk {
 		ShaderType Type;
 	};
 
-	class GPUDevice {
+	class GPUContext {
 	public:
-		[[nodiscard]] static GPUDevice* CreateDevice();
+		[[nodiscard]] static GPUContext* CreateContext();
 
 		virtual void Create() = 0;
 
-		virtual void SetupGraphicsPipeline(std::vector<ShaderInfo> shaders) = 0;
 		virtual void ReleaseGraphicsPipeline() = 0;
 
 		virtual void Draw() = 0;

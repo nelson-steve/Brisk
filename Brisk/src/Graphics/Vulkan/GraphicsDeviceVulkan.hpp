@@ -3,7 +3,6 @@
 #include "PhysicalDevice.hpp"
 #include "Engine/WindowBase.hpp"
 #include "Graphics/GPUDevice.hpp"
-#include "GraphicsPipelineVulkan.hpp"
 #include "Graphics/Vulkan/RenderpassVulkan.hpp"
 
 #include <Volk/volk.h>
@@ -17,7 +16,7 @@ namespace Brisk
 	/// </summary>
 	class Swapchain;
 
-	class GraphicsDeviceVulkan : public GPUDevice {
+	class GraphicsDeviceVulkan : public GPUContext {
 	public:
 		/// <summary>
 		/// Create Vulkan Device
@@ -27,7 +26,6 @@ namespace Brisk
 		virtual void Draw() override;
 		virtual void WaitDeviceIdle() override;
 
-		virtual void SetupGraphicsPipeline(std::vector<ShaderInfo> shaders) override;
 		virtual void ReleaseGraphicsPipeline() override;
 
 		void CreateSyncObjects();
@@ -46,10 +44,6 @@ namespace Brisk
 		static VkInstance GetInstance() { return s_Instance; }
 		static std::vector<const char*>& GetRequiredExtenstions() { return s_RequiredExtensions; }
 		static std::vector<const char*>& GetValidationLayers() { return s_ValidationLayers; }
-
-	public:
-		// TODO: This should not exist here I think
-		static GraphicsPipelineVulkan* m_GraphicsPipeline;
 	private:
 		/// <summary>
 		/// Vulkan handles

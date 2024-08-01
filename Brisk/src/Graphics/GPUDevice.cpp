@@ -3,7 +3,7 @@
 #include "Core/Log.hpp"
 
 namespace Brisk {
-	GPUDevice* GPUDevice::CreateDevice() {
+	GPUContext* GPUContext::CreateContext() {
 		switch (Engine::s_EngineInfo.API)
 		{
 		case EngineInfo::GraphicsAPI::Vulkan:

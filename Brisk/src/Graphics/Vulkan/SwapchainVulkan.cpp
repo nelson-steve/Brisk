@@ -13,11 +13,11 @@ namespace Brisk {
 			vkDestroyImageView(Engine::s_PhysicalDevice->GetDevice(), imageView, nullptr);
 		}
 		vkDestroySwapchainKHR(Engine::s_PhysicalDevice->GetDevice(), m_Swapchain, nullptr);
-		vkDestroySurfaceKHR(static_cast<GraphicsDeviceVulkan*>(Engine::m_GPUDevice)->GetInstance(), m_Surface, nullptr);
+		vkDestroySurfaceKHR(static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetInstance(), m_Surface, nullptr);
 	}
 
 	void SwapchainVulkan::Create() {
-		if (glfwCreateWindowSurface(static_cast<GraphicsDeviceVulkan*>(Engine::m_GPUDevice)->GetInstance(), (GLFWwindow*)m_Window->GetWindowHandle(), nullptr, &m_Surface) != VK_SUCCESS) {
+		if (glfwCreateWindowSurface(static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetInstance(), (GLFWwindow*)m_Window->GetWindowHandle(), nullptr, &m_Surface) != VK_SUCCESS) {
 			BRISK_CORE_ERROR("Failed to create window surface!");
 		}
 

@@ -65,7 +65,6 @@ namespace Brisk
 	VkFence GraphicsDeviceVulkan::m_InFlightFence;
 	VkSemaphore GraphicsDeviceVulkan::m_ImageAvailableSemaphore;
 	VkSemaphore GraphicsDeviceVulkan::m_RenderFinishedSemaphore;
-	GraphicsPipelineVulkan* GraphicsDeviceVulkan::m_GraphicsPipeline;
 	std::vector<const char*> GraphicsDeviceVulkan::s_Extensions;
 	std::vector<const char*> GraphicsDeviceVulkan::s_Layers;
 	VkDebugUtilsMessengerCreateInfoEXT GraphicsDeviceVulkan::s_DebugCreateInfo;
@@ -125,26 +124,6 @@ namespace Brisk
 #endif
 
 		s_RequiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-	}
-
-	void GraphicsDeviceVulkan::SetupGraphicsPipeline(std::vector<ShaderInfo> shaders) {
-
-		m_Renderpass = new RenderpassVulkan();
-		m_Renderpass->Create(static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetImageCount());
-
-		CreateCommandPoolAndBuffer();
-		CreateSyncObjects();
-	}
-
-	void GraphicsDeviceVulkan::ReleaseGraphicsPipeline() {
-		vkDestroySemaphore(Engine::s_PhysicalDevice->GetDevice(), m_ImageAvailableSemaphore, nullptr);
-		vkDestroySemaphore(Engine::s_PhysicalDevice->GetDevice(), m_RenderFinishedSemaphore, nullptr);
-		vkDestroyFence(Engine::s_PhysicalDevice->GetDevice(), m_InFlightFence, nullptr);
-
-		vkDestroyCommandPool(Engine::s_PhysicalDevice->GetDevice(), m_CommandPool, nullptr);
-
-		m_Renderpass->Release();
-		m_GraphicsPipeline->Release();
 	}
 
 	void GraphicsDeviceVulkan::CreateCommandPoolAndBuffer() {
@@ -231,7 +210,7 @@ namespace Brisk
 
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = m_GraphicsPipeline->GetRenderPass();
+		//renderPassInfo.renderPass = m_GraphicsPipeline->GetRenderPass();
 		renderPassInfo.framebuffer = m_Renderpass->GetFramebuffers()[imageIndex];
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtent();
@@ -242,7 +221,7 @@ namespace Brisk
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline->GetPipeline());
+		//vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline->GetPipeline());
 
 		VkViewport viewport{};
 		viewport.x = 0.0f;

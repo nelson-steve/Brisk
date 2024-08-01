@@ -6,16 +6,6 @@ namespace Brisk {
 
 	}
 
-	void GraphicsDeviceDirectX11::SetupGraphicsPipeline(std::vector<ShaderInfo> shaders)
-	{
-
-	}
-
-	void GraphicsDeviceDirectX11::ReleaseGraphicsPipeline()
-	{
-
-	}
-
 	void GraphicsDeviceDirectX11::Draw()
 	{
 

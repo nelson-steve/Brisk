@@ -39,7 +39,7 @@ namespace Brisk {
         m_Framebuffers.resize(noOfFrameBuffers);
         for (size_t i = 0; i < m_Framebuffers.size(); i++) {
             VkImageView attachments[] = {
-                static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetSwapchainImageViews()[i]
+                static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetSwapchainImageViews()[i]
             };
 
             VkFramebufferCreateInfo framebufferInfo{};
@@ -47,8 +47,8 @@ namespace Brisk {
             framebufferInfo.renderPass = m_RenderPass;
             framebufferInfo.attachmentCount = 1;
             framebufferInfo.pAttachments = attachments;
-            framebufferInfo.width = static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetExtentWidth();
-            framebufferInfo.height = static_cast<SwapchainVulkan*>(Engine::m_Swapchain)->GetExtentHeight();
+            framebufferInfo.width = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentWidth();
+            framebufferInfo.height = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentHeight();
             framebufferInfo.layers = 1;
 
             if (vkCreateFramebuffer(Engine::s_PhysicalDevice->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS) {

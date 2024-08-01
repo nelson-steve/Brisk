@@ -24,12 +24,5 @@ namespace Brisk {
 
 		m_DefaultGraphicsPipeline = new GraphicsPipelineVulkan();
 		m_DefaultGraphicsPipeline->Create(modules);
-
-		Engine::s_GPUContext->SetupGraphicsPipeline(
-			{
-				vertexShader,
-				fragmentShader,
-			}
-		);
 	}
 }

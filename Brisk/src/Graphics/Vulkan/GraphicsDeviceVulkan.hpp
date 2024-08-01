@@ -26,8 +26,6 @@ namespace Brisk
 		virtual void Draw() override;
 		virtual void WaitDeviceIdle() override;
 
-		virtual void ReleaseGraphicsPipeline() override;
-
 		void CreateSyncObjects();
 		void CreateCommandPoolAndBuffer();
 		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);

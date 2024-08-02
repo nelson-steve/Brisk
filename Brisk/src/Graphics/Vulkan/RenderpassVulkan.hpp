@@ -28,5 +28,6 @@ namespace Brisk {
         std::vector<VkAttachmentDescription> m_Attachments;
         std::vector<VkSubpassDescription> m_Subpasses;
         std::vector<VkSubpassDependency> m_Dependencies;
+
     };
 }

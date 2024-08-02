@@ -221,7 +221,7 @@ namespace Brisk
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		//vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, m_GraphicsPipeline->GetPipeline());
+		//vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Engine::s_Renderer->GetDefaultGraphicsPipeline());
 
 		VkViewport viewport{};
 		viewport.x = 0.0f;

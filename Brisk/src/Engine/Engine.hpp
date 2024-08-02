@@ -5,6 +5,7 @@
 #include "Graphics/GPUDevice.hpp"
 #include "Graphics/Vulkan/PhysicalDevice.hpp"
 #include "EngineGlobal.hpp"
+#include "Renderer/Renderer.hpp"
 
 namespace Brisk 
 {
@@ -48,6 +49,7 @@ namespace Brisk
 		/// </summary>
 		static EngineInfo s_EngineInfo;
 
+		static Renderer* s_Renderer;
 		static GPUContext* s_GPUContext;
 		static Swapchain* s_Swapchain;
 		static PhysicalDevice* s_PhysicalDevice;

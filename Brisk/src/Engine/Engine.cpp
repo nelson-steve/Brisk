@@ -20,6 +20,9 @@ namespace Brisk
 		s_GPUContext->Create();
 		s_Swapchain =  SwapchainFactory::CreateSwapchain(s_MainWindow);
 		s_Swapchain->Create();
+
+		s_Renderer = new Renderer();
+		s_Renderer->Initialize();
 	}
 
 	void Engine::Update() {

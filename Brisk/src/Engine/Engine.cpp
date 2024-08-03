@@ -2,6 +2,7 @@
 #include "Core/Log.hpp"
 #include "Graphics/GPUDevice.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
+#include "Renderer/Renderer.hpp"
 
 namespace Brisk
 {
@@ -11,6 +12,7 @@ namespace Brisk
 	GPUContext* Engine::s_GPUContext;
 	Swapchain* Engine::s_Swapchain;
 	PhysicalDevice* Engine::s_PhysicalDevice;
+	Renderer* Engine::s_Renderer;
 
 	void Engine::Init() {
 		Log::Init();

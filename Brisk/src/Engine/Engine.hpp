@@ -5,10 +5,11 @@
 #include "Graphics/GPUDevice.hpp"
 #include "Graphics/Vulkan/PhysicalDevice.hpp"
 #include "EngineGlobal.hpp"
-#include "Renderer/Renderer.hpp"
 
 namespace Brisk 
 {
+	class Renderer;
+
 	//namespace Globals{
 	//	static GraphicsAPI GPU_API = GraphicsAPI::Vulkan;
 	//}

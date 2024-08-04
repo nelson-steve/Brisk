@@ -18,6 +18,7 @@ namespace Brisk {
 		std::vector<VkImageView> GetSwapchainImageViews() const { return m_SwapchainImageViews; }
 		uint32_t GetExtentWidth() const { return m_extent.width; }
 		uint32_t GetExtentHeight() const { return m_extent.height; }
+		VkSurfaceFormatKHR GetFormat() const { return m_surface_format; }
 		VkExtent2D GetExtent() const { return m_extent; }
 		uint32_t GetImageCount() const { return m_ImageCount; }
 		VkPresentModeKHR GetPresentMode() const { return m_present_mode; }

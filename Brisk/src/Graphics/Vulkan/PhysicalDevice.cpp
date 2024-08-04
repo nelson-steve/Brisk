@@ -28,12 +28,15 @@ namespace Brisk
 		}
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+
 		for (const QueueInfo& q : RetrieveCommonQueues()) {
+		//for (const QueueInfo& q : m_Queues) {
 			VkDeviceQueueCreateInfo queueCreateInfo{};
 			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 			queueCreateInfo.queueFamilyIndex = q.QueueFamilyIndex;
 			queueCreateInfo.queueCount = q.QueueCount;
-			queueCreateInfo.pQueuePriorities = &q.Priority;
+			std::cout << "priorit: " << q.Priority << std::endl;
+			queueCreateInfo.pQueuePriorities = m_QueueFamiliesPriorities[q.QueueFamilyIndex].data();
 			queueCreateInfos.push_back(queueCreateInfo);
 		}
 
@@ -191,6 +194,7 @@ namespace Brisk
 
 		int i = 0;
 		bool requiredQueueTypesExist = false;
+		m_QueueFamiliesPriorities.resize(queueFamilies.size());
 		for (const auto& queueFamily : queueFamilies) {
 			bool featuresExist = false;
 			QueueInfo queue;
@@ -209,6 +213,7 @@ namespace Brisk
 			}
 			int queueIndex = 0;
 			while (queueIndex < queueFamily.queueCount) {
+				m_QueueFamiliesPriorities[i].push_back(queue.Priority);
 				queueIndex++;
 				queue.QueueIndex = queueIndex;
 				m_Queues.push_back(queue);

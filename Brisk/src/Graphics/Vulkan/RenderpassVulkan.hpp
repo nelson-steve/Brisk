@@ -16,7 +16,7 @@ namespace Brisk {
         //void CreateFramebuffer(VkExtent2D extent, const std::vector<VkImageView>& attachments);
         void CreateFramebuffer(VkExtent2D extent, const std::vector<VkImageView>& attachments);
 
-        VkRenderPass GetRenderPass() const;
+        VkRenderPass GetRenderPass() const { return m_RenderPass; }
         VkFramebuffer GetFramebuffer() const;
 
         const std::vector<VkFramebuffer> GetFramebuffers() const { return m_Framebuffers; }

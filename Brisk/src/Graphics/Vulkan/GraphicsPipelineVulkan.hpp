@@ -15,14 +15,14 @@ namespace Brisk
 		void Release();
 
 		const VkPipeline GetPipeline() const { return m_GraphicsPipeline; }
-		const VkRenderPass GetRenderPass() const { return m_RenderPass; }
+		//const VkRenderPass GetRenderPass() const { return m_RenderPass; }
 	private:
-		void CreateRenderPass();
+		//void CreateRenderPass();
 		VkShaderStageFlagBits BriskTypeToVulkanType(ShaderType type);
 	private:
 		std::vector<ShaderModule> m_Modules;
 		VkPipelineLayout m_PipelineLayout;
 		VkPipeline m_GraphicsPipeline;
-		VkRenderPass m_RenderPass;
+		//VkRenderPass m_RenderPass;
 	};
 }

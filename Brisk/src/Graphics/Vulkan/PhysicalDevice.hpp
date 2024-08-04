@@ -53,6 +53,7 @@ namespace Brisk
 		void GetSupportedQueueTypes(VkQueueFlags flags, std::vector<QueueInfo::QueueType>& ref);
 		VkPhysicalDevice GetPhysicalDevice() { return m_PhysicalDevice; }
 		const std::vector<PhysicalDevice::QueueInfo> RetrieveCommonQueues();
+		const std::vector<std::vector<float>> RetreivePriorities();
 		VkDevice GetDevice() { return m_Device; }
 		const Queue* GetGraphicsQueue() const { return m_GraphicsQueue; }
 		const Queue* GetPresentQueue() const { return m_PresentQueue; }
@@ -62,6 +63,7 @@ namespace Brisk
 		std::vector<QueueInfo> m_Queues;
 		Queue* m_PresentQueue;
 		Queue* m_GraphicsQueue;
+		std::vector<std::vector<float>> m_QueueFamiliesPriorities;
 	};
 
 	struct Queue {

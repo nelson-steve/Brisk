@@ -61,7 +61,6 @@ namespace Brisk
 		static VkDebugUtilsMessengerEXT s_DebugMessenger;
 		static bool m_ValidationLayersFound;
 
-		RenderpassVulkan* m_Renderpass;
 		static VkFence m_InFlightFence;
 		static VkSemaphore m_ImageAvailableSemaphore;
 		static VkSemaphore m_RenderFinishedSemaphore;

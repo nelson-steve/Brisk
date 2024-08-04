@@ -4,6 +4,7 @@
 #include "Defines.h"
 #include "VulkanUtilities.hpp"
 #include "Graphics/ShaderManager.hpp"
+#include "Engine/Renderer/Renderer.hpp"
 
 namespace Brisk 
 {
@@ -210,8 +211,8 @@ namespace Brisk
 
 		VkRenderPassBeginInfo renderPassInfo{};
 		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		//renderPassInfo.renderPass = m_GraphicsPipeline->GetRenderPass();
-		renderPassInfo.framebuffer = m_Renderpass->GetFramebuffers()[imageIndex];
+		renderPassInfo.renderPass = Engine::s_Renderer->GetRenderpass();
+		renderPassInfo.framebuffer = Engine::s_Renderer->GetFramebuffers()[imageIndex];
 		renderPassInfo.renderArea.offset = { 0, 0 };
 		renderPassInfo.renderArea.extent = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtent();
 
@@ -221,7 +222,7 @@ namespace Brisk
 
 		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
 
-		//vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Engine::s_Renderer->GetDefaultGraphicsPipeline());
+		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Engine::s_Renderer->GetDefaultGraphicsPipeline()->GetPipeline());
 
 		VkViewport viewport{};
 		viewport.x = 0.0f;
@@ -263,8 +264,6 @@ namespace Brisk
 	}
 
 	void GraphicsDeviceVulkan::Release() {
-		delete m_Renderpass;
-
 		vkDestroyDebugUtilsMessengerEXT(s_Instance, s_DebugMessenger, nullptr);
 		vkDestroyInstance(s_Instance, nullptr);
 	}

@@ -3,6 +3,7 @@
 #include <Volk/volk.h>
 
 #include <vector>
+#include <string>
 
 namespace Brisk 
 {
@@ -55,6 +56,9 @@ namespace Brisk
 		bool IsDeviceSuitable(VkPhysicalDevice device, const Details& details);
 		//QueueFamilyIndices GetQueueFamilies() { return m_Indices; }
 		VkQueueFlags QueueTypeToVulkanType(QueueInfo::QueueType type);
+		const std::string& QueueTypeToString(QueueInfo::QueueType type);
+		void PrintQueueFlags(VkQueueFlags flags);
+		void GetSupportedQueueTypes(VkQueueFlags flags, std::vector<QueueInfo::QueueType>& ref);
 		VkPhysicalDevice GetPhysicalDevice() { return m_PhysicalDevice; }
 		const std::vector<PhysicalDevice::QueueInfo> RetrieveCommonQueues();
 		VkDevice GetDevice() { return m_Device; }

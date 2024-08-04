@@ -81,6 +81,69 @@ namespace Brisk
 		return queues;
 	}
 
+	const std::string& PhysicalDevice::QueueTypeToString(QueueInfo::QueueType type) {
+		switch (type)
+		{
+		case QueueInfo::QueueType::QUEUE_GRAPHICS_BIT:
+			return "VK_QUEUE_GRAPHICS_BIT";
+		case QueueInfo::QueueType::QUEUE_COMPUTE_BIT:
+			return "VK_QUEUE_COMPUTE_BIT";
+		case QueueInfo::QueueType::QUEUE_TRANSFER_BIT:
+			return "VK_QUEUE_TRANSFER_BIT";
+		case QueueInfo::QueueType::QUEUE_SPARSE_BINDING_BIT:
+			return "VK_QUEUE_SPARSE_BINDING_BIT";
+		case QueueInfo::QueueType::QUEUE_PROTECTED_BIT:
+			return "VK_QUEUE_PROTECTED_BIT";
+		case QueueInfo::QueueType::QUEUE_VIDEO_DECODE_BIT_KHR:
+			return "VK_QUEUE_VIDEO_DECODE_BIT_KHR";
+		case QueueInfo::QueueType::QUEUE_VIDEO_ENCODE_BIT_KHR:
+			return "VK_QUEUE_VIDEO_ENCODE_BIT_KHR";
+		case QueueInfo::QueueType::QUEUE_OPTICAL_FLOW_BIT_NV:
+			return "VK_QUEUE_OPTICAL_FLOW_BIT_NV";
+		default:
+			// Error
+			return "VK_QUEUE_FLAG_BITS_MAX_ENUM";
+		}
+	}
+
+	void PhysicalDevice::PrintQueueFlags(VkQueueFlags flags) {
+		if (flags & VK_QUEUE_GRAPHICS_BIT)
+			std::cout << "VK_QUEUE_GRAPHICS_BIT" << std::endl;
+		if (flags & VK_QUEUE_COMPUTE_BIT)
+			std::cout << "VK_QUEUE_COMPUTE_BIT" << std::endl;
+		if (flags & VK_QUEUE_TRANSFER_BIT)
+			std::cout << "VK_QUEUE_TRANSFER_BIT" << std::endl;
+		if (flags & VK_QUEUE_SPARSE_BINDING_BIT)
+			std::cout << "VK_QUEUE_SPARSE_BINDING_BIT" << std::endl;
+		if (flags & VK_QUEUE_PROTECTED_BIT)
+			std::cout << "VK_QUEUE_PROTECTED_BIT" << std::endl;
+		if (flags & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
+			std::cout << "VK_QUEUE_VIDEO_DECODE_BIT_KHR" << std::endl;
+		if (flags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
+			std::cout << "VK_QUEUE_VIDEO_ENCODE_BIT_KHR" << std::endl;
+		if (flags & VK_QUEUE_OPTICAL_FLOW_BIT_NV)
+			std::cout << "VK_QUEUE_OPTICAL_FLOW_BIT_NV" << std::endl;
+	}
+
+	void PhysicalDevice::GetSupportedQueueTypes(VkQueueFlags flags, std::vector<QueueInfo::QueueType>& ref) {
+		if (flags & VK_QUEUE_GRAPHICS_BIT)
+			ref.push_back(QueueInfo::QUEUE_GRAPHICS_BIT);
+		if (flags & VK_QUEUE_COMPUTE_BIT)
+			ref.push_back(QueueInfo::QUEUE_COMPUTE_BIT);
+		if (flags & VK_QUEUE_TRANSFER_BIT)
+			ref.push_back(QueueInfo::QUEUE_TRANSFER_BIT);
+		if (flags & VK_QUEUE_SPARSE_BINDING_BIT)
+			ref.push_back(QueueInfo::QUEUE_SPARSE_BINDING_BIT);
+		if (flags & VK_QUEUE_PROTECTED_BIT)
+			ref.push_back(QueueInfo::QUEUE_PROTECTED_BIT);
+		if (flags & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
+			ref.push_back(QueueInfo::QUEUE_VIDEO_DECODE_BIT_KHR);
+		if (flags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
+			ref.push_back(QueueInfo::QUEUE_VIDEO_ENCODE_BIT_KHR);
+		if (flags & VK_QUEUE_OPTICAL_FLOW_BIT_NV)
+			ref.push_back(QueueInfo::QUEUE_OPTICAL_FLOW_BIT_NV);
+	}
+
 	VkQueueFlags PhysicalDevice::QueueTypeToVulkanType(QueueInfo::QueueType type) {
 		switch (type)
 		{
@@ -114,48 +177,44 @@ namespace Brisk
 		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
 
 		int i = 0;
+		bool requiredQueueTypesExist = false;
 		for (const auto& queueFamily : queueFamilies) {
 			bool featuresExist = false;
-			bool queueTypesExist = false;
 			QueueInfo queue;
 			queue.Priority = 0.5f;
 			queue.QueueFamilyIndex = i;
 			queue.QueueCount = queueFamily.queueCount;
+			std::cout << "Queue family: " << i << std::endl;
+			PrintQueueFlags(queueFamily.queueFlags);
+			GetSupportedQueueTypes(queueFamily.queueFlags, queue.SupportedQueueTypes);
 			for (const auto type : details.RequiredQueueTypes) {
 				if (queueFamily.queueFlags & QueueTypeToVulkanType(type)) {
-					queueTypesExist = true;
+					requiredQueueTypesExist = true;
 					// Graphics commands should get priority
 					if(type == QueueInfo::QueueType::QUEUE_GRAPHICS_BIT) queue.Priority = 1.0f;
-					queue.SupportedQueueTypes.push_back(type);
 				}
 			}
-			if (queueTypesExist) {
-				int queueIndex = 0;
-				while (queueIndex < queueFamily.queueCount) {
-					queueIndex++;
-					queue.QueueIndex = queueIndex;
-					m_Queues.push_back(queue); 
-				}
-			}
-			else {
-				// error
-				return;
+			int queueIndex = 0;
+			while (queueIndex < queueFamily.queueCount) {
+				queueIndex++;
+				queue.QueueIndex = queueIndex;
+				m_Queues.push_back(queue);
 			}
 
 			for (const auto feature : details.RequiredFeatures) {
 				VkBool32 presentSupport;
 				if (feature == Feature::PRESENTATION) {
 					vkGetPhysicalDeviceSurfaceSupportKHR(device, i, details.Surface, &presentSupport);
-				}
-				if (presentSupport) {
-					queue.PresentSupport = true;
+					if (presentSupport) {
+						queue.PresentSupport = true;
+					}
 				}
 			}
 			i++;
 		}
-
-		//BRISK_CORE_INFO("Present index:{}", m_Indices.HasPresentSupport);
-		//BRISK_CORE_INFO("Graphics index:{}", m_Indices.HasGraphicsSupport);
+		if (!requiredQueueTypesExist) {
+			std::cout << "Required Queue Type does not exist";
+		}
 	}
 
 	bool PhysicalDevice::IsDeviceSuitable(VkPhysicalDevice device, const Details& details) {

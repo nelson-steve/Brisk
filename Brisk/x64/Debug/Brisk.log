@@ -1,4 +1,57 @@
-﻿  GraphicsDeviceVulkan.cpp
+﻿  Engine.cpp
+C:\dev\Brisk\Brisk\src\Engine\WindowBase.hpp(81,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
+  (compiling source file 'src/Engine/Engine.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(16,3): warning C4091: 'static ': ignored on left of 'EngineInfo::GraphicsAPI' when no variable is declared
+  (compiling source file 'src/Engine/Engine.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(19,2): warning C4091: 'static ': ignored on left of 'EngineInfo' when no variable is declared
+  (compiling source file 'src/Engine/Engine.cpp')
+  
+C:\dev\Brisk\Brisk\src\Graphics\Factories\SwapchainFactory.hpp(18,3): warning C4091: 'static ': ignored on left of 'Brisk::SwapchainFactory' when no variable is declared
+  (compiling source file 'src/Engine/Engine.cpp')
+  
+  Renderer.cpp
+C:\dev\Brisk\Brisk\src\Engine\WindowBase.hpp(81,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
+  (compiling source file 'src/Engine/Renderer/Renderer.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(16,3): warning C4091: 'static ': ignored on left of 'EngineInfo::GraphicsAPI' when no variable is declared
+  (compiling source file 'src/Engine/Renderer/Renderer.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(19,2): warning C4091: 'static ': ignored on left of 'EngineInfo' when no variable is declared
+  (compiling source file 'src/Engine/Renderer/Renderer.cpp')
+  
+  WindowBase.cpp
+C:\dev\Brisk\Brisk\src\Engine\WindowBase.hpp(81,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
+  (compiling source file 'src/Engine/WindowBase.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(16,3): warning C4091: 'static ': ignored on left of 'EngineInfo::GraphicsAPI' when no variable is declared
+  (compiling source file 'src/Engine/WindowBase.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(19,2): warning C4091: 'static ': ignored on left of 'EngineInfo' when no variable is declared
+  (compiling source file 'src/Engine/WindowBase.cpp')
+  
+  GPUDevice.cpp
+C:\dev\Brisk\Brisk\src\Engine\WindowBase.hpp(81,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
+  (compiling source file 'src/Graphics/GPUDevice.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(16,3): warning C4091: 'static ': ignored on left of 'EngineInfo::GraphicsAPI' when no variable is declared
+  (compiling source file 'src/Graphics/GPUDevice.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(19,2): warning C4091: 'static ': ignored on left of 'EngineInfo' when no variable is declared
+  (compiling source file 'src/Graphics/GPUDevice.cpp')
+  
+  ShaderManager.cpp
+C:\dev\Brisk\Brisk\src\Engine\WindowBase.hpp(81,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
+  (compiling source file 'src/Graphics/ShaderManager.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(16,3): warning C4091: 'static ': ignored on left of 'EngineInfo::GraphicsAPI' when no variable is declared
+  (compiling source file 'src/Graphics/ShaderManager.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(19,2): warning C4091: 'static ': ignored on left of 'EngineInfo' when no variable is declared
+  (compiling source file 'src/Graphics/ShaderManager.cpp')
+  
+  GraphicsDeviceVulkan.cpp
 C:\dev\Brisk\Brisk\src\Engine\WindowBase.hpp(81,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
   (compiling source file 'src/Graphics/Vulkan/GraphicsDeviceVulkan.cpp')
   
@@ -11,6 +64,65 @@ C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(19,2): warning C4091: 'static ': 
 C:\dev\Brisk\Brisk\src\Graphics\Vulkan\VulkanUtilities.hpp(13,3): warning C4091: 'static ': ignored on left of 'Brisk::VulkanUtilities' when no variable is declared
   (compiling source file 'src/Graphics/Vulkan/GraphicsDeviceVulkan.cpp')
   
+  GraphicsPipelineVulkan.cpp
+C:\dev\Brisk\Brisk\src\Engine\WindowBase.hpp(81,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/GraphicsPipelineVulkan.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(16,3): warning C4091: 'static ': ignored on left of 'EngineInfo::GraphicsAPI' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/GraphicsPipelineVulkan.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(19,2): warning C4091: 'static ': ignored on left of 'EngineInfo' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/GraphicsPipelineVulkan.cpp')
+  
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\GraphicsPipelineVulkan.cpp(86,52): warning C4267: '=': conversion from 'size_t' to 'uint32_t', possible loss of data
+  PhysicalDevice.cpp
+C:\dev\Brisk\Brisk\src\Engine\WindowBase.hpp(81,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/PhysicalDevice.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(16,3): warning C4091: 'static ': ignored on left of 'EngineInfo::GraphicsAPI' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/PhysicalDevice.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(19,2): warning C4091: 'static ': ignored on left of 'EngineInfo' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/PhysicalDevice.cpp')
+  
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\PhysicalDevice.cpp(198,22): warning C4018: '<': signed/unsigned mismatch
+  RenderpassVulkan.cpp
+C:\dev\Brisk\Brisk\src\Engine\WindowBase.hpp(81,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/RenderpassVulkan.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(16,3): warning C4091: 'static ': ignored on left of 'EngineInfo::GraphicsAPI' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/RenderpassVulkan.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(19,2): warning C4091: 'static ': ignored on left of 'EngineInfo' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/RenderpassVulkan.cpp')
+  
+  SwapchainVulkan.cpp
+C:\dev\Brisk\Brisk\src\Engine\WindowBase.hpp(81,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/SwapchainVulkan.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(16,3): warning C4091: 'static ': ignored on left of 'EngineInfo::GraphicsAPI' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/SwapchainVulkan.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(19,2): warning C4091: 'static ': ignored on left of 'EngineInfo' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/SwapchainVulkan.cpp')
+  
+  VulkanUtilities.cpp
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\VulkanUtilities.hpp(13,3): warning C4091: 'static ': ignored on left of 'Brisk::VulkanUtilities' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/VulkanUtilities.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\WindowBase.hpp(81,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
+  (compiling source file 'src/Graphics/Vulkan/VulkanUtilities.cpp')
+  
+  main.cpp
+C:\dev\Brisk\Brisk\src\Engine\WindowBase.hpp(81,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
+  (compiling source file 'src/Main/main.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(16,3): warning C4091: 'static ': ignored on left of 'EngineInfo::GraphicsAPI' when no variable is declared
+  (compiling source file 'src/Main/main.cpp')
+  
+C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(19,2): warning C4091: 'static ': ignored on left of 'EngineInfo' when no variable is declared
+  (compiling source file 'src/Main/main.cpp')
+  
   WindowsWindow.cpp
 C:\dev\Brisk\Brisk\src\Engine\WindowBase.hpp(81,3): warning C4091: 'static ': ignored on left of 'Brisk::WindowCreator' when no variable is declared
   (compiling source file 'src/Platform/Windows/WindowsWindow.cpp')
@@ -22,6 +134,16 @@ C:\dev\Brisk\Brisk\src\Engine\EngineGlobal.hpp(19,2): warning C4091: 'static ': 
   (compiling source file 'src/Platform/Windows/WindowsWindow.cpp')
   
   Generating Code...
-volkd.lib(volk.obj) : warning LNK4099: PDB '' was not found with 'volkd.lib(volk.obj)' or at ''; linking object as if no debug info
-LINK : warning LNK4098: defaultlib 'MSVCRT' conflicts with use of other libs; use /NODEFAULTLIB:library
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\PhysicalDevice.cpp(88): warning C4172: returning address of local variable or temporary
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\PhysicalDevice.cpp(90): warning C4172: returning address of local variable or temporary
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\PhysicalDevice.cpp(92): warning C4172: returning address of local variable or temporary
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\PhysicalDevice.cpp(94): warning C4172: returning address of local variable or temporary
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\PhysicalDevice.cpp(96): warning C4172: returning address of local variable or temporary
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\PhysicalDevice.cpp(98): warning C4172: returning address of local variable or temporary
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\PhysicalDevice.cpp(100): warning C4172: returning address of local variable or temporary
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\PhysicalDevice.cpp(102): warning C4172: returning address of local variable or temporary
+C:\dev\Brisk\Brisk\src\Graphics\Vulkan\PhysicalDevice.cpp(105): warning C4172: returning address of local variable or temporary
+C:\dev\Brisk\Brisk\src\Graphics\ShaderManager.cpp(42): warning C4172: returning address of local variable or temporary: module
+C:\dev\Brisk\Brisk\src\Graphics\GPUDevice.cpp(17): warning C4715: 'Brisk::GPUContext::CreateContext': not all control paths return a value
+C:\dev\Brisk\Brisk\src\Graphics\Factories\SwapchainFactory.hpp(17): warning C4715: 'Brisk::SwapchainFactory::CreateSwapchain': not all control paths return a value
   Brisk.vcxproj -> C:\dev\Brisk\x64\Debug\Brisk.exe

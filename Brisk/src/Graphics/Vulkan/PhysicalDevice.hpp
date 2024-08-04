@@ -7,15 +7,7 @@
 
 namespace Brisk 
 {
-	struct QueueFamilyIndices {
-		bool HasGraphicsSupport = false;
-		bool HasPresentSupport = false;
-		int32_t GraphicsIndex = -1;
-		int32_t PresentIndex = -1;
-
-		inline bool IsComplete() { return (HasGraphicsSupport && HasPresentSupport); }
-		inline void Reset() { HasGraphicsSupport = false; HasPresentSupport = false; }
-	};
+	struct Queue;
 
 	class PhysicalDevice {
 	public:
@@ -52,7 +44,7 @@ namespace Brisk
 	public:
 		void Create(const Details& details);
 		void Release();
-		void CreateQueueFamilies(VkPhysicalDevice device, const Details& details);
+		bool CreateQueueFamilies(VkPhysicalDevice device, const Details& details);
 		bool IsDeviceSuitable(VkPhysicalDevice device, const Details& details);
 		//QueueFamilyIndices GetQueueFamilies() { return m_Indices; }
 		VkQueueFlags QueueTypeToVulkanType(QueueInfo::QueueType type);
@@ -62,14 +54,18 @@ namespace Brisk
 		VkPhysicalDevice GetPhysicalDevice() { return m_PhysicalDevice; }
 		const std::vector<PhysicalDevice::QueueInfo> RetrieveCommonQueues();
 		VkDevice GetDevice() { return m_Device; }
-		const VkQueue GetGraphicsQueue() const { return m_GraphicsQueue; }
-		const VkQueue GetPresentQueue() const { return m_PresentQueue; }
+		const Queue* GetGraphicsQueue() const { return m_GraphicsQueue; }
+		const Queue* GetPresentQueue() const { return m_PresentQueue; }
 	private:
 		VkPhysicalDevice m_PhysicalDevice;
 		VkDevice m_Device;
-		//QueueFamilyIndices m_Indices;
 		std::vector<QueueInfo> m_Queues;
-		VkQueue m_PresentQueue;
-		VkQueue m_GraphicsQueue;
+		Queue* m_PresentQueue;
+		Queue* m_GraphicsQueue;
+	};
+
+	struct Queue {
+		VkQueue Queue_;
+		PhysicalDevice::QueueInfo Info;
 	};
 }

@@ -30,6 +30,9 @@ namespace Brisk {
 		Engine::s_PhysicalDevice = new PhysicalDevice();
 		Engine::s_PhysicalDevice->Create(details);
 
+		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->CreateSyncObjects();
+		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->CreateCommandPoolAndBuffer();
+
 		// TODO: Dont use hardcoded values
 		VkFormat m_format = VK_FORMAT_B8G8R8A8_SRGB;
 		VkColorSpaceKHR m_color_space = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
@@ -83,25 +86,20 @@ namespace Brisk {
 		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(Engine::s_PhysicalDevice->GetPhysicalDevice(), &queueFamilyCount, queueFamilies.data());
 
-		//if (!Engine::s_PhysicalDevice->GetQueueFamilies().HasPresentSupport)
-		//	BRISK_CORE_ERROR("GPU does not support presentation");
-		//if (!Engine::s_PhysicalDevice->GetQueueFamilies().HasGraphicsSupport)
-		//	BRISK_CORE_ERROR("GPU does not support graphics");
-
-		//uint32_t queueFamilyIndices[] = 
-		//{ 
-		//	Engine::s_PhysicalDevice->GetQueueFamilies().PresentIndex,
-		//	Engine::s_PhysicalDevice->GetQueueFamilies().GraphicsIndex,
-		//};
-		//if (Engine::s_PhysicalDevice->GetQueueFamilies().PresentIndex != 
-		//	Engine::s_PhysicalDevice->GetQueueFamilies().GraphicsIndex) {
-		//	swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-		//	swapChainCreateInfo.queueFamilyIndexCount = 2;
-		//	swapChainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
-		//}
-		//else {
+		uint32_t queueFamilyIndices[] = 
+		{ 
+			Engine::s_PhysicalDevice->GetPresentQueue()->Info.QueueFamilyIndex,
+			Engine::s_PhysicalDevice->GetGraphicsQueue()->Info.QueueFamilyIndex,
+		};
+		if (Engine::s_PhysicalDevice->GetPresentQueue()->Info.QueueFamilyIndex !=
+			Engine::s_PhysicalDevice->GetGraphicsQueue()->Info.QueueFamilyIndex) {
+			swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+			swapChainCreateInfo.queueFamilyIndexCount = 2;
+			swapChainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
+		}
+		else {
 			swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		//}
+		}
 
 		swapChainCreateInfo.preTransform = surfaceCapabilities.currentTransform;
 		swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;

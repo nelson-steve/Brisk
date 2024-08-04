@@ -60,22 +60,35 @@ namespace Brisk
 		if (vkCreateDevice(m_PhysicalDevice, &device_create_info, nullptr, &m_Device) != VK_SUCCESS) {
 			BRISK_CORE_ERROR("Failed to create logical device!");
 		}
-		//vkGetDeviceQueue(m_Device, m_Indices.GraphicsIndex, 0, &m_GraphicsQueue);
-		//vkGetDeviceQueue(m_Device, m_Indices.PresentIndex, 0, &m_PresentQueue);
+
+		Queue* q1 = new Queue();
+		q1->Info = m_Queues[0];
+		Queue* q2 = new Queue();
+		q2->Info = m_Queues[0];
+		vkGetDeviceQueue(m_Device, q1->Info.QueueFamilyIndex, m_Queues[0].QueueIndex, &q1->Queue_);
+		vkGetDeviceQueue(m_Device, q2->Info.QueueFamilyIndex, m_Queues[0].QueueIndex, &q2->Queue_);
+		m_GraphicsQueue = q1;
+		m_PresentQueue = q2;
 	}
 
 	void PhysicalDevice::Release() {
+		delete m_PresentQueue;
+		delete m_GraphicsQueue;
 		vkDestroyDevice(m_Device, nullptr);
 	}
 
 	const std::vector<PhysicalDevice::QueueInfo> PhysicalDevice::RetrieveCommonQueues() {
 		std::vector<PhysicalDevice::QueueInfo> queues;
 		for (const auto& queueToAdd : m_Queues) {
+			bool shouldAdd = true;
 			for (const auto& queue : queues) {
-				if (queue.QueueFamilyIndex == queueToAdd.QueueFamilyIndex)
-					continue;
+				if (queue.QueueFamilyIndex == queueToAdd.QueueFamilyIndex) {
+					shouldAdd = false;
+					break;
+				}
 			}
-			queues.push_back(queueToAdd);
+			if(shouldAdd)
+				queues.push_back(queueToAdd);
 		}
 
 		return queues;
@@ -169,7 +182,7 @@ namespace Brisk
 		}
 	}
 
-	void PhysicalDevice::CreateQueueFamilies(VkPhysicalDevice device, const Details& details) {
+	bool PhysicalDevice::CreateQueueFamilies(VkPhysicalDevice device, const Details& details) {
 		uint32_t queueFamilyCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
@@ -201,7 +214,7 @@ namespace Brisk
 				m_Queues.push_back(queue);
 			}
 
-			for (const auto feature : details.RequiredFeatures) {
+			for (const auto feature : details.RequiredFeatures) { 
 				VkBool32 presentSupport;
 				if (feature == Feature::PRESENTATION) {
 					vkGetPhysicalDeviceSurfaceSupportKHR(device, i, details.Surface, &presentSupport);
@@ -213,12 +226,15 @@ namespace Brisk
 			i++;
 		}
 		if (!requiredQueueTypesExist) {
+			return false;
 			std::cout << "Required Queue Type does not exist";
 		}
+		return true;
 	}
 
 	bool PhysicalDevice::IsDeviceSuitable(VkPhysicalDevice device, const Details& details) {
-		CreateQueueFamilies(device, details);
+		if (!CreateQueueFamilies(device, details))
+			return false;
 
 		std::vector<const char*>& extensions = static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetRequiredExtenstions();
 		bool extensionsSupported = false;
@@ -243,7 +259,7 @@ namespace Brisk
 		
 		//bool suitable = m_Indices.IsComplete() && extensionsSupported && supportedFeatures.samplerAnisotropy;
 
-		//return suitable;
-		return false;
+		// TODO: Check if required features are available too
+		return true;
 	}
 }

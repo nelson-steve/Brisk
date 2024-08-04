@@ -131,7 +131,7 @@ namespace Brisk
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		//poolInfo.queueFamilyIndex = Engine::s_PhysicalDevice->GetQueueFamilies().PresentIndex;
+		poolInfo.queueFamilyIndex = Engine::s_PhysicalDevice->GetPresentQueue()->Info.QueueFamilyIndex;
 
 		if (vkCreateCommandPool(Engine::s_PhysicalDevice->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create command pool!");
@@ -175,7 +175,7 @@ namespace Brisk
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
-		if (vkQueueSubmit(Engine::s_PhysicalDevice->GetGraphicsQueue(), 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
+		if (vkQueueSubmit(Engine::s_PhysicalDevice->GetGraphicsQueue()->Queue_, 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
 			throw std::runtime_error("failed to submit draw command buffer!");
 		}
 
@@ -191,7 +191,7 @@ namespace Brisk
 
 		presentInfo.pImageIndices = &imageIndex;
 
-		vkQueuePresentKHR(Engine::s_PhysicalDevice->GetPresentQueue(), &presentInfo);
+		vkQueuePresentKHR(Engine::s_PhysicalDevice->GetPresentQueue()->Queue_, &presentInfo);
 	}
 
 	void GraphicsDeviceVulkan::WaitDeviceIdle() {

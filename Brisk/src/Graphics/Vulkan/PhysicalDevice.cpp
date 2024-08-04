@@ -27,32 +27,30 @@ namespace Brisk
 			return;
 		}
 
-		std::vector<VkDeviceQueueCreateInfo> queue_create_infos;
-		std::set<uint32_t> uniqueQueueFamilies = { 0, 0 };
-		float queue_priority = 1.0f;
-		for (uint32_t queue_family : uniqueQueueFamilies) {
-			VkDeviceQueueCreateInfo queue_create_info{};
-			queue_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queue_create_info.queueFamilyIndex = queue_family;
-			queue_create_info.queueCount = 1;
-			queue_create_info.pQueuePriorities = &queue_priority;
-			queue_create_infos.push_back(queue_create_info);
+		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+		for (const QueueInfo& q : RetrieveCommonQueues()) {
+			VkDeviceQueueCreateInfo queueCreateInfo{};
+			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo.queueFamilyIndex = q.QueueFamilyIndex;
+			queueCreateInfo.queueCount = q.QueueCount;
+			queueCreateInfo.pQueuePriorities = &q.Priority;
+			queueCreateInfos.push_back(queueCreateInfo);
 		}
 
 		VkPhysicalDeviceFeatures device_features{};
 		device_features.samplerAnisotropy = VK_TRUE;
 		VkDeviceCreateInfo device_create_info{};
 		device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		device_create_info.queueCreateInfoCount = static_cast<uint16_t>(queue_create_infos.size());
-		device_create_info.pQueueCreateInfos = queue_create_infos.data();
+		device_create_info.queueCreateInfoCount = static_cast<uint16_t>(queueCreateInfos.size());
+		device_create_info.pQueueCreateInfos = queueCreateInfos.data();
 		device_create_info.pEnabledFeatures = &device_features;
-		std::vector<const char*> requiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_KHR_VIDEO_QUEUE_EXTENSION_NAME };
+		std::vector<const char*> requiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 		device_create_info.enabledExtensionCount = static_cast<uint16_t>(requiredExtensions.size());
 		device_create_info.ppEnabledExtensionNames = requiredExtensions.data();
 
 #if _DEBUG
 		const std::vector<const char*> validation_layers = {
-	"VK_LAYER_KHRONOS_validation"
+			"VK_LAYER_KHRONOS_validation"
 		};
 		device_create_info.enabledLayerCount = static_cast<uint32_t>(validation_layers.size());
 		device_create_info.ppEnabledLayerNames = validation_layers.data();
@@ -70,8 +68,42 @@ namespace Brisk
 		vkDestroyDevice(m_Device, nullptr);
 	}
 
-	VkQueueFlags PhysicalDevice::QueueTypeToVulkanType(Queue::QueueType type) {
-		// TODO: Implement
+	const std::vector<PhysicalDevice::QueueInfo> PhysicalDevice::RetrieveCommonQueues() {
+		std::vector<PhysicalDevice::QueueInfo> queues;
+		for (const auto& queueToAdd : m_Queues) {
+			for (const auto& queue : queues) {
+				if (queue.QueueFamilyIndex == queueToAdd.QueueFamilyIndex)
+					continue;
+			}
+			queues.push_back(queueToAdd);
+		}
+
+		return queues;
+	}
+
+	VkQueueFlags PhysicalDevice::QueueTypeToVulkanType(QueueInfo::QueueType type) {
+		switch (type)
+		{
+			case QueueInfo::QueueType::QUEUE_GRAPHICS_BIT:
+				return VK_QUEUE_GRAPHICS_BIT;
+			case QueueInfo::QueueType::QUEUE_COMPUTE_BIT:
+				return VK_QUEUE_COMPUTE_BIT;
+			case QueueInfo::QueueType::QUEUE_TRANSFER_BIT:
+				return VK_QUEUE_TRANSFER_BIT;
+			case QueueInfo::QueueType::QUEUE_SPARSE_BINDING_BIT:
+				return VK_QUEUE_SPARSE_BINDING_BIT;
+			case QueueInfo::QueueType::QUEUE_PROTECTED_BIT:
+				return VK_QUEUE_PROTECTED_BIT;
+			case QueueInfo::QueueType::QUEUE_VIDEO_DECODE_BIT_KHR:
+				return VK_QUEUE_VIDEO_DECODE_BIT_KHR;
+			case QueueInfo::QueueType::QUEUE_VIDEO_ENCODE_BIT_KHR:
+				return VK_QUEUE_VIDEO_ENCODE_BIT_KHR;
+			case QueueInfo::QueueType::QUEUE_OPTICAL_FLOW_BIT_NV:
+				return VK_QUEUE_OPTICAL_FLOW_BIT_NV;
+			default:
+				// Error
+				return VK_QUEUE_FLAG_BITS_MAX_ENUM;
+		}
 	}
 
 	void PhysicalDevice::CreateQueueFamilies(VkPhysicalDevice device, const Details& details) {
@@ -85,14 +117,15 @@ namespace Brisk
 		for (const auto& queueFamily : queueFamilies) {
 			bool featuresExist = false;
 			bool queueTypesExist = false;
-			Queue queue;
+			QueueInfo queue;
 			queue.Priority = 0.5f;
 			queue.QueueFamilyIndex = i;
+			queue.QueueCount = queueFamily.queueCount;
 			for (const auto type : details.RequiredQueueTypes) {
 				if (queueFamily.queueFlags & QueueTypeToVulkanType(type)) {
 					queueTypesExist = true;
 					// Graphics commands should get priority
-					if(type == Queue::QueueType::QUEUE_GRAPHICS_BIT) queue.Priority = 1.0f;
+					if(type == QueueInfo::QueueType::QUEUE_GRAPHICS_BIT) queue.Priority = 1.0f;
 					queue.SupportedQueueTypes.push_back(type);
 				}
 			}
@@ -103,16 +136,15 @@ namespace Brisk
 					queue.QueueIndex = queueIndex;
 					m_Queues.push_back(queue); 
 				}
-				queueFamily.queueCount;
 			}
 			else {
 				// error
+				return;
 			}
 
 			for (const auto feature : details.RequiredFeatures) {
-				bool presentSupport;
+				VkBool32 presentSupport;
 				if (feature == Feature::PRESENTATION) {
-					VkBool32 presentSupport = false;
 					vkGetPhysicalDeviceSurfaceSupportKHR(device, i, details.Surface, &presentSupport);
 				}
 				if (presentSupport) {

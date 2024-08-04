@@ -131,7 +131,7 @@ namespace Brisk
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		poolInfo.queueFamilyIndex = Engine::s_PhysicalDevice->GetQueueFamilies().PresentIndex;
+		//poolInfo.queueFamilyIndex = Engine::s_PhysicalDevice->GetQueueFamilies().PresentIndex;
 
 		if (vkCreateCommandPool(Engine::s_PhysicalDevice->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create command pool!");

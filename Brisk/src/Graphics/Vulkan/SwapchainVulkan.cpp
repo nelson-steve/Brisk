@@ -21,8 +21,14 @@ namespace Brisk {
 			BRISK_CORE_ERROR("Failed to create window surface!");
 		}
 
+		PhysicalDevice::Details details;
+		details.RequiredQueueTypes.push_back(PhysicalDevice::QueueInfo::QueueType::QUEUE_GRAPHICS_BIT);
+		details.RequiredQueueTypes.push_back(PhysicalDevice::QueueInfo::QueueType::QUEUE_TRANSFER_BIT);
+		details.RequiredFeatures.push_back(PhysicalDevice::Feature::ANISOTROPY);
+		details.RequiredFeatures.push_back(PhysicalDevice::Feature::PRESENTATION);
+		details.Surface = m_Surface;
 		Engine::s_PhysicalDevice = new PhysicalDevice();
-		Engine::s_PhysicalDevice->Create(m_Surface);
+		Engine::s_PhysicalDevice->Create(details);
 
 		// TODO: Dont use hardcoded values
 		VkFormat m_format = VK_FORMAT_B8G8R8A8_SRGB;
@@ -77,25 +83,25 @@ namespace Brisk {
 		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(Engine::s_PhysicalDevice->GetPhysicalDevice(), &queueFamilyCount, queueFamilies.data());
 
-		if (!Engine::s_PhysicalDevice->GetQueueFamilies().HasPresentSupport)
-			BRISK_CORE_ERROR("GPU does not support presentation");
-		if (!Engine::s_PhysicalDevice->GetQueueFamilies().HasGraphicsSupport)
-			BRISK_CORE_ERROR("GPU does not support graphics");
+		//if (!Engine::s_PhysicalDevice->GetQueueFamilies().HasPresentSupport)
+		//	BRISK_CORE_ERROR("GPU does not support presentation");
+		//if (!Engine::s_PhysicalDevice->GetQueueFamilies().HasGraphicsSupport)
+		//	BRISK_CORE_ERROR("GPU does not support graphics");
 
-		uint32_t queueFamilyIndices[] = 
-		{ 
-			Engine::s_PhysicalDevice->GetQueueFamilies().PresentIndex,
-			Engine::s_PhysicalDevice->GetQueueFamilies().GraphicsIndex,
-		};
-		if (Engine::s_PhysicalDevice->GetQueueFamilies().PresentIndex != 
-			Engine::s_PhysicalDevice->GetQueueFamilies().GraphicsIndex) {
-			swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-			swapChainCreateInfo.queueFamilyIndexCount = 2;
-			swapChainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
-		}
-		else {
+		//uint32_t queueFamilyIndices[] = 
+		//{ 
+		//	Engine::s_PhysicalDevice->GetQueueFamilies().PresentIndex,
+		//	Engine::s_PhysicalDevice->GetQueueFamilies().GraphicsIndex,
+		//};
+		//if (Engine::s_PhysicalDevice->GetQueueFamilies().PresentIndex != 
+		//	Engine::s_PhysicalDevice->GetQueueFamilies().GraphicsIndex) {
+		//	swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
+		//	swapChainCreateInfo.queueFamilyIndexCount = 2;
+		//	swapChainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
+		//}
+		//else {
 			swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		}
+		//}
 
 		swapChainCreateInfo.preTransform = surfaceCapabilities.currentTransform;
 		swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;

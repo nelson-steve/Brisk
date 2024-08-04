@@ -2,6 +2,8 @@
 
 #include <Volk/volk.h>
 
+#include <vector>
+
 namespace Brisk 
 {
 	struct QueueFamilyIndices {
@@ -16,7 +18,7 @@ namespace Brisk
 
 	class PhysicalDevice {
 	public:
-		struct Queue {
+		struct QueueInfo {
 			enum QueueType {
 				QUEUE_GRAPHICS_BIT,
 				QUEUE_COMPUTE_BIT,
@@ -27,9 +29,10 @@ namespace Brisk
 				QUEUE_VIDEO_ENCODE_BIT_KHR,
 				QUEUE_OPTICAL_FLOW_BIT_NV,
 			} m_QueueType;
-			uint32_t Priority;
+			float Priority;
 			uint32_t QueueIndex;
 			uint32_t QueueFamilyIndex;
+			uint32_t QueueCount;
 			bool PresentSupport = false;
 			std::vector<QueueType> SupportedQueueTypes;
 		};
@@ -40,7 +43,7 @@ namespace Brisk
 		struct Details {
 		public:
 			std::vector<Feature> RequiredFeatures;
-			std::vector<Queue::QueueType> RequiredQueueTypes;
+			std::vector<QueueInfo::QueueType> RequiredQueueTypes;
 			VkSurfaceKHR Surface = VK_NULL_HANDLE;
 			VkBool32 SamplerAnisotropy = VK_TRUE;
 
@@ -51,8 +54,9 @@ namespace Brisk
 		void CreateQueueFamilies(VkPhysicalDevice device, const Details& details);
 		bool IsDeviceSuitable(VkPhysicalDevice device, const Details& details);
 		//QueueFamilyIndices GetQueueFamilies() { return m_Indices; }
-		VkQueueFlags QueueTypeToVulkanType(Queue::QueueType type);
+		VkQueueFlags QueueTypeToVulkanType(QueueInfo::QueueType type);
 		VkPhysicalDevice GetPhysicalDevice() { return m_PhysicalDevice; }
+		const std::vector<PhysicalDevice::QueueInfo> RetrieveCommonQueues();
 		VkDevice GetDevice() { return m_Device; }
 		const VkQueue GetGraphicsQueue() const { return m_GraphicsQueue; }
 		const VkQueue GetPresentQueue() const { return m_PresentQueue; }
@@ -60,7 +64,7 @@ namespace Brisk
 		VkPhysicalDevice m_PhysicalDevice;
 		VkDevice m_Device;
 		//QueueFamilyIndices m_Indices;
-		std::vector<Queue> m_Queues;
+		std::vector<QueueInfo> m_Queues;
 		VkQueue m_PresentQueue;
 		VkQueue m_GraphicsQueue;
 	};

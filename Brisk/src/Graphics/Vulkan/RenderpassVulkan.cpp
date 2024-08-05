@@ -57,6 +57,21 @@ namespace Brisk {
         }
     }
 
+    void RenderpassVulkan::BeginRenderPass(VkCommandBuffer commandBuffer, int imageIndex) {
+        VkRenderPassBeginInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassInfo.renderPass = m_RenderPass;
+        renderPassInfo.framebuffer = m_Framebuffers[imageIndex];
+        renderPassInfo.renderArea.offset = { 0, 0 };
+        renderPassInfo.renderArea.extent = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtent();
+
+        VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
+        renderPassInfo.clearValueCount = 1;
+        renderPassInfo.pClearValues = &clearColor;
+
+        vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    }
+
     void RenderpassVulkan::Release() {
         for (int i = 0; i < m_Framebuffers.size(); i++) {
             vkDestroyFramebuffer(Engine::s_PhysicalDevice->GetDevice(), m_Framebuffers[i], nullptr);

@@ -78,7 +78,7 @@
     <ClInclude Include="src\Engine\Renderer\Renderer2D.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Vulkan\CommandBuffer.hpp">
+    <ClInclude Include="src\Graphics\Vulkan\CommandBufferVulkan.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Vulkan\QueueVulkan.hpp">
@@ -134,7 +134,7 @@
     <ClCompile Include="src\Engine\Renderer\Renderer.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Vulkan\CommandBuffer.cpp">
+    <ClCompile Include="src\Graphics\Vulkan\CommandBufferVulkan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Vulkan\QueueVulkan.cpp">

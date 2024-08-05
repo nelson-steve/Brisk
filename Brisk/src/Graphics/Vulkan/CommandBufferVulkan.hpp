@@ -1,7 +1,7 @@
 #pragma once
 
 namespace {
-	class CommandBuffer {
+	class CommandBufferVulkan {
 	public:
 		void Begin();
 		void End();

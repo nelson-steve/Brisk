@@ -10,15 +10,8 @@ namespace Brisk {
         void Create(uint16_t noOfFrameBuffers);
         void Release();
 
-        void AddAttachment(VkFormat format, VkAttachmentLoadOp loadOp, VkAttachmentStoreOp storeOp, VkImageLayout initialLayout, VkImageLayout finalLayout);
-        void AddSubpass(VkPipelineBindPoint pipelineBindPoint, const std::vector<VkAttachmentReference>& colorAttachments, const VkAttachmentReference* depthStencilAttachment = nullptr);
-        void CreateRenderPass();
-        //void CreateFramebuffer(VkExtent2D extent, const std::vector<VkImageView>& attachments);
-        void CreateFramebuffer(VkExtent2D extent, const std::vector<VkImageView>& attachments);
-
+        void BeginRenderPass(VkCommandBuffer commandBuffer, int imageIndex);
         VkRenderPass GetRenderPass() const { return m_RenderPass; }
-        VkFramebuffer GetFramebuffer() const;
-
         const std::vector<VkFramebuffer> GetFramebuffers() const { return m_Framebuffers; }
 
     private:

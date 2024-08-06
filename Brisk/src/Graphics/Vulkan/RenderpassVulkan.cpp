@@ -57,7 +57,9 @@ namespace Brisk {
         }
     }
 
-    void RenderpassVulkan::BeginRenderPass(VkCommandBuffer commandBuffer, int imageIndex) {
+    void RenderpassVulkan::BeginRenderPass(int imageIndex) {
+        m_CommandBuffer->Begin();
+
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = m_RenderPass;
@@ -69,7 +71,15 @@ namespace Brisk {
         renderPassInfo.clearValueCount = 1;
         renderPassInfo.pClearValues = &clearColor;
 
-        vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(m_CommandBuffer->Get(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    }
+
+    void RenderpassVulkan::EndRenderPass(int imageIndex) {
+
+    }
+
+    void RenderpassVulkan::BindPipeline(VkPipeline pipeline) {
+        vkCmdBindPipeline(m_CommandBuffer->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
     }
 
     void RenderpassVulkan::Release() {

@@ -74,7 +74,7 @@ namespace Brisk
 	std::vector<const char*> GraphicsDeviceVulkan::s_RequiredExtensions;
 	std::vector<const char*> GraphicsDeviceVulkan::s_ValidationLayers;
 	VkCommandPool GraphicsDeviceVulkan::m_CommandPool;
-	VkCommandBuffer GraphicsDeviceVulkan::m_CommandBuffer;
+	//VkCommandBuffer GraphicsDeviceVulkan::m_CommandBuffer;
 
 	void GraphicsDeviceVulkan::Create(){
 		volkInitialize();
@@ -125,6 +125,23 @@ namespace Brisk
 #endif
 
 		s_RequiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+
+		PhysicalDevice::Details details;
+		details.RequiredQueueTypes.push_back(PhysicalDevice::QueueInfo::QueueType::QUEUE_GRAPHICS_BIT);
+		details.RequiredQueueTypes.push_back(PhysicalDevice::QueueInfo::QueueType::QUEUE_TRANSFER_BIT);
+		details.RequiredFeatures.push_back(PhysicalDevice::Feature::ANISOTROPY);
+		details.RequiredFeatures.push_back(PhysicalDevice::Feature::PRESENTATION);
+		Engine::s_PhysicalDevice = new PhysicalDevice();
+		Engine::s_PhysicalDevice->Create(details);
+
+		VkCommandPoolCreateInfo poolInfo{};
+		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		poolInfo.queueFamilyIndex = Engine::s_PhysicalDevice->GetPresentQueue()->Info.QueueFamilyIndex;
+
+		if (vkCreateCommandPool(Engine::s_PhysicalDevice->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create command pool!");
+		}
 	}
 
 	void GraphicsDeviceVulkan::CreateCommandPoolAndBuffer() {

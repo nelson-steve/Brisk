@@ -55,6 +55,9 @@ namespace Brisk {
                 throw std::runtime_error("failed to create framebuffer!");
             }
         }
+
+        m_CommandBuffer = new CommandBufferVulkan();
+        m_CommandBuffer->Allocate(static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetCommandPool());
     }
 
     void RenderpassVulkan::BeginRenderPass(int imageIndex) {

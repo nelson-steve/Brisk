@@ -40,6 +40,7 @@ namespace Brisk
 		/// Getters for Vulkan handles
 		/// </summary>
 		static VkInstance GetInstance() { return s_Instance; }
+		static VkCommandPool GetCommandPool() { return m_CommandPool; }
 		static std::vector<const char*>& GetRequiredExtenstions() { return s_RequiredExtensions; }
 		static std::vector<const char*>& GetValidationLayers() { return s_ValidationLayers; }
 	private:
@@ -52,7 +53,7 @@ namespace Brisk
 		/// Vulkan helper variables
 		/// </summary>
 		static VkCommandPool m_CommandPool;
-		static VkCommandBuffer m_CommandBuffer;
+		//static VkCommandBuffer m_CommandBuffer;
 		static std::vector<const char*> s_Extensions;
 		static std::vector<const char*> s_Layers;
 		static std::vector<const char*> s_RequiredExtensions;

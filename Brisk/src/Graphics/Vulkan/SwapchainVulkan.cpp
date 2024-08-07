@@ -136,4 +136,9 @@ namespace Brisk {
 			}
 		}
 	}
+
+	void SwapchainVulkan::AquireNextImage(uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* imageIndex) {
+		vkAcquireNextImageKHR(Engine::s_PhysicalDevice->GetDevice(),
+			m_Swapchain, timeout, semaphore, VK_NULL_HANDLE, imageIndex);
+	}
 }

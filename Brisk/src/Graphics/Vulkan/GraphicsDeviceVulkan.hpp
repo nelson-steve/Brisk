@@ -27,9 +27,10 @@ namespace Brisk
 		virtual void WaitDeviceIdle() override;
 
 		void CreateSyncObjects();
-		void CreateCommandPoolAndBuffer();
-		void RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex);
-
+		//void CreateCommandPoolAndBuffer();
+		void PrepreFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex);
+		void Submit();
+		void Wait();
 		/// <summary>
 		/// Release all Vulkan resources cleanly
 		/// </summary>

@@ -29,4 +29,24 @@ namespace Brisk {
 		m_DefaultGraphicsPipeline = new GraphicsPipelineVulkan();
 		m_DefaultGraphicsPipeline->Create(modules);
 	}
+
+	void Renderer::Release() {
+
+	}
+
+	void Renderer::PreProcess() {
+
+	}
+
+	void Renderer::Render() {
+		m_Renderpass->Reset();
+		m_Renderpass->BeginRenderPass(0);
+		m_Renderpass->BindPipeline();
+		m_Renderpass->EndRenderPass();
+		
+	}
+
+	void Renderer::PostProcess() {
+
+	}
 }

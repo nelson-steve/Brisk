@@ -12,6 +12,7 @@ namespace Brisk {
 		virtual void Release() override;
 		//void Resize();
 
+		void AquireNextImage(uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* pImageIndex);
 		VkSurfaceKHR GetSurface() const { return m_Surface; }
 		VkSwapchainKHR GetSwapchain() const { return m_Swapchain; }
 		std::vector<VkImage> GetSwapchainImages() const { return m_SwapchainImages; }

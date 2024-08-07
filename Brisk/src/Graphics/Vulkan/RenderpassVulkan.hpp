@@ -12,7 +12,7 @@ namespace Brisk {
         void Release();
 
         void BeginRenderPass(int imageIndex);
-        void EndRenderPass(int imageIndex);
+        void EndRenderPass();
         void BindPipeline(VkPipeline pipeline);
         VkRenderPass GetRenderPass() const { return m_RenderPass; }
         const std::vector<VkFramebuffer> GetFramebuffers() const { return m_Framebuffers; }

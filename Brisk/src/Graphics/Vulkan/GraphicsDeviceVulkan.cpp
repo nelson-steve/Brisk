@@ -144,38 +144,39 @@ namespace Brisk
 		}
 	}
 
-	void GraphicsDeviceVulkan::CreateCommandPoolAndBuffer() {
+	//void GraphicsDeviceVulkan::CreateCommandPoolAndBuffer() {
 
-		VkCommandPoolCreateInfo poolInfo{};
-		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		poolInfo.queueFamilyIndex = Engine::s_PhysicalDevice->GetPresentQueue()->Info.QueueFamilyIndex;
-
-		if (vkCreateCommandPool(Engine::s_PhysicalDevice->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create command pool!");
-		}
-
-		VkCommandBufferAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.commandPool = m_CommandPool;
-		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		allocInfo.commandBufferCount = 1;
-
-		if (vkAllocateCommandBuffers(Engine::s_PhysicalDevice->GetDevice(), &allocInfo, &m_CommandBuffer) != VK_SUCCESS) {
-			throw std::runtime_error("failed to allocate command buffers!");
-		}
-	}
+		//VkCommandPoolCreateInfo poolInfo{};
+		//poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+		//poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		//poolInfo.queueFamilyIndex = Engine::s_PhysicalDevice->GetPresentQueue()->Info.QueueFamilyIndex;
+		//
+		//if (vkCreateCommandPool(Engine::s_PhysicalDevice->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
+		//	throw std::runtime_error("failed to create command pool!");
+		//}
+		//
+		//VkCommandBufferAllocateInfo allocInfo{};
+		//allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+		//allocInfo.commandPool = m_CommandPool;
+		//allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+		//allocInfo.commandBufferCount = 1;
+		//
+		//if (vkAllocateCommandBuffers(Engine::s_PhysicalDevice->GetDevice(), &allocInfo, &m_CommandBuffer) != VK_SUCCESS) {
+		//	throw std::runtime_error("failed to allocate command buffers!");
+		//}
+	//}
 
 	void GraphicsDeviceVulkan::Draw() {
 		vkWaitForFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
 		vkResetFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence);
 
 		uint32_t imageIndex;
-		vkAcquireNextImageKHR(Engine::s_PhysicalDevice->GetDevice(), 
-			static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetSwapchain(), UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+		static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->AquireNextImage(UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+		//vkAcquireNextImageKHR(Engine::s_PhysicalDevice->GetDevice(), 
+		//	static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetSwapchain(), UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
 
-		vkResetCommandBuffer(m_CommandBuffer, /*VkCommandBufferResetFlagBits*/ 0);
-		RecordCommandBuffer(m_CommandBuffer, imageIndex);
+		//vkResetCommandBuffer(m_CommandBuffer, /*VkCommandBufferResetFlagBits*/ 0);
+		//RecordCommandBuffer(m_CommandBuffer, imageIndex);
 
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -216,30 +217,71 @@ namespace Brisk
 		vkDeviceWaitIdle(Engine::s_PhysicalDevice->GetDevice());
 	}
 
-	void GraphicsDeviceVulkan::RecordCommandBuffer(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
-		VkCommandBufferBeginInfo beginInfo{};
-		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags = 0; // Optional
-		beginInfo.pInheritanceInfo = nullptr; // Optional
+	void GraphicsDeviceVulkan::Wait() {
+		vkWaitForFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
+		vkResetFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence);
+	}
 
-		if (vkBeginCommandBuffer(m_CommandBuffer, &beginInfo) != VK_SUCCESS) {
-			throw std::runtime_error("failed to begin recording command buffer!");
+	void GraphicsDeviceVulkan::Submit(VkCommandBuffer commandBuffer) {
+		VkSubmitInfo submitInfo{};
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+		VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore };
+		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		submitInfo.waitSemaphoreCount = 1;
+		submitInfo.pWaitSemaphores = waitSemaphores;
+		submitInfo.pWaitDstStageMask = waitStages;
+
+		submitInfo.commandBufferCount = 1;
+		submitInfo.pCommandBuffers = &commandBuffer;
+
+		VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
+		submitInfo.signalSemaphoreCount = 1;
+		submitInfo.pSignalSemaphores = signalSemaphores;
+
+		if (vkQueueSubmit(Engine::s_PhysicalDevice->GetGraphicsQueue()->Queue_, 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
+			throw std::runtime_error("failed to submit draw command buffer!");
 		}
 
-		VkRenderPassBeginInfo renderPassInfo{};
-		renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		renderPassInfo.renderPass = Engine::s_Renderer->GetRenderpass();
-		renderPassInfo.framebuffer = Engine::s_Renderer->GetFramebuffers()[imageIndex];
-		renderPassInfo.renderArea.offset = { 0, 0 };
-		renderPassInfo.renderArea.extent = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtent();
+		VkPresentInfoKHR presentInfo{};
+		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 
-		VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
-		renderPassInfo.clearValueCount = 1;
-		renderPassInfo.pClearValues = &clearColor;
+		presentInfo.waitSemaphoreCount = 1;
+		presentInfo.pWaitSemaphores = signalSemaphores;
 
-		vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		VkSwapchainKHR swapChains[] = { static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetSwapchain() };
+		presentInfo.swapchainCount = 1;
+		presentInfo.pSwapchains = swapChains;
 
-		vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Engine::s_Renderer->GetDefaultGraphicsPipeline()->GetPipeline());
+		presentInfo.pImageIndices = &imageIndex;
+
+		vkQueuePresentKHR(Engine::s_PhysicalDevice->GetPresentQueue()->Queue_, &presentInfo);
+	}
+
+	void GraphicsDeviceVulkan::PrepreFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+		//VkCommandBufferBeginInfo beginInfo{};
+		//beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+		//beginInfo.flags = 0; // Optional
+		//beginInfo.pInheritanceInfo = nullptr; // Optional
+		//
+		//if (vkBeginCommandBuffer(m_CommandBuffer, &beginInfo) != VK_SUCCESS) {
+		//	throw std::runtime_error("failed to begin recording command buffer!");
+		//}
+		//
+		//VkRenderPassBeginInfo renderPassInfo{};
+		//renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+		//renderPassInfo.renderPass = Engine::s_Renderer->GetRenderpass();
+		//renderPassInfo.framebuffer = Engine::s_Renderer->GetFramebuffers()[imageIndex];
+		//renderPassInfo.renderArea.offset = { 0, 0 };
+		//renderPassInfo.renderArea.extent = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtent();
+		//
+		//VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
+		//renderPassInfo.clearValueCount = 1;
+		//renderPassInfo.pClearValues = &clearColor;
+		//
+		//vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+		//
+		//vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Engine::s_Renderer->GetDefaultGraphicsPipeline()->GetPipeline());
 
 		VkViewport viewport{};
 		viewport.x = 0.0f;
@@ -257,11 +299,11 @@ namespace Brisk
 
 		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
-		vkCmdEndRenderPass(commandBuffer);
-
-		if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
-			throw std::runtime_error("failed to record command buffer!");
-		}
+		//vkCmdEndRenderPass(commandBuffer);
+		//
+		//if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
+		//	throw std::runtime_error("failed to record command buffer!");
+		//}
 	}
 
 	void GraphicsDeviceVulkan::CreateSyncObjects() {

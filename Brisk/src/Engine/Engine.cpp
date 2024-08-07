@@ -30,7 +30,8 @@ namespace Brisk
 	void Engine::Update() {
 		while (!s_MainWindow->WindowShouldClose()) {
 			s_MainWindow->ProcessEvents();
-			s_GPUContext->Draw();
+			s_Renderer->Render();
+			//s_GPUContext->Draw();
 		}
 
 		s_GPUContext->WaitDeviceIdle();

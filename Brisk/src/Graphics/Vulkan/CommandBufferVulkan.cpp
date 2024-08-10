@@ -27,6 +27,6 @@ namespace Brisk {
 	}
 
 	void CommandBufferVulkan::End() {
-
+		vkEndCommandBuffer(m_CommandBuffer);
 	}
 }

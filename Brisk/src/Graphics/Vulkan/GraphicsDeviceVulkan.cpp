@@ -77,7 +77,6 @@ namespace Brisk
 	std::vector<const char*> GraphicsDeviceVulkan::s_ValidationLayers;
 	VkCommandPool GraphicsDeviceVulkan::m_CommandPool;
 	VkSurfaceKHR GraphicsDeviceVulkan::s_Surface;
-	//VkCommandBuffer GraphicsDeviceVulkan::m_CommandBuffer;
 
 	void GraphicsDeviceVulkan::Create(){
 		volkInitialize();
@@ -156,55 +155,12 @@ namespace Brisk
 		vkWaitForFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
 		vkResetFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence);
 
-		//uint32_t imageIndex;
 		static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->AquireNextImage(UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_ImageIndex);
-
-		//vkResetCommandBuffer(m_CommandBuffer, /*VkCommandBufferResetFlagBits*/ 0);
-		//RecordCommandBuffer(m_CommandBuffer, imageIndex);
-
-		//VkSubmitInfo submitInfo{};
-		//submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		//
-		//VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore };
-		//VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-		//submitInfo.waitSemaphoreCount = 1;
-		//submitInfo.pWaitSemaphores = waitSemaphores;
-		//submitInfo.pWaitDstStageMask = waitStages;
-		//
-		//submitInfo.commandBufferCount = 1;
-		//submitInfo.pCommandBuffers = &m_CommandBuffer;
-		//
-		//VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
-		//submitInfo.signalSemaphoreCount = 1;
-		//submitInfo.pSignalSemaphores = signalSemaphores;
-		//
-		//if (vkQueueSubmit(Engine::s_PhysicalDevice->GetGraphicsQueue()->Queue_, 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
-		//	throw std::runtime_error("failed to submit draw command buffer!");
-		//}
-		//
-		//VkPresentInfoKHR presentInfo{};
-		//presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-		//
-		//presentInfo.waitSemaphoreCount = 1;
-		//presentInfo.pWaitSemaphores = signalSemaphores;
-		//
-		//VkSwapchainKHR swapChains[] = { static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetSwapchain() };
-		//presentInfo.swapchainCount = 1;
-		//presentInfo.pSwapchains = swapChains;
-		//
-		//presentInfo.pImageIndices = &imageIndex;
-		//
-		//vkQueuePresentKHR(Engine::s_PhysicalDevice->GetPresentQueue()->Queue_, &presentInfo);
 	}
 
 	void GraphicsDeviceVulkan::WaitDeviceIdle() {
 		vkDeviceWaitIdle(Engine::s_PhysicalDevice->GetDevice());
 	}
-
-	//void GraphicsDeviceVulkan::Wait() {
-		//vkWaitForFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
-		//vkResetFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence);
-	//}
 
 	void GraphicsDeviceVulkan::Submit(RenderpassVulkan* renderpass) {
 		VkSubmitInfo submitInfo{};
@@ -244,30 +200,6 @@ namespace Brisk
 	}
 
 	void GraphicsDeviceVulkan::PrepreFrame(VkCommandBuffer commandBuffer) {
-		//VkCommandBufferBeginInfo beginInfo{};
-		//beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		//beginInfo.flags = 0; // Optional
-		//beginInfo.pInheritanceInfo = nullptr; // Optional
-		//
-		//if (vkBeginCommandBuffer(m_CommandBuffer, &beginInfo) != VK_SUCCESS) {
-		//	throw std::runtime_error("failed to begin recording command buffer!");
-		//}
-		//
-		//VkRenderPassBeginInfo renderPassInfo{};
-		//renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
-		//renderPassInfo.renderPass = Engine::s_Renderer->GetRenderpass();
-		//renderPassInfo.framebuffer = Engine::s_Renderer->GetFramebuffers()[imageIndex];
-		//renderPassInfo.renderArea.offset = { 0, 0 };
-		//renderPassInfo.renderArea.extent = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtent();
-		//
-		//VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
-		//renderPassInfo.clearValueCount = 1;
-		//renderPassInfo.pClearValues = &clearColor;
-		//
-		//vkCmdBeginRenderPass(commandBuffer, &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
-		//
-		//vkCmdBindPipeline(commandBuffer, VK_PIPELINE_BIND_POINT_GRAPHICS, Engine::s_Renderer->GetDefaultGraphicsPipeline()->GetPipeline());
-
 		VkViewport viewport{};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
@@ -281,14 +213,6 @@ namespace Brisk
 		scissor.offset = { 0, 0 };
 		scissor.extent = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtent();
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-
-		//vkCmdDraw(commandBuffer, 3, 1, 0, 0);
-
-		//vkCmdEndRenderPass(commandBuffer);
-		//
-		//if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
-		//	throw std::runtime_error("failed to record command buffer!");
-		//}
 	}
 
 	void GraphicsDeviceVulkan::Draw(VkCommandBuffer commandBuffer) {
@@ -308,7 +232,6 @@ namespace Brisk
 			vkCreateFence(Engine::s_PhysicalDevice->GetDevice(), &fenceInfo, nullptr, &m_InFlightFence) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create synchronization objects for a frame!");
 		}
-
 	}
 
 	void GraphicsDeviceVulkan::Release() {

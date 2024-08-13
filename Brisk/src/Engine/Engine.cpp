@@ -32,7 +32,6 @@ namespace Brisk
 			s_MainWindow->ProcessEvents();
 			Engine::s_GPUContext->Sync();
 			s_Renderer->Render();
-			//s_GPUContext->Draw();
 		}
 
 		s_GPUContext->WaitDeviceIdle();

@@ -39,7 +39,6 @@ namespace Brisk {
 	}
 
 	void Renderer::Render() {
-		//static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->Sync();
 		m_Renderpass->Reset();
 		m_Renderpass->BeginRenderPass(static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetImageIndex());
 		m_Renderpass->BindPipeline(m_DefaultGraphicsPipeline->GetPipeline());

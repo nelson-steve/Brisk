@@ -27,11 +27,9 @@ namespace Brisk
 		virtual void WaitDeviceIdle() override;
 
 		void CreateSyncObjects();
-		//void CreateCommandPoolAndBuffer();
 		void PrepreFrame(VkCommandBuffer commandBuffer);
 		void Submit(RenderpassVulkan* renderpass);
 		void Draw(VkCommandBuffer commandBuffer);
-		//void Wait();
 		/// <summary>
 		/// Release all Vulkan resources cleanly
 		/// </summary>
@@ -59,7 +57,6 @@ namespace Brisk
 		/// Vulkan helper variables
 		/// </summary>
 		static VkCommandPool m_CommandPool;
-		//static VkCommandBuffer m_CommandBuffer;
 		static std::vector<const char*> s_Extensions;
 		static std::vector<const char*> s_Layers;
 		static std::vector<const char*> s_RequiredExtensions;

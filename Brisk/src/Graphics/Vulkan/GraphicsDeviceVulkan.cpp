@@ -5,6 +5,8 @@
 #include "VulkanUtilities.hpp"
 #include "Graphics/ShaderManager.hpp"
 #include "Engine/Renderer/Renderer.hpp"
+#define GLFW_INCLUDE_VULKAN
+#include <glfw3.h>
 
 namespace Brisk 
 {
@@ -74,6 +76,7 @@ namespace Brisk
 	std::vector<const char*> GraphicsDeviceVulkan::s_RequiredExtensions;
 	std::vector<const char*> GraphicsDeviceVulkan::s_ValidationLayers;
 	VkCommandPool GraphicsDeviceVulkan::m_CommandPool;
+	VkSurfaceKHR GraphicsDeviceVulkan::s_Surface;
 	//VkCommandBuffer GraphicsDeviceVulkan::m_CommandBuffer;
 
 	void GraphicsDeviceVulkan::Create(){
@@ -126,7 +129,12 @@ namespace Brisk
 
 		s_RequiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
+		if (glfwCreateWindowSurface(s_Instance, (GLFWwindow*)Engine::s_MainWindow->GetWindowHandle(), nullptr, &s_Surface) != VK_SUCCESS) {
+			BRISK_CORE_ERROR("Failed to create window surface!");
+		}
+
 		PhysicalDevice::Details details;
+		details.Surface = s_Surface;
 		details.RequiredQueueTypes.push_back(PhysicalDevice::QueueInfo::QueueType::QUEUE_GRAPHICS_BIT);
 		details.RequiredQueueTypes.push_back(PhysicalDevice::QueueInfo::QueueType::QUEUE_TRANSFER_BIT);
 		details.RequiredFeatures.push_back(PhysicalDevice::Feature::ANISOTROPY);
@@ -144,85 +152,61 @@ namespace Brisk
 		}
 	}
 
-	//void GraphicsDeviceVulkan::CreateCommandPoolAndBuffer() {
-
-		//VkCommandPoolCreateInfo poolInfo{};
-		//poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		//poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		//poolInfo.queueFamilyIndex = Engine::s_PhysicalDevice->GetPresentQueue()->Info.QueueFamilyIndex;
-		//
-		//if (vkCreateCommandPool(Engine::s_PhysicalDevice->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
-		//	throw std::runtime_error("failed to create command pool!");
-		//}
-		//
-		//VkCommandBufferAllocateInfo allocInfo{};
-		//allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		//allocInfo.commandPool = m_CommandPool;
-		//allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-		//allocInfo.commandBufferCount = 1;
-		//
-		//if (vkAllocateCommandBuffers(Engine::s_PhysicalDevice->GetDevice(), &allocInfo, &m_CommandBuffer) != VK_SUCCESS) {
-		//	throw std::runtime_error("failed to allocate command buffers!");
-		//}
-	//}
-
-	void GraphicsDeviceVulkan::Draw() {
+	void GraphicsDeviceVulkan::Sync() {
 		vkWaitForFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
 		vkResetFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence);
 
-		uint32_t imageIndex;
-		static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->AquireNextImage(UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
-		//vkAcquireNextImageKHR(Engine::s_PhysicalDevice->GetDevice(), 
-		//	static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetSwapchain(), UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &imageIndex);
+		//uint32_t imageIndex;
+		static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->AquireNextImage(UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_ImageIndex);
 
 		//vkResetCommandBuffer(m_CommandBuffer, /*VkCommandBufferResetFlagBits*/ 0);
 		//RecordCommandBuffer(m_CommandBuffer, imageIndex);
 
-		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-		VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore };
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pWaitSemaphores = waitSemaphores;
-		submitInfo.pWaitDstStageMask = waitStages;
-
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &m_CommandBuffer;
-
-		VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = signalSemaphores;
-
-		if (vkQueueSubmit(Engine::s_PhysicalDevice->GetGraphicsQueue()->Queue_, 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
-			throw std::runtime_error("failed to submit draw command buffer!");
-		}
-
-		VkPresentInfoKHR presentInfo{};
-		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = signalSemaphores;
-
-		VkSwapchainKHR swapChains[] = { static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetSwapchain() };
-		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = swapChains;
-
-		presentInfo.pImageIndices = &imageIndex;
-
-		vkQueuePresentKHR(Engine::s_PhysicalDevice->GetPresentQueue()->Queue_, &presentInfo);
+		//VkSubmitInfo submitInfo{};
+		//submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		//
+		//VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore };
+		//VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		//submitInfo.waitSemaphoreCount = 1;
+		//submitInfo.pWaitSemaphores = waitSemaphores;
+		//submitInfo.pWaitDstStageMask = waitStages;
+		//
+		//submitInfo.commandBufferCount = 1;
+		//submitInfo.pCommandBuffers = &m_CommandBuffer;
+		//
+		//VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
+		//submitInfo.signalSemaphoreCount = 1;
+		//submitInfo.pSignalSemaphores = signalSemaphores;
+		//
+		//if (vkQueueSubmit(Engine::s_PhysicalDevice->GetGraphicsQueue()->Queue_, 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
+		//	throw std::runtime_error("failed to submit draw command buffer!");
+		//}
+		//
+		//VkPresentInfoKHR presentInfo{};
+		//presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+		//
+		//presentInfo.waitSemaphoreCount = 1;
+		//presentInfo.pWaitSemaphores = signalSemaphores;
+		//
+		//VkSwapchainKHR swapChains[] = { static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetSwapchain() };
+		//presentInfo.swapchainCount = 1;
+		//presentInfo.pSwapchains = swapChains;
+		//
+		//presentInfo.pImageIndices = &imageIndex;
+		//
+		//vkQueuePresentKHR(Engine::s_PhysicalDevice->GetPresentQueue()->Queue_, &presentInfo);
 	}
 
 	void GraphicsDeviceVulkan::WaitDeviceIdle() {
 		vkDeviceWaitIdle(Engine::s_PhysicalDevice->GetDevice());
 	}
 
-	void GraphicsDeviceVulkan::Wait() {
-		vkWaitForFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
-		vkResetFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence);
-	}
+	//void GraphicsDeviceVulkan::Wait() {
+		//vkWaitForFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
+		//vkResetFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence);
+	//}
 
-	void GraphicsDeviceVulkan::Submit(VkCommandBuffer commandBuffer) {
+	void GraphicsDeviceVulkan::Submit(RenderpassVulkan* renderpass) {
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -232,8 +216,9 @@ namespace Brisk
 		submitInfo.pWaitSemaphores = waitSemaphores;
 		submitInfo.pWaitDstStageMask = waitStages;
 
+		VkCommandBuffer cmdBufer = renderpass->GetCommandBuffer();
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &commandBuffer;
+		submitInfo.pCommandBuffers = &cmdBufer;
 
 		VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
 		submitInfo.signalSemaphoreCount = 1;
@@ -253,12 +238,12 @@ namespace Brisk
 		presentInfo.swapchainCount = 1;
 		presentInfo.pSwapchains = swapChains;
 
-		presentInfo.pImageIndices = &imageIndex;
+		presentInfo.pImageIndices = &m_ImageIndex;
 
 		vkQueuePresentKHR(Engine::s_PhysicalDevice->GetPresentQueue()->Queue_, &presentInfo);
 	}
 
-	void GraphicsDeviceVulkan::PrepreFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex) {
+	void GraphicsDeviceVulkan::PrepreFrame(VkCommandBuffer commandBuffer) {
 		//VkCommandBufferBeginInfo beginInfo{};
 		//beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
 		//beginInfo.flags = 0; // Optional
@@ -297,13 +282,17 @@ namespace Brisk
 		scissor.extent = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtent();
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 
-		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+		//vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 
 		//vkCmdEndRenderPass(commandBuffer);
 		//
 		//if (vkEndCommandBuffer(commandBuffer) != VK_SUCCESS) {
 		//	throw std::runtime_error("failed to record command buffer!");
 		//}
+	}
+
+	void GraphicsDeviceVulkan::Draw(VkCommandBuffer commandBuffer) {
+		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
 	}
 
 	void GraphicsDeviceVulkan::CreateSyncObjects() {

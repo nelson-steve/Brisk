@@ -14,6 +14,7 @@ namespace Brisk {
         void Reset() {
             vkResetCommandBuffer(m_CommandBuffer->Get(), /*VkCommandBufferResetFlagBits*/ 0);
         }
+        VkCommandBuffer GetCommandBuffer() { return m_CommandBuffer->Get(); }
         void BeginRenderPass(int imageIndex);
         void EndRenderPass();
         void BindPipeline(VkPipeline pipeline);

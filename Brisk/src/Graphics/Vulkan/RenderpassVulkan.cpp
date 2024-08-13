@@ -61,7 +61,7 @@ namespace Brisk {
     }
 
     void RenderpassVulkan::BeginRenderPass(int imageIndex) {
-        vkResetCommandBuffer(m_CommandBuffer->Get(), /*VkCommandBufferResetFlagBits*/ 0);
+        //vkResetCommandBuffer(m_CommandBuffer->Get(), /*VkCommandBufferResetFlagBits*/ 0);
         m_CommandBuffer->Begin();
 
         VkRenderPassBeginInfo renderPassInfo{};

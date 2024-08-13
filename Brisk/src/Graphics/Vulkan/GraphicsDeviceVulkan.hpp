@@ -23,14 +23,15 @@ namespace Brisk
 		/// </summary>
 		virtual void Create() override;
 
-		virtual void Draw() override;
+		virtual void Sync() override;
 		virtual void WaitDeviceIdle() override;
 
 		void CreateSyncObjects();
 		//void CreateCommandPoolAndBuffer();
-		void PrepreFrame(VkCommandBuffer commandBuffer, uint32_t imageIndex);
-		void Submit();
-		void Wait();
+		void PrepreFrame(VkCommandBuffer commandBuffer);
+		void Submit(RenderpassVulkan* renderpass);
+		void Draw(VkCommandBuffer commandBuffer);
+		//void Wait();
 		/// <summary>
 		/// Release all Vulkan resources cleanly
 		/// </summary>
@@ -42,6 +43,10 @@ namespace Brisk
 		/// </summary>
 		static VkInstance GetInstance() { return s_Instance; }
 		static VkCommandPool GetCommandPool() { return m_CommandPool; }
+		static VkSurfaceKHR GetSurface() { return s_Surface; }
+
+		uint32_t GetImageIndex() { return m_ImageIndex; }
+
 		static std::vector<const char*>& GetRequiredExtenstions() { return s_RequiredExtensions; }
 		static std::vector<const char*>& GetValidationLayers() { return s_ValidationLayers; }
 	private:
@@ -66,6 +71,10 @@ namespace Brisk
 		static VkFence m_InFlightFence;
 		static VkSemaphore m_ImageAvailableSemaphore;
 		static VkSemaphore m_RenderFinishedSemaphore;
+
+		static VkSurfaceKHR s_Surface;
+
+		uint32_t m_ImageIndex;
 
 		/// <summary>
 		/// Friend class declaration

@@ -152,6 +152,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
   <ItemGroup>
     <ClInclude Include="src\Core\Log.hpp" />
     <ClInclude Include="src\Core\Timer.hpp" />
+    <ClInclude Include="src\Engine\Application.hpp" />
     <ClInclude Include="src\Engine\Engine.hpp" />
     <ClInclude Include="src\Engine\EngineGlobal.hpp" />
     <ClInclude Include="src\Engine\Renderer\Renderer.hpp" />

@@ -2,8 +2,8 @@
 #include "Engine/Engine.hpp"
 
 namespace Brisk {
-	void CommandBufferVulkan::Allocate(const VkCommandPool& pool) {
-
+	void CommandBufferVulkan::Allocate(VkCommandPool pool) {
+		m_ParentPool = pool;
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
 		allocInfo.commandPool = m_ParentPool;

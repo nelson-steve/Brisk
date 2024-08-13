@@ -6,11 +6,6 @@ namespace Brisk {
 
 	}
 
-	void GraphicsDeviceDirectX11::Draw()
-	{
-
-	}
-
 	void GraphicsDeviceDirectX11::WaitDeviceIdle()
 	{
 

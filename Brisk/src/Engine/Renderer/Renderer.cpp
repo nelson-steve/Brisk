@@ -39,11 +39,17 @@ namespace Brisk {
 	}
 
 	void Renderer::Render() {
+		//static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->Sync();
 		m_Renderpass->Reset();
-		m_Renderpass->BeginRenderPass(0);
+		m_Renderpass->BeginRenderPass(static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetImageIndex());
 		m_Renderpass->BindPipeline(m_DefaultGraphicsPipeline->GetPipeline());
+
+		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->PrepreFrame(m_Renderpass->GetCommandBuffer());
+		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->Draw(m_Renderpass->GetCommandBuffer());
+
 		m_Renderpass->EndRenderPass();
-		
+
+		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->Submit(m_Renderpass);
 	}
 
 	void Renderer::PostProcess() {

@@ -1,8 +1,8 @@
 #include "SwapchainVulkan.hpp"
 #include "Defines.h"
 #include "Engine/Engine.hpp"
-#define GLFW_INCLUDE_VULKAN
-#include <glfw3.h>
+//#define GLFW_INCLUDE_VULKAN
+//#include <glfw3.h>
 
 namespace Brisk {
 	SwapchainVulkan::SwapchainVulkan(WindowBase* window)
@@ -17,9 +17,9 @@ namespace Brisk {
 	}
 
 	void SwapchainVulkan::Create() {
-		if (glfwCreateWindowSurface(static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetInstance(), (GLFWwindow*)m_Window->GetWindowHandle(), nullptr, &m_Surface) != VK_SUCCESS) {
-			BRISK_CORE_ERROR("Failed to create window surface!");
-		}
+		//if (glfwCreateWindowSurface(static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetInstance(), (GLFWwindow*)m_Window->GetWindowHandle(), nullptr, &m_Surface) != VK_SUCCESS) {
+		//	BRISK_CORE_ERROR("Failed to create window surface!");
+		//}
 
 		//PhysicalDevice::Details details;
 		//details.RequiredQueueTypes.push_back(PhysicalDevice::QueueInfo::QueueType::QUEUE_GRAPHICS_BIT);
@@ -31,6 +31,7 @@ namespace Brisk {
 		//Engine::s_PhysicalDevice->Create(details);
 
 		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->CreateSyncObjects();
+		m_Surface = static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetSurface();
 		//static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->CreateCommandPoolAndBuffer();
 
 		// TODO: Dont use hardcoded values

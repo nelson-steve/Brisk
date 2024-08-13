@@ -23,7 +23,7 @@ namespace Brisk {
 
 		virtual void Create() = 0;
 
-		virtual void Draw() = 0;
+		virtual void Sync() = 0;
 		virtual void WaitDeviceIdle() = 0;
 
 		/// <summary>

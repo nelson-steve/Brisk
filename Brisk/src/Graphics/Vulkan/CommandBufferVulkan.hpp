@@ -5,7 +5,7 @@
 namespace Brisk {
 	class CommandBufferVulkan {
 	public:
-		void Allocate(const VkCommandPool& pool);
+		void Allocate(VkCommandPool pool);
 		void Begin(VkCommandBufferUsageFlags usageFlags = 0);
 		void End();
 

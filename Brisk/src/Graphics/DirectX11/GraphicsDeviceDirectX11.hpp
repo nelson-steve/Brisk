@@ -6,7 +6,6 @@ namespace Brisk {
 	class GraphicsDeviceDirectX11 : GPUContext{
 	public:
 		void Create() override;
-		void Draw() override;
 		void WaitDeviceIdle() override;
 		void Release() override;
 	private:

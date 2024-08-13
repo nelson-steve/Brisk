@@ -41,7 +41,7 @@ namespace Brisk {
 	void Renderer::Render() {
 		m_Renderpass->Reset();
 		m_Renderpass->BeginRenderPass(0);
-		m_Renderpass->BindPipeline();
+		m_Renderpass->BindPipeline(m_DefaultGraphicsPipeline->GetPipeline());
 		m_Renderpass->EndRenderPass();
 		
 	}

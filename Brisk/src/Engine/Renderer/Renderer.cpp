@@ -38,6 +38,9 @@ namespace Brisk {
 	}
 
 	void Renderer::Render() {
+		if (Engine::s_GPUContext->Sync())
+			return;
+
 		m_RenderPass->BeginRenderPass();
 		m_RenderPass->BindPipeline(m_DefaultGraphicsPipeline);
 

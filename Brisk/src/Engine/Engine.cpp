@@ -30,7 +30,6 @@ namespace Brisk
 	void Engine::Update() {
 		while (!s_MainWindow->WindowShouldClose()) {
 			s_MainWindow->ProcessEvents();
-			Engine::s_GPUContext->Sync();
 			s_Renderer->Render();
 		}
 

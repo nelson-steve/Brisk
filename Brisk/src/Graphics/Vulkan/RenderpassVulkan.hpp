@@ -12,6 +12,8 @@ namespace Brisk {
     public:
         void Create(uint16_t noOfFrameBuffers);
         void Release();
+        void CreateFramebuffers();
+        void ReleaseFramebuffers();
 
         virtual void BindPipeline(void* pipeline) override;
         virtual void BeginRenderPass(/*int imageIndex*/) override;

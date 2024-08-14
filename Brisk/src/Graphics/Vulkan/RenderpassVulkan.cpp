@@ -61,6 +61,34 @@ namespace Brisk {
         m_CommandBuffer->Allocate(static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetCommandPool());
     }
 
+    void RenderPassVulkan::CreateFramebuffers() {
+        m_Framebuffers.resize(3);
+        for (size_t i = 0; i < m_Framebuffers.size(); i++) {
+            VkImageView attachments[] = {
+                static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetSwapchainImageViews()[i]
+            };
+
+            VkFramebufferCreateInfo framebufferInfo{};
+            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            framebufferInfo.renderPass = m_RenderPass;
+            framebufferInfo.attachmentCount = 1;
+            framebufferInfo.pAttachments = attachments;
+            framebufferInfo.width = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentWidth();
+            framebufferInfo.height = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentHeight();
+            framebufferInfo.layers = 1;
+
+            if (vkCreateFramebuffer(Engine::s_PhysicalDevice->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create framebuffer!");
+            }
+        }
+    }
+
+    void RenderPassVulkan::ReleaseFramebuffers() {
+        for (size_t i = 0; i < m_Framebuffers.size(); i++) {
+            vkDestroyFramebuffer(Engine::s_PhysicalDevice->GetDevice(), m_Framebuffers[i], nullptr);
+        }
+    }
+
     void RenderPassVulkan::BeginRenderPass(/*int imageIndex*/) {
         Reset();
         m_CommandBuffer->Begin();

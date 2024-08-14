@@ -23,7 +23,7 @@ namespace Brisk
 		/// </summary>
 		virtual void Create() override;
 
-		virtual void Sync() override;
+		virtual bool Sync() override;
 		virtual void WaitDeviceIdle() override;
 
 		void CreateSyncObjects();

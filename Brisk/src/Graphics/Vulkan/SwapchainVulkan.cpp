@@ -11,7 +11,9 @@ namespace Brisk {
 			vkDestroyImageView(Engine::s_PhysicalDevice->GetDevice(), imageView, nullptr);
 		}
 		vkDestroySwapchainKHR(Engine::s_PhysicalDevice->GetDevice(), m_Swapchain, nullptr);
-		vkDestroySurfaceKHR(static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetInstance(), m_Surface, nullptr);
+
+		// TODO: Surface should not get destroyed
+		//vkDestroySurfaceKHR(static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetInstance(), m_Surface, nullptr);
 	}
 
 	void SwapchainVulkan::Create() {
@@ -122,8 +124,9 @@ namespace Brisk {
 		}
 	}
 
-	void SwapchainVulkan::AquireNextImage(uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* imageIndex) {
-		vkAcquireNextImageKHR(Engine::s_PhysicalDevice->GetDevice(),
+	VkResult SwapchainVulkan::AquireNextImage(uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* imageIndex) {
+		VkResult result = vkAcquireNextImageKHR(Engine::s_PhysicalDevice->GetDevice(),
 			m_Swapchain, timeout, semaphore, VK_NULL_HANDLE, imageIndex);
+		return result;
 	}
 }

@@ -1,10 +1,12 @@
 #include "GraphicsDeviceVulkan.hpp"
-#include "Engine/Engine.hpp"
+//#include "Engine/Engine.hpp"
+#include "Graphics/Factories/SwapchainFactory.hpp"
 #include "SwapchainVulkan.hpp"
 #include "Defines.h"
 #include "VulkanUtilities.hpp"
 #include "Graphics/ShaderManager.hpp"
 #include "Engine/Renderer/Renderer.hpp"
+
 #define GLFW_INCLUDE_VULKAN
 #include <glfw3.h>
 
@@ -151,11 +153,23 @@ namespace Brisk
 		}
 	}
 
-	void GraphicsDeviceVulkan::Sync() {
+	bool GraphicsDeviceVulkan::Sync() {
 		vkWaitForFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
-		vkResetFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence);
 
-		static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->AquireNextImage(UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_ImageIndex);
+		VkResult result = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->AquireNextImage(UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_ImageIndex);
+
+		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+			Engine::s_Swapchain->Release();
+			static_cast<RenderPassVulkan*>(Engine::s_Renderer->GetRenderPass())->ReleaseFramebuffers();
+			//delete Engine::s_Swapchain;
+			Engine::s_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_MainWindow);
+			Engine::s_Swapchain->Create();
+			static_cast<RenderPassVulkan*>(Engine::s_Renderer->GetRenderPass())->CreateFramebuffers();
+			return true;
+		}
+
+		vkResetFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence);
+		return false;
 	}
 
 	void GraphicsDeviceVulkan::WaitDeviceIdle() {

@@ -28,7 +28,7 @@ namespace Brisk
 
 		void CreateSyncObjects();
 		void PrepreFrame(VkCommandBuffer commandBuffer);
-		void Submit(RenderpassVulkan* renderpass);
+		void Submit(RenderPassVulkan* renderpass);
 		void Draw(VkCommandBuffer commandBuffer);
 		/// <summary>
 		/// Release all Vulkan resources cleanly

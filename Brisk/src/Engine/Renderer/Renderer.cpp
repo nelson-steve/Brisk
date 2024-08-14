@@ -23,8 +23,7 @@ namespace Brisk {
 			modules.push_back(ShaderManager::CreateShaderModule(shader));
 		}
 
-		m_Renderpass = new RenderpassVulkan();
-		m_Renderpass->Create(static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetSwapchainImages().size());
+		m_RenderPass = RenderPass::Create();
 
 		m_DefaultGraphicsPipeline = new GraphicsPipelineVulkan();
 		m_DefaultGraphicsPipeline->Create(modules);
@@ -39,16 +38,18 @@ namespace Brisk {
 	}
 
 	void Renderer::Render() {
-		m_Renderpass->Reset();
-		m_Renderpass->BeginRenderPass(static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetImageIndex());
-		m_Renderpass->BindPipeline(m_DefaultGraphicsPipeline->GetPipeline());
+		m_RenderPass->BeginRenderPass();
+		m_RenderPass->BindPipeline(m_DefaultGraphicsPipeline);
 
-		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->PrepreFrame(m_Renderpass->GetCommandBuffer());
-		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->Draw(m_Renderpass->GetCommandBuffer());
+		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->PrepreFrame(
+			static_cast<RenderPassVulkan*>(m_RenderPass)->GetCommandBuffer());
+		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->Draw(
+			static_cast<RenderPassVulkan*>(m_RenderPass)->GetCommandBuffer());
 
-		m_Renderpass->EndRenderPass();
+		m_RenderPass->EndRenderPass();
 
-		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->Submit(m_Renderpass);
+		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->Submit(
+			static_cast<RenderPassVulkan*>(m_RenderPass));
 	}
 
 	void Renderer::PostProcess() {

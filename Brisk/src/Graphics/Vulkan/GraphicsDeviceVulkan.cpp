@@ -162,7 +162,7 @@ namespace Brisk
 		vkDeviceWaitIdle(Engine::s_PhysicalDevice->GetDevice());
 	}
 
-	void GraphicsDeviceVulkan::Submit(RenderpassVulkan* renderpass) {
+	void GraphicsDeviceVulkan::Submit(RenderPassVulkan* renderpass) {
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 

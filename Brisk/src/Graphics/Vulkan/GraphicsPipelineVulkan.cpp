@@ -95,7 +95,7 @@ namespace Brisk {
         pipelineInfo.pColorBlendState = &colorBlending;
         pipelineInfo.pDynamicState = &dynamicState;
         pipelineInfo.layout = m_PipelineLayout;
-        pipelineInfo.renderPass = Engine::s_Renderer->GetRenderpass();
+        pipelineInfo.renderPass = static_cast<RenderPassVulkan*>(Engine::s_Renderer->GetRenderPass())->GetRenderPass();
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 

@@ -2,7 +2,7 @@
 
 #include "Graphics/GPUDevice.hpp"
 #include "Graphics/Vulkan/GraphicsPipelineVulkan.hpp"
-#include "Graphics/Vulkan/RenderpassVulkan.hpp"
+#include "Graphics/RenderPass.hpp"
 
 namespace Brisk {
 	class Renderer {
@@ -14,11 +14,11 @@ namespace Brisk {
 		void Render();
 		void PostProcess();
 
-		const std::vector<VkFramebuffer> GetFramebuffers() const { return m_Renderpass->GetFramebuffers(); }
-		const VkRenderPass GetRenderpass() const { return m_Renderpass->GetRenderPass(); }
+		//const std::vector<VkFramebuffer> GetFramebuffers() const { return m_RenderPass->GetFramebuffers(); }
+		RenderPass* GetRenderPass() const { return m_RenderPass; }
 		const GraphicsPipelineVulkan* GetDefaultGraphicsPipeline() const { return m_DefaultGraphicsPipeline; }
 	private:
-		RenderpassVulkan* m_Renderpass;
+		RenderPass* m_RenderPass;
 		GraphicsPipelineVulkan* m_DefaultGraphicsPipeline;
 	};
 }

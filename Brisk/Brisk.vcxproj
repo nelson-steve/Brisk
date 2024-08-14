@@ -161,6 +161,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Graphics\DirectX11\GraphicsDeviceDirectX11.hpp" />
     <ClInclude Include="src\Graphics\Factories\SwapchainFactory.hpp" />
     <ClInclude Include="src\Graphics\GPUDevice.hpp" />
+    <ClInclude Include="src\Graphics\Renderpass.hpp" />
     <ClInclude Include="src\Graphics\ShaderManager.hpp" />
     <ClInclude Include="src\Graphics\Swapchain.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\CommandBufferVulkan.hpp" />
@@ -168,7 +169,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Graphics\Vulkan\GraphicsDeviceVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\GraphicsPipelineVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\QueueVulkan.hpp" />
-    <ClInclude Include="src\Graphics\Vulkan\RenderpassVulkan.hpp" />
+    <ClInclude Include="src\Graphics\Vulkan\RenderPassVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\SwapchainVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\PhysicalDevice.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\volk.cpp" />
@@ -182,13 +183,14 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClCompile Include="src\Engine\WindowBase.cpp" />
     <ClCompile Include="src\Graphics\DirectX11\GraphicsDeviceDirectX11.cpp" />
     <ClCompile Include="src\Graphics\GPUDevice.cpp" />
+    <ClCompile Include="src\Graphics\Renderpass.cpp" />
     <ClCompile Include="src\Graphics\ShaderManager.cpp" />
     <ClCompile Include="src\Graphics\Swapchain.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\CommandBufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\GraphicsDeviceVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\GraphicsPipelineVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\QueueVulkan.cpp" />
-    <ClCompile Include="src\Graphics\Vulkan\RenderpassVulkan.cpp" />
+    <ClCompile Include="src\Graphics\Vulkan\RenderPassVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\SwapchainVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\PhysicalDevice.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\VulkanUtilities.cpp" />

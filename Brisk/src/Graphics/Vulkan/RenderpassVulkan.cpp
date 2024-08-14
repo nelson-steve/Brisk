@@ -1,10 +1,11 @@
-#include "RenderpassVulkan.hpp"
+#include "RenderPassVulkan.hpp"
 
 #include "Engine/Engine.hpp"
 #include "SwapchainVulkan.hpp"
+#include "GraphicsPipelineVulkan.hpp"
 
 namespace Brisk {
-    void RenderpassVulkan::Create(uint16_t noOfFrameBuffers) {
+    void RenderPassVulkan::Create(uint16_t noOfFrameBuffers) {
         VkAttachmentDescription colorAttachment{};
         //colorAttachment.format = Engine::m_Swapchain->GetFormat();
         colorAttachment.format = VK_FORMAT_B8G8R8A8_SRGB; // TODO: DO NOT use hardcoded value
@@ -60,9 +61,10 @@ namespace Brisk {
         m_CommandBuffer->Allocate(static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetCommandPool());
     }
 
-    void RenderpassVulkan::BeginRenderPass(int imageIndex) {
+    void RenderPassVulkan::BeginRenderPass(/*int imageIndex*/) {
+        Reset();
         m_CommandBuffer->Begin();
-
+        int imageIndex = static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetImageIndex(); // TODO: Take this value from Swapchain
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = m_RenderPass;
@@ -77,19 +79,20 @@ namespace Brisk {
         vkCmdBeginRenderPass(m_CommandBuffer->Get(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
     }
 
-    void RenderpassVulkan::EndRenderPass() {
+    void RenderPassVulkan::EndRenderPass() {
         vkCmdEndRenderPass(m_CommandBuffer->Get());
 
         if (vkEndCommandBuffer(m_CommandBuffer->Get()) != VK_SUCCESS) {
-            throw std::runtime_error("failed to record command buffer!");
+            throw std::runtime_error("Failed to record command buffer!");
         }
     }
 
-    void RenderpassVulkan::BindPipeline(VkPipeline pipeline) {
-        vkCmdBindPipeline(m_CommandBuffer->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, pipeline);
+    void RenderPassVulkan::BindPipeline(void* pipeline) {
+        vkCmdBindPipeline(m_CommandBuffer->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS,
+            static_cast<GraphicsPipelineVulkan*>(pipeline)->GetPipeline());
     }
 
-    void RenderpassVulkan::Release() {
+    void RenderPassVulkan::Release() {
         for (int i = 0; i < m_Framebuffers.size(); i++) {
             vkDestroyFramebuffer(Engine::s_PhysicalDevice->GetDevice(), m_Framebuffers[i], nullptr);
         }

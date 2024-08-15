@@ -40,6 +40,8 @@ namespace Brisk
 		s_MainWindow->DestroyWindow();
 		delete s_MainWindow;
 		s_Swapchain->Release();
+		s_Renderer->Release();
+		s_GPUContext->ReleasePools();
 		s_PhysicalDevice->Release();
 
 		s_GPUContext->Release();

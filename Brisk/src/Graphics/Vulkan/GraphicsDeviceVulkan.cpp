@@ -248,6 +248,14 @@ namespace Brisk
 		}
 	}
 
+	void GraphicsDeviceVulkan::ReleasePools() {
+		// TODO: Should not get freed here
+		vkDestroySemaphore(Engine::s_PhysicalDevice->GetDevice(), m_ImageAvailableSemaphore, nullptr);
+		vkDestroySemaphore(Engine::s_PhysicalDevice->GetDevice(), m_RenderFinishedSemaphore, nullptr);
+		vkDestroyFence(Engine::s_PhysicalDevice->GetDevice(), m_InFlightFence, nullptr);
+		vkDestroyCommandPool(Engine::s_PhysicalDevice->GetDevice(), m_CommandPool, nullptr);
+	}
+
 	void GraphicsDeviceVulkan::Release() {
 		vkDestroyDebugUtilsMessengerEXT(s_Instance, s_DebugMessenger, nullptr);
 		vkDestroyInstance(s_Instance, nullptr);

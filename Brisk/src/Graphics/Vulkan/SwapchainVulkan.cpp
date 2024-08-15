@@ -12,7 +12,7 @@ namespace Brisk {
 		}
 		vkDestroySwapchainKHR(Engine::s_PhysicalDevice->GetDevice(), m_Swapchain, nullptr);
 
-		// TODO: Surface should not get destroyed
+		// TODO: Surface should not get destroyed here
 		//vkDestroySurfaceKHR(static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetInstance(), m_Surface, nullptr);
 	}
 

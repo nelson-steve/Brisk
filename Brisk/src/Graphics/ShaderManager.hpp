@@ -18,6 +18,7 @@ namespace Brisk {
 	class ShaderManager {
     public:
         static const ShaderModule& CreateShaderModule(const ShaderInfo& info);
+        static const void ReleaseShaderModule(const std::vector<ShaderModule>& modules);
     private:
         static std::vector<char>& ReadShaderFile(const std::string& fileName);
     public:

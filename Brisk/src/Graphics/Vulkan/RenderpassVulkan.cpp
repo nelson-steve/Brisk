@@ -5,7 +5,8 @@
 #include "GraphicsPipelineVulkan.hpp"
 
 namespace Brisk {
-    void RenderPassVulkan::Create(uint16_t noOfFrameBuffers) {
+    void RenderPassVulkan::Create() {
+        int noOfFramebuffers = 3;
         VkAttachmentDescription colorAttachment{};
         //colorAttachment.format = Engine::m_Swapchain->GetFormat();
         colorAttachment.format = VK_FORMAT_B8G8R8A8_SRGB; // TODO: DO NOT use hardcoded value
@@ -37,7 +38,7 @@ namespace Brisk {
             throw std::runtime_error("failed to create render pass!");
         }
 
-        m_Framebuffers.resize(noOfFrameBuffers);
+        m_Framebuffers.resize(noOfFramebuffers);
         for (size_t i = 0; i < m_Framebuffers.size(); i++) {
             VkImageView attachments[] = {
                 static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetSwapchainImageViews()[i]

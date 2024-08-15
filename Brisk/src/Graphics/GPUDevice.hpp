@@ -30,5 +30,6 @@ namespace Brisk {
 		/// Release all Vulkan resources cleanly
 		/// </summary>
 		virtual void Release() = 0;
+		virtual void ReleasePools() = 0;
 	};
 }

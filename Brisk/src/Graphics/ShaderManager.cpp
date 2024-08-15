@@ -41,4 +41,9 @@ namespace Brisk {
 
         return module;
     }
+
+    const void ShaderManager::ReleaseShaderModule(const std::vector<ShaderModule>& modules) {
+        for(auto& module : modules)
+            vkDestroyShaderModule(Engine::s_PhysicalDevice->GetDevice(), module.Module, nullptr);
+    }
 }

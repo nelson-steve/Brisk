@@ -159,6 +159,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Engine\Renderer\Renderer2D.hpp" />
     <ClInclude Include="src\Engine\WindowBase.hpp" />
     <ClInclude Include="src\Graphics\DirectX11\GraphicsDeviceDirectX11.hpp" />
+    <ClInclude Include="src\Graphics\Factories\RenderPassFactory.hpp" />
     <ClInclude Include="src\Graphics\Factories\SwapchainFactory.hpp" />
     <ClInclude Include="src\Graphics\GPUDevice.hpp" />
     <ClInclude Include="src\Graphics\Renderpass.hpp" />

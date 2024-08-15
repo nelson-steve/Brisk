@@ -34,6 +34,7 @@ namespace Brisk
 		/// Release all Vulkan resources cleanly
 		/// </summary>
 		virtual void Release() override;
+		virtual void ReleasePools() override;
 
 
 		/// <summary>

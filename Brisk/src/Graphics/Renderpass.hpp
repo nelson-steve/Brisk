@@ -3,8 +3,8 @@
 namespace Brisk {
 	class RenderPass {
 	public:
-		static RenderPass* Create();
-		static void Release(RenderPass* renderPass);
+		virtual void Create() = 0;
+		virtual void Release() = 0;
 		
 		virtual void BindPipeline(void* pipeline) = 0;
 		virtual void BeginRenderPass() = 0;

@@ -10,8 +10,8 @@
 namespace Brisk {
     class RenderPassVulkan : public RenderPass{
     public:
-        void Create(uint16_t noOfFrameBuffers);
-        void Release();
+        virtual void Create() override;
+        virtual void Release() override;
         void CreateFramebuffers();
         void ReleaseFramebuffers();
 

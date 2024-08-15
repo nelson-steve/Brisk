@@ -2,6 +2,7 @@
 #include "Engine/Engine.hpp"
 #include <Graphics/ShaderManager.hpp>
 #include <Graphics/Vulkan/SwapchainVulkan.hpp>
+#include "Graphics/Factories/RenderPassFactory.hpp"
 
 namespace Brisk {
 	void Renderer::Initialize() {
@@ -23,14 +24,16 @@ namespace Brisk {
 			modules.push_back(ShaderManager::CreateShaderModule(shader));
 		}
 
-		m_RenderPass = RenderPass::Create();
+		m_RenderPass = RenderPassFactory::CreateRenderPass();
+		m_RenderPass->Create();
 
 		m_DefaultGraphicsPipeline = new GraphicsPipelineVulkan();
 		m_DefaultGraphicsPipeline->Create(modules);
 	}
 
 	void Renderer::Release() {
-
+		m_DefaultGraphicsPipeline->Release();
+		m_RenderPass->Release();
 	}
 
 	void Renderer::PreProcess() {

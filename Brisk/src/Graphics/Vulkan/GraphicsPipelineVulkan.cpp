@@ -23,6 +23,22 @@ namespace Brisk {
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         vertexInputInfo.vertexBindingDescriptionCount = 0;
         vertexInputInfo.vertexAttributeDescriptionCount = 0;
+        VkVertexInputBindingDescription bindingDescription{};
+        bindingDescription.binding = 0;
+        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+        bindingDescription.stride = sizeof(Vertex);
+        std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+        attributeDescriptions.resize(2);
+        attributeDescriptions[0].binding = 0;
+        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[0].location = 0;
+        //attributeDescriptions[0].offset = offsetof(Vertex, Vertex::Color);
+        attributeDescriptions[1].binding = 0;
+        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[1].location = 1;
+        //attributeDescriptions[1].offset = offsetof(Vertex, pos);
+        vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+        vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
 
         VkPipelineInputAssemblyStateCreateInfo inputAssembly{};
         inputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;

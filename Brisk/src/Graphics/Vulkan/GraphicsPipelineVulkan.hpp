@@ -9,6 +9,15 @@
 
 namespace Brisk 
 {
+	struct Vec3 {
+		float X; float Y; float Z;
+	};
+
+	struct Vertex {
+		Vec3 Position;
+		Vec3 Color;
+	};
+
 	class GraphicsPipelineVulkan {
 	public:
 		void Create(std::vector<ShaderModule> modules);

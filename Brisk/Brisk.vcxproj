@@ -165,6 +165,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Graphics\Renderpass.hpp" />
     <ClInclude Include="src\Graphics\ShaderManager.hpp" />
     <ClInclude Include="src\Graphics\Swapchain.hpp" />
+    <ClInclude Include="src\Graphics\Vulkan\BufferVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\CommandBufferVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\Defines.h" />
     <ClInclude Include="src\Graphics\Vulkan\GraphicsDeviceVulkan.hpp" />
@@ -187,6 +188,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClCompile Include="src\Graphics\Renderpass.cpp" />
     <ClCompile Include="src\Graphics\ShaderManager.cpp" />
     <ClCompile Include="src\Graphics\Swapchain.cpp" />
+    <ClCompile Include="src\Graphics\Vulkan\BufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\CommandBufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\GraphicsDeviceVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\GraphicsPipelineVulkan.cpp" />

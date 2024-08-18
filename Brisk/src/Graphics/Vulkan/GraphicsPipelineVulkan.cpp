@@ -21,22 +21,22 @@ namespace Brisk {
 
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{};
         vertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
-        vertexInputInfo.vertexBindingDescriptionCount = 0;
-        vertexInputInfo.vertexAttributeDescriptionCount = 0;
+        vertexInputInfo.vertexBindingDescriptionCount = 1;
+        vertexInputInfo.vertexAttributeDescriptionCount = 2;
         VkVertexInputBindingDescription bindingDescription{};
         bindingDescription.binding = 0;
         bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-        bindingDescription.stride = sizeof(Vertex);
+        bindingDescription.stride = sizeof(Point);
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
         attributeDescriptions.resize(2);
         attributeDescriptions[0].binding = 0;
-        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
         attributeDescriptions[0].location = 0;
-        //attributeDescriptions[0].offset = offsetof(Vertex, );
+        attributeDescriptions[0].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[0].offset = offsetof(Point, Point::Position);
         attributeDescriptions[1].binding = 0;
-        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
         attributeDescriptions[1].location = 1;
-        //attributeDescriptions[1].offset = offsetof(Vertex, );
+        attributeDescriptions[1].format = VK_FORMAT_R32G32B32_SFLOAT;
+        attributeDescriptions[1].offset = offsetof(Point, Point::Color);
         vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
         vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
 

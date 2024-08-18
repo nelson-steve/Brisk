@@ -3,6 +3,7 @@
 #include "Graphics/GPUDevice.hpp"
 #include "Graphics/Vulkan/GraphicsPipelineVulkan.hpp"
 #include "Graphics/RenderPass.hpp"
+#include "Graphics/Vulkan/BufferVulkan.hpp"
 
 namespace Brisk {
 	class Renderer {
@@ -18,6 +19,7 @@ namespace Brisk {
 		RenderPass* GetRenderPass() const { return m_RenderPass; }
 		const GraphicsPipelineVulkan* GetDefaultGraphicsPipeline() const { return m_DefaultGraphicsPipeline; }
 	private:
+		BufferVulkan* m_VertexBuffer;
 		RenderPass* m_RenderPass;
 		GraphicsPipelineVulkan* m_DefaultGraphicsPipeline;
 	};

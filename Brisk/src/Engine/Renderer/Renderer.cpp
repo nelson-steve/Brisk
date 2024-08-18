@@ -29,6 +29,22 @@ namespace Brisk {
 
 		m_DefaultGraphicsPipeline = new GraphicsPipelineVulkan();
 		m_DefaultGraphicsPipeline->Create(modules);
+
+		//std::vector<Point> vertices = {
+		//	{{0.0f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+		//	{{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+		//	{{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}
+		//};
+		std::vector<Point> vertices = {
+			{{0.0f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+			{{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+			{{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}
+		};
+
+		m_VertexBuffer = new BufferVulkan();
+		m_VertexBuffer->Create(vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+		m_VertexBuffer->Allocate();
+		m_VertexBuffer->MapMemory(vertices);
 	}
 
 	void Renderer::Release() {
@@ -50,7 +66,7 @@ namespace Brisk {
 		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->PrepreFrame(
 			static_cast<RenderPassVulkan*>(m_RenderPass)->GetCommandBuffer());
 		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->Draw(
-			static_cast<RenderPassVulkan*>(m_RenderPass)->GetCommandBuffer());
+			static_cast<RenderPassVulkan*>(m_RenderPass)->GetCommandBuffer(), *m_VertexBuffer);
 
 		m_RenderPass->EndRenderPass();
 

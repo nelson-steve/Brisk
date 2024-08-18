@@ -2,12 +2,18 @@
 #include "Engine/Engine.hpp"
 
 namespace Brisk {
-	void BufferVulkan::Create(uint64_t size, VkBufferUsageFlags usageFlags) {
+	void BufferVulkan::Create(std::vector<Point>& data, VkBufferUsageFlags usageFlags) {
 		VkBufferCreateInfo createInfo{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 		createInfo.pNext = nullptr;
-		createInfo.size = size;
+		m_Size = sizeof(data[0]) * data.size();
+		createInfo.size = m_Size;
 		createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         createInfo.usage = usageFlags;
+		m_Data = data;
+
+		if (vkCreateBuffer(Engine::s_PhysicalDevice->GetDevice(), &createInfo, nullptr, &m_Handle) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create vertex buffer!");
+		}
 	}
 
 	void BufferVulkan::Allocate() {
@@ -22,6 +28,8 @@ namespace Brisk {
 		if (vkAllocateMemory(Engine::s_PhysicalDevice->GetDevice(), &allocInfo, nullptr, &m_Memory) != VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate vertex buffer memory!");
 		}
+
+		vkBindBufferMemory(Engine::s_PhysicalDevice->GetDevice(), m_Handle, m_Memory, 0);
 	}
 
 	uint32_t BufferVulkan::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
@@ -35,6 +43,13 @@ namespace Brisk {
 		}
 
 		throw std::runtime_error("failed to find suitable memory type!");
+	}
+
+	void BufferVulkan::MapMemory(std::vector<Point>& vertices) {
+		void* data;
+		vkMapMemory(Engine::s_PhysicalDevice->GetDevice(), m_Memory, 0, m_Size, 0, &data);
+		memcpy(data, vertices.data(), (size_t)m_Size);
+		vkUnmapMemory(Engine::s_PhysicalDevice->GetDevice(), m_Memory);
 	}
 
 	void BufferVulkan::Release() {

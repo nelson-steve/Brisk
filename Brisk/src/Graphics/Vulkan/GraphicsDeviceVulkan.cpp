@@ -229,8 +229,12 @@ namespace Brisk
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 	}
 
-	void GraphicsDeviceVulkan::Draw(VkCommandBuffer commandBuffer) {
-		vkCmdDraw(commandBuffer, 3, 1, 0, 0);
+	void GraphicsDeviceVulkan::Draw(VkCommandBuffer commandBuffer, BufferVulkan buffer) {
+		const VkBuffer vertexBuffers[] = { buffer.Get() };
+		VkDeviceSize offsets[] = { 0 };
+		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
+
+		vkCmdDraw(commandBuffer, buffer.GetData().size(), 1, 0, 0);
 	}
 
 	void GraphicsDeviceVulkan::CreateSyncObjects() {

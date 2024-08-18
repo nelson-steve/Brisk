@@ -4,6 +4,7 @@
 #include "Engine/WindowBase.hpp"
 #include "Graphics/GPUDevice.hpp"
 #include "Graphics/Vulkan/RenderpassVulkan.hpp"
+#include "BufferVulkan.hpp"
 
 #include <Volk/volk.h>
 
@@ -29,7 +30,7 @@ namespace Brisk
 		void CreateSyncObjects();
 		void PrepreFrame(VkCommandBuffer commandBuffer);
 		void Submit(RenderPassVulkan* renderpass);
-		void Draw(VkCommandBuffer commandBuffer);
+		void Draw(VkCommandBuffer commandBuffer, BufferVulkan buffer);
 		/// <summary>
 		/// Release all Vulkan resources cleanly
 		/// </summary>

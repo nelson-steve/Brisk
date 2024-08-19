@@ -52,6 +52,7 @@ namespace Brisk {
 	}
 
 	void Renderer::Release() {
+		m_VertexBuffer->Release();
 		m_DefaultGraphicsPipeline->Release();
 		m_RenderPass->Release();
 	}

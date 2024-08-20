@@ -16,7 +16,7 @@ namespace Brisk
 
 	void Engine::Init() {
 		Log::Init();
-		s_MainWindow = WindowCreator::CreateWindowsWindow(1280, 720);
+		s_MainWindow = WindowCreator::CreateWindowsWindow(1920, 1080);
 
 		s_GPUContext = GPUContext::CreateContext();
 		s_GPUContext->Create();
@@ -39,9 +39,13 @@ namespace Brisk
 	void Engine::Terminate() {
 		s_MainWindow->DestroyWindow();
 		delete s_MainWindow;
+
 		s_Swapchain->Release();
+
 		s_Renderer->Release();
+
 		s_GPUContext->ReleasePools();
+
 		s_PhysicalDevice->Release();
 
 		s_GPUContext->Release();

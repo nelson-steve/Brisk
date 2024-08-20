@@ -5,7 +5,7 @@
 #include "Core/Log.hpp"
 
 namespace Brisk {
-	static class SwapchainFactory {
+	class SwapchainFactory {
 	public:
 		[[nodiscard]] static Swapchain* CreateSwapchain(WindowBase* win) {
 			if (Engine::s_EngineInfo.API == EngineInfo::GraphicsAPI::Vulkan) {

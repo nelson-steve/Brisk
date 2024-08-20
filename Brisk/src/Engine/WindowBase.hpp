@@ -66,7 +66,7 @@ namespace Brisk {
 	/// <summary>
 	/// Class to create windows for different platforms
 	/// </summary>
-	static class WindowCreator {
+	class WindowCreator {
 	public:
 		/// <summary>
 		/// Create window for Windows

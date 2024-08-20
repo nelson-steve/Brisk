@@ -5,12 +5,12 @@
 /// <summary>
 /// Store engine information with default values
 /// </summary>
-static struct EngineInfo {
+struct EngineInfo {
 	/// <summary>
 	/// Different Graphics APIs used
 	/// Only support Vulkan at the moment
 	/// </summary>
-	static enum class GraphicsAPI {
+	enum class GraphicsAPI {
 		Vulkan,
 		DirectX
 	};

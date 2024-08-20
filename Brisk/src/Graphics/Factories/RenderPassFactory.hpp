@@ -5,7 +5,7 @@
 #include "Core/Log.hpp"
 
 namespace Brisk {
-	static class RenderPassFactory {
+	class RenderPassFactory {
 	public:
 		[[nodiscard]] static RenderPass* CreateRenderPass() {
 			if (Engine::s_EngineInfo.API == EngineInfo::GraphicsAPI::Vulkan) {

@@ -96,6 +96,9 @@
     <ClInclude Include="src\Graphics\Vulkan\BufferVulkan.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Editor\Editor.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Main\main.cpp">

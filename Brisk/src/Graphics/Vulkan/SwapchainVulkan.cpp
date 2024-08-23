@@ -122,6 +122,41 @@ namespace Brisk {
 				throw std::runtime_error("Failed to create Swapchain Image Views!");
 			}
 		}
+		
+		VkFormat finalFormat;
+		std::vector<VkFormat> formats = { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT };
+		for (VkFormat format : formats) {
+			VkFormatProperties props;
+			vkGetPhysicalDeviceFormatProperties(Engine::s_PhysicalDevice->GetPhysicalDevice(), format, &props);
+
+			VkFormatFeatureFlags feature = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+			//if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+			//	return format;
+			//}
+			if ((props.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) == feature) {
+				finalFormat = format;
+				break;
+			}
+		}
+
+		VkImageViewCreateInfo image_views_create_info{};
+		image_views_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		image_views_create_info.image = m_DepthImage;
+		image_views_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		image_views_create_info.format = m_format;
+		image_views_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		image_views_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		image_views_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		image_views_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+		image_views_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		image_views_create_info.subresourceRange.baseMipLevel = 0;
+		image_views_create_info.subresourceRange.levelCount = 1;
+		image_views_create_info.subresourceRange.baseArrayLayer = 0;
+		image_views_create_info.subresourceRange.layerCount = 1;
+
+		if (vkCreateImageView(Engine::s_PhysicalDevice->GetDevice(), &image_views_create_info, nullptr, &m_DepthImageView) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create Swapchain Image Views!");
+		}
 	}
 
 	VkResult SwapchainVulkan::AquireNextImage(uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* imageIndex) {

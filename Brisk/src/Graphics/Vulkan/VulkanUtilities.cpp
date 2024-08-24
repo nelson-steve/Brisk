@@ -66,4 +66,17 @@ namespace Brisk
 			return VK_ERROR_EXTENSION_NOT_PRESENT;
 		}
 	}
+
+	uint32_t VulkanUtilities::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+		VkPhysicalDeviceMemoryProperties memProperties;
+		vkGetPhysicalDeviceMemoryProperties(Engine::s_PhysicalDevice->GetPhysicalDevice(), &memProperties);
+
+		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
+			if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
+				return i;
+			}
+		}
+
+		throw std::runtime_error("failed to find suitable memory type!");
+	}
 }

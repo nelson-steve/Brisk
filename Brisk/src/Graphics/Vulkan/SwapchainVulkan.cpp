@@ -1,10 +1,11 @@
 #include "SwapchainVulkan.hpp"
 #include "Defines.h"
 #include "Engine/Engine.hpp"
+#include "VulkanUtilities.hpp"
 
 namespace Brisk {
 	SwapchainVulkan::SwapchainVulkan(WindowBase* window)
-		: Swapchain(window, 1280, 720) {} // TODO: Dont use hardcoded values
+		: Swapchain(window, 1920, 1080) {} // TODO: Dont use hardcoded values
 
 	void SwapchainVulkan::Release() {
 		for (auto imageView : m_SwapchainImageViews) {
@@ -123,7 +124,6 @@ namespace Brisk {
 			}
 		}
 		
-		VkFormat finalFormat;
 		std::vector<VkFormat> formats = { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT };
 		for (VkFormat format : formats) {
 			VkFormatProperties props;
@@ -134,27 +134,60 @@ namespace Brisk {
 			//	return format;
 			//}
 			if ((props.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) == feature) {
-				finalFormat = format;
+				m_DepthFormat = format;
 				break;
 			}
 		}
 
-		VkImageViewCreateInfo image_views_create_info{};
-		image_views_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-		image_views_create_info.image = m_DepthImage;
-		image_views_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-		image_views_create_info.format = m_format;
-		image_views_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
-		image_views_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
-		image_views_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
-		image_views_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
-		image_views_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-		image_views_create_info.subresourceRange.baseMipLevel = 0;
-		image_views_create_info.subresourceRange.levelCount = 1;
-		image_views_create_info.subresourceRange.baseArrayLayer = 0;
-		image_views_create_info.subresourceRange.layerCount = 1;
+		VkImageCreateInfo imageInfo{};
+		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageInfo.imageType = VK_IMAGE_TYPE_2D;
+		imageInfo.extent.width = m_extent.width;
+		imageInfo.extent.height = m_extent.height;
+		imageInfo.extent.depth = 1;
+		imageInfo.mipLevels = 1;
+		imageInfo.arrayLayers = 1;
+		imageInfo.format = m_DepthFormat;
+		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-		if (vkCreateImageView(Engine::s_PhysicalDevice->GetDevice(), &image_views_create_info, nullptr, &m_DepthImageView) != VK_SUCCESS) {
+		if (vkCreateImage(Engine::s_PhysicalDevice->GetDevice(), &imageInfo, nullptr, &m_DepthImage) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create image!");
+		}
+
+		VkMemoryRequirements memRequirements;
+		vkGetImageMemoryRequirements(Engine::s_PhysicalDevice->GetDevice(), m_DepthImage, &memRequirements);
+
+		VkMemoryAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocInfo.allocationSize = memRequirements.size;
+		allocInfo.memoryTypeIndex = VulkanUtilities::FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+		if (vkAllocateMemory(Engine::s_PhysicalDevice->GetDevice(), &allocInfo, nullptr, &m_DepthImageMemory) != VK_SUCCESS) {
+			throw std::runtime_error("failed to allocate image memory!");
+		}
+
+		vkBindImageMemory(Engine::s_PhysicalDevice->GetDevice(), m_DepthImage, m_DepthImageMemory, 0);
+
+		VkImageViewCreateInfo imageViewCreateInfo{};
+		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		imageViewCreateInfo.image = m_DepthImage;
+		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		imageViewCreateInfo.format = m_format;
+		imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+		imageViewCreateInfo.subresourceRange.levelCount = 1;
+		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+		imageViewCreateInfo.subresourceRange.layerCount = 1;
+
+		if (vkCreateImageView(Engine::s_PhysicalDevice->GetDevice(), &imageViewCreateInfo, nullptr, &m_DepthImageView) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create Swapchain Image Views!");
 		}
 	}

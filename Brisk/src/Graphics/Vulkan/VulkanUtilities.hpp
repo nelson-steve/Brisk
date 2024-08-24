@@ -10,5 +10,7 @@ namespace Brisk {
 		static bool CheckValidationLayerSupport(const std::vector<const char*> validationLayers);
 		static void PopulateDebugMessengerCreateInfo();
 		static VkResult CreateDebugUtilsMessengerEXT();
+
+		static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
 	};
 }

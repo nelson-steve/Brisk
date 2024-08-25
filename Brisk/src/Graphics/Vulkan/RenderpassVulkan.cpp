@@ -19,14 +19,14 @@ namespace Brisk {
         colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentDescription depthAttatchment{};
-        colorAttachment.format = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetDepthFormat();
-        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-        colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        depthAttatchment.format = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetDepthFormat();
+        depthAttatchment.samples = VK_SAMPLE_COUNT_1_BIT;
+        depthAttatchment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        depthAttatchment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttatchment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+        depthAttatchment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        depthAttatchment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        depthAttatchment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
         VkAttachmentReference colorAttachmentRef{};
         colorAttachmentRef.attachment = 0;
@@ -52,14 +52,23 @@ namespace Brisk {
         //    dependencyCount
         //    pDependencies
 
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+        std::vector<VkAttachmentDescription> attachments = { colorAttachment, depthAttatchment };
         VkRenderPassCreateInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
-        renderPassInfo.attachmentCount = 1;
-        renderPassInfo.pAttachments = &colorAttachment;
+        renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        renderPassInfo.pAttachments = attachments.data();
         renderPassInfo.subpassCount = 1;
         renderPassInfo.pSubpasses = &subpass;
-        renderPassInfo.dependencyCount;
-        renderPassInfo.pDependencies;
+        renderPassInfo.dependencyCount = 1;
+        renderPassInfo.pDependencies = &dependency;
 
         if (vkCreateRenderPass(Engine::s_PhysicalDevice->GetDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
             throw std::runtime_error("failed to create render pass!");
@@ -67,15 +76,16 @@ namespace Brisk {
 
         m_Framebuffers.resize(noOfFramebuffers);
         for (size_t i = 0; i < m_Framebuffers.size(); i++) {
-            VkImageView attachments[] = {
-                static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetSwapchainImageViews()[i]
+            std::vector<VkImageView> attachments = {
+                static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetSwapchainImageViews()[i],
+                static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetDepthImageView(),
             };
 
             VkFramebufferCreateInfo framebufferInfo{};
             framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             framebufferInfo.renderPass = m_RenderPass;
-            framebufferInfo.attachmentCount = 1;
-            framebufferInfo.pAttachments = attachments;
+            framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+            framebufferInfo.pAttachments = attachments.data();
             framebufferInfo.width = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentWidth();
             framebufferInfo.height = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentHeight();
             framebufferInfo.layers = 1;
@@ -92,7 +102,7 @@ namespace Brisk {
     void RenderPassVulkan::CreateFramebuffers() {
         m_Framebuffers.resize(3);
         for (size_t i = 0; i < m_Framebuffers.size(); i++) {
-            VkImageView attachments[] = {
+            std::vector<VkImageView> attachments = {
                 static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetSwapchainImageViews()[i],
                 static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetDepthImageView(),
             };
@@ -100,8 +110,8 @@ namespace Brisk {
             VkFramebufferCreateInfo framebufferInfo{};
             framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
             framebufferInfo.renderPass = m_RenderPass;
-            framebufferInfo.attachmentCount = 1;
-            framebufferInfo.pAttachments = attachments;
+            framebufferInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+            framebufferInfo.pAttachments = attachments.data();
             framebufferInfo.width = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentWidth();
             framebufferInfo.height = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentHeight();
             framebufferInfo.layers = 1;
@@ -129,9 +139,9 @@ namespace Brisk {
         renderPassInfo.renderArea.offset = { 0, 0 };
         renderPassInfo.renderArea.extent = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtent();
 
-        VkClearValue clearColor = { {{0.0f, 0.0f, 0.0f, 1.0f}} };
-        renderPassInfo.clearValueCount = 1;
-        renderPassInfo.pClearValues = &clearColor;
+        std::vector<VkClearValue> clearColors = { {{0.0f, 0.0f, 0.0f, 1.0f}}, { 1.0f, 0 } };
+        renderPassInfo.clearValueCount = clearColors.size();
+        renderPassInfo.pClearValues = clearColors.data();
 
         vkCmdBeginRenderPass(m_CommandBuffer->Get(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
     }

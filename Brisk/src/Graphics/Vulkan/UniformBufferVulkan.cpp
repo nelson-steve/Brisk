@@ -1,5 +1,6 @@
 #include "UniformBufferVulkan.hpp"
 #include "Engine/Engine.hpp"
+#include "VulkanUtilities.hpp"
 
 namespace Brisk {
 	void UniformBufferVulkan::Create(uint32_t count) {
@@ -19,9 +20,28 @@ namespace Brisk {
 				//throw std::runtime_error("failed to create vertex buffer!");
 			}
 
-			createBuffer(bufferSize, VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, uniformBuffers[i], uniformBuffersMemory[i]);
+			VkMemoryRequirements memRequirements;
+			vkGetBufferMemoryRequirements(Engine::s_PhysicalDevice->GetDevice(), m_Buffers[i], &memRequirements);
 
-			vkMapMemory(Engine::s_PhysicalDevice->GetDevice(), uniformBuffersMemory[i], 0, bufferSize, 0, &m_BuffersMapped[i]);
+			VkMemoryAllocateInfo allocInfo{};
+			allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+			allocInfo.allocationSize = memRequirements.size;
+			allocInfo.memoryTypeIndex = VulkanUtilities::FindMemoryType(memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+			if (vkAllocateMemory(Engine::s_PhysicalDevice->GetDevice(), &allocInfo, nullptr, &m_BuffersMemory[i]) != VK_SUCCESS) {
+				//throw std::runtime_error("failed to allocate vertex buffer memory!");
+			}
+
+			vkBindBufferMemory(Engine::s_PhysicalDevice->GetDevice(), m_Buffers[i], m_BuffersMemory[i], 0);
+
+			vkMapMemory(Engine::s_PhysicalDevice->GetDevice(), m_BuffersMemory[i], 0, m_BufferSize, 0, &m_BuffersMapped[i]);
+		}
+	}
+
+	void UniformBufferVulkan::Release() {
+		for (size_t i = 0; i < m_Buffers.size(); i++) {
+			vkDestroyBuffer(Engine::s_PhysicalDevice->GetDevice(), m_Buffers[i], nullptr);
+			vkFreeMemory(Engine::s_PhysicalDevice->GetDevice(), m_BuffersMemory[i], nullptr);
 		}
 	}
 }

@@ -13,6 +13,7 @@ namespace Brisk {
 
 	class UniformBufferVulkan {
 		void Create(uint32_t count);
+		void Release();
 	private:
 		VkDeviceSize m_BufferSize;
 		std::vector<VkBuffer> m_Buffers;

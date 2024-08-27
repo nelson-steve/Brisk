@@ -8,16 +8,16 @@
 #include <vector>
 
 namespace Brisk {
-    class RenderPassVulkan : public RenderPass{
+    class RenderPassVulkan{
     public:
-        virtual void Create() override;
-        virtual void Release() override;
+        void Create();
+        void Release();
         void CreateFramebuffers();
         void ReleaseFramebuffers();
 
-        virtual void BindPipeline(void* pipeline) override;
-        virtual void BeginRenderPass(/*int imageIndex*/) override;
-        virtual void EndRenderPass() override;
+        void BindPipeline(void* pipeline);
+        void BeginRenderPass(/*int imageIndex*/);
+        void EndRenderPass();
 
         void Reset() {
             vkResetCommandBuffer(m_CommandBuffer->Get(), /*VkCommandBufferResetFlagBits*/ 0);

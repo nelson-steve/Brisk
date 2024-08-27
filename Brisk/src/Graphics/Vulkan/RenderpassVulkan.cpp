@@ -3,6 +3,7 @@
 #include "Engine/Engine.hpp"
 #include "SwapchainVulkan.hpp"
 #include "GraphicsPipelineVulkan.hpp"
+#include "GPUContextVulkan.hpp"
 
 namespace Brisk {
     void RenderPassVulkan::Create() {
@@ -42,16 +43,6 @@ namespace Brisk {
         subpass.pColorAttachments = &colorAttachmentRef;
         subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
-        //sType
-        //    pNext
-        //    flags
-        //    attachmentCount
-        //    pAttachments
-        //    subpassCount
-        //    pSubpasses
-        //    dependencyCount
-        //    pDependencies
-
         VkSubpassDependency dependency{};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependency.dstSubpass = 0;
@@ -70,7 +61,7 @@ namespace Brisk {
         renderPassInfo.dependencyCount = 1;
         renderPassInfo.pDependencies = &dependency;
 
-        if (vkCreateRenderPass(Engine::s_PhysicalDevice->GetDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
+        if (vkCreateRenderPass(GPUContextVulkan::s_GPUDevice->GetDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
             throw std::runtime_error("failed to create render pass!");
         }
 
@@ -90,13 +81,13 @@ namespace Brisk {
             framebufferInfo.height = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentHeight();
             framebufferInfo.layers = 1;
 
-            if (vkCreateFramebuffer(Engine::s_PhysicalDevice->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS) {
+            if (vkCreateFramebuffer(GPUContextVulkan::s_GPUDevice->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create framebuffer!");
             }
         }
 
         m_CommandBuffer = new CommandBufferVulkan();
-        m_CommandBuffer->Allocate(static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetCommandPool());
+        m_CommandBuffer->Allocate(GPUContextVulkan::GetCommandPool());
     }
 
     void RenderPassVulkan::CreateFramebuffers() {
@@ -116,7 +107,7 @@ namespace Brisk {
             framebufferInfo.height = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentHeight();
             framebufferInfo.layers = 1;
 
-            if (vkCreateFramebuffer(Engine::s_PhysicalDevice->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS) {
+            if (vkCreateFramebuffer(GPUContextVulkan::s_GPUDevice->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create framebuffer!");
             }
         }
@@ -124,14 +115,14 @@ namespace Brisk {
 
     void RenderPassVulkan::ReleaseFramebuffers() {
         for (size_t i = 0; i < m_Framebuffers.size(); i++) {
-            vkDestroyFramebuffer(Engine::s_PhysicalDevice->GetDevice(), m_Framebuffers[i], nullptr);
+            vkDestroyFramebuffer(GPUContextVulkan::s_GPUDevice->GetDevice(), m_Framebuffers[i], nullptr);
         }
     }
 
     void RenderPassVulkan::BeginRenderPass(/*int imageIndex*/) {
         Reset();
         m_CommandBuffer->Begin();
-        int imageIndex = static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetImageIndex(); // TODO: Take this value from Swapchain
+        int imageIndex = GPUContextVulkan::GetImageIndex(); // TODO: Take this value from Swapchain
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = m_RenderPass;
@@ -161,8 +152,8 @@ namespace Brisk {
 
     void RenderPassVulkan::Release() {
         for (int i = 0; i < m_Framebuffers.size(); i++) {
-            vkDestroyFramebuffer(Engine::s_PhysicalDevice->GetDevice(), m_Framebuffers[i], nullptr);
+            vkDestroyFramebuffer(GPUContextVulkan::s_GPUDevice->GetDevice(), m_Framebuffers[i], nullptr);
         }
-        vkDestroyRenderPass(Engine::s_PhysicalDevice->GetDevice(), m_RenderPass, nullptr);
+        vkDestroyRenderPass(GPUContextVulkan::s_GPUDevice->GetDevice(), m_RenderPass, nullptr);
     }
 }

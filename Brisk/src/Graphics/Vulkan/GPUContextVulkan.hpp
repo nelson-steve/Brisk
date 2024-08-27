@@ -43,7 +43,7 @@ namespace Brisk
 		static VkCommandPool GetCommandPool() { return m_CommandPool; }
 		static VkSurfaceKHR GetSurface() { return s_Surface; }
 
-		uint32_t GetImageIndex() { return m_ImageIndex; }
+		static uint32_t GetImageIndex() { return m_ImageIndex; }
 
 		static std::vector<const char*>& GetRequiredExtenstions() { return s_RequiredExtensions; }
 		static std::vector<const char*>& GetValidationLayers() { return s_ValidationLayers; }
@@ -67,8 +67,8 @@ namespace Brisk
 
 		static GPUDeviceVulkan* s_GPUDevice;
 		static GraphicsPipelineVulkan* s_GraphicsPipeline;
+		static RenderPassVulkan* s_RenderPass;
 		
-
 		static VkFence m_InFlightFence;
 		static VkSemaphore m_ImageAvailableSemaphore;
 		static VkSemaphore m_RenderFinishedSemaphore;
@@ -76,13 +76,13 @@ namespace Brisk
 		static VkSurfaceKHR s_Surface;
 		static GPUDeviceVulkan* s_GPUDevice;
 
-		uint32_t m_ImageIndex;
+		static uint32_t m_ImageIndex;
 
 		/// <summary>
 		/// Friend class declaration
 		/// </summary>
-		friend class VulkanUtilities;
 		friend class GPUDeviceVulkan;
 		friend class GraphicsPipelineVulkan;
+		friend class RenderPassVulkan;
 	};
 }

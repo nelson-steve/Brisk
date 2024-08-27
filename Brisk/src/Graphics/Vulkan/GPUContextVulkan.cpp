@@ -163,11 +163,11 @@ namespace Brisk
 
 		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
 			Engine::s_Swapchain->Release();
-			static_cast<RenderPassVulkan*>(Engine::s_Renderer->GetRenderPass())->ReleaseFramebuffers();
+			s_RenderPass->ReleaseFramebuffers();
 			//delete Engine::s_Swapchain;
 			Engine::s_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_MainWindow);
 			Engine::s_Swapchain->Create();
-			static_cast<RenderPassVulkan*>(Engine::s_Renderer->GetRenderPass())->CreateFramebuffers();
+			s_RenderPass->CreateFramebuffers();
 			return true;
 		}
 

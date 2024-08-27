@@ -1,5 +1,7 @@
 #pragma once
 
+#include "GPUContextVulkan.hpp"
+
 #include <Volk/volk.h>
 
 #include <vector>
@@ -9,7 +11,7 @@ namespace Brisk
 {
 	struct Queue;
 
-	class PhysicalDevice {
+	class GPUDeviceVulkan {
 	public:
 		struct QueueInfo {
 			enum QueueType {
@@ -52,7 +54,7 @@ namespace Brisk
 		void PrintQueueFlags(VkQueueFlags flags);
 		void GetSupportedQueueTypes(VkQueueFlags flags, std::vector<QueueInfo::QueueType>& ref);
 		VkPhysicalDevice GetPhysicalDevice() { return m_PhysicalDevice; }
-		const std::vector<PhysicalDevice::QueueInfo> RetrieveCommonQueues();
+		//const std::vector<PhysicalDevice::QueueInfo> RetrieveCommonQueues();
 		const std::vector<std::vector<float>> RetreivePriorities();
 		VkDevice GetDevice() { return m_Device; }
 		const Queue* GetGraphicsQueue() const { return m_GraphicsQueue; }
@@ -68,6 +70,6 @@ namespace Brisk
 
 	struct Queue {
 		VkQueue Queue_;
-		PhysicalDevice::QueueInfo Info;
+		//PhysicalDevice::QueueInfo Info;
 	};
 }

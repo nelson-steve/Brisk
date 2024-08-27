@@ -1,14 +1,13 @@
 #pragma once
 
-#include "PhysicalDevice.hpp"
 #include "Engine/WindowBase.hpp"
-#include "Graphics/GPUDevice.hpp"
 #include "Graphics/Vulkan/RenderpassVulkan.hpp"
 #include "BufferVulkan.hpp"
 
 #include <Volk/volk.h>
 
 #include <vector>
+#include "GPUDeviceVulkan.hpp"
 
 namespace Brisk 
 {
@@ -17,15 +16,15 @@ namespace Brisk
 	/// </summary>
 	class Swapchain;
 
-	class GraphicsDeviceVulkan : public GPUContext {
+	class GPUContextVulkan {
 	public:
 		/// <summary>
 		/// Create Vulkan Device
 		/// </summary>
-		virtual void Create() override;
+		void Create();
 
-		virtual bool Sync() override;
-		virtual void WaitDeviceIdle() override;
+		bool Sync();
+		void WaitDeviceIdle();
 
 		void CreateSyncObjects();
 		void PrepreFrame(VkCommandBuffer commandBuffer);
@@ -34,9 +33,8 @@ namespace Brisk
 		/// <summary>
 		/// Release all Vulkan resources cleanly
 		/// </summary>
-		virtual void Release() override;
-		virtual void ReleasePools() override;
-
+		void Release();
+		void ReleasePools();
 
 		/// <summary>
 		/// Getters for Vulkan handles
@@ -49,7 +47,7 @@ namespace Brisk
 
 		static std::vector<const char*>& GetRequiredExtenstions() { return s_RequiredExtensions; }
 		static std::vector<const char*>& GetValidationLayers() { return s_ValidationLayers; }
-	private:
+	protected:
 		/// <summary>
 		/// Vulkan handles
 		/// </summary>
@@ -67,11 +65,16 @@ namespace Brisk
 		static VkDebugUtilsMessengerEXT s_DebugMessenger;
 		static bool m_ValidationLayersFound;
 
+		static GPUDeviceVulkan* s_GPUDevice;
+		static GraphicsPipelineVulkan* s_GraphicsPipeline;
+		
+
 		static VkFence m_InFlightFence;
 		static VkSemaphore m_ImageAvailableSemaphore;
 		static VkSemaphore m_RenderFinishedSemaphore;
 
 		static VkSurfaceKHR s_Surface;
+		static GPUDeviceVulkan* s_GPUDevice;
 
 		uint32_t m_ImageIndex;
 
@@ -79,5 +82,7 @@ namespace Brisk
 		/// Friend class declaration
 		/// </summary>
 		friend class VulkanUtilities;
+		friend class GPUDeviceVulkan;
+		friend class GraphicsPipelineVulkan;
 	};
 }

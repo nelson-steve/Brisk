@@ -175,6 +175,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Graphics\Vulkan\RenderPassVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\SwapchainVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\PhysicalDevice.hpp" />
+    <ClInclude Include="src\Graphics\Vulkan\UniformBufferVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\volk.cpp" />
     <ClInclude Include="src\Graphics\Vulkan\VulkanUtilities.hpp" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.hpp" />
@@ -197,6 +198,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClCompile Include="src\Graphics\Vulkan\RenderPassVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\SwapchainVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\PhysicalDevice.cpp" />
+    <ClCompile Include="src\Graphics\Vulkan\UniformBufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\VulkanUtilities.cpp" />
     <ClCompile Include="src\Main\main.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />

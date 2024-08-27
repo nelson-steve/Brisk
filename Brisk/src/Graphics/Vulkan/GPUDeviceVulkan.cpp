@@ -1,21 +1,20 @@
-#include "PhysicalDevice.hpp"
+#include "GPUDeviceVulkan.hpp"
 #include "Core/Log.hpp"
-#include "GraphicsDeviceVulkan.hpp"
 #include "Engine/Engine.hpp"
 
 #include <set>
 
 namespace Brisk 
 {
-	void PhysicalDevice::Create(const Details& details) {
+	void GPUDeviceVulkan::Create(const Details& details) {
 		uint32_t device_count = 0;
-		vkEnumeratePhysicalDevices(static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetInstance(), &device_count, nullptr);
+		vkEnumeratePhysicalDevices(GPUContextVulkan::s_Instance, &device_count, nullptr);
 		if (device_count == 0) {
 			BRISK_CORE_ERROR("Failed to find GPUs with Vulkan support!");
 			return;
 		}
 		std::vector<VkPhysicalDevice> devices(device_count);
-		vkEnumeratePhysicalDevices(static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetInstance(), &device_count, devices.data());
+		vkEnumeratePhysicalDevices(GPUContextVulkan::s_Instance, &device_count, devices.data());
 		for (const auto& device : devices) {
 			if (IsDeviceSuitable(device, details)) {
 				m_PhysicalDevice = device;
@@ -29,16 +28,16 @@ namespace Brisk
 
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 
-		for (const QueueInfo& q : RetrieveCommonQueues()) {
-		//for (const QueueInfo& q : m_Queues) {
-			VkDeviceQueueCreateInfo queueCreateInfo{};
-			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-			queueCreateInfo.queueFamilyIndex = q.QueueFamilyIndex;
-			queueCreateInfo.queueCount = q.QueueCount;
-			std::cout << "priorit: " << q.Priority << std::endl;
-			queueCreateInfo.pQueuePriorities = m_QueueFamiliesPriorities[q.QueueFamilyIndex].data();
-			queueCreateInfos.push_back(queueCreateInfo);
-		}
+		//for (const QueueInfo& q : RetrieveCommonQueues()) {
+		////for (const QueueInfo& q : m_Queues) {
+		//	VkDeviceQueueCreateInfo queueCreateInfo{};
+		//	queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+		//	queueCreateInfo.queueFamilyIndex = q.QueueFamilyIndex;
+		//	queueCreateInfo.queueCount = q.QueueCount;
+		//	std::cout << "priorit: " << q.Priority << std::endl;
+		//	queueCreateInfo.pQueuePriorities = m_QueueFamiliesPriorities[q.QueueFamilyIndex].data();
+		//	queueCreateInfos.push_back(queueCreateInfo);
+		//}
 
 		VkPhysicalDeviceFeatures device_features{};
 		device_features.samplerAnisotropy = VK_TRUE;
@@ -64,40 +63,40 @@ namespace Brisk
 			BRISK_CORE_ERROR("Failed to create logical device!");
 		}
 
-		Queue* q1 = new Queue();
-		q1->Info = m_Queues[0];
-		Queue* q2 = new Queue();
-		q2->Info = m_Queues[0];
-		vkGetDeviceQueue(m_Device, q1->Info.QueueFamilyIndex, m_Queues[0].QueueIndex, &q1->Queue_);
-		vkGetDeviceQueue(m_Device, q2->Info.QueueFamilyIndex, m_Queues[0].QueueIndex, &q2->Queue_);
-		m_GraphicsQueue = q1;
-		m_PresentQueue = q2;
+		//Queue* q1 = new Queue();
+		//q1->Info = m_Queues[0];
+		//Queue* q2 = new Queue();
+		//q2->Info = m_Queues[0];
+		//vkGetDeviceQueue(m_Device, q1->Info.QueueFamilyIndex, m_Queues[0].QueueIndex, &q1->Queue_);
+		//vkGetDeviceQueue(m_Device, q2->Info.QueueFamilyIndex, m_Queues[0].QueueIndex, &q2->Queue_);
+		//m_GraphicsQueue = q1;
+		//m_PresentQueue = q2;
 	}
 
-	void PhysicalDevice::Release() {
+	void GPUDeviceVulkan::Release() {
 		delete m_PresentQueue;
 		delete m_GraphicsQueue;
 		vkDestroyDevice(m_Device, nullptr);
 	}
 
-	const std::vector<PhysicalDevice::QueueInfo> PhysicalDevice::RetrieveCommonQueues() {
-		std::vector<PhysicalDevice::QueueInfo> queues;
-		for (const auto& queueToAdd : m_Queues) {
-			bool shouldAdd = true;
-			for (const auto& queue : queues) {
-				if (queue.QueueFamilyIndex == queueToAdd.QueueFamilyIndex) {
-					shouldAdd = false;
-					break;
-				}
-			}
-			if(shouldAdd)
-				queues.push_back(queueToAdd);
-		}
+	//const std::vector<GPUDeviceVulkan::QueueInfo> GPUDeviceVulkan::RetrieveCommonQueues() {
+	//	std::vector<GPUDeviceVulkan::QueueInfo> queues;
+	//	for (const auto& queueToAdd : m_Queues) {
+	//		bool shouldAdd = true;
+	//		for (const auto& queue : queues) {
+	//			if (queue.QueueFamilyIndex == queueToAdd.QueueFamilyIndex) {
+	//				shouldAdd = false;
+	//				break;
+	//			}
+	//		}
+	//		if(shouldAdd)
+	//			queues.push_back(queueToAdd);
+	//	}
+	//
+	//	return queues;
+	//}
 
-		return queues;
-	}
-
-	const std::string& PhysicalDevice::QueueTypeToString(QueueInfo::QueueType type) {
+	const std::string& GPUDeviceVulkan::QueueTypeToString(QueueInfo::QueueType type) {
 		switch (type)
 		{
 		case QueueInfo::QueueType::QUEUE_GRAPHICS_BIT:
@@ -122,7 +121,7 @@ namespace Brisk
 		}
 	}
 
-	void PhysicalDevice::PrintQueueFlags(VkQueueFlags flags) {
+	void GPUDeviceVulkan::PrintQueueFlags(VkQueueFlags flags) {
 		if (flags & VK_QUEUE_GRAPHICS_BIT)
 			std::cout << "VK_QUEUE_GRAPHICS_BIT" << std::endl;
 		if (flags & VK_QUEUE_COMPUTE_BIT)
@@ -141,7 +140,7 @@ namespace Brisk
 			std::cout << "VK_QUEUE_OPTICAL_FLOW_BIT_NV" << std::endl;
 	}
 
-	void PhysicalDevice::GetSupportedQueueTypes(VkQueueFlags flags, std::vector<QueueInfo::QueueType>& ref) {
+	void GPUDeviceVulkan::GetSupportedQueueTypes(VkQueueFlags flags, std::vector<QueueInfo::QueueType>& ref) {
 		if (flags & VK_QUEUE_GRAPHICS_BIT)
 			ref.push_back(QueueInfo::QUEUE_GRAPHICS_BIT);
 		if (flags & VK_QUEUE_COMPUTE_BIT)
@@ -160,7 +159,7 @@ namespace Brisk
 			ref.push_back(QueueInfo::QUEUE_OPTICAL_FLOW_BIT_NV);
 	}
 
-	VkQueueFlags PhysicalDevice::QueueTypeToVulkanType(QueueInfo::QueueType type) {
+	VkQueueFlags GPUDeviceVulkan::QueueTypeToVulkanType(QueueInfo::QueueType type) {
 		switch (type)
 		{
 			case QueueInfo::QueueType::QUEUE_GRAPHICS_BIT:
@@ -185,7 +184,7 @@ namespace Brisk
 		}
 	}
 
-	bool PhysicalDevice::CreateQueueFamilies(VkPhysicalDevice device, const Details& details) {
+	bool GPUDeviceVulkan::CreateQueueFamilies(VkPhysicalDevice device, const Details& details) {
 		uint32_t queueFamilyCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
 
@@ -237,11 +236,11 @@ namespace Brisk
 		return true;
 	}
 
-	bool PhysicalDevice::IsDeviceSuitable(VkPhysicalDevice device, const Details& details) {
+	bool GPUDeviceVulkan::IsDeviceSuitable(VkPhysicalDevice device, const Details& details) {
 		if (!CreateQueueFamilies(device, details))
 			return false;
 
-		std::vector<const char*>& extensions = static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetRequiredExtenstions();
+		std::vector<const char*>& extensions = GPUContextVulkan::s_RequiredExtensions;
 		bool extensionsSupported = false;
 		{
 			uint32_t extensionCount;

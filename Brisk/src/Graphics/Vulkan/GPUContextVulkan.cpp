@@ -1,4 +1,4 @@
-#include "GraphicsDeviceVulkan.hpp"
+#include "GPUContextVulkan.hpp"
 //#include "Engine/Engine.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
 #include "SwapchainVulkan.hpp"
@@ -65,22 +65,22 @@ namespace Brisk
 	/// <summary>
 	/// Static memebers declarations
 	/// </summary>
-	VkInstance GraphicsDeviceVulkan::s_Instance;
+	VkInstance GPUContextVulkan::s_Instance;
 
-	VkFence GraphicsDeviceVulkan::m_InFlightFence;
-	VkSemaphore GraphicsDeviceVulkan::m_ImageAvailableSemaphore;
-	VkSemaphore GraphicsDeviceVulkan::m_RenderFinishedSemaphore;
-	std::vector<const char*> GraphicsDeviceVulkan::s_Extensions;
-	std::vector<const char*> GraphicsDeviceVulkan::s_Layers;
-	VkDebugUtilsMessengerCreateInfoEXT GraphicsDeviceVulkan::s_DebugCreateInfo;
-	VkDebugUtilsMessengerEXT GraphicsDeviceVulkan::s_DebugMessenger;
-	bool GraphicsDeviceVulkan::m_ValidationLayersFound;
-	std::vector<const char*> GraphicsDeviceVulkan::s_RequiredExtensions;
-	std::vector<const char*> GraphicsDeviceVulkan::s_ValidationLayers;
-	VkCommandPool GraphicsDeviceVulkan::m_CommandPool;
-	VkSurfaceKHR GraphicsDeviceVulkan::s_Surface;
+	VkFence GPUContextVulkan::m_InFlightFence;
+	VkSemaphore GPUContextVulkan::m_ImageAvailableSemaphore;
+	VkSemaphore GPUContextVulkan::m_RenderFinishedSemaphore;
+	std::vector<const char*> GPUContextVulkan::s_Extensions;
+	std::vector<const char*> GPUContextVulkan::s_Layers;
+	VkDebugUtilsMessengerCreateInfoEXT GPUContextVulkan::s_DebugCreateInfo;
+	VkDebugUtilsMessengerEXT GPUContextVulkan::s_DebugMessenger;
+	bool GPUContextVulkan::m_ValidationLayersFound;
+	std::vector<const char*> GPUContextVulkan::s_RequiredExtensions;
+	std::vector<const char*> GPUContextVulkan::s_ValidationLayers;
+	VkCommandPool GPUContextVulkan::m_CommandPool;
+	VkSurfaceKHR GPUContextVulkan::s_Surface;
 
-	void GraphicsDeviceVulkan::Create(){
+	void GPUContextVulkan::Create(){
 		volkInitialize();
 
 		s_ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
@@ -134,27 +134,30 @@ namespace Brisk
 			BRISK_CORE_ERROR("Failed to create window surface!");
 		}
 
-		PhysicalDevice::Details details;
-		details.Surface = s_Surface;
-		details.RequiredQueueTypes.push_back(PhysicalDevice::QueueInfo::QueueType::QUEUE_GRAPHICS_BIT);
-		details.RequiredQueueTypes.push_back(PhysicalDevice::QueueInfo::QueueType::QUEUE_TRANSFER_BIT);
-		details.RequiredFeatures.push_back(PhysicalDevice::Feature::ANISOTROPY);
-		details.RequiredFeatures.push_back(PhysicalDevice::Feature::PRESENTATION);
-		Engine::s_PhysicalDevice = new PhysicalDevice();
-		Engine::s_PhysicalDevice->Create(details);
+		s_GPUDevice = new GPUDeviceVulkan();
+		//s_GPUDevice->Create();
+
+		//PhysicalDevice::Details details;
+		//details.Surface = s_Surface;
+		//details.RequiredQueueTypes.push_back(PhysicalDevice::QueueInfo::QueueType::QUEUE_GRAPHICS_BIT);
+		//details.RequiredQueueTypes.push_back(PhysicalDevice::QueueInfo::QueueType::QUEUE_TRANSFER_BIT);
+		//details.RequiredFeatures.push_back(PhysicalDevice::Feature::ANISOTROPY);
+		//details.RequiredFeatures.push_back(PhysicalDevice::Feature::PRESENTATION);
+		//Engine::s_PhysicalDevice = new PhysicalDevice();
+		//Engine::s_PhysicalDevice->Create(details);
 
 		VkCommandPoolCreateInfo poolInfo{};
 		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		poolInfo.queueFamilyIndex = Engine::s_PhysicalDevice->GetPresentQueue()->Info.QueueFamilyIndex;
+		poolInfo.queueFamilyIndex = s_GPUDevice->GetPresentQueue()->Info.QueueFamilyIndex;
 
-		if (vkCreateCommandPool(Engine::s_PhysicalDevice->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
+		if (vkCreateCommandPool(s_GPUDevice->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create command pool!");
 		}
 	}
 
-	bool GraphicsDeviceVulkan::Sync() {
-		vkWaitForFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
+	bool GPUContextVulkan::Sync() {
+		vkWaitForFences(s_GPUDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
 
 		VkResult result = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->AquireNextImage(UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_ImageIndex);
 
@@ -168,15 +171,15 @@ namespace Brisk
 			return true;
 		}
 
-		vkResetFences(Engine::s_PhysicalDevice->GetDevice(), 1, &m_InFlightFence);
+		vkResetFences(s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
 		return false;
 	}
 
-	void GraphicsDeviceVulkan::WaitDeviceIdle() {
-		vkDeviceWaitIdle(Engine::s_PhysicalDevice->GetDevice());
+	void GPUContextVulkan::WaitDeviceIdle() {
+		vkDeviceWaitIdle(s_GPUDevice->GetDevice());
 	}
 
-	void GraphicsDeviceVulkan::Submit(RenderPassVulkan* renderpass) {
+	void GPUContextVulkan::Submit(RenderPassVulkan* renderpass) {
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -194,7 +197,7 @@ namespace Brisk
 		submitInfo.signalSemaphoreCount = 1;
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
-		if (vkQueueSubmit(Engine::s_PhysicalDevice->GetGraphicsQueue()->Queue_, 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
+		if (vkQueueSubmit(s_GPUDevice->GetGraphicsQueue()->Queue_, 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
 			throw std::runtime_error("failed to submit draw command buffer!");
 		}
 
@@ -210,10 +213,10 @@ namespace Brisk
 
 		presentInfo.pImageIndices = &m_ImageIndex;
 
-		vkQueuePresentKHR(Engine::s_PhysicalDevice->GetPresentQueue()->Queue_, &presentInfo);
+		vkQueuePresentKHR(s_GPUDevice->GetPresentQueue()->Queue_, &presentInfo);
 	}
 
-	void GraphicsDeviceVulkan::PrepreFrame(VkCommandBuffer commandBuffer) {
+	void GPUContextVulkan::PrepreFrame(VkCommandBuffer commandBuffer) {
 		VkViewport viewport{};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
@@ -229,7 +232,7 @@ namespace Brisk
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 	}
 
-	void GraphicsDeviceVulkan::Draw(VkCommandBuffer commandBuffer, BufferVulkan buffer) {
+	void GPUContextVulkan::Draw(VkCommandBuffer commandBuffer, BufferVulkan buffer) {
 		const VkBuffer vertexBuffers[] = { buffer.Get() };
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
@@ -237,7 +240,7 @@ namespace Brisk
 		vkCmdDraw(commandBuffer, buffer.GetData().size(), 1, 0, 0);
 	}
 
-	void GraphicsDeviceVulkan::CreateSyncObjects() {
+	void GPUContextVulkan::CreateSyncObjects() {
 		VkSemaphoreCreateInfo semaphoreInfo{};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
@@ -245,22 +248,22 @@ namespace Brisk
 		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
 		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-		if (vkCreateSemaphore(Engine::s_PhysicalDevice->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore) != VK_SUCCESS ||
-			vkCreateSemaphore(Engine::s_PhysicalDevice->GetDevice(), &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore) != VK_SUCCESS ||
-			vkCreateFence(Engine::s_PhysicalDevice->GetDevice(), &fenceInfo, nullptr, &m_InFlightFence) != VK_SUCCESS) {
+		if (vkCreateSemaphore(s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore) != VK_SUCCESS ||
+			vkCreateSemaphore(s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore) != VK_SUCCESS ||
+			vkCreateFence(s_GPUDevice->GetDevice(), &fenceInfo, nullptr, &m_InFlightFence) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create synchronization objects for a frame!");
 		}
 	}
 
-	void GraphicsDeviceVulkan::ReleasePools() {
+	void GPUContextVulkan::ReleasePools() {
 		// TODO: Should not get freed here
-		vkDestroySemaphore(Engine::s_PhysicalDevice->GetDevice(), m_ImageAvailableSemaphore, nullptr);
-		vkDestroySemaphore(Engine::s_PhysicalDevice->GetDevice(), m_RenderFinishedSemaphore, nullptr);
-		vkDestroyFence(Engine::s_PhysicalDevice->GetDevice(), m_InFlightFence, nullptr);
-		vkDestroyCommandPool(Engine::s_PhysicalDevice->GetDevice(), m_CommandPool, nullptr);
+		vkDestroySemaphore(s_GPUDevice->GetDevice(), m_ImageAvailableSemaphore, nullptr);
+		vkDestroySemaphore(s_GPUDevice->GetDevice(), m_RenderFinishedSemaphore, nullptr);
+		vkDestroyFence(s_GPUDevice->GetDevice(), m_InFlightFence, nullptr);
+		vkDestroyCommandPool(s_GPUDevice->GetDevice(), m_CommandPool, nullptr);
 	}
 
-	void GraphicsDeviceVulkan::Release() {
+	void GPUContextVulkan::Release() {
 		vkDestroyDebugUtilsMessengerEXT(s_Instance, s_DebugMessenger, nullptr);
 		vkDestroyInstance(s_Instance, nullptr);
 	}

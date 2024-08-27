@@ -5,81 +5,83 @@
 #include "Graphics/Factories/RenderPassFactory.hpp"
 
 namespace Brisk {
-	void Renderer::Initialize() {
-		// Create default graphics pipeline
-		ShaderInfo vertexShader;
-		vertexShader.Path = "Shaders/Vulkan/Compiled/TriangleVS.spv";
-		vertexShader.Type = ShaderType::Vertex;
 
-		ShaderInfo fragmentShader;
-		fragmentShader.Path = "Shaders/Vulkan/Compiled/TriangleFS.spv";
-		fragmentShader.Type = ShaderType::Fragment;
 
-		std::vector<ShaderInfo> shaders{
-			vertexShader,
-			fragmentShader,
-		};
-		std::vector<ShaderModule> modules;
-		for (ShaderInfo shader : shaders) {
-			modules.push_back(ShaderManager::CreateShaderModule(shader));
-		}
+	//void Renderer::Initialize() {
+	//	// Create default graphics pipeline
+	//	ShaderInfo vertexShader;
+	//	vertexShader.Path = "Shaders/Vulkan/Compiled/TriangleVS.spv";
+	//	vertexShader.Type = ShaderType::Vertex;
 
-		m_RenderPass = RenderPassFactory::CreateRenderPass();
-		m_RenderPass->Create();
+	//	ShaderInfo fragmentShader;
+	//	fragmentShader.Path = "Shaders/Vulkan/Compiled/TriangleFS.spv";
+	//	fragmentShader.Type = ShaderType::Fragment;
 
-		m_DefaultGraphicsPipeline = new GraphicsPipelineVulkan();
-		m_DefaultGraphicsPipeline->Create(modules);
+	//	std::vector<ShaderInfo> shaders{
+	//		vertexShader,
+	//		fragmentShader,
+	//	};
+	//	std::vector<ShaderModule> modules;
+	//	for (ShaderInfo shader : shaders) {
+	//		modules.push_back(ShaderManager::CreateShaderModule(shader));
+	//	}
 
-		//std::vector<Point> vertices = {
-		//	{{0.0f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
-		//	{{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-		//	{{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}
-		//};
-		std::vector<Point> vertices = {
-			{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-			{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
-			{{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+	//	m_RenderPass = RenderPassFactory::CreateRenderPass();
+	//	m_RenderPass->Create();
 
-			{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-			{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-			{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
-		};
+	//	m_DefaultGraphicsPipeline = new GraphicsPipelineVulkan();
+	//	m_DefaultGraphicsPipeline->Create(modules);
 
-		m_VertexBuffer = new BufferVulkan();
-		m_VertexBuffer->Create(vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-		m_VertexBuffer->Allocate();
-		m_VertexBuffer->MapMemory(vertices);
-	}
+	//	//std::vector<Point> vertices = {
+	//	//	{{0.0f, -0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+	//	//	{{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+	//	//	{{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}
+	//	//};
+	//	std::vector<Point> vertices = {
+	//		{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+	//		{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+	//		{{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
 
-	void Renderer::Release() {
-		m_VertexBuffer->Release();
-		m_DefaultGraphicsPipeline->Release();
-		m_RenderPass->Release();
-	}
+	//		{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+	//		{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+	//		{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+	//	};
 
-	void Renderer::PreProcess() {
+	//	m_VertexBuffer = new BufferVulkan();
+	//	m_VertexBuffer->Create(vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+	//	m_VertexBuffer->Allocate();
+	//	m_VertexBuffer->MapMemory(vertices);
+	//}
 
-	}
+	//void Renderer::Release() {
+	//	m_VertexBuffer->Release();
+	//	m_DefaultGraphicsPipeline->Release();
+	//	m_RenderPass->Release();
+	//}
 
-	void Renderer::Render() {
-		if (Engine::s_GPUContext->Sync())
-			return;
+	//void Renderer::PreProcess() {
 
-		m_RenderPass->BeginRenderPass();
-		m_RenderPass->BindPipeline(m_DefaultGraphicsPipeline);
+	//}
 
-		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->PrepreFrame(
-			static_cast<RenderPassVulkan*>(m_RenderPass)->GetCommandBuffer());
-		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->Draw(
-			static_cast<RenderPassVulkan*>(m_RenderPass)->GetCommandBuffer(), *m_VertexBuffer);
+	//void Renderer::Render() {
+	//	if (Engine::s_GPUContext->Sync())
+	//		return;
 
-		m_RenderPass->EndRenderPass();
+	//	m_RenderPass->BeginRenderPass();
+	//	m_RenderPass->BindPipeline(m_DefaultGraphicsPipeline);
 
-		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->Submit(
-			static_cast<RenderPassVulkan*>(m_RenderPass));
-	}
+	//	static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->PrepreFrame(
+	//		static_cast<RenderPassVulkan*>(m_RenderPass)->GetCommandBuffer());
+	//	static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->Draw(
+	//		static_cast<RenderPassVulkan*>(m_RenderPass)->GetCommandBuffer(), *m_VertexBuffer);
 
-	void Renderer::PostProcess() {
+	//	m_RenderPass->EndRenderPass();
 
-	}
+	//	static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->Submit(
+	//		static_cast<RenderPassVulkan*>(m_RenderPass));
+	//}
+
+	//void Renderer::PostProcess() {
+
+	//}
 }

@@ -1,6 +1,5 @@
 #pragma once
 
-#include "Graphics/GPUDevice.hpp"
 #include "Graphics/Vulkan/GraphicsPipelineVulkan.hpp"
 #include "Graphics/RenderPass.hpp"
 #include "Graphics/Vulkan/BufferVulkan.hpp"

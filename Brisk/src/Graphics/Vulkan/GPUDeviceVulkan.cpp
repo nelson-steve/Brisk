@@ -1,4 +1,4 @@
-#include "GPUDeviceVulkan.hpp"
+#include "GpuDeviceVulkan.hpp"
 #include "Core/Log.hpp"
 #include "Engine/Engine.hpp"
 
@@ -6,41 +6,98 @@
 
 namespace Brisk 
 {
-	void GPUDeviceVulkan::Create(const Details& details) {
+	std::vector<VkPhysicalDevice> GpuDeviceVulkan::RetrieveAvailableDevice() {
 		uint32_t device_count = 0;
-		vkEnumeratePhysicalDevices(GPUContextVulkan::s_Instance, &device_count, nullptr);
+		vkEnumeratePhysicalDevices(GpuContextVulkan::s_Instance, &device_count, nullptr);
 		if (device_count == 0) {
 			BRISK_CORE_ERROR("Failed to find GPUs with Vulkan support!");
 			return;
 		}
 		std::vector<VkPhysicalDevice> devices(device_count);
-		vkEnumeratePhysicalDevices(GPUContextVulkan::s_Instance, &device_count, devices.data());
-		for (const auto& device : devices) {
-			if (IsDeviceSuitable(device, details)) {
-				m_PhysicalDevice = device;
-				break;
-			}
-		}
-		if (m_PhysicalDevice == VK_NULL_HANDLE) {
-			BRISK_CORE_ERROR("Failed to find a suitable GPU!");
-			return;
-		}
+		vkEnumeratePhysicalDevices(GpuContextVulkan::s_Instance, &device_count, devices.data());
 
+		return devices;
+	}
+
+	void GpuDeviceVulkan::CreateLogicalDevice(const GpuRequirements& requirements) {
+		uint32_t queueFamilyCount = 0;
+		vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &queueFamilyCount, nullptr);
+
+		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
+		vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &queueFamilyCount, queueFamilies.data());
+
+		// Requesting all availabel queues
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
+		for (uint32_t i = 0; i < queueFamilyCount; ++i) {
+			VkDeviceQueueCreateInfo queueCreateInfo{};
+			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			queueCreateInfo.queueFamilyIndex = i;
+			queueCreateInfo.queueCount = queueFamilies[i].queueCount;
 
-		//for (const QueueInfo& q : RetrieveCommonQueues()) {
-		////for (const QueueInfo& q : m_Queues) {
-		//	VkDeviceQueueCreateInfo queueCreateInfo{};
-		//	queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
-		//	queueCreateInfo.queueFamilyIndex = q.QueueFamilyIndex;
-		//	queueCreateInfo.queueCount = q.QueueCount;
-		//	std::cout << "priorit: " << q.Priority << std::endl;
-		//	queueCreateInfo.pQueuePriorities = m_QueueFamiliesPriorities[q.QueueFamilyIndex].data();
-		//	queueCreateInfos.push_back(queueCreateInfo);
-		//}
+			std::vector<float> queuePriorities(queueFamilies[i].queueCount, 1.0f);
+			queueCreateInfo.pQueuePriorities = queuePriorities.data();
+
+			queueCreateInfos.push_back(queueCreateInfo);
+		}
 
 		VkPhysicalDeviceFeatures device_features{};
-		device_features.samplerAnisotropy = VK_TRUE;
+		device_features.samplerAnisotropy = requirements.pFeatures.pSamplerAnisotropy? VK_TRUE : VK_FALSE;
+		device_features.robustBufferAccess = requirements.pFeatures.pRobustBufferAccess ? VK_TRUE : VK_FALSE;
+		device_features.fullDrawIndexUint32 = requirements.pFeatures.pFullDrawIndexUint32? VK_TRUE : VK_FALSE;
+		device_features.imageCubeArray = requirements.pFeatures.pImageCubeArray? VK_TRUE : VK_FALSE;
+		device_features.independentBlend = requirements.pFeatures.pIndependentBlend? VK_TRUE : VK_FALSE;
+		device_features.geometryShader = requirements.pFeatures.pGeometryShader ? VK_TRUE : VK_FALSE;
+		device_features.tessellationShader = requirements.pFeatures.pTessellationShader ? VK_TRUE : VK_FALSE;
+		device_features.sampleRateShading = requirements.pFeatures.pSamplerAnisotropy ? VK_TRUE : VK_FALSE;
+		device_features.dualSrcBlend = requirements.pFeatures.pDualSrcBlend ? VK_TRUE : VK_FALSE;
+		device_features.logicOp = requirements.pFeatures.pLogicOp ? VK_TRUE : VK_FALSE;
+		device_features.multiDrawIndirect = requirements.pFeatures.pMultiDrawIndirect? VK_TRUE : VK_FALSE;
+		device_features.drawIndirectFirstInstance = requirements.pFeatures.pDrawIndirectFirstInstance? VK_TRUE : VK_FALSE;
+		device_features.depthClamp = requirements.pFeatures.pDepthClamp ? VK_TRUE : VK_FALSE;
+		device_features.depthBiasClamp = requirements.pFeatures.pDepthBiasClamp ? VK_TRUE : VK_FALSE;
+		device_features.fillModeNonSolid = requirements.pFeatures.pFillModeNonSolid ? VK_TRUE : VK_FALSE;
+		device_features.depthBounds = requirements.pFeatures.pDepthBounds ? VK_TRUE : VK_FALSE;
+		device_features.wideLines = requirements.pFeatures.pWideLines ? VK_TRUE : VK_FALSE;
+		device_features.largePoints = requirements.pFeatures.pLargePoints ? VK_TRUE : VK_FALSE;
+		device_features.alphaToOne = requirements.pFeatures.pAlphaToOne ? VK_TRUE : VK_FALSE;
+		device_features.multiViewport = requirements.pFeatures.pMultiViewport ? VK_TRUE : VK_FALSE;
+		device_features.samplerAnisotropy = requirements.pFeatures.pSamplerAnisotropy ? VK_TRUE : VK_FALSE;
+		device_features.textureCompressionETC2 = requirements.pFeatures.pTextureCompressionETC2 ? VK_TRUE : VK_FALSE;
+		device_features.textureCompressionASTC_LDR = requirements.pFeatures.pTextureCompressionASTC_LDR? VK_TRUE : VK_FALSE;
+		device_features.textureCompressionBC = requirements.pFeatures.pTextureCompressionBC ? VK_TRUE : VK_FALSE;
+		device_features.occlusionQueryPrecise = requirements.pFeatures.pOcclusionQueryPrecise ? VK_TRUE : VK_FALSE;
+		device_features.pipelineStatisticsQuery = requirements.pFeatures.pPipelineStatisticsQuery ? VK_TRUE : VK_FALSE;
+		device_features.vertexPipelineStoresAndAtomics = requirements.pFeatures.pVertexPipelineStoresAndAtomics ? VK_TRUE : VK_FALSE;
+		device_features.fragmentStoresAndAtomics = requirements.pFeatures.pFragmentStoresAndAtomics ? VK_TRUE : VK_FALSE;
+		device_features.shaderTessellationAndGeometryPointSize = requirements.pFeatures.pShaderTessellationAndGeometryPointSize? VK_TRUE : VK_FALSE;
+		device_features.shaderImageGatherExtended = requirements.pFeatures.pShaderImageGatherExtended ? VK_TRUE : VK_FALSE;
+		device_features.shaderStorageImageExtendedFormats = requirements.pFeatures.pShaderStorageImageExtendedFormats ? VK_TRUE : VK_FALSE;
+		device_features.shaderStorageImageMultisample = requirements.pFeatures.pShaderStorageImageMultisample ? VK_TRUE : VK_FALSE;
+		device_features.shaderStorageImageReadWithoutFormat = requirements.pFeatures.pShaderStorageImageReadWithoutFormat ? VK_TRUE : VK_FALSE;
+		device_features.shaderStorageImageWriteWithoutFormat = requirements.pFeatures.pShaderStorageImageWriteWithoutFormat ? VK_TRUE : VK_FALSE;
+		device_features.shaderUniformBufferArrayDynamicIndexing = requirements.pFeatures.pShaderUniformBufferArrayDynamicIndexing ? VK_TRUE : VK_FALSE;
+		device_features.shaderSampledImageArrayDynamicIndexing = requirements.pFeatures.pShaderSampledImageArrayDynamicIndexing ? VK_TRUE : VK_FALSE;
+		device_features.shaderStorageBufferArrayDynamicIndexing = requirements.pFeatures.pShaderStorageBufferArrayDynamicIndexing ? VK_TRUE : VK_FALSE;
+		device_features.shaderStorageImageArrayDynamicIndexing = requirements.pFeatures.pShaderStorageImageArrayDynamicIndexing ? VK_TRUE : VK_FALSE;
+		device_features.shaderClipDistance = requirements.pFeatures.pShaderClipDistance ? VK_TRUE : VK_FALSE;
+		device_features.shaderCullDistance = requirements.pFeatures.pShaderCullDistance ? VK_TRUE : VK_FALSE;
+		device_features.shaderFloat64 = requirements.pFeatures.pShaderFloat64 ? VK_TRUE : VK_FALSE;
+		device_features.shaderInt64 = requirements.pFeatures.pShaderInt64 ? VK_TRUE : VK_FALSE;
+		device_features.shaderInt16 = requirements.pFeatures.pShaderInt16 ? VK_TRUE : VK_FALSE;
+		device_features.shaderResourceResidency = requirements.pFeatures.pShaderResourceResidency ? VK_TRUE : VK_FALSE;
+		device_features.shaderResourceMinLod = requirements.pFeatures.pShaderResourceMinLod ? VK_TRUE : VK_FALSE;
+		device_features.sparseBinding = requirements.pFeatures.pSparseBinding ? VK_TRUE : VK_FALSE;
+		device_features.sparseResidencyBuffer = requirements.pFeatures.pSparseResidencyBuffer ? VK_TRUE : VK_FALSE;
+		device_features.sparseResidencyImage2D = requirements.pFeatures.pSparseResidencyImage2D ? VK_TRUE : VK_FALSE;
+		device_features.sparseResidencyImage3D = requirements.pFeatures.pSparseResidencyImage3D ? VK_TRUE : VK_FALSE;
+		device_features.sparseResidency2Samples = requirements.pFeatures.pSparseResidency2Samples ? VK_TRUE : VK_FALSE;
+		device_features.sparseResidency4Samples = requirements.pFeatures.pSparseResidency4Samples ? VK_TRUE : VK_FALSE;
+		device_features.sparseResidency8Samples = requirements.pFeatures.pSparseResidency8Samples ? VK_TRUE : VK_FALSE;
+		device_features.sparseResidency16Samples = requirements.pFeatures.pSparseResidency16Samples ? VK_TRUE : VK_FALSE;
+		device_features.sparseResidencyAliased = requirements.pFeatures.pSparseResidencyAliased ? VK_TRUE : VK_FALSE;
+		device_features.variableMultisampleRate = requirements.pFeatures.pVariableMultisampleRate ? VK_TRUE : VK_FALSE;
+		device_features.inheritedQueries = requirements.pFeatures.pInheritedQueries ? VK_TRUE : VK_FALSE;
+
 		VkDeviceCreateInfo device_create_info{};
 		device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
 		device_create_info.queueCreateInfoCount = static_cast<uint16_t>(queueCreateInfos.size());
@@ -62,25 +119,16 @@ namespace Brisk
 		if (vkCreateDevice(m_PhysicalDevice, &device_create_info, nullptr, &m_Device) != VK_SUCCESS) {
 			BRISK_CORE_ERROR("Failed to create logical device!");
 		}
-
-		//Queue* q1 = new Queue();
-		//q1->Info = m_Queues[0];
-		//Queue* q2 = new Queue();
-		//q2->Info = m_Queues[0];
-		//vkGetDeviceQueue(m_Device, q1->Info.QueueFamilyIndex, m_Queues[0].QueueIndex, &q1->Queue_);
-		//vkGetDeviceQueue(m_Device, q2->Info.QueueFamilyIndex, m_Queues[0].QueueIndex, &q2->Queue_);
-		//m_GraphicsQueue = q1;
-		//m_PresentQueue = q2;
 	}
 
-	void GPUDeviceVulkan::Release() {
+	void GpuDeviceVulkan::Release() {
 		delete m_PresentQueue;
 		delete m_GraphicsQueue;
 		vkDestroyDevice(m_Device, nullptr);
 	}
 
-	//const std::vector<GPUDeviceVulkan::QueueInfo> GPUDeviceVulkan::RetrieveCommonQueues() {
-	//	std::vector<GPUDeviceVulkan::QueueInfo> queues;
+	//const std::vector<GpuDeviceVulkan::QueueInfo> GpuDeviceVulkan::RetrieveCommonQueues() {
+	//	std::vector<GpuDeviceVulkan::QueueInfo> queues;
 	//	for (const auto& queueToAdd : m_Queues) {
 	//		bool shouldAdd = true;
 	//		for (const auto& queue : queues) {
@@ -96,174 +144,170 @@ namespace Brisk
 	//	return queues;
 	//}
 
-	const std::string& GPUDeviceVulkan::QueueTypeToString(QueueInfo::QueueType type) {
-		switch (type)
-		{
-		case QueueInfo::QueueType::QUEUE_GRAPHICS_BIT:
-			return "VK_QUEUE_GRAPHICS_BIT";
-		case QueueInfo::QueueType::QUEUE_COMPUTE_BIT:
-			return "VK_QUEUE_COMPUTE_BIT";
-		case QueueInfo::QueueType::QUEUE_TRANSFER_BIT:
-			return "VK_QUEUE_TRANSFER_BIT";
-		case QueueInfo::QueueType::QUEUE_SPARSE_BINDING_BIT:
-			return "VK_QUEUE_SPARSE_BINDING_BIT";
-		case QueueInfo::QueueType::QUEUE_PROTECTED_BIT:
-			return "VK_QUEUE_PROTECTED_BIT";
-		case QueueInfo::QueueType::QUEUE_VIDEO_DECODE_BIT_KHR:
-			return "VK_QUEUE_VIDEO_DECODE_BIT_KHR";
-		case QueueInfo::QueueType::QUEUE_VIDEO_ENCODE_BIT_KHR:
-			return "VK_QUEUE_VIDEO_ENCODE_BIT_KHR";
-		case QueueInfo::QueueType::QUEUE_OPTICAL_FLOW_BIT_NV:
-			return "VK_QUEUE_OPTICAL_FLOW_BIT_NV";
-		default:
-			// Error
-			return "VK_QUEUE_FLAG_BITS_MAX_ENUM";
-		}
-	}
+	//const std::string& GpuDeviceVulkan::QueueTypeToString(QueueInfo::QueueType type) {
+	//	switch (type)
+	//	{
+	//	case QueueInfo::QueueType::QUEUE_GRAPHICS_BIT:
+	//		return "VK_QUEUE_GRAPHICS_BIT";
+	//	case QueueInfo::QueueType::QUEUE_COMPUTE_BIT:
+	//		return "VK_QUEUE_COMPUTE_BIT";
+	//	case QueueInfo::QueueType::QUEUE_TRANSFER_BIT:
+	//		return "VK_QUEUE_TRANSFER_BIT";
+	//	case QueueInfo::QueueType::QUEUE_SPARSE_BINDING_BIT:
+	//		return "VK_QUEUE_SPARSE_BINDING_BIT";
+	//	case QueueInfo::QueueType::QUEUE_PROTECTED_BIT:
+	//		return "VK_QUEUE_PROTECTED_BIT";
+	//	case QueueInfo::QueueType::QUEUE_VIDEO_DECODE_BIT_KHR:
+	//		return "VK_QUEUE_VIDEO_DECODE_BIT_KHR";
+	//	case QueueInfo::QueueType::QUEUE_VIDEO_ENCODE_BIT_KHR:
+	//		return "VK_QUEUE_VIDEO_ENCODE_BIT_KHR";
+	//	case QueueInfo::QueueType::QUEUE_OPTICAL_FLOW_BIT_NV:
+	//		return "VK_QUEUE_OPTICAL_FLOW_BIT_NV";
+	//	default:
+	//		// Error
+	//		return "VK_QUEUE_FLAG_BITS_MAX_ENUM";
+	//	}
+	//}
 
-	void GPUDeviceVulkan::PrintQueueFlags(VkQueueFlags flags) {
-		if (flags & VK_QUEUE_GRAPHICS_BIT)
-			std::cout << "VK_QUEUE_GRAPHICS_BIT" << std::endl;
-		if (flags & VK_QUEUE_COMPUTE_BIT)
-			std::cout << "VK_QUEUE_COMPUTE_BIT" << std::endl;
-		if (flags & VK_QUEUE_TRANSFER_BIT)
-			std::cout << "VK_QUEUE_TRANSFER_BIT" << std::endl;
-		if (flags & VK_QUEUE_SPARSE_BINDING_BIT)
-			std::cout << "VK_QUEUE_SPARSE_BINDING_BIT" << std::endl;
-		if (flags & VK_QUEUE_PROTECTED_BIT)
-			std::cout << "VK_QUEUE_PROTECTED_BIT" << std::endl;
-		if (flags & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
-			std::cout << "VK_QUEUE_VIDEO_DECODE_BIT_KHR" << std::endl;
-		if (flags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
-			std::cout << "VK_QUEUE_VIDEO_ENCODE_BIT_KHR" << std::endl;
-		if (flags & VK_QUEUE_OPTICAL_FLOW_BIT_NV)
-			std::cout << "VK_QUEUE_OPTICAL_FLOW_BIT_NV" << std::endl;
-	}
+	//void GpuDeviceVulkan::PrintQueueFlags(VkQueueFlags flags) {
+	//	if (flags & VK_QUEUE_GRAPHICS_BIT)
+	//		std::cout << "VK_QUEUE_GRAPHICS_BIT" << std::endl;
+	//	if (flags & VK_QUEUE_COMPUTE_BIT)
+	//		std::cout << "VK_QUEUE_COMPUTE_BIT" << std::endl;
+	//	if (flags & VK_QUEUE_TRANSFER_BIT)
+	//		std::cout << "VK_QUEUE_TRANSFER_BIT" << std::endl;
+	//	if (flags & VK_QUEUE_SPARSE_BINDING_BIT)
+	//		std::cout << "VK_QUEUE_SPARSE_BINDING_BIT" << std::endl;
+	//	if (flags & VK_QUEUE_PROTECTED_BIT)
+	//		std::cout << "VK_QUEUE_PROTECTED_BIT" << std::endl;
+	//	if (flags & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
+	//		std::cout << "VK_QUEUE_VIDEO_DECODE_BIT_KHR" << std::endl;
+	//	if (flags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
+	//		std::cout << "VK_QUEUE_VIDEO_ENCODE_BIT_KHR" << std::endl;
+	//	if (flags & VK_QUEUE_OPTICAL_FLOW_BIT_NV)
+	//		std::cout << "VK_QUEUE_OPTICAL_FLOW_BIT_NV" << std::endl;
+	//}
 
-	void GPUDeviceVulkan::GetSupportedQueueTypes(VkQueueFlags flags, std::vector<QueueInfo::QueueType>& ref) {
-		if (flags & VK_QUEUE_GRAPHICS_BIT)
-			ref.push_back(QueueInfo::QUEUE_GRAPHICS_BIT);
-		if (flags & VK_QUEUE_COMPUTE_BIT)
-			ref.push_back(QueueInfo::QUEUE_COMPUTE_BIT);
-		if (flags & VK_QUEUE_TRANSFER_BIT)
-			ref.push_back(QueueInfo::QUEUE_TRANSFER_BIT);
-		if (flags & VK_QUEUE_SPARSE_BINDING_BIT)
-			ref.push_back(QueueInfo::QUEUE_SPARSE_BINDING_BIT);
-		if (flags & VK_QUEUE_PROTECTED_BIT)
-			ref.push_back(QueueInfo::QUEUE_PROTECTED_BIT);
-		if (flags & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
-			ref.push_back(QueueInfo::QUEUE_VIDEO_DECODE_BIT_KHR);
-		if (flags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
-			ref.push_back(QueueInfo::QUEUE_VIDEO_ENCODE_BIT_KHR);
-		if (flags & VK_QUEUE_OPTICAL_FLOW_BIT_NV)
-			ref.push_back(QueueInfo::QUEUE_OPTICAL_FLOW_BIT_NV);
-	}
+	//void GpuDeviceVulkan::GetSupportedQueueTypes(VkQueueFlags flags, std::vector<QueueInfo::QueueType>& ref) {
+	//	if (flags & VK_QUEUE_GRAPHICS_BIT)
+	//		ref.push_back(QueueInfo::QUEUE_GRAPHICS_BIT);
+	//	if (flags & VK_QUEUE_COMPUTE_BIT)
+	//		ref.push_back(QueueInfo::QUEUE_COMPUTE_BIT);
+	//	if (flags & VK_QUEUE_TRANSFER_BIT)
+	//		ref.push_back(QueueInfo::QUEUE_TRANSFER_BIT);
+	//	if (flags & VK_QUEUE_SPARSE_BINDING_BIT)
+	//		ref.push_back(QueueInfo::QUEUE_SPARSE_BINDING_BIT);
+	//	if (flags & VK_QUEUE_PROTECTED_BIT)
+	//		ref.push_back(QueueInfo::QUEUE_PROTECTED_BIT);
+	//	if (flags & VK_QUEUE_VIDEO_DECODE_BIT_KHR)
+	//		ref.push_back(QueueInfo::QUEUE_VIDEO_DECODE_BIT_KHR);
+	//	if (flags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR)
+	//		ref.push_back(QueueInfo::QUEUE_VIDEO_ENCODE_BIT_KHR);
+	//	if (flags & VK_QUEUE_OPTICAL_FLOW_BIT_NV)
+	//		ref.push_back(QueueInfo::QUEUE_OPTICAL_FLOW_BIT_NV);
+	//}
 
-	VkQueueFlags GPUDeviceVulkan::QueueTypeToVulkanType(QueueInfo::QueueType type) {
-		switch (type)
-		{
-			case QueueInfo::QueueType::QUEUE_GRAPHICS_BIT:
-				return VK_QUEUE_GRAPHICS_BIT;
-			case QueueInfo::QueueType::QUEUE_COMPUTE_BIT:
-				return VK_QUEUE_COMPUTE_BIT;
-			case QueueInfo::QueueType::QUEUE_TRANSFER_BIT:
-				return VK_QUEUE_TRANSFER_BIT;
-			case QueueInfo::QueueType::QUEUE_SPARSE_BINDING_BIT:
-				return VK_QUEUE_SPARSE_BINDING_BIT;
-			case QueueInfo::QueueType::QUEUE_PROTECTED_BIT:
-				return VK_QUEUE_PROTECTED_BIT;
-			case QueueInfo::QueueType::QUEUE_VIDEO_DECODE_BIT_KHR:
-				return VK_QUEUE_VIDEO_DECODE_BIT_KHR;
-			case QueueInfo::QueueType::QUEUE_VIDEO_ENCODE_BIT_KHR:
-				return VK_QUEUE_VIDEO_ENCODE_BIT_KHR;
-			case QueueInfo::QueueType::QUEUE_OPTICAL_FLOW_BIT_NV:
-				return VK_QUEUE_OPTICAL_FLOW_BIT_NV;
-			default:
-				// Error
-				return VK_QUEUE_FLAG_BITS_MAX_ENUM;
-		}
-	}
+	//VkQueueFlags GpuDeviceVulkan::QueueTypeToVulkanType(QueueInfo::QueueType type) {
+	//	switch (type)
+	//	{
+	//		case QueueInfo::QueueType::QUEUE_GRAPHICS_BIT:
+	//			return VK_QUEUE_GRAPHICS_BIT;
+	//		case QueueInfo::QueueType::QUEUE_COMPUTE_BIT:
+	//			return VK_QUEUE_COMPUTE_BIT;
+	//		case QueueInfo::QueueType::QUEUE_TRANSFER_BIT:
+	//			return VK_QUEUE_TRANSFER_BIT;
+	//		case QueueInfo::QueueType::QUEUE_SPARSE_BINDING_BIT:
+	//			return VK_QUEUE_SPARSE_BINDING_BIT;
+	//		case QueueInfo::QueueType::QUEUE_PROTECTED_BIT:
+	//			return VK_QUEUE_PROTECTED_BIT;
+	//		case QueueInfo::QueueType::QUEUE_VIDEO_DECODE_BIT_KHR:
+	//			return VK_QUEUE_VIDEO_DECODE_BIT_KHR;
+	//		case QueueInfo::QueueType::QUEUE_VIDEO_ENCODE_BIT_KHR:
+	//			return VK_QUEUE_VIDEO_ENCODE_BIT_KHR;
+	//		case QueueInfo::QueueType::QUEUE_OPTICAL_FLOW_BIT_NV:
+	//			return VK_QUEUE_OPTICAL_FLOW_BIT_NV;
+	//		default:
+	//			// Error
+	//			return VK_QUEUE_FLAG_BITS_MAX_ENUM;
+	//	}
+	//}
 
-	bool GPUDeviceVulkan::CreateQueueFamilies(VkPhysicalDevice device, const Details& details) {
-		uint32_t queueFamilyCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, nullptr);
-
-		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(device, &queueFamilyCount, queueFamilies.data());
-
-		int i = 0;
-		bool requiredQueueTypesExist = false;
-		m_QueueFamiliesPriorities.resize(queueFamilies.size());
-		for (const auto& queueFamily : queueFamilies) {
-			bool featuresExist = false;
-			QueueInfo queue;
-			queue.Priority = 0.5f;
-			queue.QueueFamilyIndex = i;
-			queue.QueueCount = queueFamily.queueCount;
-			std::cout << "Queue family: " << i << std::endl;
-			PrintQueueFlags(queueFamily.queueFlags);
-			GetSupportedQueueTypes(queueFamily.queueFlags, queue.SupportedQueueTypes);
-			for (const auto type : details.RequiredQueueTypes) {
-				if (queueFamily.queueFlags & QueueTypeToVulkanType(type)) {
-					requiredQueueTypesExist = true;
-					// Graphics commands should get priority
-					if(type == QueueInfo::QueueType::QUEUE_GRAPHICS_BIT) queue.Priority = 1.0f;
-				}
-			}
-			int queueIndex = 0;
-			while (queueIndex < queueFamily.queueCount) {
-				m_QueueFamiliesPriorities[i].push_back(queue.Priority);
-				queueIndex++;
-				queue.QueueIndex = queueIndex;
-				m_Queues.push_back(queue);
-			}
-
-			for (const auto feature : details.RequiredFeatures) { 
-				VkBool32 presentSupport;
-				if (feature == Feature::PRESENTATION) {
-					vkGetPhysicalDeviceSurfaceSupportKHR(device, i, details.Surface, &presentSupport);
-					if (presentSupport) {
-						queue.PresentSupport = true;
-					}
-				}
-			}
-			i++;
-		}
-		if (!requiredQueueTypesExist) {
-			return false;
-			std::cout << "Required Queue Type does not exist";
-		}
-		return true;
-	}
-
-	bool GPUDeviceVulkan::IsDeviceSuitable(VkPhysicalDevice device, const Details& details) {
-		if (!CreateQueueFamilies(device, details))
-			return false;
-
-		std::vector<const char*>& extensions = GPUContextVulkan::s_RequiredExtensions;
+	bool GpuDeviceVulkan::IsDeviceSuitable(VkPhysicalDevice device, const GpuRequirements& requirements) {
+		std::vector<const char*>& extensions = GpuContextVulkan::s_RequiredExtensions;
 		bool extensionsSupported = false;
-		{
-			uint32_t extensionCount;
-			vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+		uint32_t extensionCount;
+		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);
+		std::vector<VkExtensionProperties> availableExtensions(extensionCount);
+		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
+		std::set<std::string> requiredExtensions(extensions.begin(), extensions.end());
 
-			std::vector<VkExtensionProperties> availableExtensions(extensionCount);
-			vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, availableExtensions.data());
-
-			std::set<std::string> requiredExtensions(extensions.begin(), extensions.end());
-
-			for (const auto& extension : availableExtensions) {
-				requiredExtensions.erase(extension.extensionName);
-			}
-
-			extensionsSupported = requiredExtensions.empty();
+		for (const auto& extension : availableExtensions) {
+			requiredExtensions.erase(extension.extensionName);
 		}
+		extensionsSupported = requiredExtensions.empty();
 
 		VkPhysicalDeviceFeatures supportedFeatures;
 		vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
-		
-		//bool suitable = m_Indices.IsComplete() && extensionsSupported && supportedFeatures.samplerAnisotropy;
 
-		// TODO: Check if required features are available too
+		if (requirements.pFeatures.pRobustBufferAccess) if (!supportedFeatures.robustBufferAccess) return false;
+		if (requirements.pFeatures.pFullDrawIndexUint32) if (!supportedFeatures.fullDrawIndexUint32) return false;
+		if (requirements.pFeatures.pImageCubeArray) if (!supportedFeatures.imageCubeArray) return false;
+		if (requirements.pFeatures.pIndependentBlend) if (!supportedFeatures.independentBlend) return false;
+		if (requirements.pFeatures.pGeometryShader) if (!supportedFeatures.geometryShader) return false;
+		if (requirements.pFeatures.pTessellationShader) if (!supportedFeatures.tessellationShader) return false;
+		if (requirements.pFeatures.pSampleRateShading) if (!supportedFeatures.sampleRateShading) return false;
+		if (requirements.pFeatures.pDualSrcBlend) if (!supportedFeatures.dualSrcBlend) return false;
+		if (requirements.pFeatures.pLogicOp) if (!supportedFeatures.logicOp) return false;
+		if (requirements.pFeatures.pMultiDrawIndirect) if (!supportedFeatures.multiDrawIndirect) return false;
+		if (requirements.pFeatures.pDrawIndirectFirstInstance) if (!supportedFeatures.drawIndirectFirstInstance) return false;
+		if (requirements.pFeatures.pDepthClamp) if (!supportedFeatures.depthClamp) return false;
+		if (requirements.pFeatures.pDepthBiasClamp) if (!supportedFeatures.depthBiasClamp) return false;
+		if (requirements.pFeatures.pFillModeNonSolid) if (!supportedFeatures.fillModeNonSolid) return false;
+		if (requirements.pFeatures.pDepthBounds) if (!supportedFeatures.depthBounds) return false;
+		if (requirements.pFeatures.pWideLines) if (!supportedFeatures.wideLines) return false;
+		if (requirements.pFeatures.pLargePoints) if (!supportedFeatures.largePoints) return false;
+		if (requirements.pFeatures.pAlphaToOne) if (!supportedFeatures.alphaToOne) return false;
+		if (requirements.pFeatures.pMultiViewport) if (!supportedFeatures.multiViewport) return false;
+		if (requirements.pFeatures.pSamplerAnisotropy) if (!supportedFeatures.samplerAnisotropy) return false;
+		if (requirements.pFeatures.pTextureCompressionETC2) if (!supportedFeatures.textureCompressionETC2) return false;
+		if (requirements.pFeatures.pTextureCompressionASTC_LDR) if (!supportedFeatures.textureCompressionASTC_LDR) return false;
+		if (requirements.pFeatures.pTextureCompressionBC) if (!supportedFeatures.textureCompressionBC) return false;
+		if (requirements.pFeatures.pOcclusionQueryPrecise) if (!supportedFeatures.occlusionQueryPrecise) return false;
+		if (requirements.pFeatures.pPipelineStatisticsQuery) if (!supportedFeatures.pipelineStatisticsQuery) return false;
+		if (requirements.pFeatures.pVertexPipelineStoresAndAtomics) if (!supportedFeatures.vertexPipelineStoresAndAtomics) return false;
+		if (requirements.pFeatures.pFragmentStoresAndAtomics) if (!supportedFeatures.fragmentStoresAndAtomics) return false;
+		if (requirements.pFeatures.pShaderTessellationAndGeometryPointSize) if (!supportedFeatures.shaderTessellationAndGeometryPointSize) return false;
+		if (requirements.pFeatures.pShaderImageGatherExtended) if (!supportedFeatures.shaderImageGatherExtended) return false;
+		if (requirements.pFeatures.pShaderStorageImageExtendedFormats) if (!supportedFeatures.shaderStorageImageExtendedFormats) return false;
+		if (requirements.pFeatures.pShaderStorageImageMultisample) if (!supportedFeatures.shaderStorageImageMultisample) return false;
+		if (requirements.pFeatures.pShaderStorageImageReadWithoutFormat) if (!supportedFeatures.shaderStorageImageReadWithoutFormat) return false;
+		if (requirements.pFeatures.pShaderStorageImageWriteWithoutFormat) if (!supportedFeatures.shaderStorageImageWriteWithoutFormat) return false;
+		if (requirements.pFeatures.pShaderUniformBufferArrayDynamicIndexing) if (!supportedFeatures.shaderUniformBufferArrayDynamicIndexing) return false;
+		if (requirements.pFeatures.pShaderSampledImageArrayDynamicIndexing) if (!supportedFeatures.shaderSampledImageArrayDynamicIndexing) return false;
+		if (requirements.pFeatures.pShaderStorageBufferArrayDynamicIndexing) if (!supportedFeatures.shaderStorageBufferArrayDynamicIndexing) return false;
+		if (requirements.pFeatures.pShaderStorageImageArrayDynamicIndexing) if (!supportedFeatures.shaderStorageImageArrayDynamicIndexing) return false;
+		if (requirements.pFeatures.pShaderClipDistance) if (!supportedFeatures.shaderClipDistance) return false;
+		if (requirements.pFeatures.pShaderCullDistance) if (!supportedFeatures.shaderCullDistance) return false;
+		if (requirements.pFeatures.pShaderFloat64) if (!supportedFeatures.shaderFloat64) return false;
+		if (requirements.pFeatures.pShaderInt64) if (!supportedFeatures.shaderInt64) return false;
+		if (requirements.pFeatures.pShaderInt16) if (!supportedFeatures.shaderInt16) return false;
+		if (requirements.pFeatures.pShaderResourceResidency) if (!supportedFeatures.shaderResourceResidency) return false;
+		if (requirements.pFeatures.pShaderResourceMinLod) if (!supportedFeatures.shaderResourceMinLod) return false;
+		if (requirements.pFeatures.pSparseBinding) if (!supportedFeatures.sparseBinding) return false;
+		if (requirements.pFeatures.pSparseResidencyBuffer) if (!supportedFeatures.sparseResidencyBuffer) return false;
+		if (requirements.pFeatures.pSparseResidencyImage2D) if (!supportedFeatures.sparseResidencyImage2D) return false;
+		if (requirements.pFeatures.pSparseResidencyImage3D) if (!supportedFeatures.sparseResidencyImage3D) return false;
+		if (requirements.pFeatures.pSparseResidency2Samples) if (!supportedFeatures.sparseResidency2Samples) return false;
+		if (requirements.pFeatures.pSparseResidency4Samples) if (!supportedFeatures.sparseResidency4Samples) return false;
+		if (requirements.pFeatures.pSparseResidency8Samples) if (!supportedFeatures.sparseResidency8Samples) return false;
+		if (requirements.pFeatures.pSparseResidency16Samples) if (!supportedFeatures.sparseResidency16Samples) return false;
+		if (requirements.pFeatures.pSparseResidencyAliased) if (!supportedFeatures.sparseResidencyAliased) return false;
+		if (requirements.pFeatures.pVariableMultisampleRate) if (!supportedFeatures.variableMultisampleRate) return false;
+		if (requirements.pFeatures.pInheritedQueries) if (!supportedFeatures.inheritedQueries) return false;
+
+		if (!extensionsSupported) return false;
+
+		// Device is suitable!
 		return true;
 	}
 }

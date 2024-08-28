@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Engine/Renderer/Renderer.hpp"
-#include "../GPUContextVulkan.hpp"
+#include "../GpuContextVulkan.hpp"
 
 namespace Brisk {
 	class RendererVulkan : public Renderer {
@@ -13,6 +13,6 @@ namespace Brisk {
 		virtual void Render() override;
 		virtual void PostRender() override;
 	private:
-		GPUContextVulkan* m_GPUContext;
+		GpuContextVulkan* m_GpuContext;
 	};
 }

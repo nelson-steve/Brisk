@@ -1,4 +1,4 @@
-#include "GPUContextVulkan.hpp"
+#include "GpuContextVulkan.hpp"
 //#include "Engine/Engine.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
 #include "SwapchainVulkan.hpp"
@@ -65,22 +65,22 @@ namespace Brisk
 	/// <summary>
 	/// Static memebers declarations
 	/// </summary>
-	VkInstance GPUContextVulkan::s_Instance;
+	VkInstance GpuContextVulkan::s_Instance;
 
-	VkFence GPUContextVulkan::m_InFlightFence;
-	VkSemaphore GPUContextVulkan::m_ImageAvailableSemaphore;
-	VkSemaphore GPUContextVulkan::m_RenderFinishedSemaphore;
-	std::vector<const char*> GPUContextVulkan::s_Extensions;
-	std::vector<const char*> GPUContextVulkan::s_Layers;
-	VkDebugUtilsMessengerCreateInfoEXT GPUContextVulkan::s_DebugCreateInfo;
-	VkDebugUtilsMessengerEXT GPUContextVulkan::s_DebugMessenger;
-	bool GPUContextVulkan::m_ValidationLayersFound;
-	std::vector<const char*> GPUContextVulkan::s_RequiredExtensions;
-	std::vector<const char*> GPUContextVulkan::s_ValidationLayers;
-	VkCommandPool GPUContextVulkan::m_CommandPool;
-	VkSurfaceKHR GPUContextVulkan::s_Surface;
+	VkFence GpuContextVulkan::m_InFlightFence;
+	VkSemaphore GpuContextVulkan::m_ImageAvailableSemaphore;
+	VkSemaphore GpuContextVulkan::m_RenderFinishedSemaphore;
+	std::vector<const char*> GpuContextVulkan::s_Extensions;
+	std::vector<const char*> GpuContextVulkan::s_Layers;
+	VkDebugUtilsMessengerCreateInfoEXT GpuContextVulkan::s_DebugCreateInfo;
+	VkDebugUtilsMessengerEXT GpuContextVulkan::s_DebugMessenger;
+	bool GpuContextVulkan::m_ValidationLayersFound;
+	std::vector<const char*> GpuContextVulkan::s_RequiredExtensions;
+	std::vector<const char*> GpuContextVulkan::s_ValidationLayers;
+	VkCommandPool GpuContextVulkan::m_CommandPool;
+	VkSurfaceKHR GpuContextVulkan::s_Surface;
 
-	void GPUContextVulkan::Create(){
+	void GpuContextVulkan::Create(){
 		volkInitialize();
 
 		s_ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
@@ -134,7 +134,6 @@ namespace Brisk
 			BRISK_CORE_ERROR("Failed to create window surface!");
 		}
 
-		s_GPUDevice = new GPUDeviceVulkan();
 		//s_GPUDevice->Create();
 
 		//PhysicalDevice::Details details;
@@ -156,7 +155,25 @@ namespace Brisk
 		}
 	}
 
-	bool GPUContextVulkan::Sync() {
+	bool GpuContextVulkan::CreateDevice(const GpuDeviceVulkan::GpuRequirements& requirements) {
+		s_GPUDevice = new GpuDeviceVulkan();
+		std::vector<VkPhysicalDevice> availableDevices = s_GPUDevice->RetrieveAvailableDevice();
+		bool deviceFound = false;
+		for (const auto& device : availableDevices) {
+			if (s_GPUDevice->IsDeviceSuitable(device, requirements)) {
+				s_GPUDevice->SetPhysicalDevice(device);
+				deviceFound = true;
+				break;
+			}
+		}
+		if (!deviceFound) {
+			BRISK_CORE_ERROR("Failed to find a suitable GPU!");
+			return;
+		}
+
+	}
+
+	bool GpuContextVulkan::Sync() {
 		vkWaitForFences(s_GPUDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
 
 		VkResult result = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->AquireNextImage(UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_ImageIndex);
@@ -175,11 +192,11 @@ namespace Brisk
 		return false;
 	}
 
-	void GPUContextVulkan::WaitDeviceIdle() {
+	void GpuContextVulkan::WaitDeviceIdle() {
 		vkDeviceWaitIdle(s_GPUDevice->GetDevice());
 	}
 
-	void GPUContextVulkan::Submit(RenderPassVulkan* renderpass) {
+	void GpuContextVulkan::Submit(RenderPassVulkan* renderpass) {
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -216,7 +233,7 @@ namespace Brisk
 		vkQueuePresentKHR(s_GPUDevice->GetPresentQueue()->Queue_, &presentInfo);
 	}
 
-	void GPUContextVulkan::PrepreFrame(VkCommandBuffer commandBuffer) {
+	void GpuContextVulkan::PrepreFrame(VkCommandBuffer commandBuffer) {
 		VkViewport viewport{};
 		viewport.x = 0.0f;
 		viewport.y = 0.0f;
@@ -232,7 +249,7 @@ namespace Brisk
 		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
 	}
 
-	void GPUContextVulkan::Draw(VkCommandBuffer commandBuffer, BufferVulkan buffer) {
+	void GpuContextVulkan::Draw(VkCommandBuffer commandBuffer, BufferVulkan buffer) {
 		const VkBuffer vertexBuffers[] = { buffer.Get() };
 		VkDeviceSize offsets[] = { 0 };
 		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
@@ -240,7 +257,7 @@ namespace Brisk
 		vkCmdDraw(commandBuffer, buffer.GetData().size(), 1, 0, 0);
 	}
 
-	void GPUContextVulkan::CreateSyncObjects() {
+	void GpuContextVulkan::CreateSyncObjects() {
 		VkSemaphoreCreateInfo semaphoreInfo{};
 		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
@@ -255,7 +272,7 @@ namespace Brisk
 		}
 	}
 
-	void GPUContextVulkan::ReleasePools() {
+	void GpuContextVulkan::ReleasePools() {
 		// TODO: Should not get freed here
 		vkDestroySemaphore(s_GPUDevice->GetDevice(), m_ImageAvailableSemaphore, nullptr);
 		vkDestroySemaphore(s_GPUDevice->GetDevice(), m_RenderFinishedSemaphore, nullptr);
@@ -263,7 +280,7 @@ namespace Brisk
 		vkDestroyCommandPool(s_GPUDevice->GetDevice(), m_CommandPool, nullptr);
 	}
 
-	void GPUContextVulkan::Release() {
+	void GpuContextVulkan::Release() {
 		vkDestroyDebugUtilsMessengerEXT(s_Instance, s_DebugMessenger, nullptr);
 		vkDestroyInstance(s_Instance, nullptr);
 	}

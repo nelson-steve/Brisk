@@ -7,7 +7,7 @@
 #include <Volk/volk.h>
 
 #include <vector>
-#include "GPUDeviceVulkan.hpp"
+#include "GpuDeviceVulkan.hpp"
 
 namespace Brisk 
 {
@@ -16,12 +16,14 @@ namespace Brisk
 	/// </summary>
 	class Swapchain;
 
-	class GPUContextVulkan {
+	class GpuContextVulkan {
 	public:
 		/// <summary>
 		/// Create Vulkan Device
 		/// </summary>
 		void Create();
+		bool CreateDevice(GpuDeviceVulkan::GpuRequirements& requirements);
+
 
 		bool Sync();
 		void WaitDeviceIdle();
@@ -65,7 +67,7 @@ namespace Brisk
 		static VkDebugUtilsMessengerEXT s_DebugMessenger;
 		static bool m_ValidationLayersFound;
 
-		static GPUDeviceVulkan* s_GPUDevice;
+		static GpuDeviceVulkan* s_GPUDevice;
 		static GraphicsPipelineVulkan* s_GraphicsPipeline;
 		static RenderPassVulkan* s_RenderPass;
 		
@@ -74,14 +76,14 @@ namespace Brisk
 		static VkSemaphore m_RenderFinishedSemaphore;
 
 		static VkSurfaceKHR s_Surface;
-		static GPUDeviceVulkan* s_GPUDevice;
+		static GpuDeviceVulkan* s_GPUDevice;
 
 		static uint32_t m_ImageIndex;
 
 		/// <summary>
 		/// Friend class declaration
 		/// </summary>
-		friend class GPUDeviceVulkan;
+		friend class GpuDeviceVulkan;
 		friend class GraphicsPipelineVulkan;
 		friend class RenderPassVulkan;
 	};

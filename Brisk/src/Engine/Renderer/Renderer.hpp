@@ -1,8 +1,6 @@
 #pragma once
 
-#include "Graphics/Vulkan/GraphicsPipelineVulkan.hpp"
-#include "Graphics/RenderPass.hpp"
-#include "Graphics/Vulkan/BufferVulkan.hpp"
+#include "Graphics/Swapchain.hpp"
 
 namespace Brisk {
 	class Renderer {
@@ -11,6 +9,8 @@ namespace Brisk {
 
 		virtual void Create() = 0;
 		virtual void Release() = 0;
+
+		virtual void SetupRenderTargets(const Swapchain& swapchain) = 0;
 
 		virtual void PreRender() = 0;
 		virtual void Render() = 0;

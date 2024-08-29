@@ -2,6 +2,7 @@
 #include "Defines.h"
 #include "Engine/Engine.hpp"
 #include "VulkanUtilities.hpp"
+#include "GpuContextVulkan.hpp"
 
 namespace Brisk {
 	SwapchainVulkan::SwapchainVulkan(WindowBase* window)
@@ -9,38 +10,35 @@ namespace Brisk {
 
 	void SwapchainVulkan::Release() {
 		for (auto imageView : m_SwapchainImageViews) {
-			vkDestroyImageView(Engine::s_PhysicalDevice->GetDevice(), imageView, nullptr);
+			vkDestroyImageView(GpuContextVulkan::s_GPUDevice->GetDevice(), imageView, nullptr);
 		}
-		vkDestroySwapchainKHR(Engine::s_PhysicalDevice->GetDevice(), m_Swapchain, nullptr);
-
-		// TODO: Surface should not get destroyed here
-		//vkDestroySurfaceKHR(static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetInstance(), m_Surface, nullptr);
+		vkDestroySwapchainKHR(GpuContextVulkan::s_GPUDevice->GetDevice(), m_Swapchain, nullptr);
 	}
 
 	void SwapchainVulkan::Create() {
-		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->CreateSyncObjects();
-		m_Surface = static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetSurface();
+		//static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->CreateSyncObjects();
+		//m_Surface = static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetSurface();
 
 		// TODO: Dont use hardcoded values
 		VkFormat m_format = VK_FORMAT_B8G8R8A8_SRGB;
 		VkColorSpaceKHR m_color_space = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 
 		VkSurfaceCapabilitiesKHR surfaceCapabilities;
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(Engine::s_PhysicalDevice->GetPhysicalDevice(), m_Surface, &surfaceCapabilities);
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GpuContextVulkan::s_GPUDevice->GetPhysicalDevice(), m_Surface, &surfaceCapabilities);
 		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(Engine::s_PhysicalDevice->GetPhysicalDevice(), m_Surface, &formatCount, nullptr);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(GpuContextVulkan::s_GPUDevice->GetPhysicalDevice(), m_Surface, &formatCount, nullptr);
 		std::vector<VkSurfaceFormatKHR> supportedFormats;
 		if (formatCount != 0) {
 			supportedFormats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(Engine::s_PhysicalDevice->GetPhysicalDevice(), m_Surface, &formatCount, supportedFormats.data());
+			vkGetPhysicalDeviceSurfaceFormatsKHR(GpuContextVulkan::s_GPUDevice->GetPhysicalDevice(), m_Surface, &formatCount, supportedFormats.data());
 		}
 		uint32_t presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(Engine::s_PhysicalDevice->GetPhysicalDevice(), m_Surface, &presentModeCount, nullptr);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(GpuContextVulkan::s_GPUDevice->GetPhysicalDevice(), m_Surface, &presentModeCount, nullptr);
 
 		std::vector<VkPresentModeKHR> presentModes;
 		if (presentModeCount != 0) {
 			presentModes.resize(presentModeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(Engine::s_PhysicalDevice->GetPhysicalDevice(), m_Surface, &presentModeCount, presentModes.data());
+			vkGetPhysicalDeviceSurfacePresentModesKHR(GpuContextVulkan::s_GPUDevice->GetPhysicalDevice(), m_Surface, &presentModeCount, presentModes.data());
 		}
 
 		bool format_found = false;
@@ -69,14 +67,14 @@ namespace Brisk {
 		m_extent = surfaceCapabilities.currentExtent;
 
 		uint32_t queueFamilyCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(Engine::s_PhysicalDevice->GetPhysicalDevice(), &queueFamilyCount, nullptr);
+		vkGetPhysicalDeviceQueueFamilyProperties(GpuContextVulkan::s_GPUDevice->GetPhysicalDevice(), &queueFamilyCount, nullptr);
 
 		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(Engine::s_PhysicalDevice->GetPhysicalDevice(), &queueFamilyCount, queueFamilies.data());
+		vkGetPhysicalDeviceQueueFamilyProperties(GpuContextVulkan::s_GPUDevice->GetPhysicalDevice(), &queueFamilyCount, queueFamilies.data());
 
 		uint32_t queueFamilyIndices[] = 
 		{ 
-			Engine::s_PhysicalDevice->GetPresentQueue()->Info.QueueFamilyIndex,
+			GpuContextVulkan::s_GPUDevice->GetPresentQueue(),
 			Engine::s_PhysicalDevice->GetGraphicsQueue()->Info.QueueFamilyIndex,
 		};
 		if (Engine::s_PhysicalDevice->GetPresentQueue()->Info.QueueFamilyIndex !=

@@ -13,24 +13,6 @@ namespace Brisk
 
 	class GpuDeviceVulkan {
 	public:
-		//struct QueueInfo {
-		//	enum QueueType {
-		//		QUEUE_GRAPHICS_BIT,
-		//		QUEUE_COMPUTE_BIT,
-		//		QUEUE_TRANSFER_BIT,
-		//		QUEUE_SPARSE_BINDING_BIT,
-		//		QUEUE_PROTECTED_BIT,
-		//		QUEUE_VIDEO_DECODE_BIT_KHR,
-		//		QUEUE_VIDEO_ENCODE_BIT_KHR,
-		//		QUEUE_OPTICAL_FLOW_BIT_NV,
-		//	} m_QueueType;
-		//	float Priority;
-		//	uint32_t QueueIndex;
-		//	uint32_t QueueFamilyIndex;
-		//	uint32_t QueueCount;
-		//	bool PresentSupport = false;
-		//	std::vector<QueueType> SupportedQueueTypes;
-		//};
 		enum QueueType {
 			QUEUE_GRAPHICS_BIT,
 			QUEUE_COMPUTE_BIT,
@@ -40,6 +22,22 @@ namespace Brisk
 			QUEUE_VIDEO_DECODE_BIT_KHR,
 			QUEUE_VIDEO_ENCODE_BIT_KHR,
 			QUEUE_OPTICAL_FLOW_BIT_NV,
+		};
+
+		struct Queue {
+			VkQueue Handle;
+			QueueType Type;
+			uint32_t Index;
+			uint32_t FamilyIndex;
+		};
+
+		struct QueueFamily {
+			uint32_t Index;
+			uint32_t QueueCount;
+			std::vector<GpuDeviceVulkan::QueueType> SupportedTypes;
+			bool PresentSupport;
+			bool IsExplicitTransferQueue;
+			bool IsExplicitComputeQueue;
 		};
 
 		struct DeviceFeatures {
@@ -105,41 +103,22 @@ namespace Brisk
 			DeviceFeatures pFeatures;
 		};
 
-		struct Details {
-		public:
-			VkSurfaceKHR Surface = VK_NULL_HANDLE;
-			VkBool32 SamplerAnisotropy = VK_TRUE;
-		};
-
 	public:
-		void Create();
 		std::vector<VkPhysicalDevice> RetrieveAvailableDevice();
 		bool IsDeviceSuitable(VkPhysicalDevice device, const GpuRequirements& requirements);
 		inline void SetPhysicalDevice(VkPhysicalDevice physicalDevice) { m_PhysicalDevice = physicalDevice; }
 		void CreateLogicalDevice(const GpuRequirements& requirements);
 		void Release();
-		bool CreateQueueFamilies(VkPhysicalDevice device, const Details& details);
-		//QueueFamilyIndices GetQueueFamilies() { return m_Indices; }
-		VkQueueFlags QueueTypeToVulkanType(QueueType type);
-		const std::string& QueueTypeToString(QueueType type);
-		void PrintQueueFlags(VkQueueFlags flags);
-		void GetSupportedQueueTypes(VkQueueFlags flags, std::vector<QueueType>& ref);
 		VkPhysicalDevice GetPhysicalDevice() { return m_PhysicalDevice; }
-		//const std::vector<PhysicalDevice::QueueInfo> RetrieveCommonQueues();
-		const std::vector<std::vector<float>> RetreivePriorities();
 		VkDevice GetDevice() { return m_Device; }
-		const Queue* GetGraphicsQueue() const { return m_GraphicsQueue; }
-		const Queue* GetPresentQueue() const { return m_PresentQueue; }
+		const Queue GetGraphicsQueue() const { return m_GraphicsQueue; }
+		const Queue GetTransferQueue() const { return m_TransferQueue; }
 	private:
 		VkPhysicalDevice m_PhysicalDevice;
 		VkDevice m_Device;
-		Queue* m_PresentQueue;
-		Queue* m_GraphicsQueue;
+		Queue m_TransferQueue;
+		Queue m_ComputeQueue;
+		Queue m_GraphicsQueue;
 		std::vector<std::vector<float>> m_QueueFamiliesPriorities;
-	};
-
-	struct Queue {
-		VkQueue Queue_;
-		//PhysicalDevice::QueueInfo Info;
 	};
 }

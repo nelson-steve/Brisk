@@ -26,9 +26,54 @@ namespace Brisk
 		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &queueFamilyCount, queueFamilies.data());
 
+		std::vector<QueueFamily> QueuFamilies;
 		// Requesting all availabel queues
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 		for (uint32_t i = 0; i < queueFamilyCount; ++i) {
+			bool isGraphics = false;
+			bool isCompute = false;
+			bool isTransfer = false;
+			QueueFamily queueFamily;
+			queueFamily.Index = i;
+			queueFamily.QueueCount = queueFamilies[i].queueCount;
+
+			VkBool32 presentSupport;
+			vkGetPhysicalDeviceSurfaceSupportKHR(m_PhysicalDevice, i, GpuContextVulkan::s_Surface->GetSurface(), &presentSupport);
+			queueFamily.PresentSupport = presentSupport;
+
+			if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
+				isGraphics = true;
+				queueFamily.SupportedTypes.push_back(GpuDeviceVulkan::QueueType::QUEUE_GRAPHICS_BIT);
+			}
+			if (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT) {
+				isCompute = true;
+				queueFamily.SupportedTypes.push_back(GpuDeviceVulkan::QueueType::QUEUE_COMPUTE_BIT);
+			}
+			if (queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT) {
+				isTransfer = true;
+				queueFamily.SupportedTypes.push_back(GpuDeviceVulkan::QueueType::QUEUE_TRANSFER_BIT);
+			}
+			if (queueFamilies[i].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) {
+				queueFamily.SupportedTypes.push_back(GpuDeviceVulkan::QueueType::QUEUE_SPARSE_BINDING_BIT);
+			}
+			if (queueFamilies[i].queueFlags & VK_QUEUE_PROTECTED_BIT) {
+				queueFamily.SupportedTypes.push_back(GpuDeviceVulkan::QueueType::QUEUE_PROTECTED_BIT);
+			}
+			if (queueFamilies[i].queueFlags & VK_QUEUE_VIDEO_DECODE_BIT_KHR) {
+				queueFamily.SupportedTypes.push_back(GpuDeviceVulkan::QueueType::QUEUE_VIDEO_DECODE_BIT_KHR);
+			}
+			if (queueFamilies[i].queueFlags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR) {
+				queueFamily.SupportedTypes.push_back(GpuDeviceVulkan::QueueType::QUEUE_VIDEO_ENCODE_BIT_KHR);
+			}
+			if (queueFamilies[i].queueFlags & VK_QUEUE_OPTICAL_FLOW_BIT_NV) {
+				queueFamily.SupportedTypes.push_back(GpuDeviceVulkan::QueueType::QUEUE_OPTICAL_FLOW_BIT_NV);
+			}
+
+			if (isTransfer && !isGraphics && !isCompute)
+				queueFamily.IsExplicitTransferQueue = true;
+			if (isCompute && !isGraphics && !isTransfer)
+				queueFamily.IsExplicitComputeQueue = true;
+
 			VkDeviceQueueCreateInfo queueCreateInfo{};
 			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
 			queueCreateInfo.queueFamilyIndex = i;
@@ -37,93 +82,109 @@ namespace Brisk
 			std::vector<float> queuePriorities(queueFamilies[i].queueCount, 1.0f);
 			queueCreateInfo.pQueuePriorities = queuePriorities.data();
 
+			QueuFamilies.push_back(queueFamily);
 			queueCreateInfos.push_back(queueCreateInfo);
 		}
 
-		VkPhysicalDeviceFeatures device_features{};
-		device_features.samplerAnisotropy = requirements.pFeatures.pSamplerAnisotropy? VK_TRUE : VK_FALSE;
-		device_features.robustBufferAccess = requirements.pFeatures.pRobustBufferAccess ? VK_TRUE : VK_FALSE;
-		device_features.fullDrawIndexUint32 = requirements.pFeatures.pFullDrawIndexUint32? VK_TRUE : VK_FALSE;
-		device_features.imageCubeArray = requirements.pFeatures.pImageCubeArray? VK_TRUE : VK_FALSE;
-		device_features.independentBlend = requirements.pFeatures.pIndependentBlend? VK_TRUE : VK_FALSE;
-		device_features.geometryShader = requirements.pFeatures.pGeometryShader ? VK_TRUE : VK_FALSE;
-		device_features.tessellationShader = requirements.pFeatures.pTessellationShader ? VK_TRUE : VK_FALSE;
-		device_features.sampleRateShading = requirements.pFeatures.pSamplerAnisotropy ? VK_TRUE : VK_FALSE;
-		device_features.dualSrcBlend = requirements.pFeatures.pDualSrcBlend ? VK_TRUE : VK_FALSE;
-		device_features.logicOp = requirements.pFeatures.pLogicOp ? VK_TRUE : VK_FALSE;
-		device_features.multiDrawIndirect = requirements.pFeatures.pMultiDrawIndirect? VK_TRUE : VK_FALSE;
-		device_features.drawIndirectFirstInstance = requirements.pFeatures.pDrawIndirectFirstInstance? VK_TRUE : VK_FALSE;
-		device_features.depthClamp = requirements.pFeatures.pDepthClamp ? VK_TRUE : VK_FALSE;
-		device_features.depthBiasClamp = requirements.pFeatures.pDepthBiasClamp ? VK_TRUE : VK_FALSE;
-		device_features.fillModeNonSolid = requirements.pFeatures.pFillModeNonSolid ? VK_TRUE : VK_FALSE;
-		device_features.depthBounds = requirements.pFeatures.pDepthBounds ? VK_TRUE : VK_FALSE;
-		device_features.wideLines = requirements.pFeatures.pWideLines ? VK_TRUE : VK_FALSE;
-		device_features.largePoints = requirements.pFeatures.pLargePoints ? VK_TRUE : VK_FALSE;
-		device_features.alphaToOne = requirements.pFeatures.pAlphaToOne ? VK_TRUE : VK_FALSE;
-		device_features.multiViewport = requirements.pFeatures.pMultiViewport ? VK_TRUE : VK_FALSE;
-		device_features.samplerAnisotropy = requirements.pFeatures.pSamplerAnisotropy ? VK_TRUE : VK_FALSE;
-		device_features.textureCompressionETC2 = requirements.pFeatures.pTextureCompressionETC2 ? VK_TRUE : VK_FALSE;
-		device_features.textureCompressionASTC_LDR = requirements.pFeatures.pTextureCompressionASTC_LDR? VK_TRUE : VK_FALSE;
-		device_features.textureCompressionBC = requirements.pFeatures.pTextureCompressionBC ? VK_TRUE : VK_FALSE;
-		device_features.occlusionQueryPrecise = requirements.pFeatures.pOcclusionQueryPrecise ? VK_TRUE : VK_FALSE;
-		device_features.pipelineStatisticsQuery = requirements.pFeatures.pPipelineStatisticsQuery ? VK_TRUE : VK_FALSE;
-		device_features.vertexPipelineStoresAndAtomics = requirements.pFeatures.pVertexPipelineStoresAndAtomics ? VK_TRUE : VK_FALSE;
-		device_features.fragmentStoresAndAtomics = requirements.pFeatures.pFragmentStoresAndAtomics ? VK_TRUE : VK_FALSE;
-		device_features.shaderTessellationAndGeometryPointSize = requirements.pFeatures.pShaderTessellationAndGeometryPointSize? VK_TRUE : VK_FALSE;
-		device_features.shaderImageGatherExtended = requirements.pFeatures.pShaderImageGatherExtended ? VK_TRUE : VK_FALSE;
-		device_features.shaderStorageImageExtendedFormats = requirements.pFeatures.pShaderStorageImageExtendedFormats ? VK_TRUE : VK_FALSE;
-		device_features.shaderStorageImageMultisample = requirements.pFeatures.pShaderStorageImageMultisample ? VK_TRUE : VK_FALSE;
-		device_features.shaderStorageImageReadWithoutFormat = requirements.pFeatures.pShaderStorageImageReadWithoutFormat ? VK_TRUE : VK_FALSE;
-		device_features.shaderStorageImageWriteWithoutFormat = requirements.pFeatures.pShaderStorageImageWriteWithoutFormat ? VK_TRUE : VK_FALSE;
-		device_features.shaderUniformBufferArrayDynamicIndexing = requirements.pFeatures.pShaderUniformBufferArrayDynamicIndexing ? VK_TRUE : VK_FALSE;
-		device_features.shaderSampledImageArrayDynamicIndexing = requirements.pFeatures.pShaderSampledImageArrayDynamicIndexing ? VK_TRUE : VK_FALSE;
-		device_features.shaderStorageBufferArrayDynamicIndexing = requirements.pFeatures.pShaderStorageBufferArrayDynamicIndexing ? VK_TRUE : VK_FALSE;
-		device_features.shaderStorageImageArrayDynamicIndexing = requirements.pFeatures.pShaderStorageImageArrayDynamicIndexing ? VK_TRUE : VK_FALSE;
-		device_features.shaderClipDistance = requirements.pFeatures.pShaderClipDistance ? VK_TRUE : VK_FALSE;
-		device_features.shaderCullDistance = requirements.pFeatures.pShaderCullDistance ? VK_TRUE : VK_FALSE;
-		device_features.shaderFloat64 = requirements.pFeatures.pShaderFloat64 ? VK_TRUE : VK_FALSE;
-		device_features.shaderInt64 = requirements.pFeatures.pShaderInt64 ? VK_TRUE : VK_FALSE;
-		device_features.shaderInt16 = requirements.pFeatures.pShaderInt16 ? VK_TRUE : VK_FALSE;
-		device_features.shaderResourceResidency = requirements.pFeatures.pShaderResourceResidency ? VK_TRUE : VK_FALSE;
-		device_features.shaderResourceMinLod = requirements.pFeatures.pShaderResourceMinLod ? VK_TRUE : VK_FALSE;
-		device_features.sparseBinding = requirements.pFeatures.pSparseBinding ? VK_TRUE : VK_FALSE;
-		device_features.sparseResidencyBuffer = requirements.pFeatures.pSparseResidencyBuffer ? VK_TRUE : VK_FALSE;
-		device_features.sparseResidencyImage2D = requirements.pFeatures.pSparseResidencyImage2D ? VK_TRUE : VK_FALSE;
-		device_features.sparseResidencyImage3D = requirements.pFeatures.pSparseResidencyImage3D ? VK_TRUE : VK_FALSE;
-		device_features.sparseResidency2Samples = requirements.pFeatures.pSparseResidency2Samples ? VK_TRUE : VK_FALSE;
-		device_features.sparseResidency4Samples = requirements.pFeatures.pSparseResidency4Samples ? VK_TRUE : VK_FALSE;
-		device_features.sparseResidency8Samples = requirements.pFeatures.pSparseResidency8Samples ? VK_TRUE : VK_FALSE;
-		device_features.sparseResidency16Samples = requirements.pFeatures.pSparseResidency16Samples ? VK_TRUE : VK_FALSE;
-		device_features.sparseResidencyAliased = requirements.pFeatures.pSparseResidencyAliased ? VK_TRUE : VK_FALSE;
-		device_features.variableMultisampleRate = requirements.pFeatures.pVariableMultisampleRate ? VK_TRUE : VK_FALSE;
-		device_features.inheritedQueries = requirements.pFeatures.pInheritedQueries ? VK_TRUE : VK_FALSE;
+		VkPhysicalDeviceFeatures deviceFeatures{};
+		deviceFeatures.samplerAnisotropy = requirements.pFeatures.pSamplerAnisotropy ? VK_TRUE : VK_FALSE;
+		deviceFeatures.robustBufferAccess = requirements.pFeatures.pRobustBufferAccess ? VK_TRUE : VK_FALSE;
+		deviceFeatures.fullDrawIndexUint32 = requirements.pFeatures.pFullDrawIndexUint32 ? VK_TRUE : VK_FALSE;
+		deviceFeatures.imageCubeArray = requirements.pFeatures.pImageCubeArray ? VK_TRUE : VK_FALSE;
+		deviceFeatures.independentBlend = requirements.pFeatures.pIndependentBlend ? VK_TRUE : VK_FALSE;
+		deviceFeatures.geometryShader = requirements.pFeatures.pGeometryShader ? VK_TRUE : VK_FALSE;
+		deviceFeatures.tessellationShader = requirements.pFeatures.pTessellationShader ? VK_TRUE : VK_FALSE;
+		deviceFeatures.sampleRateShading = requirements.pFeatures.pSamplerAnisotropy ? VK_TRUE : VK_FALSE;
+		deviceFeatures.dualSrcBlend = requirements.pFeatures.pDualSrcBlend ? VK_TRUE : VK_FALSE;
+		deviceFeatures.logicOp = requirements.pFeatures.pLogicOp ? VK_TRUE : VK_FALSE;
+		deviceFeatures.multiDrawIndirect = requirements.pFeatures.pMultiDrawIndirect ? VK_TRUE : VK_FALSE;
+		deviceFeatures.drawIndirectFirstInstance = requirements.pFeatures.pDrawIndirectFirstInstance ? VK_TRUE : VK_FALSE;
+		deviceFeatures.depthClamp = requirements.pFeatures.pDepthClamp ? VK_TRUE : VK_FALSE;
+		deviceFeatures.depthBiasClamp = requirements.pFeatures.pDepthBiasClamp ? VK_TRUE : VK_FALSE;
+		deviceFeatures.fillModeNonSolid = requirements.pFeatures.pFillModeNonSolid ? VK_TRUE : VK_FALSE;
+		deviceFeatures.depthBounds = requirements.pFeatures.pDepthBounds ? VK_TRUE : VK_FALSE;
+		deviceFeatures.wideLines = requirements.pFeatures.pWideLines ? VK_TRUE : VK_FALSE;
+		deviceFeatures.largePoints = requirements.pFeatures.pLargePoints ? VK_TRUE : VK_FALSE;
+		deviceFeatures.alphaToOne = requirements.pFeatures.pAlphaToOne ? VK_TRUE : VK_FALSE;
+		deviceFeatures.multiViewport = requirements.pFeatures.pMultiViewport ? VK_TRUE : VK_FALSE;
+		deviceFeatures.samplerAnisotropy = requirements.pFeatures.pSamplerAnisotropy ? VK_TRUE : VK_FALSE;
+		deviceFeatures.textureCompressionETC2 = requirements.pFeatures.pTextureCompressionETC2 ? VK_TRUE : VK_FALSE;
+		deviceFeatures.textureCompressionASTC_LDR = requirements.pFeatures.pTextureCompressionASTC_LDR ? VK_TRUE : VK_FALSE;
+		deviceFeatures.textureCompressionBC = requirements.pFeatures.pTextureCompressionBC ? VK_TRUE : VK_FALSE;
+		deviceFeatures.occlusionQueryPrecise = requirements.pFeatures.pOcclusionQueryPrecise ? VK_TRUE : VK_FALSE;
+		deviceFeatures.pipelineStatisticsQuery = requirements.pFeatures.pPipelineStatisticsQuery ? VK_TRUE : VK_FALSE;
+		deviceFeatures.vertexPipelineStoresAndAtomics = requirements.pFeatures.pVertexPipelineStoresAndAtomics ? VK_TRUE : VK_FALSE;
+		deviceFeatures.fragmentStoresAndAtomics = requirements.pFeatures.pFragmentStoresAndAtomics ? VK_TRUE : VK_FALSE;
+		deviceFeatures.shaderTessellationAndGeometryPointSize = requirements.pFeatures.pShaderTessellationAndGeometryPointSize ? VK_TRUE : VK_FALSE;
+		deviceFeatures.shaderImageGatherExtended = requirements.pFeatures.pShaderImageGatherExtended ? VK_TRUE : VK_FALSE;
+		deviceFeatures.shaderStorageImageExtendedFormats = requirements.pFeatures.pShaderStorageImageExtendedFormats ? VK_TRUE : VK_FALSE;
+		deviceFeatures.shaderStorageImageMultisample = requirements.pFeatures.pShaderStorageImageMultisample ? VK_TRUE : VK_FALSE;
+		deviceFeatures.shaderStorageImageReadWithoutFormat = requirements.pFeatures.pShaderStorageImageReadWithoutFormat ? VK_TRUE : VK_FALSE;
+		deviceFeatures.shaderStorageImageWriteWithoutFormat = requirements.pFeatures.pShaderStorageImageWriteWithoutFormat ? VK_TRUE : VK_FALSE;
+		deviceFeatures.shaderUniformBufferArrayDynamicIndexing = requirements.pFeatures.pShaderUniformBufferArrayDynamicIndexing ? VK_TRUE : VK_FALSE;
+		deviceFeatures.shaderSampledImageArrayDynamicIndexing = requirements.pFeatures.pShaderSampledImageArrayDynamicIndexing ? VK_TRUE : VK_FALSE;
+		deviceFeatures.shaderStorageBufferArrayDynamicIndexing = requirements.pFeatures.pShaderStorageBufferArrayDynamicIndexing ? VK_TRUE : VK_FALSE;
+		deviceFeatures.shaderStorageImageArrayDynamicIndexing = requirements.pFeatures.pShaderStorageImageArrayDynamicIndexing ? VK_TRUE : VK_FALSE;
+		deviceFeatures.shaderClipDistance = requirements.pFeatures.pShaderClipDistance ? VK_TRUE : VK_FALSE;
+		deviceFeatures.shaderCullDistance = requirements.pFeatures.pShaderCullDistance ? VK_TRUE : VK_FALSE;
+		deviceFeatures.shaderFloat64 = requirements.pFeatures.pShaderFloat64 ? VK_TRUE : VK_FALSE;
+		deviceFeatures.shaderInt64 = requirements.pFeatures.pShaderInt64 ? VK_TRUE : VK_FALSE;
+		deviceFeatures.shaderInt16 = requirements.pFeatures.pShaderInt16 ? VK_TRUE : VK_FALSE;
+		deviceFeatures.shaderResourceResidency = requirements.pFeatures.pShaderResourceResidency ? VK_TRUE : VK_FALSE;
+		deviceFeatures.shaderResourceMinLod = requirements.pFeatures.pShaderResourceMinLod ? VK_TRUE : VK_FALSE;
+		deviceFeatures.sparseBinding = requirements.pFeatures.pSparseBinding ? VK_TRUE : VK_FALSE;
+		deviceFeatures.sparseResidencyBuffer = requirements.pFeatures.pSparseResidencyBuffer ? VK_TRUE : VK_FALSE;
+		deviceFeatures.sparseResidencyImage2D = requirements.pFeatures.pSparseResidencyImage2D ? VK_TRUE : VK_FALSE;
+		deviceFeatures.sparseResidencyImage3D = requirements.pFeatures.pSparseResidencyImage3D ? VK_TRUE : VK_FALSE;
+		deviceFeatures.sparseResidency2Samples = requirements.pFeatures.pSparseResidency2Samples ? VK_TRUE : VK_FALSE;
+		deviceFeatures.sparseResidency4Samples = requirements.pFeatures.pSparseResidency4Samples ? VK_TRUE : VK_FALSE;
+		deviceFeatures.sparseResidency8Samples = requirements.pFeatures.pSparseResidency8Samples ? VK_TRUE : VK_FALSE;
+		deviceFeatures.sparseResidency16Samples = requirements.pFeatures.pSparseResidency16Samples ? VK_TRUE : VK_FALSE;
+		deviceFeatures.sparseResidencyAliased = requirements.pFeatures.pSparseResidencyAliased ? VK_TRUE : VK_FALSE;
+		deviceFeatures.variableMultisampleRate = requirements.pFeatures.pVariableMultisampleRate ? VK_TRUE : VK_FALSE;
+		deviceFeatures.inheritedQueries = requirements.pFeatures.pInheritedQueries ? VK_TRUE : VK_FALSE;
 
-		VkDeviceCreateInfo device_create_info{};
-		device_create_info.sType = VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO;
-		device_create_info.queueCreateInfoCount = static_cast<uint16_t>(queueCreateInfos.size());
-		device_create_info.pQueueCreateInfos = queueCreateInfos.data();
-		device_create_info.pEnabledFeatures = &device_features;
+		VkDeviceCreateInfo deviceCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
+		deviceCreateInfo.queueCreateInfoCount = static_cast<uint16_t>(queueCreateInfos.size());
+		deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
+		deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
 		std::vector<const char*> requiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-		device_create_info.enabledExtensionCount = static_cast<uint16_t>(requiredExtensions.size());
-		device_create_info.ppEnabledExtensionNames = requiredExtensions.data();
+		deviceCreateInfo.enabledExtensionCount = static_cast<uint16_t>(requiredExtensions.size());
+		deviceCreateInfo.ppEnabledExtensionNames = requiredExtensions.data();
 
 #if _DEBUG
 		const std::vector<const char*> validation_layers = {
 			"VK_LAYER_KHRONOS_validation"
 		};
-		device_create_info.enabledLayerCount = static_cast<uint32_t>(validation_layers.size());
-		device_create_info.ppEnabledLayerNames = validation_layers.data();
+		deviceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validation_layers.size());
+		deviceCreateInfo.ppEnabledLayerNames = validation_layers.data();
 #else
 		device_create_info.enabledLayerCount = 0;
 #endif
-		if (vkCreateDevice(m_PhysicalDevice, &device_create_info, nullptr, &m_Device) != VK_SUCCESS) {
+		if (vkCreateDevice(m_PhysicalDevice, &deviceCreateInfo, nullptr, &m_Device) != VK_SUCCESS) {
 			BRISK_CORE_ERROR("Failed to create logical device!");
+		}
+
+		for (QueueFamily queue : QueuFamilies) {
+			for (QueueType type : queue.SupportedTypes) {
+				int i = 0;
+				if (type == QUEUE_GRAPHICS_BIT) {
+					vkGetDeviceQueue(m_Device, queue.Index, i++, &m_GraphicsQueue.Handle);
+					if (i >= queue.QueueCount) break;
+				}
+				if (queue.IsExplicitTransferQueue) {
+					vkGetDeviceQueue(m_Device, queue.Index, i++, &m_TransferQueue.Handle);
+					if (i >= queue.QueueCount) break;
+				}
+				if (queue.IsExplicitComputeQueue) {
+					vkGetDeviceQueue(m_Device, queue.Index, i++, &m_ComputeQueue.Handle);
+					if (i >= queue.QueueCount) break;
+				}
+			}
 		}
 	}
 
 	void GpuDeviceVulkan::Release() {
-		delete m_PresentQueue;
-		delete m_GraphicsQueue;
 		vkDestroyDevice(m_Device, nullptr);
 	}
 

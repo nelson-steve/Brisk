@@ -21,7 +21,7 @@
     <ClInclude Include="src\Core\Timer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Vulkan\GPUContextVulkan.hpp">
+    <ClInclude Include="src\Graphics\Vulkan\GpuContextVulkan.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Vulkan\Defines.h">
@@ -39,7 +39,7 @@
     <ClInclude Include="src\Graphics\Vulkan\volk.cpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Vulkan\GPUDeviceVulkan.hpp">
+    <ClInclude Include="src\Graphics\Vulkan\GpuDeviceVulkan.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Platform\Windows\WindowsWindow.hpp">
@@ -107,7 +107,7 @@
     <ClCompile Include="src\Engine\Engine.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Vulkan\GPUContextVulkan.cpp">
+    <ClCompile Include="src\Graphics\Vulkan\GpuContextVulkan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\WindowBase.cpp">
@@ -119,7 +119,7 @@
     <ClCompile Include="src\Core\Log.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Vulkan\GPUDeviceVulkan.cpp">
+    <ClCompile Include="src\Graphics\Vulkan\GpuDeviceVulkan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">

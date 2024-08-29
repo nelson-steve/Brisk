@@ -8,6 +8,7 @@
 
 #include <vector>
 #include "GpuDeviceVulkan.hpp"
+#include "SurfaceFactoryVulkan.hpp"
 
 namespace Brisk 
 {
@@ -22,7 +23,7 @@ namespace Brisk
 		/// Create Vulkan Device
 		/// </summary>
 		void Create();
-		bool CreateDevice(GpuDeviceVulkan::GpuRequirements& requirements);
+		bool CreateDevice(const GpuDeviceVulkan::GpuRequirements& requirements);
 
 
 		bool Sync();
@@ -75,7 +76,7 @@ namespace Brisk
 		static VkSemaphore m_ImageAvailableSemaphore;
 		static VkSemaphore m_RenderFinishedSemaphore;
 
-		static VkSurfaceKHR s_Surface;
+		static SurfaceVulkan* s_Surface;
 		static GpuDeviceVulkan* s_GPUDevice;
 
 		static uint32_t m_ImageIndex;
@@ -86,5 +87,6 @@ namespace Brisk
 		friend class GpuDeviceVulkan;
 		friend class GraphicsPipelineVulkan;
 		friend class RenderPassVulkan;
+		friend class SwapchainVulkan;
 	};
 }

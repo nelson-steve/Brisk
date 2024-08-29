@@ -171,6 +171,8 @@ namespace Brisk
 			return;
 		}
 
+		s_Surface = SurfaceFactoryVulkan::CreateNativeSurface(s_Instance);
+		s_GPUDevice->CreateLogicalDevice(requirements);
 	}
 
 	bool GpuContextVulkan::Sync() {

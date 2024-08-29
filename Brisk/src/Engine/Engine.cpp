@@ -16,11 +16,15 @@ namespace Brisk
 		Log::Init();
 		s_MainWindow = WindowCreator::CreateWindowsWindow(1920, 1080);
 
+		s_Renderer = RendererFactory::CreateRenderer();
+		s_Renderer->Create();
+
 		s_Swapchain = SwapchainFactory::CreateSwapchain(s_MainWindow);
 		s_Swapchain->Create();
 
-		s_Renderer = RendererFactory::CreateRenderer();
-		s_Renderer->Create();
+		s_Renderer->SetupRenderTargets(s_Swapchain);
+
+
 	}
 
 	void Engine::Update() {

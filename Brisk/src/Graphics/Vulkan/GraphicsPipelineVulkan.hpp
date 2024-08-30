@@ -26,7 +26,7 @@ namespace Brisk
 
 	public:
 		GraphicsPipelineVulkan();
-		void Create();
+		void CreatePipeline(VkRenderPass renderpass);
 		void Release();
 
         void CreateShaderStage(VkShaderModule module, VkShaderStageFlagBits stage);

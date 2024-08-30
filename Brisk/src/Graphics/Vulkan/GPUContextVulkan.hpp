@@ -89,5 +89,6 @@ namespace Brisk
 		friend class RenderPassVulkan;
 		friend class SwapchainVulkan;
 		friend class VulkanUtilities;
+		friend class RendererVulkan;
 	};
 }

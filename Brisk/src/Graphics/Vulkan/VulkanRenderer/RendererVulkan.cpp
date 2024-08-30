@@ -1,6 +1,7 @@
 #include "RendererVulkan.hpp"
-#include "Graphics/Vulkan/SwapchainVulkan.hpp"
-#include "Graphics/Vulkan/RenderPassVulkan.hpp"
+#include "../SwapchainVulkan.hpp"
+#include "../RenderPassVulkan.hpp"
+#include "../VulkanUtilities.hpp"
 
 namespace Brisk {
 	void RendererVulkan::Create() {
@@ -13,7 +14,7 @@ namespace Brisk {
 		m_GpuContext->CreateDevice(req);
 	}
 
-    void RendererVulkan::SetupSwapchain(const Swapchain* swap) {
+    void RendererVulkan::SetupRenderingPipeline(const Swapchain* swap) {
         const SwapchainVulkan* swapchain = static_cast<const SwapchainVulkan*>(swap);
 
         VkAttachmentDescription colorAttachment{};
@@ -70,13 +71,62 @@ namespace Brisk {
             m_RenderPass->CreateNAddFramebuffer(attachments, swapchain->GetExtentWidth(), swapchain->GetExtentHeight());
         }
 
-        VkPipelineShaderStageCreateInfo shaderStageInfo{};
-        shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-        shaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
-        shaderStageInfo.module = ;
-        shaderStageInfo.pName = "main";
+        GraphicsPipelineVulkan* pipeline = new GraphicsPipelineVulkan();
         
-        shaderStages.push_back(shaderStageInfo);
+        VkShaderModule vertexModule = VulkanUtilities::CreateShaderModule(GpuContextVulkan::s_GPUDevice->GetDevice(), "");
+        VkShaderModule fragmentModule = VulkanUtilities::CreateShaderModule(GpuContextVulkan::s_GPUDevice->GetDevice(), "");
+        pipeline->CreateShaderStage(vertexModule, VK_SHADER_STAGE_VERTEX_BIT);
+        pipeline->CreateShaderStage(fragmentModule, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+        std::vector<GraphicsPipelineVulkan::Binding> bindings;
+        bindings.push_back({
+            0,
+            VK_VERTEX_INPUT_RATE_VERTEX,
+            sizeof(Point),
+            });
+        std::vector<GraphicsPipelineVulkan::AttributeDescription> attributes;
+        attributes.push_back({
+            0,
+            0, 
+            VK_FORMAT_R32G32B32_SFLOAT,
+            offsetof(Point, Point::Position),
+            });
+        attributes.push_back({
+            0,
+            1, 
+            VK_FORMAT_R32G32B32_SFLOAT,
+            offsetof(Point, Point::Color),
+            });
+        pipeline->CreateVertexInputState(bindings, attributes);
+
+
+        pipeline->CreateInputAssembly(false, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+
+        pipeline->CreateViewportState(1, 1);
+
+        pipeline->CreateRasterizer(false, false, VK_POLYGON_MODE_FILL, 1.0f, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE, false);
+
+
+        pipeline->CreateMultiSampling(false, VK_SAMPLE_COUNT_1_BIT);
+
+
+        pipeline->CreateDepthStencil(true, true, VK_COMPARE_OP_LESS, false, false);
+
+        VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+        colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        colorBlendAttachment.blendEnable = VK_FALSE;
+        pipeline->CrateColorBlending({ colorBlendAttachment }, false, VK_LOGIC_OP_COPY);
+
+        std::vector<VkDynamicState> dynamicStates = {
+            VK_DYNAMIC_STATE_VIEWPORT,
+            VK_DYNAMIC_STATE_SCISSOR
+        };
+        pipeline->CreateDynamicState(dynamicStates);
+
+
+        pipeline->CreatePipelineLayout(0, 0);
+
+        pipeline->CreatePipeline(m_RenderPass->GetRenderPass());
     }
 
 	void RendererVulkan::Release() {

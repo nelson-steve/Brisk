@@ -27,18 +27,15 @@ namespace Brisk {
         m_VertexInputInfo.vertexBindingDescriptionCount = 1;
         m_VertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
 
-        VkPipelineInputAssemblyStateCreateInfo m_InputAssembly{};
-        m_InputAssembly.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
+        VkPipelineInputAssemblyStateCreateInfo m_InputAssembly{ VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
         m_InputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;
         m_InputAssembly.primitiveRestartEnable = VK_FALSE;
 
-        VkPipelineViewportStateCreateInfo m_ViewportState{};
-        m_ViewportState.sType = VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO;
+        VkPipelineViewportStateCreateInfo m_ViewportState{ VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
         m_ViewportState.viewportCount = 1;
         m_ViewportState.scissorCount = 1;
 
-        VkPipelineRasterizationStateCreateInfo m_Rasterizer{};
-        m_Rasterizer.sType = VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO;
+        VkPipelineRasterizationStateCreateInfo m_Rasterizer{ VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
         m_Rasterizer.depthClampEnable = VK_FALSE;
         m_Rasterizer.rasterizerDiscardEnable = VK_FALSE;
         m_Rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
@@ -47,13 +44,11 @@ namespace Brisk {
         m_Rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
         m_Rasterizer.depthBiasEnable = VK_FALSE;
 
-        VkPipelineMultisampleStateCreateInfo m_Multisampling{};
-        m_Multisampling.sType = VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO;
+        VkPipelineMultisampleStateCreateInfo m_Multisampling{ VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
         m_Multisampling.sampleShadingEnable = VK_FALSE;
         m_Multisampling.rasterizationSamples = VK_SAMPLE_COUNT_1_BIT;
 
-        VkPipelineDepthStencilStateCreateInfo m_DepthStencil{};
-        m_DepthStencil.sType = VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO;
+        VkPipelineDepthStencilStateCreateInfo m_DepthStencil{ VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
         m_DepthStencil.depthTestEnable = VK_TRUE;
         m_DepthStencil.depthWriteEnable = VK_TRUE;
         m_DepthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
@@ -63,8 +58,7 @@ namespace Brisk {
         VkPipelineColorBlendAttachmentState colorBlendAttachment{};
         colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
         colorBlendAttachment.blendEnable = VK_FALSE;
-        VkPipelineColorBlendStateCreateInfo m_ColorBlending{};
-        m_ColorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
+        VkPipelineColorBlendStateCreateInfo m_ColorBlending{ VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
         m_ColorBlending.logicOpEnable = VK_FALSE;
         m_ColorBlending.logicOp = VK_LOGIC_OP_COPY;
         m_ColorBlending.attachmentCount = 1;
@@ -78,13 +72,11 @@ namespace Brisk {
             VK_DYNAMIC_STATE_VIEWPORT,
             VK_DYNAMIC_STATE_SCISSOR
         };
-        VkPipelineDynamicStateCreateInfo m_DynamicState{};
-        m_DynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+        VkPipelineDynamicStateCreateInfo m_DynamicState{ VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
         m_DynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
         m_DynamicState.pDynamicStates = dynamicStates.data();
 
-        VkPipelineLayoutCreateInfo m_PipelineLayoutInfo{};
-        m_PipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+        VkPipelineLayoutCreateInfo m_PipelineLayoutInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
         m_PipelineLayoutInfo.setLayoutCount = 0;
         m_PipelineLayoutInfo.pushConstantRangeCount = 0;
 
@@ -194,7 +186,7 @@ namespace Brisk {
         m_ShaderStages.push_back(shaderStageInfo);
     }
 
-	void GraphicsPipelineVulkan::Create() {
+	void GraphicsPipelineVulkan::Create(VkRenderPass renderpass) {
         VkGraphicsPipelineCreateInfo pipelineInfo{ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
         pipelineInfo.stageCount = static_cast<uint32_t>(m_ShaderStages.size());
         pipelineInfo.pStages = m_ShaderStages.data();
@@ -207,7 +199,7 @@ namespace Brisk {
         pipelineInfo.pDepthStencilState = &m_DepthStencil;
         pipelineInfo.pDynamicState = &m_DynamicState;
         pipelineInfo.layout = m_PipelineLayout;
-        pipelineInfo.renderPass = static_cast<RenderPassVulkan*>(Engine::s_Renderer->GetRenderPass())->GetRenderPass();
+        pipelineInfo.renderPass = renderpass;
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 

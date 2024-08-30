@@ -9,7 +9,7 @@ namespace Brisk {
 		virtual void Create() override;
 		virtual void Release() override;
 
-		virtual void SetupSwapchain(const Swapchain* swapchain) override;
+		virtual void SetupRenderingPipeline(const Swapchain* swapchain) override;
 
 		virtual void PreRender() override;
 		virtual void Render() override;

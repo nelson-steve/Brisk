@@ -1,19 +1,19 @@
 #pragma once
 
 #include "CommandBufferVulkan.hpp"
-#include "Graphics/Renderpass.hpp"
 
 #include <Volk/volk.h>
 
 #include <vector>
 
 namespace Brisk {
-    class RenderPassVulkan{
+    class RenderPassVulkan {
     public:
-        void Create();
+        void Create(std::vector<VkAttachmentDescription> attachments, std::vector<VkSubpassDescription> subpasses, std::vector<VkSubpassDependency> dependencies);
         void Release();
         void CreateFramebuffers();
         void ReleaseFramebuffers();
+        void CreateNAddFramebuffer(std::vector<VkImageView> attachments, uint32_t width, uint32_t height);
 
         void BindPipeline(void* pipeline);
         void BeginRenderPass(/*int imageIndex*/);

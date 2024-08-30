@@ -171,6 +171,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Graphics\Vulkan\GraphicsPipelineVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\QueueVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\RenderPassVulkan.hpp" />
+    <ClInclude Include="src\Graphics\Vulkan\SurfaceFactoryVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\SwapchainVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\GpuDeviceVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\UniformBufferVulkan.hpp" />

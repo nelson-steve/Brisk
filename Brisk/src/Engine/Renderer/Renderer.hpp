@@ -10,7 +10,7 @@ namespace Brisk {
 		virtual void Create() = 0;
 		virtual void Release() = 0;
 
-		virtual void SetupRenderTargets(const Swapchain& swapchain) = 0;
+		virtual void SetupSwapchain(const Swapchain* swapchain) = 0;
 
 		virtual void PreRender() = 0;
 		virtual void Render() = 0;

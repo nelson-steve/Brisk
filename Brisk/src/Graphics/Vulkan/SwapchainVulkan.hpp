@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Graphics/Swapchain.hpp"
-#include "Graphics/Vulkan/GraphicsDeviceVulkan.hpp"
+#include "Graphics/Vulkan/GpuDeviceVulkan.hpp"
 
 namespace Brisk {
 	class SwapchainVulkan : public Swapchain {

@@ -8,9 +8,11 @@ namespace Brisk {
 	public:
 		static std::vector<const char*> GetRequiredExtensions();
 		static bool CheckValidationLayerSupport(const std::vector<const char*> validationLayers);
-		static void PopulateDebugMessengerCreateInfo();
-		static VkResult CreateDebugUtilsMessengerEXT();
+		static void PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo);
+		static VkResult CreateDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo, VkDebugUtilsMessengerEXT debugMessenger);
+		static uint32_t FindMemoryType(VkPhysicalDevice device, uint32_t typeFilter, VkMemoryPropertyFlags properties);
 
-		static uint32_t FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties);
+		static const VkShaderModule CreateShaderModule(VkDevice device, const std::string& path);
+		static std::vector<char>* ReadShaderFile(const std::string& fileName);
 	};
 }

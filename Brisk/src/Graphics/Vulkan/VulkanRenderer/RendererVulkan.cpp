@@ -69,6 +69,14 @@ namespace Brisk {
             };
             m_RenderPass->CreateNAddFramebuffer(attachments, swapchain->GetExtentWidth(), swapchain->GetExtentHeight());
         }
+
+        VkPipelineShaderStageCreateInfo shaderStageInfo{};
+        shaderStageInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
+        shaderStageInfo.stage = VK_SHADER_STAGE_VERTEX_BIT;
+        shaderStageInfo.module = ;
+        shaderStageInfo.pName = "main";
+        
+        shaderStages.push_back(shaderStageInfo);
     }
 
 	void RendererVulkan::Release() {

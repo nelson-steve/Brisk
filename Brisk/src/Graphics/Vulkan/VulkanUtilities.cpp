@@ -1,11 +1,14 @@
 #include "VulkanUtilities.hpp"
-#include "GraphicsDeviceVulkan.hpp"
+#include "GpuDeviceVulkan.hpp"
 #include "Engine/WindowBase.hpp"
 
 #include <Volk/volk.h>
 #define GLFW_INCLUDE_VULKAN
 #include <glfw3.h>
 
+#include <vector>
+#include <fstream>
+#include <string>
 #include <iostream>
 
 namespace Brisk 
@@ -48,18 +51,18 @@ namespace Brisk
 		return VK_FALSE;
 	}
 
-	void VulkanUtilities::PopulateDebugMessengerCreateInfo() {
-		GraphicsDeviceVulkan::s_DebugCreateInfo = {};
-		GraphicsDeviceVulkan::s_DebugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
-		GraphicsDeviceVulkan::s_DebugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
-		GraphicsDeviceVulkan::s_DebugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
-		GraphicsDeviceVulkan::s_DebugCreateInfo.pfnUserCallback = DebugCallback;
+	void VulkanUtilities::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo) {
+		debugCreateInfo = {};
+		debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
+		debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
+		debugCreateInfo.messageType = VK_DEBUG_UTILS_MESSAGE_TYPE_GENERAL_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_VALIDATION_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_TYPE_PERFORMANCE_BIT_EXT;
+		debugCreateInfo.pfnUserCallback = DebugCallback;
 	}
 
-	VkResult VulkanUtilities::CreateDebugUtilsMessengerEXT() {
-		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(GraphicsDeviceVulkan::s_Instance, "vkCreateDebugUtilsMessengerEXT");
+	VkResult VulkanUtilities::CreateDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo, VkDebugUtilsMessengerEXT debugMessenger) {
+		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
 		if (func != nullptr) {
-			return func(GraphicsDeviceVulkan::s_Instance, &GraphicsDeviceVulkan::s_DebugCreateInfo, nullptr, &GraphicsDeviceVulkan::s_DebugMessenger);
+			return func(GpuContextVulkan::s_Instance, &debugCreateInfo, nullptr, &debugMessenger);
 		}
 		else {
 			std::cout << "Debug Utils Messenger extension not present" << std::endl;
@@ -67,9 +70,9 @@ namespace Brisk
 		}
 	}
 
-	uint32_t VulkanUtilities::FindMemoryType(uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+	uint32_t VulkanUtilities::FindMemoryType(VkPhysicalDevice device, uint32_t typeFilter, VkMemoryPropertyFlags properties) {
 		VkPhysicalDeviceMemoryProperties memProperties;
-		vkGetPhysicalDeviceMemoryProperties(Engine::s_PhysicalDevice->GetPhysicalDevice(), &memProperties);
+		vkGetPhysicalDeviceMemoryProperties(device, &memProperties);
 
 		for (uint32_t i = 0; i < memProperties.memoryTypeCount; i++) {
 			if ((typeFilter & (1 << i)) && (memProperties.memoryTypes[i].propertyFlags & properties) == properties) {
@@ -78,5 +81,42 @@ namespace Brisk
 		}
 
 		throw std::runtime_error("failed to find suitable memory type!");
+	}
+
+	std::vector<char>* VulkanUtilities::ReadShaderFile(const std::string& fileName) {
+		std::vector<char>* shaderFileBuffer;
+		std::ifstream file(fileName, std::ios::ate | std::ios::binary);
+
+		if (!file.is_open()) {
+			BRISK_CORE_ERROR("Failed to open file: ", fileName);
+		}
+
+		size_t fileSize = (size_t)file.tellg();
+		shaderFileBuffer = new std::vector<char>(fileSize);
+
+		file.seekg(0);
+		file.read(shaderFileBuffer->data(), fileSize);
+
+		file.close();
+
+		return shaderFileBuffer;
+	}
+
+	const VkShaderModule VulkanUtilities::CreateShaderModule(VkDevice device, const std::string& path) {
+		const std::vector<char>* shaderCode = ReadShaderFile(path);
+
+		VkShaderModuleCreateInfo createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
+		createInfo.codeSize = shaderCode->size();
+		createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode->data());
+
+		VkShaderModule  module;
+		if (vkCreateShaderModule(device, &createInfo, nullptr, &module) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create shader module!");
+		}
+
+		// Cleanup the data that's not needed anymore
+		delete shaderCode;
+		return module;
 	}
 }

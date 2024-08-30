@@ -1,28 +1,19 @@
 #pragma once
 
 #include "Engine/Engine.hpp"
-#include "GPUDevice.hpp"
 #include "Core/Log.hpp"
 
 #include <Volk/volk.h>
 
 #include <vector>
 #include <fstream>
+#include <string>
 
 namespace Brisk {
-    struct ShaderModule {
-        ShaderType Type;
-        VkShaderModule Module;
-    };
-
 	class ShaderManager {
     public:
-        static const ShaderModule& CreateShaderModule(const ShaderInfo& info);
-        static const void ReleaseShaderModule(const std::vector<ShaderModule>& modules);
+        static const VkShaderModule CreateShaderModule(const std::string& path);
     private:
-        static std::vector<char>& ReadShaderFile(const std::string& fileName);
-    public:
-        static std::vector<char>* m_ShaderFileBuffer;
-
+        static std::vector<char>* ReadShaderFile(const std::string& fileName);
 	};
 }

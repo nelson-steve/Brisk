@@ -11,18 +11,50 @@ namespace Brisk
 {
 	class GraphicsPipelineVulkan {
 	public:
-		void Create(std::vector<ShaderModule> modules);
+        struct Binding {
+            uint32_t BindingIndex;
+            VkVertexInputRate InputRate;
+            uint32_t Stride;
+        };
+
+        struct AttributeDescription {
+            uint32_t BindingIndex;
+            uint32_t Location;
+            VkFormat Format;
+            uint32_t Offset;
+        };
+
+	public:
+		GraphicsPipelineVulkan();
+		void Create();
 		void Release();
 
+        void CreateShaderStage(VkShaderModule module, VkShaderStageFlagBits stage);
+        void CreateVertexInputState(std::vector<Binding> bindings, std::vector<AttributeDescription> attributes);
+        void CreateInputAssembly(bool primitiveRestartEnable, VkPrimitiveTopology topology);
+        void CreateViewportState(uint32_t count, uint32_t scissorCount);
+        void CreateRasterizer(bool depthClamp, bool discard, VkPolygonMode polygonMode, float lineWidth, VkCullModeFlags cullMode, VkFrontFace frontFace, bool depthBias);
+        void CreateMultiSampling(bool sampleShading, VkSampleCountFlagBits samples);
+        void CreateDepthStencil(bool depthTest, bool depthWrite, VkCompareOp, bool depthBoundsTest, bool stencilTest);
+        void CrateColorBlending(std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments, bool isLogicOp, VkLogicOp logicOp);
+        void CreateDynamicState(std::vector<VkDynamicState> dynamicStates);
+        void CreatePipelineLayout(uint32_t layoutCount, uint32_t pushConstantRangeCount);
+
 		const VkPipeline GetPipeline() const { return m_GraphicsPipeline; }
-		//const VkRenderPass GetRenderPass() const { return m_RenderPass; }
 	private:
-		//void CreateRenderPass();
-		VkShaderStageFlagBits BriskTypeToVulkanType(ShaderType type);
-	private:
-		std::vector<ShaderModule> m_Modules;
+        std::vector<VkPipelineShaderStageCreateInfo> m_ShaderStages;
+        VkPipelineVertexInputStateCreateInfo m_VertexInputInfo;
+        VkPipelineInputAssemblyStateCreateInfo m_InputAssembly;
+        VkPipelineViewportStateCreateInfo m_ViewportState;
+        VkPipelineRasterizationStateCreateInfo m_Rasterizer;
+        VkPipelineMultisampleStateCreateInfo m_Multisampling;
+        VkPipelineDepthStencilStateCreateInfo m_DepthStencil;
+        VkPipelineColorBlendStateCreateInfo m_ColorBlending;
+        VkPipelineDynamicStateCreateInfo m_DynamicState;
+        VkPipelineLayoutCreateInfo pm_PipelineLayoutInfo;
+
+        std::vector<VkShaderModule> m_Modules;
 		VkPipelineLayout m_PipelineLayout;
 		VkPipeline m_GraphicsPipeline;
-		//VkRenderPass m_RenderPass;
 	};
 }

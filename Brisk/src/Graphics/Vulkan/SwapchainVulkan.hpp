@@ -6,7 +6,7 @@
 namespace Brisk {
 	class SwapchainVulkan : public Swapchain {
 	public:
-		virtual void Create() override;
+		virtual void Create(Mode mode) override;
 		virtual void Release() override;
 		//void Resize();
 

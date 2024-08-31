@@ -20,7 +20,7 @@ namespace Brisk
 		s_Renderer->Create();
 
 		s_Swapchain = SwapchainFactory::CreateSwapchain(s_MainWindow);
-		s_Swapchain->Create();
+		s_Swapchain->Create(Swapchain::Mode::TRIPLE_BUFFERING);
 
 		s_Renderer->SetupRenderingPipeline(s_Swapchain);
 

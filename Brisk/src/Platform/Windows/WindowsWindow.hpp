@@ -28,7 +28,7 @@ namespace Brisk {
 		virtual inline bool IsWindowResized() override 
 		{
 			if (m_HasWindowResized) {
-				WindowResized(false);
+				m_HasWindowResized = false;
 				return true;
 			}
 			return false; 

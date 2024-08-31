@@ -15,10 +15,12 @@ namespace Brisk {
 		vkDestroySwapchainKHR(GpuContextVulkan::s_GPUDevice->GetDevice(), m_Swapchain, nullptr);
 	}
 
-	void SwapchainVulkan::Create() {
+	void SwapchainVulkan::Create(Mode mode) {
 		// TODO: Dont use hardcoded values
 		VkFormat m_format = VK_FORMAT_B8G8R8A8_SRGB;
 		VkColorSpaceKHR m_color_space = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+
+		int imageCount = static_cast<uint32_t>(mode);
 
 		VkSurfaceCapabilitiesKHR surfaceCapabilities;
 		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(GpuContextVulkan::s_GPUDevice->GetPhysicalDevice(), GpuContextVulkan::s_Surface->GetRef(), &surfaceCapabilities);
@@ -52,10 +54,12 @@ namespace Brisk {
 			m_surface_format.colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 		}
 
+		if (imageCount > surfaceCapabilities.maxImageCount && surfaceCapabilities.maxImageCount > 0)
+			imageCount = surfaceCapabilities.maxImageCount;
 		VkSwapchainCreateInfoKHR swapChainCreateInfo{ VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR };
 		swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 		swapChainCreateInfo.surface = GpuContextVulkan::s_Surface->GetRef();
-		swapChainCreateInfo.minImageCount = surfaceCapabilities.minImageCount + 1;
+		swapChainCreateInfo.minImageCount = imageCount;
 		swapChainCreateInfo.imageFormat = m_surface_format.format;
 		swapChainCreateInfo.imageColorSpace = m_surface_format.colorSpace;
 		swapChainCreateInfo.imageExtent = surfaceCapabilities.currentExtent;
@@ -63,6 +67,7 @@ namespace Brisk {
 		swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
 		m_extent = surfaceCapabilities.currentExtent;
 
+		std::cout << "Swapchain image count: " << imageCount << std::endl;
 		uint32_t queueFamilyCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(GpuContextVulkan::s_GPUDevice->GetPhysicalDevice(), &queueFamilyCount, nullptr);
 

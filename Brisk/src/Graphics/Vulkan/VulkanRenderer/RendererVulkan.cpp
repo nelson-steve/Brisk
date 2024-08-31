@@ -191,12 +191,12 @@ namespace Brisk {
 
         VkResult result = m_Swapchain->AquireNextImage(UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_ImageIndex);
 
-        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || Engine::s_MainWindow->IsWindowResized()) {
+            WaitDeviceIdle();
             Engine::s_Swapchain->Release();
             m_RenderPass->ReleaseFramebuffers();
-            //delete Engine::s_Swapchain;
             Engine::s_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_MainWindow);
-            Engine::s_Swapchain->Create();
+            Engine::s_Swapchain->Create(Swapchain::Mode::TRIPLE_BUFFERING);
             m_Swapchain = static_cast<SwapchainVulkan*>(Engine::s_Swapchain);
             for (int i = 0; i < m_Swapchain->GetImageCount(); i++) {
                 std::vector<VkImageView> attachments = {
@@ -205,7 +205,6 @@ namespace Brisk {
                 };
                 m_RenderPass->CreateNAddFramebuffer(attachments, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
             }
-            //m_RenderPass->CreateFramebuffers(); // TODO : Recreate framebuffers
             return;
         }
 

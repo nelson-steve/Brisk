@@ -15,6 +15,10 @@ namespace Brisk {
 		virtual void Render() override;
 		virtual void PostRender() override;
 	private:
+		RendererVulkan() = default;
+	private:
 		GpuContextVulkan* m_GpuContext;
+
+		friend class RendererFactory;
 	};
 }

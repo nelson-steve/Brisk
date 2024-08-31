@@ -6,8 +6,6 @@
 namespace Brisk {
 	class SwapchainVulkan : public Swapchain {
 	public:
-		SwapchainVulkan(WindowBase* window);
-
 		virtual void Create() override;
 		virtual void Release() override;
 		//void Resize();
@@ -26,6 +24,8 @@ namespace Brisk {
 		uint32_t GetImageCount() const { return m_ImageCount; }
 		VkPresentModeKHR GetPresentMode() const { return m_present_mode; }
 	private:
+		SwapchainVulkan(WindowBase* window);
+	private:
 		VkSwapchainKHR m_Swapchain;
 		//VkSurfaceKHR m_Surface;
 		std::vector<VkSemaphore> m_render_complete_semaphores;
@@ -41,5 +41,7 @@ namespace Brisk {
 		VkImage m_DepthImage;
 		VkDeviceMemory m_DepthImageMemory;
 		VkImageView m_DepthImageView;
+
+		friend class SwapchainFactory;
 	};
 }

@@ -186,7 +186,7 @@ namespace Brisk {
         m_ShaderStages.push_back(shaderStageInfo);
     }
 
-	void GraphicsPipelineVulkan::Create(VkRenderPass renderpass) {
+	void GraphicsPipelineVulkan::CreatePipeline(VkRenderPass renderpass) {
         VkGraphicsPipelineCreateInfo pipelineInfo{ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
         pipelineInfo.stageCount = static_cast<uint32_t>(m_ShaderStages.size());
         pipelineInfo.pStages = m_ShaderStages.data();

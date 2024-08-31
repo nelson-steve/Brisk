@@ -123,10 +123,26 @@ namespace Brisk {
         };
         pipeline->CreateDynamicState(dynamicStates);
 
-
         pipeline->CreatePipelineLayout(0, 0);
 
         pipeline->CreatePipeline(m_RenderPass->GetRenderPass());
+
+        //
+
+	    std::vector<Point> vertices = {
+	    	{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+	    	{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+	    	{{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+
+	    	{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+	    	{{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+	    	{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+	    };
+
+        BufferVulkan* m_VertexBuffer = new BufferVulkan();
+	    m_VertexBuffer->Create(vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+	    m_VertexBuffer->Allocate();
+	    m_VertexBuffer->MapMemory(vertices);
     }
 
 	void RendererVulkan::Release() {
@@ -138,6 +154,21 @@ namespace Brisk {
 	}
 
 	void RendererVulkan::Render() {
+    	if (Engine::s_GPUContext->Sync())
+			return;
+
+		m_RenderPass->BeginRenderPass();
+		m_RenderPass->BindPipeline(m_DefaultGraphicsPipeline);
+
+		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->PrepreFrame(
+			static_cast<RenderPassVulkan*>(m_RenderPass)->GetCommandBuffer());
+		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->Draw(
+			static_cast<RenderPassVulkan*>(m_RenderPass)->GetCommandBuffer(), *m_VertexBuffer);
+
+		m_RenderPass->EndRenderPass();
+
+		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->Submit(
+			static_cast<RenderPassVulkan*>(m_RenderPass));
 
 	}
 

@@ -1,8 +1,5 @@
 #include "Renderer.hpp"
 #include "Engine/Engine.hpp"
-#include <Graphics/ShaderManager.hpp>
-#include <Graphics/Vulkan/SwapchainVulkan.hpp>
-#include "Graphics/Factories/RenderPassFactory.hpp"
 
 namespace Brisk {
 

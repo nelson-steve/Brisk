@@ -88,21 +88,6 @@ namespace Brisk {
 
     void GraphicsPipelineVulkan::CreateVertexInputState(const std::vector<VkVertexInputBindingDescription>& bindingDescriptions, const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions) {
         m_VertexInputInfo.sType = { VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
-        //std::vector<VkVertexInputBindingDescription> bindingDescriptions;
-        //bindingDescriptions.resize(bindings.size());
-        //for (int i = 0; i < bindingDescriptions.size(); i++) {
-        //    bindingDescriptions[i].binding = bindings[i].BindingIndex;
-        //    bindingDescriptions[i].inputRate = bindings[i].InputRate;
-        //    bindingDescriptions[i].stride = bindings[i].Stride;
-        //}
-        //std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-        //attributeDescriptions.resize(attributes.size());
-        //for (int i = 0; i < attributeDescriptions.size(); i++) {
-        //    attributeDescriptions[i].binding = attributes[i].BindingIndex;
-        //    attributeDescriptions[i].location = attributes[i].Location;
-        //    attributeDescriptions[i].format = attributes[i].Format;
-        //    attributeDescriptions[i].offset = attributes[i].Offset;
-        //}
         m_VertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
         m_VertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
         m_VertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());

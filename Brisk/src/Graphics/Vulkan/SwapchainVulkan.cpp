@@ -16,9 +16,6 @@ namespace Brisk {
 	}
 
 	void SwapchainVulkan::Create() {
-		//static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->CreateSyncObjects();
-		//m_Surface = static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->GetSurface();
-
 		// TODO: Dont use hardcoded values
 		VkFormat m_format = VK_FORMAT_B8G8R8A8_SRGB;
 		VkColorSpaceKHR m_color_space = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;

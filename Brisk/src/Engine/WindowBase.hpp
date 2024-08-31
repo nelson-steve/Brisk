@@ -51,6 +51,18 @@ namespace Brisk {
 		virtual inline void SetHeight(uint32_t height) = 0;
 
 		/// <summary>
+		/// Setter: Width of window
+		/// </summary>
+		/// <param name="width"></param>
+		virtual inline uint32_t GetWidth() const = 0;
+
+		/// <summary>
+		/// Setter Width of window
+		/// </summary>
+		/// <param name="height"></param>
+		virtual inline uint32_t GetHeight() const = 0;
+
+		/// <summary>
 		/// Stores the status of window being resized
 		/// </summary>
 		/// <param name="resized"></param>

@@ -83,10 +83,10 @@ namespace Brisk {
         dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
         dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-        std::vector<VkAttachmentDescription> attachments = { colorAttachment, depthAttatchment };
+        std::vector<VkAttachmentDescription> colorAttachments = { colorAttachment, depthAttatchment };
 
         m_RenderPass = new RenderPassVulkan();
-        m_RenderPass->Create(attachments, { subpass }, { dependency });
+        m_RenderPass->Create(colorAttachments, { subpass }, { dependency });
         for (int i = 0; i < m_Swapchain->GetImageCount(); i++) {
             std::vector<VkImageView> attachments = {
                 m_Swapchain->GetSwapchainImageViews()[i],
@@ -198,6 +198,13 @@ namespace Brisk {
             Engine::s_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_MainWindow);
             Engine::s_Swapchain->Create();
             m_Swapchain = static_cast<SwapchainVulkan*>(Engine::s_Swapchain);
+            for (int i = 0; i < m_Swapchain->GetImageCount(); i++) {
+                std::vector<VkImageView> attachments = {
+                    m_Swapchain->GetSwapchainImageViews()[i],
+                    m_Swapchain->GetDepthImageView(),
+                };
+                m_RenderPass->CreateNAddFramebuffer(attachments, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+            }
             //m_RenderPass->CreateFramebuffers(); // TODO : Recreate framebuffers
             return;
         }
@@ -272,4 +279,8 @@ namespace Brisk {
 	void RendererVulkan::PostRender() {
 
 	}
+
+    void RendererVulkan::WaitDeviceIdle() {
+        vkDeviceWaitIdle(m_GpuContext->s_GPUDevice->GetDevice());
+    }
 }

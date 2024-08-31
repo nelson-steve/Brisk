@@ -33,8 +33,7 @@ namespace Brisk
 			s_Renderer->Render();
 		}
 
-		//s_Renderer->WaitForGPU();
-		//s_GPUContext->WaitDeviceIdle();
+		s_Renderer->WaitDeviceIdle();
 	}
 
 	void Engine::Terminate() {

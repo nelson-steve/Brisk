@@ -8,6 +8,8 @@
 namespace Brisk {
 	void FramebufferResizeCallback(GLFWwindow* window, int width, int height) {
 		auto win = reinterpret_cast<WindowsWindow*>(glfwGetWindowUserPointer(window));
+		win->SetWidth(width);
+		win->SetHeight(height);
 		win->WindowResized(true);
 	}
 

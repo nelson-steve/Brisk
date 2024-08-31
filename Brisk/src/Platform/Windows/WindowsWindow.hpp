@@ -52,6 +52,18 @@ namespace Brisk {
 		virtual inline void SetHeight(uint32_t height) override { m_Height = height; };
 
 		/// <summary>
+		/// Setter: Width of window
+		/// </summary>
+		/// <param name="width"></param>
+		virtual inline uint32_t GetWidth() const override { return m_Width; }
+
+		/// <summary>
+		/// Setter Width of window
+		/// </summary>
+		/// <param name="height"></param>
+		virtual inline uint32_t GetHeight() const override { return m_Height; }
+
+		/// <summary>
 		/// Stores the status of window being resized
 		/// </summary>
 		/// <param name="resized"></param>

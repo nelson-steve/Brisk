@@ -43,6 +43,7 @@ namespace Brisk {
         for (size_t i = 0; i < m_Framebuffers.size(); i++) {
             vkDestroyFramebuffer(GpuContextVulkan::s_GPUDevice->GetDevice(), m_Framebuffers[i], nullptr);
         }
+        m_Framebuffers.clear();
     }
 
     void RenderPassVulkan::BeginRenderPass(CommandBufferVulkan* commandBuffer, int imageIndex) {

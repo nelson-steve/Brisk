@@ -6,7 +6,7 @@
 
 namespace Brisk {
 	SwapchainVulkan::SwapchainVulkan(WindowBase* window)
-		: Swapchain(window, 1920, 1080) {} // TODO: Dont use hardcoded values
+		: Swapchain(window, window->GetWidth(), window->GetHeight()) {}
 
 	void SwapchainVulkan::Release() {
 		for (auto imageView : m_SwapchainImageViews) {

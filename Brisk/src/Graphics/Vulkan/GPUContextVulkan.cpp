@@ -146,10 +146,6 @@ namespace Brisk
 		return true;
 	}
 
-	void GpuContextVulkan::WaitDeviceIdle() {
-		vkDeviceWaitIdle(s_GPUDevice->GetDevice());
-	}
-
 	void GpuContextVulkan::Release() {
 		vkDestroyDebugUtilsMessengerEXT(s_Instance, s_DebugMessenger, nullptr);
 		vkDestroyInstance(s_Instance, nullptr);

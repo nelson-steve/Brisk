@@ -134,9 +134,6 @@
     <ClCompile Include="src\Graphics\Vulkan\RenderPassVulkan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Renderer\Renderer.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\Vulkan\CommandBufferVulkan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>

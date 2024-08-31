@@ -24,7 +24,6 @@ namespace Brisk
 		void Release();
 
 		bool CreateDevice(const GpuDeviceVulkan::GpuRequirements& requirements);
-		void WaitDeviceIdle();
 
 		/// <summary>
 		/// Getters for Vulkan handles

@@ -2,6 +2,7 @@
 #include "../SwapchainVulkan.hpp"
 #include "../RenderPassVulkan.hpp"
 #include "../VulkanUtilities.hpp"
+#include "Graphics/Factories/SwapchainFactory.hpp"
 
 namespace Brisk {
 	void RendererVulkan::Create() {
@@ -10,15 +11,38 @@ namespace Brisk {
 	
 		std::vector<GpuDeviceVulkan::QueueType> queueTypes;
 		std::vector<GpuDeviceVulkan::DeviceFeatures> features;
-		GpuDeviceVulkan::GpuRequirements req;
+        GpuDeviceVulkan::GpuRequirements req{};
 		m_GpuContext->CreateDevice(req);
+
+        VkSemaphoreCreateInfo semaphoreInfo{};
+        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+        VkFenceCreateInfo fenceInfo{};
+        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+        if (vkCreateSemaphore(GpuContextVulkan::s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore) != VK_SUCCESS ||
+            vkCreateSemaphore(GpuContextVulkan::s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore) != VK_SUCCESS ||
+            vkCreateFence(GpuContextVulkan::s_GPUDevice->GetDevice(), &fenceInfo, nullptr, &m_InFlightFence) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create synchronization objects for a frame!");
+        }
+
+        VkCommandPoolCreateInfo poolInfo{};
+        poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+        poolInfo.queueFamilyIndex = GpuContextVulkan::s_GPUDevice->GetGraphicsQueue().FamilyIndex;
+
+        if (vkCreateCommandPool(GpuContextVulkan::s_GPUDevice->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create command pool!");
+        }
+
 	}
 
-    void RendererVulkan::SetupRenderingPipeline(const Swapchain* swap) {
-        const SwapchainVulkan* swapchain = static_cast<const SwapchainVulkan*>(swap);
+    void RendererVulkan::SetupRenderingPipeline(Swapchain* swap) {
+        m_Swapchain = static_cast<SwapchainVulkan*>(swap);
 
         VkAttachmentDescription colorAttachment{};
-        colorAttachment.format = swapchain->GetFormat().format;
+        colorAttachment.format = m_Swapchain->GetFormat().format;
         colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
         colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
@@ -28,7 +52,7 @@ namespace Brisk {
         colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentDescription depthAttatchment{};
-        depthAttatchment.format = swapchain->GetDepthFormat();
+        depthAttatchment.format = m_Swapchain->GetDepthFormat();
         depthAttatchment.samples = VK_SAMPLE_COUNT_1_BIT;
         depthAttatchment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
         depthAttatchment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -61,73 +85,17 @@ namespace Brisk {
 
         std::vector<VkAttachmentDescription> attachments = { colorAttachment, depthAttatchment };
 
-        RenderPassVulkan* m_RenderPass = new RenderPassVulkan();
+        m_RenderPass = new RenderPassVulkan();
         m_RenderPass->Create(attachments, { subpass }, { dependency });
-        for (int i = 0; i < swapchain->GetImageCount(); i++) {
+        for (int i = 0; i < m_Swapchain->GetImageCount(); i++) {
             std::vector<VkImageView> attachments = {
-                swapchain->GetSwapchainImageViews()[i],
-                swapchain->GetDepthImageView(),
+                m_Swapchain->GetSwapchainImageViews()[i],
+                m_Swapchain->GetDepthImageView(),
             };
-            m_RenderPass->CreateNAddFramebuffer(attachments, swapchain->GetExtentWidth(), swapchain->GetExtentHeight());
+            m_RenderPass->CreateNAddFramebuffer(attachments, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
         }
 
-        GraphicsPipelineVulkan* pipeline = new GraphicsPipelineVulkan();
-        
-        VkShaderModule vertexModule = VulkanUtilities::CreateShaderModule(GpuContextVulkan::s_GPUDevice->GetDevice(), "");
-        VkShaderModule fragmentModule = VulkanUtilities::CreateShaderModule(GpuContextVulkan::s_GPUDevice->GetDevice(), "");
-        pipeline->CreateShaderStage(vertexModule, VK_SHADER_STAGE_VERTEX_BIT);
-        pipeline->CreateShaderStage(fragmentModule, VK_SHADER_STAGE_FRAGMENT_BIT);
-
-        std::vector<GraphicsPipelineVulkan::Binding> bindings;
-        bindings.push_back({
-            0,
-            VK_VERTEX_INPUT_RATE_VERTEX,
-            sizeof(Point),
-            });
-        std::vector<GraphicsPipelineVulkan::AttributeDescription> attributes;
-        attributes.push_back({
-            0,
-            0, 
-            VK_FORMAT_R32G32B32_SFLOAT,
-            offsetof(Point, Point::Position),
-            });
-        attributes.push_back({
-            0,
-            1, 
-            VK_FORMAT_R32G32B32_SFLOAT,
-            offsetof(Point, Point::Color),
-            });
-        pipeline->CreateVertexInputState(bindings, attributes);
-
-
-        pipeline->CreateInputAssembly(false, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
-
-        pipeline->CreateViewportState(1, 1);
-
-        pipeline->CreateRasterizer(false, false, VK_POLYGON_MODE_FILL, 1.0f, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE, false);
-
-
-        pipeline->CreateMultiSampling(false, VK_SAMPLE_COUNT_1_BIT);
-
-
-        pipeline->CreateDepthStencil(true, true, VK_COMPARE_OP_LESS, false, false);
-
-        VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-        colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-        colorBlendAttachment.blendEnable = VK_FALSE;
-        pipeline->CrateColorBlending({ colorBlendAttachment }, false, VK_LOGIC_OP_COPY);
-
-        std::vector<VkDynamicState> dynamicStates = {
-            VK_DYNAMIC_STATE_VIEWPORT,
-            VK_DYNAMIC_STATE_SCISSOR
-        };
-        pipeline->CreateDynamicState(dynamicStates);
-
-        pipeline->CreatePipelineLayout(0, 0);
-
-        pipeline->CreatePipeline(m_RenderPass->GetRenderPass());
-
-        //
+        CreateGraphicsPipeline();
 
 	    std::vector<Point> vertices = {
 	    	{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
@@ -139,10 +107,75 @@ namespace Brisk {
 	    	{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
 	    };
 
-        BufferVulkan* m_VertexBuffer = new BufferVulkan();
+        m_VertexBuffer = new BufferVulkan();
 	    m_VertexBuffer->Create(vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 	    m_VertexBuffer->Allocate();
 	    m_VertexBuffer->MapMemory(vertices);
+
+        m_CommandBuffer = new CommandBufferVulkan();
+        m_CommandBuffer->Allocate(m_CommandPool);
+    }
+
+    void RendererVulkan::CreateGraphicsPipeline() {
+        m_Pipeline = new GraphicsPipelineVulkan();
+
+        VkShaderModule vertexModule = VulkanUtilities::CreateShaderModule(GpuContextVulkan::s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleVS.spv");
+        VkShaderModule fragmentModule = VulkanUtilities::CreateShaderModule(GpuContextVulkan::s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleFS.spv");
+        m_Pipeline->CreateShaderStage(vertexModule, VK_SHADER_STAGE_VERTEX_BIT);
+        m_Pipeline->CreateShaderStage(fragmentModule, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+        std::vector<GraphicsPipelineVulkan::Binding> bindings;
+        bindings.push_back({
+            0,
+            VK_VERTEX_INPUT_RATE_VERTEX,
+            sizeof(Point),
+            });
+        std::vector<GraphicsPipelineVulkan::AttributeDescription> attributes;
+        attributes.push_back({
+            0,
+            0,
+            VK_FORMAT_R32G32B32_SFLOAT,
+            offsetof(Point, Point::Position),
+            });
+        attributes.push_back({
+            0,
+            1,
+            VK_FORMAT_R32G32B32_SFLOAT,
+            offsetof(Point, Point::Color),
+            });
+        std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+        bindingDescriptions.resize(bindings.size());
+        for (int i = 0; i < bindingDescriptions.size(); i++) {
+            bindingDescriptions[i].binding = bindings[i].BindingIndex;
+            bindingDescriptions[i].inputRate = bindings[i].InputRate;
+            bindingDescriptions[i].stride = bindings[i].Stride;
+        }
+        std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+        attributeDescriptions.resize(attributes.size());
+        for (int i = 0; i < attributeDescriptions.size(); i++) {
+            attributeDescriptions[i].binding = attributes[i].BindingIndex;
+            attributeDescriptions[i].location = attributes[i].Location;
+            attributeDescriptions[i].format = attributes[i].Format;
+            attributeDescriptions[i].offset = attributes[i].Offset;
+        }
+        m_Pipeline->CreateVertexInputState(bindingDescriptions, attributeDescriptions);
+        m_Pipeline->CreateInputAssembly(false, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+        m_Pipeline->CreateViewportState(1, 1);
+        m_Pipeline->CreateRasterizer(false, false, VK_POLYGON_MODE_FILL, 1.0f, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE, false);
+        m_Pipeline->CreateMultiSampling(false, VK_SAMPLE_COUNT_1_BIT);
+        m_Pipeline->CreateDepthStencil(true, true, VK_COMPARE_OP_LESS, false, false);
+        VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+        colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+        colorBlendAttachment.blendEnable = VK_FALSE;
+        std::vector< VkPipelineColorBlendAttachmentState> colorBlendAttachments = { colorBlendAttachment };
+        m_Pipeline->CrateColorBlending(colorBlendAttachments, false, VK_LOGIC_OP_COPY);
+        std::vector<VkDynamicState> dynamicStates = {
+            VK_DYNAMIC_STATE_VIEWPORT,
+            VK_DYNAMIC_STATE_SCISSOR
+        };
+        m_Pipeline->CreateDynamicState(dynamicStates);
+        m_Pipeline->CreatePipelineLayout(0, 0);
+        m_Pipeline->CreatePipeline(m_RenderPass->GetRenderPass());
     }
 
 	void RendererVulkan::Release() {
@@ -154,22 +187,86 @@ namespace Brisk {
 	}
 
 	void RendererVulkan::Render() {
-    	if (Engine::s_GPUContext->Sync())
-			return;
+        vkWaitForFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
 
-		m_RenderPass->BeginRenderPass();
-		m_RenderPass->BindPipeline(m_DefaultGraphicsPipeline);
+        VkResult result = m_Swapchain->AquireNextImage(UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_ImageIndex);
 
-		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->PrepreFrame(
-			static_cast<RenderPassVulkan*>(m_RenderPass)->GetCommandBuffer());
-		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->Draw(
-			static_cast<RenderPassVulkan*>(m_RenderPass)->GetCommandBuffer(), *m_VertexBuffer);
+        if (result == VK_ERROR_OUT_OF_DATE_KHR) {
+            Engine::s_Swapchain->Release();
+            m_RenderPass->ReleaseFramebuffers();
+            //delete Engine::s_Swapchain;
+            Engine::s_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_MainWindow);
+            Engine::s_Swapchain->Create();
+            m_Swapchain = static_cast<SwapchainVulkan*>(Engine::s_Swapchain);
+            //m_RenderPass->CreateFramebuffers(); // TODO : Recreate framebuffers
+            return;
+        }
 
-		m_RenderPass->EndRenderPass();
+        vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
 
-		static_cast<GraphicsDeviceVulkan*>(Engine::s_GPUContext)->Submit(
-			static_cast<RenderPassVulkan*>(m_RenderPass));
+        vkResetCommandBuffer(m_CommandBuffer->Get(), /*VkCommandBufferResetFlagBits*/ 0);
+		m_RenderPass->BeginRenderPass(m_CommandBuffer, m_ImageIndex);
+        vkCmdBindPipeline(m_CommandBuffer->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline->GetPipeline());
+        {
+            VkViewport viewport{};
+            viewport.x = 0.0f;
+            viewport.y = 0.0f;
+            viewport.width = static_cast<float>(static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentWidth());
+            viewport.height = static_cast<float>(static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentHeight());
+            viewport.minDepth = 0.0f;
+            viewport.maxDepth = 1.0f;
+            vkCmdSetViewport(m_CommandBuffer->Get(), 0, 1, &viewport);
 
+            VkRect2D scissor{};
+            scissor.offset = { 0, 0 };
+            scissor.extent = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtent();
+            vkCmdSetScissor(m_CommandBuffer->Get(), 0, 1, &scissor);
+        }
+        {
+            const VkBuffer vertexBuffers[] = { m_VertexBuffer->Get() };
+            VkDeviceSize offsets[] = { 0 };
+            vkCmdBindVertexBuffers(m_CommandBuffer->Get(), 0, 1, vertexBuffers, offsets);
+
+            vkCmdDraw(m_CommandBuffer->Get(), m_VertexBuffer->GetData().size(), 1, 0, 0);
+        }
+		m_RenderPass->EndRenderPass(m_CommandBuffer);
+
+        {
+            VkSubmitInfo submitInfo{};
+            submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+            VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore };
+            VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+            submitInfo.waitSemaphoreCount = 1;
+            submitInfo.pWaitSemaphores = waitSemaphores;
+            submitInfo.pWaitDstStageMask = waitStages;
+
+            VkCommandBuffer cmdBufer = m_CommandBuffer->Get();
+            submitInfo.commandBufferCount = 1;
+            submitInfo.pCommandBuffers = &cmdBufer;
+
+            VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
+            submitInfo.signalSemaphoreCount = 1;
+            submitInfo.pSignalSemaphores = signalSemaphores;
+
+            if (vkQueueSubmit(m_GpuContext->s_GPUDevice->GetGraphicsQueue().Handle, 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
+                throw std::runtime_error("failed to submit draw command buffer!");
+            }
+
+            VkPresentInfoKHR presentInfo{};
+            presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+
+            presentInfo.waitSemaphoreCount = 1;
+            presentInfo.pWaitSemaphores = signalSemaphores;
+
+            VkSwapchainKHR swapChains[] = { static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetSwapchain() };
+            presentInfo.swapchainCount = 1;
+            presentInfo.pSwapchains = swapChains;
+
+            presentInfo.pImageIndices = &m_ImageIndex;
+
+            vkQueuePresentKHR(m_GpuContext->s_GPUDevice->GetGraphicsQueue().Handle, &presentInfo);
+        }
 	}
 
 	void RendererVulkan::PostRender() {

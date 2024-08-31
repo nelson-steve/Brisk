@@ -21,4 +21,3 @@ namespace Brisk {
 		std::vector<void*> m_BuffersMapped;
 	};
 }
-}

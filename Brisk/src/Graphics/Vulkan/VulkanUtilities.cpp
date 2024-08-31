@@ -1,6 +1,7 @@
 #include "VulkanUtilities.hpp"
 #include "GpuDeviceVulkan.hpp"
 #include "Engine/WindowBase.hpp"
+#include "Core/Log.hpp"
 
 #include <Volk/volk.h>
 #define GLFW_INCLUDE_VULKAN
@@ -51,7 +52,7 @@ namespace Brisk
 		return VK_FALSE;
 	}
 
-	void VulkanUtilities::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo) {
+	void VulkanUtilities::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& debugCreateInfo) {
 		debugCreateInfo = {};
 		debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
@@ -62,7 +63,7 @@ namespace Brisk
 	VkResult VulkanUtilities::CreateDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo, VkDebugUtilsMessengerEXT debugMessenger) {
 		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
 		if (func != nullptr) {
-			return func(GpuContextVulkan::s_Instance, &debugCreateInfo, nullptr, &debugMessenger);
+			return func(instance, &debugCreateInfo, nullptr, &debugMessenger);
 		}
 		else {
 			std::cout << "Debug Utils Messenger extension not present" << std::endl;

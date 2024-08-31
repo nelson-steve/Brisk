@@ -22,7 +22,7 @@ namespace Brisk
 		s_Swapchain = SwapchainFactory::CreateSwapchain(s_MainWindow);
 		s_Swapchain->Create();
 
-		s_Renderer->SetupRenderTargets(s_Swapchain);
+		s_Renderer->SetupRenderingPipeline(s_Swapchain);
 
 
 	}

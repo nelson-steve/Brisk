@@ -1,7 +1,5 @@
 #pragma once
 
-#include "Graphics/ShaderManager.hpp"
-
 #include <Volk/volk.h>
 
 #include <string>
@@ -30,14 +28,14 @@ namespace Brisk
 		void Release();
 
         void CreateShaderStage(VkShaderModule module, VkShaderStageFlagBits stage);
-        void CreateVertexInputState(std::vector<Binding> bindings, std::vector<AttributeDescription> attributes);
+        void CreateVertexInputState(const std::vector<VkVertexInputBindingDescription>& bindingDescriptions, const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions);
         void CreateInputAssembly(bool primitiveRestartEnable, VkPrimitiveTopology topology);
         void CreateViewportState(uint32_t count, uint32_t scissorCount);
         void CreateRasterizer(bool depthClamp, bool discard, VkPolygonMode polygonMode, float lineWidth, VkCullModeFlags cullMode, VkFrontFace frontFace, bool depthBias);
         void CreateMultiSampling(bool sampleShading, VkSampleCountFlagBits samples);
         void CreateDepthStencil(bool depthTest, bool depthWrite, VkCompareOp, bool depthBoundsTest, bool stencilTest);
-        void CrateColorBlending(std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments, bool isLogicOp, VkLogicOp logicOp);
-        void CreateDynamicState(std::vector<VkDynamicState> dynamicStates);
+        void CrateColorBlending(const std::vector<VkPipelineColorBlendAttachmentState>& colorBlendAttachments, bool isLogicOp, VkLogicOp logicOp);
+        void CreateDynamicState(const std::vector<VkDynamicState>& dynamicStates);
         void CreatePipelineLayout(uint32_t layoutCount, uint32_t pushConstantRangeCount);
 
 		const VkPipeline GetPipeline() const { return m_GraphicsPipeline; }
@@ -51,7 +49,7 @@ namespace Brisk
         VkPipelineDepthStencilStateCreateInfo m_DepthStencil;
         VkPipelineColorBlendStateCreateInfo m_ColorBlending;
         VkPipelineDynamicStateCreateInfo m_DynamicState;
-        VkPipelineLayoutCreateInfo pm_PipelineLayoutInfo;
+        VkPipelineLayoutCreateInfo m_PipelineLayoutInfo;
 
         std::vector<VkShaderModule> m_Modules;
 		VkPipelineLayout m_PipelineLayout;

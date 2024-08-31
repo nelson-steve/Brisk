@@ -3,50 +3,33 @@
 #include "Engine/WindowBase.hpp"
 #include "Graphics/Vulkan/RenderpassVulkan.hpp"
 #include "BufferVulkan.hpp"
+#include "GpuDeviceVulkan.hpp"
+#include "SurfaceFactoryVulkan.hpp"
 
 #include <Volk/volk.h>
 
 #include <vector>
-#include "GpuDeviceVulkan.hpp"
-#include "SurfaceFactoryVulkan.hpp"
 
 namespace Brisk 
 {
-	/// <summary>
-	/// Forward declarations
-	/// </summary>
-	class Swapchain;
-
 	class GpuContextVulkan {
 	public:
 		/// <summary>
 		/// Create Vulkan Device
 		/// </summary>
 		void Create();
-		bool CreateDevice(const GpuDeviceVulkan::GpuRequirements& requirements);
-
-
-		bool Sync();
-		void WaitDeviceIdle();
-
-		void CreateSyncObjects();
-		void PrepreFrame(VkCommandBuffer commandBuffer);
-		void Submit(RenderPassVulkan* renderpass);
-		void Draw(VkCommandBuffer commandBuffer, BufferVulkan buffer);
 		/// <summary>
 		/// Release all Vulkan resources cleanly
 		/// </summary>
 		void Release();
-		void ReleasePools();
+
+		bool CreateDevice(const GpuDeviceVulkan::GpuRequirements& requirements);
+		void WaitDeviceIdle();
 
 		/// <summary>
 		/// Getters for Vulkan handles
 		/// </summary>
 		static VkInstance GetInstance() { return s_Instance; }
-		static VkCommandPool GetCommandPool() { return m_CommandPool; }
-		static VkSurfaceKHR GetSurface() { return s_Surface; }
-
-		static uint32_t GetImageIndex() { return m_ImageIndex; }
 
 		static std::vector<const char*>& GetRequiredExtenstions() { return s_RequiredExtensions; }
 		static std::vector<const char*>& GetValidationLayers() { return s_ValidationLayers; }
@@ -59,7 +42,6 @@ namespace Brisk
 		/// <summary>
 		/// Vulkan helper variables
 		/// </summary>
-		static VkCommandPool m_CommandPool;
 		static std::vector<const char*> s_Extensions;
 		static std::vector<const char*> s_Layers;
 		static std::vector<const char*> s_RequiredExtensions;
@@ -69,26 +51,18 @@ namespace Brisk
 		static bool m_ValidationLayersFound;
 
 		static GpuDeviceVulkan* s_GPUDevice;
-		static GraphicsPipelineVulkan* s_GraphicsPipeline;
-		static RenderPassVulkan* s_RenderPass;
-		
-		static VkFence m_InFlightFence;
-		static VkSemaphore m_ImageAvailableSemaphore;
-		static VkSemaphore m_RenderFinishedSemaphore;
-
 		static SurfaceVulkan* s_Surface;
-		static GpuDeviceVulkan* s_GPUDevice;
-
-		static uint32_t m_ImageIndex;
 
 		/// <summary>
 		/// Friend class declaration
 		/// </summary>
-		friend class GpuDeviceVulkan;
 		friend class GraphicsPipelineVulkan;
 		friend class RenderPassVulkan;
+		friend class GpuDeviceVulkan;
 		friend class SwapchainVulkan;
 		friend class VulkanUtilities;
 		friend class RendererVulkan;
+		friend class CommandBufferVulkan;
+		friend class BufferVulkan;
 	};
 }

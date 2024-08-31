@@ -1,6 +1,7 @@
 #include "GpuDeviceVulkan.hpp"
 #include "Core/Log.hpp"
 #include "Engine/Engine.hpp"
+#include "GpuContextVulkan.hpp"
 
 #include <set>
 
@@ -9,11 +10,12 @@ namespace Brisk
 	std::vector<VkPhysicalDevice> GpuDeviceVulkan::RetrieveAvailableDevice() {
 		uint32_t device_count = 0;
 		vkEnumeratePhysicalDevices(GpuContextVulkan::s_Instance, &device_count, nullptr);
+		std::vector<VkPhysicalDevice> devices;
 		if (device_count == 0) {
 			BRISK_CORE_ERROR("Failed to find GPUs with Vulkan support!");
-			return;
+			return devices;
 		}
-		std::vector<VkPhysicalDevice> devices(device_count);
+		devices.resize(device_count);
 		vkEnumeratePhysicalDevices(GpuContextVulkan::s_Instance, &device_count, devices.data());
 
 		return devices;
@@ -26,14 +28,15 @@ namespace Brisk
 		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &queueFamilyCount, queueFamilies.data());
 
-		std::vector<QueueFamily> QueuFamilies;
+		std::vector<QueueFamily> QueuFamilies{};
 		// Requesting all availabel queues
+		std::vector<float> queuePriorities;
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 		for (uint32_t i = 0; i < queueFamilyCount; ++i) {
 			bool isGraphics = false;
 			bool isCompute = false;
 			bool isTransfer = false;
-			QueueFamily queueFamily;
+			QueueFamily queueFamily{};
 			queueFamily.Index = i;
 			queueFamily.QueueCount = queueFamilies[i].queueCount;
 
@@ -74,12 +77,11 @@ namespace Brisk
 			if (isCompute && !isGraphics && !isTransfer)
 				queueFamily.IsExplicitComputeQueue = true;
 
-			VkDeviceQueueCreateInfo queueCreateInfo{};
-			queueCreateInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			VkDeviceQueueCreateInfo queueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
 			queueCreateInfo.queueFamilyIndex = i;
 			queueCreateInfo.queueCount = queueFamilies[i].queueCount;
 
-			std::vector<float> queuePriorities(queueFamilies[i].queueCount, 1.0f);
+			queuePriorities.resize(queueFamilies[i].queueCount, 1.0f);
 			queueCreateInfo.pQueuePriorities = queuePriorities.data();
 
 			QueuFamilies.push_back(queueFamily);

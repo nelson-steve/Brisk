@@ -136,6 +136,7 @@ namespace Brisk {
                 BRISK_CORE_ERROR("Failed to create window surface!");
 #endif
             }
+            return surface;
         }
     };
 }

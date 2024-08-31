@@ -1,7 +1,5 @@
 #pragma once
 
-#include "GPUContextVulkan.hpp"
-
 #include <Volk/volk.h>
 
 #include <vector>

@@ -1,10 +1,11 @@
 #pragma once
 
-#include <string>
-
-#include "Graphics/GPUDevice.hpp"
-#include "Graphics/Vulkan/PhysicalDevice.hpp"
 #include "EngineGlobal.hpp"
+#include "WindowBase.hpp"
+#include "Graphics/Swapchain.hpp"
+#include "Renderer/Renderer.hpp"
+
+#include <string>
 
 namespace Brisk 
 {
@@ -19,6 +20,16 @@ namespace Brisk
 	//	static Swapchain* m_Swapchain;
 	//	static PhysicalDevice* s_PhysicalDevice;
 	//};
+
+	struct Vec3 {
+		float X; float Y; float Z;
+	};
+
+	struct Point {
+		Vec3 Position;
+		Vec3 Color;
+	};
+
 
 	/// <summary>
 	/// Main Engine class holding all major systems of the engine

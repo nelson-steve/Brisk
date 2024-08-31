@@ -1,11 +1,8 @@
 #include "GpuContextVulkan.hpp"
-//#include "Engine/Engine.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
 #include "SwapchainVulkan.hpp"
 #include "Defines.h"
 #include "VulkanUtilities.hpp"
-#include "Graphics/ShaderManager.hpp"
-#include "Engine/Renderer/Renderer.hpp"
 
 #define GLFW_INCLUDE_VULKAN
 #include <glfw3.h>
@@ -66,10 +63,6 @@ namespace Brisk
 	/// Static memebers declarations
 	/// </summary>
 	VkInstance GpuContextVulkan::s_Instance;
-
-	VkFence GpuContextVulkan::m_InFlightFence;
-	VkSemaphore GpuContextVulkan::m_ImageAvailableSemaphore;
-	VkSemaphore GpuContextVulkan::m_RenderFinishedSemaphore;
 	std::vector<const char*> GpuContextVulkan::s_Extensions;
 	std::vector<const char*> GpuContextVulkan::s_Layers;
 	VkDebugUtilsMessengerCreateInfoEXT GpuContextVulkan::s_DebugCreateInfo;
@@ -77,8 +70,9 @@ namespace Brisk
 	bool GpuContextVulkan::m_ValidationLayersFound;
 	std::vector<const char*> GpuContextVulkan::s_RequiredExtensions;
 	std::vector<const char*> GpuContextVulkan::s_ValidationLayers;
-	VkCommandPool GpuContextVulkan::m_CommandPool;
-	VkSurfaceKHR GpuContextVulkan::s_Surface;
+
+	GpuDeviceVulkan* GpuContextVulkan::s_GPUDevice;
+	SurfaceVulkan* GpuContextVulkan::s_Surface;
 
 	void GpuContextVulkan::Create(){
 		volkInitialize();
@@ -110,7 +104,7 @@ namespace Brisk
 		createInfo.ppEnabledLayerNames =
 			m_ValidationLayersFound ? s_ValidationLayers.data() : nullptr;
 
-		VulkanUtilities::PopulateDebugMessengerCreateInfo();
+		VulkanUtilities::PopulateDebugMessengerCreateInfo(s_DebugCreateInfo);
 		createInfo.pNext = &s_DebugCreateInfo;
 #endif
 		VK_LOG(vkCreateInstance(&createInfo, nullptr, &s_Instance),
@@ -119,7 +113,7 @@ namespace Brisk
 		volkLoadInstance(s_Instance);
 
 #if _DEBUG
-		VkResult result = VulkanUtilities::CreateDebugUtilsMessengerEXT();
+		VkResult result = VulkanUtilities::CreateDebugUtilsMessengerEXT(s_Instance, s_DebugCreateInfo, s_DebugMessenger);
 		if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
 			BRISK_APP_ERROR("Debug Utils extension not present");
 		}
@@ -129,30 +123,6 @@ namespace Brisk
 #endif
 
 		s_RequiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-
-		if (glfwCreateWindowSurface(s_Instance, (GLFWwindow*)Engine::s_MainWindow->GetWindowHandle(), nullptr, &s_Surface) != VK_SUCCESS) {
-			BRISK_CORE_ERROR("Failed to create window surface!");
-		}
-
-		//s_GPUDevice->Create();
-
-		//PhysicalDevice::Details details;
-		//details.Surface = s_Surface;
-		//details.RequiredQueueTypes.push_back(PhysicalDevice::QueueInfo::QueueType::QUEUE_GRAPHICS_BIT);
-		//details.RequiredQueueTypes.push_back(PhysicalDevice::QueueInfo::QueueType::QUEUE_TRANSFER_BIT);
-		//details.RequiredFeatures.push_back(PhysicalDevice::Feature::ANISOTROPY);
-		//details.RequiredFeatures.push_back(PhysicalDevice::Feature::PRESENTATION);
-		//Engine::s_PhysicalDevice = new PhysicalDevice();
-		//Engine::s_PhysicalDevice->Create(details);
-
-		VkCommandPoolCreateInfo poolInfo{};
-		poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		poolInfo.queueFamilyIndex = s_GPUDevice->GetPresentQueue()->Info.QueueFamilyIndex;
-
-		if (vkCreateCommandPool(s_GPUDevice->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create command pool!");
-		}
 	}
 
 	bool GpuContextVulkan::CreateDevice(const GpuDeviceVulkan::GpuRequirements& requirements) {
@@ -168,118 +138,16 @@ namespace Brisk
 		}
 		if (!deviceFound) {
 			BRISK_CORE_ERROR("Failed to find a suitable GPU!");
-			return;
+			return false;
 		}
 
 		s_Surface = SurfaceFactoryVulkan::CreateNativeSurface(s_Instance);
 		s_GPUDevice->CreateLogicalDevice(requirements);
-	}
-
-	bool GpuContextVulkan::Sync() {
-		vkWaitForFences(s_GPUDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
-
-		VkResult result = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->AquireNextImage(UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_ImageIndex);
-
-		if (result == VK_ERROR_OUT_OF_DATE_KHR) {
-			Engine::s_Swapchain->Release();
-			s_RenderPass->ReleaseFramebuffers();
-			//delete Engine::s_Swapchain;
-			Engine::s_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_MainWindow);
-			Engine::s_Swapchain->Create();
-			s_RenderPass->CreateFramebuffers();
-			return true;
-		}
-
-		vkResetFences(s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
-		return false;
+		return true;
 	}
 
 	void GpuContextVulkan::WaitDeviceIdle() {
 		vkDeviceWaitIdle(s_GPUDevice->GetDevice());
-	}
-
-	void GpuContextVulkan::Submit(RenderPassVulkan* renderpass) {
-		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-
-		VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore };
-		VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-		submitInfo.waitSemaphoreCount = 1;
-		submitInfo.pWaitSemaphores = waitSemaphores;
-		submitInfo.pWaitDstStageMask = waitStages;
-
-		VkCommandBuffer cmdBufer = renderpass->GetCommandBuffer();
-		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = &cmdBufer;
-
-		VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
-		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = signalSemaphores;
-
-		if (vkQueueSubmit(s_GPUDevice->GetGraphicsQueue()->Queue_, 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
-			throw std::runtime_error("failed to submit draw command buffer!");
-		}
-
-		VkPresentInfoKHR presentInfo{};
-		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-
-		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = signalSemaphores;
-
-		VkSwapchainKHR swapChains[] = { static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetSwapchain() };
-		presentInfo.swapchainCount = 1;
-		presentInfo.pSwapchains = swapChains;
-
-		presentInfo.pImageIndices = &m_ImageIndex;
-
-		vkQueuePresentKHR(s_GPUDevice->GetPresentQueue()->Queue_, &presentInfo);
-	}
-
-	void GpuContextVulkan::PrepreFrame(VkCommandBuffer commandBuffer) {
-		VkViewport viewport{};
-		viewport.x = 0.0f;
-		viewport.y = 0.0f;
-		viewport.width = static_cast<float>(static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentWidth());
-		viewport.height = static_cast<float>(static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentHeight());
-		viewport.minDepth = 0.0f;
-		viewport.maxDepth = 1.0f;
-		vkCmdSetViewport(commandBuffer, 0, 1, &viewport);
-
-		VkRect2D scissor{};
-		scissor.offset = { 0, 0 };
-		scissor.extent = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtent();
-		vkCmdSetScissor(commandBuffer, 0, 1, &scissor);
-	}
-
-	void GpuContextVulkan::Draw(VkCommandBuffer commandBuffer, BufferVulkan buffer) {
-		const VkBuffer vertexBuffers[] = { buffer.Get() };
-		VkDeviceSize offsets[] = { 0 };
-		vkCmdBindVertexBuffers(commandBuffer, 0, 1, vertexBuffers, offsets);
-
-		vkCmdDraw(commandBuffer, buffer.GetData().size(), 1, 0, 0);
-	}
-
-	void GpuContextVulkan::CreateSyncObjects() {
-		VkSemaphoreCreateInfo semaphoreInfo{};
-		semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-		VkFenceCreateInfo fenceInfo{};
-		fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-		fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
-
-		if (vkCreateSemaphore(s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore) != VK_SUCCESS ||
-			vkCreateSemaphore(s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore) != VK_SUCCESS ||
-			vkCreateFence(s_GPUDevice->GetDevice(), &fenceInfo, nullptr, &m_InFlightFence) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create synchronization objects for a frame!");
-		}
-	}
-
-	void GpuContextVulkan::ReleasePools() {
-		// TODO: Should not get freed here
-		vkDestroySemaphore(s_GPUDevice->GetDevice(), m_ImageAvailableSemaphore, nullptr);
-		vkDestroySemaphore(s_GPUDevice->GetDevice(), m_RenderFinishedSemaphore, nullptr);
-		vkDestroyFence(s_GPUDevice->GetDevice(), m_InFlightFence, nullptr);
-		vkDestroyCommandPool(s_GPUDevice->GetDevice(), m_CommandPool, nullptr);
 	}
 
 	void GpuContextVulkan::Release() {

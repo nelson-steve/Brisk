@@ -3,6 +3,7 @@
 #include "Engine/Engine.hpp"
 #include "SwapchainVulkan.hpp"
 #include "Engine/Renderer/Renderer.hpp"
+#include "GpuContextVulkan.hpp"
 
 namespace Brisk {
     GraphicsPipelineVulkan::GraphicsPipelineVulkan() {
@@ -85,23 +86,23 @@ namespace Brisk {
         }
     }
 
-    void GraphicsPipelineVulkan::CreateVertexInputState(std::vector<Binding> bindings, std::vector<AttributeDescription> attributes) {
-        VkPipelineVertexInputStateCreateInfo m_VertexInputInfo{ VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
-        std::vector<VkVertexInputBindingDescription> bindingDescriptions;
-        bindingDescriptions.resize(bindings.size());
-        for (int i = 0; i < bindingDescriptions.size(); i++) {
-            bindingDescriptions[i].binding = bindings[i].BindingIndex;
-            bindingDescriptions[i].inputRate = bindings[i].InputRate;
-            bindingDescriptions[i].stride = bindings[i].Stride;
-        }
-        std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-        attributeDescriptions.resize(attributes.size());
-        for (int i = 0; i < attributeDescriptions.size(); i++) {
-            attributeDescriptions[i].binding = attributes[i].BindingIndex;
-            attributeDescriptions[i].location = attributes[i].Location;
-            attributeDescriptions[i].format = attributes[i].Format;
-            attributeDescriptions[i].offset = attributes[i].Offset;
-        }
+    void GraphicsPipelineVulkan::CreateVertexInputState(const std::vector<VkVertexInputBindingDescription>& bindingDescriptions, const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions) {
+        m_VertexInputInfo.sType = { VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
+        //std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+        //bindingDescriptions.resize(bindings.size());
+        //for (int i = 0; i < bindingDescriptions.size(); i++) {
+        //    bindingDescriptions[i].binding = bindings[i].BindingIndex;
+        //    bindingDescriptions[i].inputRate = bindings[i].InputRate;
+        //    bindingDescriptions[i].stride = bindings[i].Stride;
+        //}
+        //std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+        //attributeDescriptions.resize(attributes.size());
+        //for (int i = 0; i < attributeDescriptions.size(); i++) {
+        //    attributeDescriptions[i].binding = attributes[i].BindingIndex;
+        //    attributeDescriptions[i].location = attributes[i].Location;
+        //    attributeDescriptions[i].format = attributes[i].Format;
+        //    attributeDescriptions[i].offset = attributes[i].Offset;
+        //}
         m_VertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
         m_VertexInputInfo.pVertexBindingDescriptions = bindingDescriptions.data();
         m_VertexInputInfo.vertexBindingDescriptionCount = static_cast<uint32_t>(bindingDescriptions.size());
@@ -109,19 +110,19 @@ namespace Brisk {
     }
 
     void GraphicsPipelineVulkan::CreateInputAssembly(bool primitiveRestartEnable, VkPrimitiveTopology topology) {
-        VkPipelineInputAssemblyStateCreateInfo m_InputAssembly{ VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
+        m_InputAssembly.sType = { VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
         m_InputAssembly.topology = topology;
         m_InputAssembly.primitiveRestartEnable = primitiveRestartEnable ? VK_TRUE : VK_FALSE;
     }
 
     void GraphicsPipelineVulkan::CreateViewportState(uint32_t viewportCount, uint32_t scissorCount) {
-        VkPipelineViewportStateCreateInfo m_ViewportState{ VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
+        m_ViewportState.sType = { VK_STRUCTURE_TYPE_PIPELINE_VIEWPORT_STATE_CREATE_INFO };
         m_ViewportState.viewportCount = viewportCount;
         m_ViewportState.scissorCount = scissorCount;
     }
 
     void GraphicsPipelineVulkan::CreateRasterizer(bool depthClamp, bool discard, VkPolygonMode polygonMode, float lineWidth, VkCullModeFlags cullMode, VkFrontFace frontFace, bool depthBias) {
-        VkPipelineRasterizationStateCreateInfo m_Rasterizer{ VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
+        m_Rasterizer.sType = { VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
         m_Rasterizer.depthClampEnable = depthClamp ? VK_TRUE : VK_FALSE;
         m_Rasterizer.rasterizerDiscardEnable = discard ? VK_TRUE : VK_FALSE;
         m_Rasterizer.polygonMode = polygonMode;
@@ -132,13 +133,13 @@ namespace Brisk {
     }
 
     void GraphicsPipelineVulkan::CreateMultiSampling(bool sampleShading, VkSampleCountFlagBits samples) {
-        VkPipelineMultisampleStateCreateInfo m_Multisampling{ VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
+        m_Multisampling.sType = { VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
         m_Multisampling.sampleShadingEnable = sampleShading ? VK_TRUE : VK_FALSE;
         m_Multisampling.rasterizationSamples = samples;
     }
 
     void GraphicsPipelineVulkan::CreateDepthStencil(bool depthTest, bool depthWrite, VkCompareOp compareOp, bool depthBoundsTest, bool stencilTest) {
-        VkPipelineDepthStencilStateCreateInfo m_DepthStencil{ VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
+        m_DepthStencil.sType = { VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
         m_DepthStencil.depthTestEnable = depthTest ? VK_TRUE : VK_FALSE;
         m_DepthStencil.depthWriteEnable = depthTest ? VK_TRUE : VK_FALSE;
         m_DepthStencil.depthCompareOp = compareOp;
@@ -146,8 +147,7 @@ namespace Brisk {
         m_DepthStencil.stencilTestEnable = stencilTest ? VK_TRUE : VK_FALSE;
     }
 
-    void GraphicsPipelineVulkan::CrateColorBlending(std::vector<VkPipelineColorBlendAttachmentState> colorBlendAttachments, bool isLogicOp, VkLogicOp logicOp) {
-        VkPipelineColorBlendStateCreateInfo m_ColorBlending{};
+    void GraphicsPipelineVulkan::CrateColorBlending(const std::vector<VkPipelineColorBlendAttachmentState>& colorBlendAttachments, bool isLogicOp, VkLogicOp logicOp) {
         m_ColorBlending.sType = VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO;
         m_ColorBlending.logicOpEnable = isLogicOp ? VK_TRUE : VK_FALSE;
         m_ColorBlending.logicOp = logicOp;
@@ -159,15 +159,14 @@ namespace Brisk {
         m_ColorBlending.blendConstants[3] = 0.0f;
     }
 
-    void GraphicsPipelineVulkan::CreateDynamicState(std::vector<VkDynamicState> dynamicStates) {
-        VkPipelineDynamicStateCreateInfo m_DynamicState{};
-        m_DynamicState.sType = VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO;
+    void GraphicsPipelineVulkan::CreateDynamicState(const std::vector<VkDynamicState>& dynamicStates) {
+        m_DynamicState.sType = { VK_STRUCTURE_TYPE_PIPELINE_DYNAMIC_STATE_CREATE_INFO };
         m_DynamicState.dynamicStateCount = static_cast<uint32_t>(dynamicStates.size());
         m_DynamicState.pDynamicStates = dynamicStates.data();
     }
 
     void GraphicsPipelineVulkan::CreatePipelineLayout(uint32_t layoutCount, uint32_t pushConstantRangeCount) {
-        VkPipelineLayoutCreateInfo m_PipelineLayoutInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
+        m_PipelineLayoutInfo.sType = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
         m_PipelineLayoutInfo.setLayoutCount = layoutCount;
         m_PipelineLayoutInfo.pushConstantRangeCount = pushConstantRangeCount;
 

@@ -2,17 +2,9 @@
 
 #include <Volk/volk.h>
 #include "GraphicsPipelineVulkan.hpp"
+#include "Engine/Engine.hpp"
 
 namespace Brisk {
-	struct Vec3 {
-		float X; float Y; float Z;
-	};
-
-	struct Point {
-		Vec3 Position;
-		Vec3 Color;
-	};
-
 	class BufferVulkan {
 	public:
 		void Create(std::vector<Point>& data, VkBufferUsageFlags usageFlags);

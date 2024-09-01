@@ -4,6 +4,12 @@
 #include "../VulkanUtilities.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
 
+#define GLM_FORCE_RADIANS
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
+#include <chrono>
+
 namespace Brisk {
 	void RendererVulkan::Create() {
 		m_GpuContext = new GpuContextVulkan();
@@ -95,9 +101,7 @@ namespace Brisk {
             m_RenderPass->CreateNAddFramebuffer(attachments, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
         }
 
-        CreateGraphicsPipeline();
-
-	    std::vector<Point> vertices = {
+	    Vertices = {
 	    	{{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
 	    	{{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
 	    	{{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
@@ -108,13 +112,56 @@ namespace Brisk {
 	    };
 
         m_VertexBuffer = new BufferVulkan();
-	    m_VertexBuffer->Create(vertices, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-	    m_VertexBuffer->Allocate();
-	    m_VertexBuffer->MapMemory(vertices);
+	    m_VertexBuffer->Create(sizeof(Vertices[0]) * Vertices.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+	    m_VertexBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+	    m_VertexBuffer->MapMemory(Vertices);
+	    m_VertexBuffer->UnMapMemory();
+
+        m_UniformBufferData = new MVPBuffer();
+        m_UniformBuffer = new BufferVulkan();
+        m_UniformBuffer->Create(sizeof(MVPBuffer), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+        m_UniformBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        m_UniformBuffer->MapMemory(m_UniformBufferData, sizeof(MVPBuffer));
 
         m_CommandBuffer = new CommandBufferVulkan();
         m_CommandBuffer->Allocate(m_CommandPool);
+
+        VkDescriptorPoolSize poolSize{};
+        poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        poolSize.descriptorCount = 1;
+
+        VkDescriptorPoolCreateInfo poolInfo{};
+        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        poolInfo.poolSizeCount = 1;
+        poolInfo.pPoolSizes = &poolSize;
+        poolInfo.maxSets = 1;
+
+        if (vkCreateDescriptorPool(m_GpuContext->s_GPUDevice->GetDevice(), &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create descriptor pool!");
+        }
+
+        CreateDescriptorSet();
+        CreateGraphicsPipeline();
     }
+
+    void RendererVulkan::UpdateUniformBuffer(uint32_t currentImage) {
+        //static auto startTime = std::chrono::high_resolution_clock::now();
+        //
+        //auto currentTime = std::chrono::high_resolution_clock::now();
+        //float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+
+        MVPBuffer ubo{};
+        //ubo.Model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        ubo.Model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        //ubo.Model = glm::mat4();
+        ubo.View = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        float value = m_Swapchain->GetExtentWidth() / (float)m_Swapchain->GetExtentHeight();
+        ubo.Projection = glm::perspective(glm::radians(60.0f), value, 0.001f, 1000.0f);
+        ubo.Projection[1][1] *= -1;
+
+        memcpy(m_UniformBufferData, &ubo, sizeof(ubo));
+    }
+
 
     void RendererVulkan::CreateGraphicsPipeline() {
         m_Pipeline = new GraphicsPipelineVulkan();
@@ -161,7 +208,7 @@ namespace Brisk {
         m_Pipeline->CreateVertexInputState(bindingDescriptions, attributeDescriptions);
         m_Pipeline->CreateInputAssembly(false, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
         m_Pipeline->CreateViewportState(1, 1);
-        m_Pipeline->CreateRasterizer(false, false, VK_POLYGON_MODE_FILL, 1.0f, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_CLOCKWISE, false);
+        m_Pipeline->CreateRasterizer(false, false, VK_POLYGON_MODE_FILL, 1.0f, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE, false);
         m_Pipeline->CreateMultiSampling(false, VK_SAMPLE_COUNT_1_BIT);
         m_Pipeline->CreateDepthStencil(true, true, VK_COMPARE_OP_LESS, false, false);
         VkPipelineColorBlendAttachmentState colorBlendAttachment{};
@@ -174,8 +221,53 @@ namespace Brisk {
             VK_DYNAMIC_STATE_SCISSOR
         };
         m_Pipeline->CreateDynamicState(dynamicStates);
-        m_Pipeline->CreatePipelineLayout(0, 0);
+        m_Pipeline->CreatePipelineLayout(m_DescriptorSetLayouts, 0);
         m_Pipeline->CreatePipeline(m_RenderPass->GetRenderPass());
+    }
+
+    void RendererVulkan::CreateDescriptorSet() {
+        VkDescriptorSetLayoutBinding uboLayoutBinding{};
+        uboLayoutBinding.binding = 0;
+        uboLayoutBinding.descriptorCount = 1;
+        uboLayoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        uboLayoutBinding.pImmutableSamplers = nullptr;
+        uboLayoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+
+        VkDescriptorSetLayoutCreateInfo layoutInfo{};
+        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layoutInfo.bindingCount = 1;
+        layoutInfo.pBindings = &uboLayoutBinding;
+
+        m_DescriptorSetLayouts.resize(1);
+        if (vkCreateDescriptorSetLayout(m_GpuContext->s_GPUDevice->GetDevice(), &layoutInfo, nullptr, &m_DescriptorSetLayouts[0]) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create descriptor set layout!");
+        }
+
+        VkDescriptorSetAllocateInfo allocInfo{};
+        allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+        allocInfo.descriptorPool = m_DescriptorPool;
+        allocInfo.descriptorSetCount = static_cast<uint32_t>(m_DescriptorSetLayouts.size());
+        allocInfo.pSetLayouts = m_DescriptorSetLayouts.data();
+
+        if (vkAllocateDescriptorSets(m_GpuContext->s_GPUDevice->GetDevice(), &allocInfo, &m_DescriptorSet) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate descriptor sets!");
+        }
+
+        VkDescriptorBufferInfo bufferInfo{};
+        bufferInfo.buffer = m_UniformBuffer->Get();
+        bufferInfo.offset = 0;
+        bufferInfo.range = sizeof(MVPBuffer);
+
+        VkWriteDescriptorSet descriptorWrite{};
+        descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+        descriptorWrite.dstSet = m_DescriptorSet;
+        descriptorWrite.dstBinding = 0;
+        descriptorWrite.dstArrayElement = 0;
+        descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        descriptorWrite.descriptorCount = 1;
+        descriptorWrite.pBufferInfo = &bufferInfo;
+
+        vkUpdateDescriptorSets(m_GpuContext->s_GPUDevice->GetDevice(), 1, &descriptorWrite, 0, nullptr);
     }
 
 	void RendererVulkan::Release() {
@@ -208,6 +300,7 @@ namespace Brisk {
             return;
         }
 
+        UpdateUniformBuffer(m_ImageIndex);
         vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
 
         vkResetCommandBuffer(m_CommandBuffer->Get(), /*VkCommandBufferResetFlagBits*/ 0);
@@ -233,7 +326,9 @@ namespace Brisk {
             VkDeviceSize offsets[] = { 0 };
             vkCmdBindVertexBuffers(m_CommandBuffer->Get(), 0, 1, vertexBuffers, offsets);
 
-            vkCmdDraw(m_CommandBuffer->Get(), m_VertexBuffer->GetData().size(), 1, 0, 0);
+            vkCmdBindDescriptorSets(m_CommandBuffer->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline->GetLayout(), 0, 1, &m_DescriptorSet, 0, nullptr);
+
+            vkCmdDraw(m_CommandBuffer->Get(), Vertices.size(), 1, 0, 0);
         }
 		m_RenderPass->EndRenderPass(m_CommandBuffer);
 

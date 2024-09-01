@@ -36,9 +36,10 @@ namespace Brisk
         void CreateDepthStencil(bool depthTest, bool depthWrite, VkCompareOp, bool depthBoundsTest, bool stencilTest);
         void CrateColorBlending(const std::vector<VkPipelineColorBlendAttachmentState>& colorBlendAttachments, bool isLogicOp, VkLogicOp logicOp);
         void CreateDynamicState(const std::vector<VkDynamicState>& dynamicStates);
-        void CreatePipelineLayout(uint32_t layoutCount, uint32_t pushConstantRangeCount);
+        void CreatePipelineLayout(std::vector< VkDescriptorSetLayout>& layouts, uint32_t pushConstantRangeCount);
 
 		const VkPipeline GetPipeline() const { return m_GraphicsPipeline; }
+		const VkPipelineLayout GetLayout() const { return m_PipelineLayout; }
 	private:
         std::vector<VkPipelineShaderStageCreateInfo> m_ShaderStages;
         VkPipelineVertexInputStateCreateInfo m_VertexInputInfo;

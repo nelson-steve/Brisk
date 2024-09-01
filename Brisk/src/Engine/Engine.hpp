@@ -5,6 +5,8 @@
 #include "Graphics/Swapchain.hpp"
 #include "Renderer/Renderer.hpp"
 
+#include <glm/glm.hpp>
+
 #include <string>
 
 namespace Brisk 
@@ -21,13 +23,15 @@ namespace Brisk
 	//	static PhysicalDevice* s_PhysicalDevice;
 	//};
 
-	struct Vec3 {
-		float X; float Y; float Z;
+	struct Point {
+		glm::vec3 Position;
+		glm::vec3 Color;
 	};
 
-	struct Point {
-		Vec3 Position;
-		Vec3 Color;
+	struct MVPBuffer {
+		glm::mat4 Model;
+		glm::mat4 View;
+		glm::mat4 Projection;
 	};
 
 

@@ -42,7 +42,7 @@ namespace Brisk {
         m_Rasterizer.polygonMode = VK_POLYGON_MODE_FILL;
         m_Rasterizer.lineWidth = 1.0f;
         m_Rasterizer.cullMode = VK_CULL_MODE_BACK_BIT;
-        m_Rasterizer.frontFace = VK_FRONT_FACE_CLOCKWISE;
+        m_Rasterizer.frontFace = VK_FRONT_FACE_COUNTER_CLOCKWISE;
         m_Rasterizer.depthBiasEnable = VK_FALSE;
 
         VkPipelineMultisampleStateCreateInfo m_Multisampling{ VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
@@ -150,10 +150,12 @@ namespace Brisk {
         m_DynamicState.pDynamicStates = dynamicStates.data();
     }
 
-    void GraphicsPipelineVulkan::CreatePipelineLayout(uint32_t layoutCount, uint32_t pushConstantRangeCount) {
+    void GraphicsPipelineVulkan::CreatePipelineLayout(std::vector< VkDescriptorSetLayout>& layouts, uint32_t pushConstantRangeCount) {
         m_PipelineLayoutInfo.sType = { VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
-        m_PipelineLayoutInfo.setLayoutCount = layoutCount;
         m_PipelineLayoutInfo.pushConstantRangeCount = pushConstantRangeCount;
+        m_PipelineLayoutInfo.pPushConstantRanges = nullptr;
+        m_PipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(layouts.size());
+        m_PipelineLayoutInfo.pSetLayouts = layouts.data();
 
         if (vkCreatePipelineLayout(GpuContextVulkan::s_GPUDevice->GetDevice(), &m_PipelineLayoutInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");

@@ -8,10 +8,8 @@ namespace Brisk {
 	public:
 		virtual void Create(Mode mode) override;
 		virtual void Release() override;
-		//void Resize();
 
 		VkResult AquireNextImage(uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* pImageIndex);
-		//VkSurfaceKHR GetSurface() const { return m_Surface; }
 		VkSwapchainKHR GetSwapchain() const { return m_Swapchain; }
 		std::vector<VkImage> GetSwapchainImages() const { return m_SwapchainImages; }
 		std::vector<VkImageView> GetSwapchainImageViews() const { return m_SwapchainImageViews; }
@@ -27,7 +25,6 @@ namespace Brisk {
 		SwapchainVulkan(WindowBase* window);
 	private:
 		VkSwapchainKHR m_Swapchain;
-		//VkSurfaceKHR m_Surface;
 		std::vector<VkSemaphore> m_render_complete_semaphores;
 		std::vector<VkSemaphore> m_present_complete_semaphores;
 		std::vector<VkImage> m_SwapchainImages;

@@ -41,7 +41,6 @@ namespace Brisk {
         if (vkCreateCommandPool(GpuContextVulkan::s_GPUDevice->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create command pool!");
         }
-
 	}
 
     void RendererVulkan::SetupRenderingPipeline(Swapchain* swap) {
@@ -117,11 +116,10 @@ namespace Brisk {
 	    m_VertexBuffer->MapMemory(Vertices);
 	    m_VertexBuffer->UnMapMemory();
 
-        m_UniformBufferData = new MVPBuffer();
         m_UniformBuffer = new BufferVulkan();
         m_UniformBuffer->Create(sizeof(MVPBuffer), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
         m_UniformBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        m_UniformBuffer->MapMemory(m_UniformBufferData, sizeof(MVPBuffer));
+        m_UniformBufferData = m_UniformBuffer->MapMemory();
 
         m_CommandBuffer = new CommandBufferVulkan();
         m_CommandBuffer->Allocate(m_CommandPool);
@@ -145,15 +143,13 @@ namespace Brisk {
     }
 
     void RendererVulkan::UpdateUniformBuffer(uint32_t currentImage) {
-        //static auto startTime = std::chrono::high_resolution_clock::now();
+        static auto startTime = std::chrono::high_resolution_clock::now();
         //
-        //auto currentTime = std::chrono::high_resolution_clock::now();
-        //float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
+        auto currentTime = std::chrono::high_resolution_clock::now();
+        float time = std::chrono::duration<float, std::chrono::seconds::period>(currentTime - startTime).count();
 
         MVPBuffer ubo{};
-        //ubo.Model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.Model = glm::rotate(glm::mat4(1.0f), glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        //ubo.Model = glm::mat4();
+        ubo.Model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         ubo.View = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
         float value = m_Swapchain->GetExtentWidth() / (float)m_Swapchain->GetExtentHeight();
         ubo.Projection = glm::perspective(glm::radians(60.0f), value, 0.001f, 1000.0f);
@@ -208,7 +204,7 @@ namespace Brisk {
         m_Pipeline->CreateVertexInputState(bindingDescriptions, attributeDescriptions);
         m_Pipeline->CreateInputAssembly(false, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
         m_Pipeline->CreateViewportState(1, 1);
-        m_Pipeline->CreateRasterizer(false, false, VK_POLYGON_MODE_FILL, 1.0f, VK_CULL_MODE_BACK_BIT, VK_FRONT_FACE_COUNTER_CLOCKWISE, false);
+        m_Pipeline->CreateRasterizer(false, false, VK_POLYGON_MODE_FILL, 1.0f, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE, false);
         m_Pipeline->CreateMultiSampling(false, VK_SAMPLE_COUNT_1_BIT);
         m_Pipeline->CreateDepthStencil(true, true, VK_COMPARE_OP_LESS, false, false);
         VkPipelineColorBlendAttachmentState colorBlendAttachment{};
@@ -247,7 +243,7 @@ namespace Brisk {
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
         allocInfo.descriptorPool = m_DescriptorPool;
         allocInfo.descriptorSetCount = static_cast<uint32_t>(m_DescriptorSetLayouts.size());
-        allocInfo.pSetLayouts = m_DescriptorSetLayouts.data();
+        allocInfo.pSetLayouts = &m_DescriptorSetLayouts[0];
 
         if (vkAllocateDescriptorSets(m_GpuContext->s_GPUDevice->GetDevice(), &allocInfo, &m_DescriptorSet) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate descriptor sets!");

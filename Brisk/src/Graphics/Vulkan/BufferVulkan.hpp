@@ -10,12 +10,13 @@ namespace Brisk {
 		void Create(uint32_t, VkBufferUsageFlags usageFlags);
 		void Allocate(VkMemoryPropertyFlags properties);
 		void MapMemory(std::vector<Point>& data);
-		void MapMemory(void* data, VkDeviceSize size);
+		void* MapMemory();
 		void UnMapMemory();
 		void Release();
 
 		//const std::vector<Point>& GetData() { return m_Data; }
-		VkBuffer Get() { return m_Handle; }
+		const VkBuffer& Get() const { return m_Handle; }
+		const VkDeviceMemory GetMemory() const { return m_Memory; }
 	private:
 		uint64_t m_Size;
 		VkBuffer m_Handle;

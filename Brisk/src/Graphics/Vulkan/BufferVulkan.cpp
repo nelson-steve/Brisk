@@ -39,8 +39,10 @@ namespace Brisk {
 		memcpy(data, vertices.data(), (size_t)m_Size);
 	}
 
-	void BufferVulkan::MapMemory(void* data, VkDeviceSize size) {
-		vkMapMemory(GpuContextVulkan::s_GPUDevice->GetDevice(), m_Memory, 0, size, 0, &data);
+	void* BufferVulkan::MapMemory() {
+		void* buffer;
+		vkMapMemory(GpuContextVulkan::s_GPUDevice->GetDevice(), m_Memory, 0, m_Size, 0, &buffer);
+		return buffer;
 	}
 
 	void BufferVulkan::UnMapMemory() {

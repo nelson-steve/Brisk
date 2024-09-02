@@ -47,7 +47,7 @@ namespace Brisk {
     }
 
     void RenderPassVulkan::BeginRenderPass(CommandBufferVulkan* commandBuffer, int imageIndex) {
-        commandBuffer->Begin();
+        commandBuffer->Begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = m_RenderPass;

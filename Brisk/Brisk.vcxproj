@@ -109,9 +109,9 @@
     <ClCompile>
       <WarningLevel>Level3</WarningLevel>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IMGUI_IMPL_VULKAN_USE_VOLK=1</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)vendors\include\GLFW;$(ProjectDir)src;$(ProjectDir)vendors\spdlog\include;C:\VulkanSDK\1.3.280.0\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)vendors\include\GLFW;$(ProjectDir)src;$(ProjectDir)vendors\ImGui;$(ProjectDir)vendors\spdlog\include;C:\VulkanSDK\1.3.280.0\Include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -129,9 +129,9 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
       <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS</PreprocessorDefinitions>
+      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IMGUI_IMPL_VULKAN_USE_VOLK=1</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)vendors\include\GLFW;$(ProjectDir)src;$(ProjectDir)vendors\spdlog\include;C:\VulkanSDK\1.3.280.0\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)vendors\include\GLFW;$(ProjectDir)src;$(ProjectDir)vendors\ImGui;$(ProjectDir)vendors\spdlog\include;C:\VulkanSDK\1.3.280.0\Include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp14</LanguageStandard>
     </ClCompile>
     <Link>
@@ -177,9 +177,18 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Graphics\Vulkan\VulkanRenderer\RendererVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\VulkanUtilities.hpp" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.hpp" />
+    <ClInclude Include="vendors\ImGui\imconfig.h" />
+    <ClInclude Include="vendors\ImGui\imgui.h" />
+    <ClInclude Include="vendors\ImGui\ImGuiBackends\imgui_impl_glfw.h" />
+    <ClInclude Include="vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h" />
+    <ClInclude Include="vendors\ImGui\imgui_internal.h" />
+    <ClInclude Include="vendors\ImGui\imstb_rectpack.h" />
+    <ClInclude Include="vendors\ImGui\imstb_textedit.h" />
+    <ClInclude Include="vendors\ImGui\imstb_truetype.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Log.cpp" />
+    <ClCompile Include="src\Editor\Editor.cpp" />
     <ClCompile Include="src\Engine\Camera.cpp" />
     <ClCompile Include="src\Engine\Engine.cpp" />
     <ClCompile Include="src\Engine\WindowBase.cpp" />
@@ -197,6 +206,13 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClCompile Include="src\Graphics\Vulkan\VulkanUtilities.cpp" />
     <ClCompile Include="src\Main\main.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
+    <ClCompile Include="vendors\ImGui\imgui.cpp" />
+    <ClCompile Include="vendors\ImGui\ImGuiBackends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.cpp" />
+    <ClCompile Include="vendors\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="vendors\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="vendors\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="vendors\ImGui\imgui_widgets.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -3,6 +3,9 @@
 #include "Engine/Renderer/Renderer.hpp"
 #include "../GpuContextVulkan.hpp"
 #include "../BufferVulkan.hpp"
+#include "../SwapchainVulkan.hpp"
+
+#include "ImGuiBackends/imgui_impl_vulkan.h"
 
 namespace Brisk {
 	class RendererVulkan : public Renderer {
@@ -11,6 +14,10 @@ namespace Brisk {
 		virtual void Release() override;
 
 		virtual void SetupRenderingPipeline(Swapchain* swapchain) override;
+		void SetupImGuiData(ImGui_ImplVulkan_InitInfo& data);
+
+		VkCommandBuffer GetCommandBuffer() const { return m_CommandBuffer->Get(); }
+		const VkPipeline GetPipeline() const { return m_Pipeline->GetPipeline(); }
 
 		virtual void PreRender() override;
 		virtual void Render() override;

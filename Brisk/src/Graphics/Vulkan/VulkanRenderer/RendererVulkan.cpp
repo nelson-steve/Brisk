@@ -3,6 +3,7 @@
 #include "../RenderPassVulkan.hpp"
 #include "../VulkanUtilities.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
+#include "Editor/Editor.hpp"
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -42,6 +43,29 @@ namespace Brisk {
             throw std::runtime_error("failed to create command pool!");
         }
 	}
+
+    void RendererVulkan::SetupImGuiData(ImGui_ImplVulkan_InitInfo& data) {
+        data.Instance = m_GpuContext->s_Instance;
+        data.PhysicalDevice = m_GpuContext->s_GPUDevice->GetPhysicalDevice();
+        data.Device = m_GpuContext->s_GPUDevice->GetDevice();
+        data.QueueFamily = 0;
+        data.Queue = m_GpuContext->s_GPUDevice->GetGraphicsQueue().Handle;
+        data.DescriptorPool = m_DescriptorPool;
+        data.RenderPass = m_RenderPass->GetRenderPass();
+        data.ImageCount = 2;
+        data.MinImageCount = 2;
+        data.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+    }
+
+    //void RendererVulkan::UploadImGuiTextureAtlas() {
+    //    CommandBufferVulkan singleUseCmdBuf;
+    //    singleUseCmdBuf.Allocate(m_CommandPool);
+    //    singleUseCmdBuf.Begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+    //    ImGui_ImplVulkan_CreateFontsTexture();
+    //    singleUseCmdBuf.End();
+    //
+    //    //vkDeviceWaitIdle();
+    //}
 
     void RendererVulkan::SetupRenderingPipeline(Swapchain* swap) {
         m_Swapchain = static_cast<SwapchainVulkan*>(swap);
@@ -124,15 +148,19 @@ namespace Brisk {
         m_CommandBuffer = new CommandBufferVulkan();
         m_CommandBuffer->Allocate(m_CommandPool);
 
-        VkDescriptorPoolSize poolSize{};
-        poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        poolSize.descriptorCount = 1;
+        std::vector<VkDescriptorPoolSize> poolSizes {
+            { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10 },
+            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 },
+        };
+        //poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+        //poolSize.descriptorCount = 1;
 
         VkDescriptorPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.poolSizeCount = 1;
-        poolInfo.pPoolSizes = &poolSize;
-        poolInfo.maxSets = 1;
+        poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+        poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+        poolInfo.pPoolSizes = poolSizes.data();
+        poolInfo.maxSets = 11;
 
         if (vkCreateDescriptorPool(m_GpuContext->s_GPUDevice->GetDevice(), &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor pool!");
@@ -302,9 +330,8 @@ namespace Brisk {
         }
 
         UpdateUniformBuffer(m_ImageIndex);
-        vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
 
-        vkResetCommandBuffer(m_CommandBuffer->Get(), /*VkCommandBufferResetFlagBits*/ 0);
+        //vkResetCommandBuffer(m_CommandBuffer->Get(), /*VkCommandBufferResetFlagBits*/ 0);
 		m_RenderPass->BeginRenderPass(m_CommandBuffer, m_ImageIndex);
         vkCmdBindPipeline(m_CommandBuffer->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline->GetPipeline());
         {
@@ -330,8 +357,15 @@ namespace Brisk {
             vkCmdBindDescriptorSets(m_CommandBuffer->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline->GetLayout(), 0, 1, &m_DescriptorSet, 0, nullptr);
 
             vkCmdDraw(m_CommandBuffer->Get(), Vertices.size(), 1, 0, 0);
+
+            Engine::s_Editor->Update();
+            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(),
+                static_cast<RendererVulkan*>(Engine::s_Renderer)->GetCommandBuffer(),
+                VK_NULL_HANDLE);
         }
 		m_RenderPass->EndRenderPass(m_CommandBuffer);
+
+        vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
 
         {
             VkSubmitInfo submitInfo{};

@@ -17,7 +17,7 @@ namespace Brisk {
 
 	void SwapchainVulkan::Create(Mode mode) {
 		// TODO: Dont use hardcoded values
-		VkFormat m_format = VK_FORMAT_B8G8R8A8_SRGB;
+		VkFormat m_format = VK_FORMAT_B8G8R8A8_UNORM;
 		VkColorSpaceKHR m_color_space = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 
 		int imageCount = static_cast<uint32_t>(mode);

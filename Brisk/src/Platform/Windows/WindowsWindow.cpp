@@ -1,6 +1,7 @@
 #include "WindowsWindow.hpp"
 #include "Core/Log.hpp"
 #include "Engine/Engine.hpp"
+#include "Editor/Editor.hpp"
 
 #define GLFW_INCLUDE_VULKAN
 #include <glfw3.h>

@@ -13,6 +13,7 @@
 namespace Brisk 
 {
 	class Renderer;
+	class Editor;
 
 	//namespace Globals{
 	//	static GraphicsAPI GPU_API = GraphicsAPI::Vulkan;
@@ -66,6 +67,7 @@ namespace Brisk
 		/// </summary>
 		static EngineInfo s_EngineInfo;
 
+		static Editor* s_Editor;
 		static Camera* s_Camera;
 		static Renderer* s_Renderer;
 		static Swapchain* s_Swapchain;

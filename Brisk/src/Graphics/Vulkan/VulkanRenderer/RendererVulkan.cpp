@@ -119,7 +119,7 @@ namespace Brisk {
         m_UniformBuffer = new BufferVulkan();
         m_UniformBuffer->Create(sizeof(MVPBuffer), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
         m_UniformBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        m_UniformBufferData = m_UniformBuffer->MapMemory();
+        m_UniformBuffer->MapMemory(&m_UniformBufferData);
 
         m_CommandBuffer = new CommandBufferVulkan();
         m_CommandBuffer->Allocate(m_CommandPool);
@@ -150,9 +150,14 @@ namespace Brisk {
 
         MVPBuffer ubo{};
         ubo.Model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        ubo.View = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        float value = m_Swapchain->GetExtentWidth() / (float)m_Swapchain->GetExtentHeight();
-        ubo.Projection = glm::perspective(glm::radians(60.0f), value, 0.001f, 1000.0f);
+        //ubo.View = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
+        //float value = m_Swapchain->GetExtentWidth() / (float)m_Swapchain->GetExtentHeight();
+        //ubo.Projection = glm::perspective(glm::radians(60.0f), value, 0.1f, 1000.0f);
+        //ubo.Projection[1][1] *= -1;
+
+        ubo.Model = glm::mat4(1);
+        ubo.View = Engine::s_Camera->GetViewMatrix();
+        ubo.Projection = Engine::s_Camera->GetProjection();
         ubo.Projection[1][1] *= -1;
 
         memcpy(m_UniformBufferData, &ubo, sizeof(ubo));

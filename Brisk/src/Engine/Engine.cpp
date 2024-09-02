@@ -11,6 +11,37 @@ namespace Brisk
 
 	Swapchain* Engine::s_Swapchain;
 	Renderer* Engine::s_Renderer;
+	Camera* Engine::s_Camera;
+
+	float lastX = 0.0f;
+	float lastY = 0.0f;
+	bool firstMouse = true;
+	void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+	{
+		float xpos = static_cast<float>(xposIn);
+		float ypos = static_cast<float>(yposIn);
+
+		if (firstMouse)
+		{
+			lastX = xpos;
+			lastY = ypos;
+			firstMouse = false;
+		}
+
+		float xoffset = xpos - lastX;
+		float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
+
+		lastX = xpos;
+		lastY = ypos;
+
+		Engine::s_Camera->SetMouseOffset(xoffset, yoffset);
+		Engine::s_Camera->MouseMoved();
+	}
+
+	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+	{
+		Engine::s_Camera->OnMouseScroll(yoffset);
+	}
 
 	void Engine::Init() {
 		Log::Init();
@@ -24,11 +55,20 @@ namespace Brisk
 
 		s_Renderer->SetupRenderingPipeline(s_Swapchain);
 
+		float aspect = s_MainWindow->GetWidth() / s_MainWindow->GetHeight();
+		s_Camera = new Camera(60.0f, aspect, 0.01, 1000.0f, (GLFWwindow*)s_MainWindow->GetWindowHandle());
 
+		glfwSetCursorPosCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), mouse_callback);
+		glfwSetScrollCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), scroll_callback);
 	}
 
 	void Engine::Update() {
+		auto currentTime = std::chrono::high_resolution_clock::now();
 		while (!s_MainWindow->WindowShouldClose()) {
+			auto newTime = std::chrono::high_resolution_clock::now();
+			float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+			currentTime = newTime;
+			s_Camera->OnUpdate(frameTime, (GLFWwindow*)s_MainWindow->GetWindowHandle());
 			s_MainWindow->ProcessEvents();
 			s_Renderer->Render();
 		}

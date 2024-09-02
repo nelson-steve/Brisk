@@ -4,6 +4,7 @@
 #include "WindowBase.hpp"
 #include "Graphics/Swapchain.hpp"
 #include "Renderer/Renderer.hpp"
+#include "Camera.hpp"
 
 #include <glm/glm.hpp>
 
@@ -65,6 +66,7 @@ namespace Brisk
 		/// </summary>
 		static EngineInfo s_EngineInfo;
 
+		static Camera* s_Camera;
 		static Renderer* s_Renderer;
 		static Swapchain* s_Swapchain;
 	private:

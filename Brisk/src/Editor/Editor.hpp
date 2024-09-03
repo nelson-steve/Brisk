@@ -8,8 +8,8 @@ namespace Brisk {
 	class Editor {
 	public:
 		void Create();
-		void UpdateWindowSize(float width, float height);
 		void Update();
+		void Release();
 	private:
 		static ImGui_ImplVulkanH_Window s_MainWindowData;
 	};

@@ -72,4 +72,11 @@ namespace Brisk {
             //    static_cast<RendererVulkan*>(Engine::s_Renderer)->GetPipeline());
         }
     }
+
+    void Editor::Release() {
+        //ImGui::EndFrame();
+        ImGui_ImplVulkan_Shutdown();
+        ImGui_ImplGlfw_Shutdown();
+        ImGui::DestroyContext();
+    }
 }

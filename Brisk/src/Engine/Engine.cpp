@@ -82,8 +82,9 @@ namespace Brisk
 	}
 
 	void Engine::Terminate() {
-		s_MainWindow->DestroyWindow();
 		s_Swapchain->Release();
+		s_Editor->Release();
 		s_Renderer->Release();
+		s_MainWindow->DestroyWindow();
 	}
 }

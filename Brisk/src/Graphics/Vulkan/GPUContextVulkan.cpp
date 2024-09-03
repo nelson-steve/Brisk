@@ -147,6 +147,8 @@ namespace Brisk
 	}
 
 	void GpuContextVulkan::Release() {
+		s_GPUDevice->Release();
+		vkDestroySurfaceKHR(s_Instance, s_Surface->GetRef(), nullptr);
 		vkDestroyDebugUtilsMessengerEXT(s_Instance, s_DebugMessenger, nullptr);
 		vkDestroyInstance(s_Instance, nullptr);
 	}

@@ -31,10 +31,12 @@ namespace Brisk {
 	private:
 		uint32_t m_ImageIndex;
 
+		// API specific handle for Swapchain - does not need to be released here(it will get released by the main Engine class)
+		SwapchainVulkan* m_Swapchain;
+
 		GpuContextVulkan* m_GpuContext;
 		RenderPassVulkan* m_RenderPass;
 		GraphicsPipelineVulkan* m_Pipeline;
-		SwapchainVulkan* m_Swapchain;
 		BufferVulkan* m_VertexBuffer;
 		BufferVulkan* m_UniformBuffer;
 		void* m_UniformBufferData;

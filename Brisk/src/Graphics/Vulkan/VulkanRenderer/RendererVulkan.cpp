@@ -300,7 +300,22 @@ namespace Brisk {
     }
 
 	void RendererVulkan::Release() {
+        m_RenderPass->Release();
+        m_Pipeline->Release();
+        m_VertexBuffer->Release();
+        m_UniformBuffer->Release();
+        
+        vkDestroyCommandPool(m_GpuContext->s_GPUDevice->GetDevice(), m_CommandPool, nullptr);
+        vkDestroyFence(m_GpuContext->s_GPUDevice->GetDevice(), m_InFlightFence, nullptr);
+        vkDestroySemaphore(m_GpuContext->s_GPUDevice->GetDevice(), m_ImageAvailableSemaphore, nullptr);
+        vkDestroySemaphore(m_GpuContext->s_GPUDevice->GetDevice(), m_RenderFinishedSemaphore, nullptr);
+        vkDestroyDescriptorPool(m_GpuContext->s_GPUDevice->GetDevice(), m_DescriptorPool, nullptr);
+        for (int i = 0; i < m_DescriptorSetLayouts.size(); i++) {
+            vkDestroyDescriptorSetLayout(m_GpuContext->s_GPUDevice->GetDevice(), m_DescriptorSetLayouts[i], nullptr);
+        }
+        Vertices.clear();
 
+        m_GpuContext->Release();
 	}
 
 	void RendererVulkan::PreRender() {

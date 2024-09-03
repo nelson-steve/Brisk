@@ -20,9 +20,6 @@ namespace Brisk
 	bool firstMouse = true;
 	void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
 	{
-		// Forward the event to ImGui
-		ImGui_ImplGlfw_CursorPosCallback(window, xposIn, yposIn);
-
 		float xpos = static_cast<float>(xposIn);
 		float ypos = static_cast<float>(yposIn);
 
@@ -45,17 +42,7 @@ namespace Brisk
 
 	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
 	{
-		// Forward the event to ImGui
-		ImGui_ImplGlfw_ScrollCallback(window, xoffset, yoffset);
-
 		Engine::s_Camera->OnMouseScroll(yoffset);
-	}
-
-	void mouse_button_callback(GLFWwindow* window, int button, int action, int mods) {
-		ImGui_ImplGlfw_MouseButtonCallback(window, button, action, mods);
-
-		
-		// Custom logic here
 	}
 
 	void Engine::Init() {
@@ -70,14 +57,13 @@ namespace Brisk
 
 		s_Renderer->SetupRenderingPipeline(s_Swapchain);
 
-		s_Editor->Create();
+		glfwSetCursorPosCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), mouse_callback);
+		glfwSetScrollCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), scroll_callback);
 
 		float aspect = s_MainWindow->GetWidth() / s_MainWindow->GetHeight();
 		s_Camera = new Camera(60.0f, aspect, 0.01, 1000.0f, (GLFWwindow*)s_MainWindow->GetWindowHandle());
 
-		glfwSetCursorPosCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), mouse_callback);
-		glfwSetScrollCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), scroll_callback);
-		//glfwSetMouseButtonCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), mouse_button_callback);	
+		s_Editor->Create();
 	}
 
 	void Engine::Update() {
@@ -86,10 +72,10 @@ namespace Brisk
 			auto newTime = std::chrono::high_resolution_clock::now();
 			float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
 			currentTime = newTime;
-			s_MainWindow->ProcessEvents();
 			//s_Camera->OnUpdate(frameTime, (GLFWwindow*)s_MainWindow->GetWindowHandle());
 			s_Renderer->Render();
 			//s_Editor->Update();
+			s_MainWindow->ProcessEvents();
 		}
 
 		s_Renderer->WaitDeviceIdle();

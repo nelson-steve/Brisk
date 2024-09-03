@@ -8,15 +8,15 @@ namespace Brisk {
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
         ImGuiIO& io = ImGui::GetIO(); (void)io;
-        //io.WantCaptureMouse = true;
-        //io.WantCaptureKeyboard = true;
+        io.WantCaptureMouse = true;
+        io.WantCaptureKeyboard = true;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;      // Enable Gamepad Controls
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
         //ImGui::StyleColorsLight();
-
+        
         ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Engine::s_MainWindow->GetWindowHandle(), true);
 
         ImGui_ImplVulkan_InitInfo info{};
@@ -64,8 +64,6 @@ namespace Brisk {
 
             //ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
             ImGui::End();
-
-            ImGui::SetNextWindowFocus();
 
             ImGui::Render();
             //ImGui_ImplVulkan_RenderDrawData(

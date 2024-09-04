@@ -57,16 +57,6 @@ namespace Brisk {
         data.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
     }
 
-    //void RendererVulkan::UploadImGuiTextureAtlas() {
-    //    CommandBufferVulkan singleUseCmdBuf;
-    //    singleUseCmdBuf.Allocate(m_CommandPool);
-    //    singleUseCmdBuf.Begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-    //    ImGui_ImplVulkan_CreateFontsTexture();
-    //    singleUseCmdBuf.End();
-    //
-    //    //vkDeviceWaitIdle();
-    //}
-
     void RendererVulkan::SetupRenderingPipeline(Swapchain* swap) {
         m_Swapchain = static_cast<SwapchainVulkan*>(swap);
 

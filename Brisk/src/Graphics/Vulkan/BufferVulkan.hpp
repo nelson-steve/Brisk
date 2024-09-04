@@ -14,7 +14,6 @@ namespace Brisk {
 		void UnMapMemory();
 		void Release();
 
-		//const std::vector<Point>& GetData() { return m_Data; }
 		const VkBuffer& Get() const { return m_Handle; }
 		const VkDeviceMemory GetMemory() const { return m_Memory; }
 	private:

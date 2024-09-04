@@ -35,6 +35,5 @@ namespace Brisk {
 	private:
 		Mode m_SwapchainMode;
 		SwapchainExtent2D m_Extent;
-		//VkPresentModeKHR m_present_mode; // TODO: Define your own Present modes
 	};
 }

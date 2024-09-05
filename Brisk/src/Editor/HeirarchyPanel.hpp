@@ -1,0 +1,11 @@
+#pragma once
+
+#include "EditorPanel.hpp"
+
+namespace Brisk {
+    class HeirarchyPanel : public IEditorPanel {
+        virtual void OnCreate() override;
+        virtual void OnUpdate() override;
+        virtual void OnDestroy() override;
+    };
+}

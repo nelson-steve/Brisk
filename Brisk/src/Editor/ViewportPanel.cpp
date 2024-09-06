@@ -16,7 +16,7 @@ namespace Brisk
         ImGui::End();
     }
 
-    void ViewportPanel::OnDestroy(){
+    void ViewportPanel::OnDestroy() {
         
     }
 }

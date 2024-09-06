@@ -1,17 +1,17 @@
-#include "ViewportPanel.hpp"
+#include "HeirarchyPanel.hpp"
 
 namespace Brisk {
-    void ViewportPanel::OnCreate() {
+    void HeirarchyPanel::OnCreate() {
     }
 
-    void ViewportPanel::OnUpdate(){
+    void HeirarchyPanel::OnUpdate(){
         ImGui::Begin("Hierarchy");
         // Assume Scene contains a list of root objects
 
         ImGui::End();
     }
 
-    void ViewportPanel::OnDestroy(){
+    void HeirarchyPanel::OnDestroy(){
         
     }
 }

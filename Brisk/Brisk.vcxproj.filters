@@ -60,7 +60,7 @@
     <ClInclude Include="src\Graphics\Vulkan\SwapchainVulkan.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\DirectX11\GraphicsDeviceDirectX11.hpp">
+    <ClInclude Include="src\Graphics\DirectX11\GpuDeviceDirectX11.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Vulkan\RenderPassVulkan.hpp">
@@ -120,6 +120,15 @@
     <ClInclude Include="vendors\ImGui\imstb_truetype.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\Editor\EditorPanel.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\HeirarchyPanel.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Editor\ViewportPanel.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Main\main.cpp">
@@ -155,7 +164,7 @@
     <ClCompile Include="src\Graphics\Vulkan\SwapchainVulkan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\DirectX11\GraphicsDeviceDirectX11.cpp">
+    <ClCompile Include="src\Graphics\DirectX11\GpuDeviceDirectX11.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Vulkan\RenderPassVulkan.cpp">
@@ -198,6 +207,12 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Editor\Editor.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\HeirarchyPanel.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Editor\ViewportPanel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

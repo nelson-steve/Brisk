@@ -46,17 +46,17 @@ namespace Brisk {
 	}
 
 	void Camera::OnUpdate(float t, GLFWwindow* window) {
-		//if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) && m_MouseMoved) {
-		//	glm::vec2 delta = m_MouseOffset * 0.003f;
-		//
-		//	if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE))
-		//		MousePan(delta);
-		//	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT))
-		//		MouseRotate(delta);
-		//	else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT))
-		//		MouseZoom(delta.y);
-		//	m_MouseMoved = false;
-		//}
+		if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) && m_MouseMoved) {
+			glm::vec2 delta = m_MouseOffset * 0.003f;
+		
+			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE))
+				MousePan(delta);
+			else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT))
+				MouseRotate(delta);
+			else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT))
+				MouseZoom(delta.y);
+			m_MouseMoved = false;
+		}
 		UpdateView();
 	}
 

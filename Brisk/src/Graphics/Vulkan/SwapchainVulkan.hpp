@@ -24,7 +24,7 @@ namespace Brisk {
 	private:
 		SwapchainVulkan(WindowBase* window);
 	private:
-		VkSwapchainKHR m_Swapchain;
+		VkSwapchainKHR m_Swapchain = VK_NULL_HANDLE;
 		std::vector<VkSemaphore> m_render_complete_semaphores;
 		std::vector<VkSemaphore> m_present_complete_semaphores;
 		std::vector<VkImage> m_SwapchainImages;

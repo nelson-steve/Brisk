@@ -1,16 +1,23 @@
 #pragma once
 
+#include "HeirarchyPanel.hpp"
+#include "ViewportPanel.hpp"
+
 #include "imgui.h"
 #include "ImGuiBackends/imgui_impl_glfw.h"
 #include "ImGuiBackends/imgui_impl_vulkan.h"
 
+#include "vector"
+
 namespace Brisk {
 	class Editor {
 	public:
+		Editor() = default;
 		void Create();
 		void Update();
 		void Release();
 	private:
-		static ImGui_ImplVulkanH_Window s_MainWindowData;
+		ImGui_ImplVulkanH_Window s_MainWindowData;
+		std::vector<IEditorPanel*> s_Panels;
 	};
 }

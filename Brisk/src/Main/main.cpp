@@ -4,6 +4,8 @@ int allocatedSize = 0;
 int deallocatedSize = 0;
 
 #include <d3d12.h>
+#include <string>
+#include <windows.h>
 
 //void* operator new(size_t size) {
 //    std::cout << "Allocating " << size << " bytes" << std::endl;
@@ -27,54 +29,79 @@ int deallocatedSize = 0;
 //    std::free(p);
 //}
 
-#ifdef _WIN32
+//#ifdef _WIN32
+#ifdef dddd
 
-// Handle to the window
-HWND hwnd = NULL;
+#define MAX_NAME_STRING 256
+#define HInstance() GetModuleHandle(NULL)
 
-// name of the window (not the title)
-LPCTSTR WindowName = L"BzTutsApp";
+WCHAR			WindowClass[MAX_NAME_STRING];
+WCHAR			WindowTitle[MAX_NAME_STRING];
 
-// title of the window
-LPCTSTR WindowTitle = L"Bz Window";
+INT				WindowWidth;
+INT				WindowHeight;
 
-// width and height of the window
-int Width = 800;
-int Height = 600;
-
-// is window full screen?
-bool FullScreen = false;
-
-// create a window
-bool InitializeWindow(HINSTANCE hInstance,
-	int ShowWnd,
-	int width, int height,
-	bool fullscreen) {
-	if (fullscreen)
-	{
-		HMONITOR hmon = MonitorFromWindow(hwnd,
-			MONITOR_DEFAULTTONEAREST);
-		MONITORINFO mi = { sizeof(mi) };
-		GetMonitorInfo(hmon, &mi);
-
-		width = mi.rcMonitor.right - mi.rcMonitor.left;
-		height = mi.rcMonitor.bottom - mi.rcMonitor.top;
-	}
-}
-
-// main application loop
-void mainloop();
-
-
-int WINAPI WinMain(HINSTANCE hInstance, HINSTANCE, LPSTR, int nCmdShow)
+int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int nCmdShow)
 {
-	// create the window
-	if (!InitializeWindow(hInstance, nCmdShow, Width, Height, FullScreen))
-	{
-		MessageBox(0, L"Window Initialization - Failed",
-			L"Error", MB_OK);
+	/* - Initialize Global Variables - */
+
+	wcscpy_s(WindowClass, TEXT("TutorialOneClass"));
+	wcscpy_s(WindowTitle, TEXT("Our First Window"));
+	WindowWidth = 1366;
+	WindowHeight = 768;
+
+	/* - Create Window Class - */
+
+	WNDCLASSEX wcex;
+
+	wcex.cbSize = sizeof(WNDCLASSEX);
+	wcex.style = CS_HREDRAW | CS_VREDRAW;
+	wcex.cbClsExtra = 0;
+	wcex.cbWndExtra = 0;
+
+	wcex.hCursor = LoadCursor(nullptr, IDC_ARROW);
+	wcex.hbrBackground = (HBRUSH)GetStockObject(NULL_BRUSH);
+
+	wcex.hIcon = LoadIcon(0, IDI_APPLICATION);
+	wcex.hIconSm = LoadIcon(0, IDI_APPLICATION);
+
+	wcex.lpszClassName = WindowClass;
+
+	wcex.lpszMenuName = nullptr;
+
+	wcex.hInstance = HInstance();
+
+	wcex.lpfnWndProc = DefWindowProc;
+
+	RegisterClassEx(&wcex);
+
+	/* - Create and Display our Window  - */
+
+	HWND hWnd = CreateWindow(WindowClass, WindowTitle, WS_OVERLAPPEDWINDOW,
+		CW_USEDEFAULT, 0, WindowWidth, WindowHeight, nullptr, nullptr, HInstance(), nullptr);
+	if (!hWnd) {
+		MessageBox(0, L"Failed to Create Window!.", 0, 0);
 		return 0;
 	}
+
+
+	ShowWindow(hWnd, SW_SHOW);
+
+	/* - Listen for Message events - */
+
+	MSG msg = { 0 };
+	while (msg.message != WM_QUIT)
+	{
+		// If there are Window messages then process them.
+		if (PeekMessage(&msg, 0, 0, 0, PM_REMOVE))
+		{
+			TranslateMessage(&msg);
+			DispatchMessage(&msg);
+		}
+	}
+
+
+	return 0;
 }
 
 #else

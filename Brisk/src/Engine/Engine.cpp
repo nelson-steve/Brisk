@@ -63,6 +63,7 @@ namespace Brisk
 		float aspect = s_MainWindow->GetWidth() / s_MainWindow->GetHeight();
 		s_Camera = new Camera(60.0f, aspect, 0.01, 1000.0f, (GLFWwindow*)s_MainWindow->GetWindowHandle());
 
+		s_Editor = new Editor();
 		s_Editor->Create();
 	}
 

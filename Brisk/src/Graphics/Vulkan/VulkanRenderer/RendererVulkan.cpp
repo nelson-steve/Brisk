@@ -42,6 +42,15 @@ namespace Brisk {
         if (vkCreateCommandPool(GpuContextVulkan::s_GPUDevice->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create command pool!");
         }
+
+        //VkCommandPoolCreateInfo poolInfo{};
+        //poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        //poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+        //poolInfo.queueFamilyIndex = GpuContextVulkan::s_GPUDevice->GetGraphicsQueue().FamilyIndex;
+
+        if (vkCreateCommandPool(GpuContextVulkan::s_GPUDevice->GetDevice(), &poolInfo, nullptr, &m_ViewportCommandPool) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create command pool!");
+        }
 	}
 
     void RendererVulkan::SetupImGuiData(ImGui_ImplVulkan_InitInfo& data) {
@@ -137,6 +146,8 @@ namespace Brisk {
 
         m_CommandBuffer = new CommandBufferVulkan();
         m_CommandBuffer->Allocate(m_CommandPool);
+        m_ViewportCommandBuffer = new CommandBufferVulkan();
+        m_ViewportCommandBuffer->Allocate(m_ViewportCommandPool);
 
         std::vector<VkDescriptorPoolSize> poolSizes {
             { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10 },
@@ -156,6 +167,7 @@ namespace Brisk {
             throw std::runtime_error("failed to create descriptor pool!");
         }
 
+        CreateViewportResources();
         CreateDescriptorSet();
         CreateGraphicsPipeline();
     }
@@ -241,7 +253,9 @@ namespace Brisk {
         };
         m_Pipeline->CreateDynamicState(dynamicStates);
         m_Pipeline->CreatePipelineLayout(m_DescriptorSetLayouts, 0);
+        m_ViewportPipeline = m_Pipeline;
         m_Pipeline->CreatePipeline(m_RenderPass->GetRenderPass());
+        m_ViewportPipeline->CreatePipeline(m_ViewportRenderPass->GetRenderPass());
     }
 
     void RendererVulkan::CreateDescriptorSet() {
@@ -287,6 +301,114 @@ namespace Brisk {
         descriptorWrite.pBufferInfo = &bufferInfo;
 
         vkUpdateDescriptorSets(m_GpuContext->s_GPUDevice->GetDevice(), 1, &descriptorWrite, 0, nullptr);
+    }
+
+    void RendererVulkan::CreateViewportResources() {
+        {
+            VkImageCreateInfo stagingImageInfo = {};
+            stagingImageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+            stagingImageInfo.imageType = VK_IMAGE_TYPE_2D;
+            stagingImageInfo.format = m_Swapchain->GetFormat().format;  // Same format as swapchain
+            stagingImageInfo.extent.width = m_Swapchain->GetExtentWidth();
+            stagingImageInfo.extent.height = m_Swapchain->GetExtentHeight();
+            stagingImageInfo.extent.depth = 1;
+            stagingImageInfo.mipLevels = 1;
+            stagingImageInfo.arrayLayers = 1;
+            stagingImageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+            stagingImageInfo.tiling = VK_IMAGE_TILING_LINEAR;
+            stagingImageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+            stagingImageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+
+            VkImage stagingImage;
+            vkCreateImage(m_GpuContext->s_GPUDevice->GetDevice(), &stagingImageInfo, nullptr, &stagingImage);
+
+            VkMemoryRequirements memRequirements;
+            vkGetImageMemoryRequirements(m_GpuContext->s_GPUDevice->GetDevice(), stagingImage, &memRequirements);
+
+            VkMemoryAllocateInfo allocInfo = {};
+            allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            allocInfo.allocationSize = memRequirements.size;
+            allocInfo.memoryTypeIndex = VulkanUtilities::FindMemoryType(m_GpuContext->s_GPUDevice->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+
+            VkDeviceMemory stagingImageMemory;
+            vkAllocateMemory(m_GpuContext->s_GPUDevice->GetDevice(), &allocInfo, nullptr, &stagingImageMemory);
+            vkBindImageMemory(m_GpuContext->s_GPUDevice->GetDevice(), stagingImage, stagingImageMemory, 0);
+        }
+
+        m_ViewportImages.resize(m_Swapchain->GetImageCount());
+        m_ViewportImageMemory.resize(m_Swapchain->GetImageCount());
+
+        for (uint32_t i = 0; i < m_ViewportImages.size(); i++)
+        {
+            // Create the linear tiled destination image to copy to and to read the memory from
+            VkImageCreateInfo imageCreateCI{};
+            imageCreateCI.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+            imageCreateCI.imageType = VK_IMAGE_TYPE_2D;
+            // Note that vkCmdBlitImage (if supported) will also do format conversions if the swapchain color format would differ
+            imageCreateCI.format = VK_FORMAT_B8G8R8A8_SRGB;
+            imageCreateCI.extent.width = m_Swapchain->GetExtentWidth();
+            imageCreateCI.extent.height = m_Swapchain->GetExtentHeight();
+            imageCreateCI.extent.depth = 1;
+            imageCreateCI.arrayLayers = 1;
+            imageCreateCI.mipLevels = 1;
+            imageCreateCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            imageCreateCI.samples = VK_SAMPLE_COUNT_1_BIT;
+            imageCreateCI.tiling = VK_IMAGE_TILING_OPTIMAL;
+            imageCreateCI.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;// | VK_IMAGE_USAGE_SAMPLED_BIT;
+            imageCreateCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            std::vector<VkFormat> formats = { VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_B8G8R8A8_UINT,
+                VK_FORMAT_B8G8R8A8_SNORM, VK_FORMAT_B8G8R8_SINT, VK_FORMAT_B8G8R8A8_SSCALED, VK_FORMAT_R8G8B8A8_SINT
+            };
+            if (vkCreateImage(GpuContextVulkan::s_GPUDevice->GetDevice(), &imageCreateCI, nullptr, &m_ViewportImages[i]) != VK_SUCCESS) {
+                throw std::runtime_error("Failed to create Viewport Image!");
+            }
+            VkMemoryRequirements memRequirements;
+            VkMemoryAllocateInfo memAllocInfo{};
+            memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            vkGetImageMemoryRequirements(GpuContextVulkan::s_GPUDevice->GetDevice(), m_ViewportImages[i], &memRequirements);
+            memAllocInfo.allocationSize = memRequirements.size;
+            memAllocInfo.memoryTypeIndex = VulkanUtilities::FindMemoryType(GpuContextVulkan::s_GPUDevice->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+            vkAllocateMemory(GpuContextVulkan::s_GPUDevice->GetDevice(), &memAllocInfo, nullptr, &m_ViewportImageMemory[i]);
+            vkBindImageMemory(GpuContextVulkan::s_GPUDevice->GetDevice(), m_ViewportImages[i], m_ViewportImageMemory[i], 0);
+
+            CommandBufferVulkan* singleTimeCommand = new CommandBufferVulkan();
+            singleTimeCommand->Allocate(m_ViewportCommandPool);
+            singleTimeCommand->Begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+
+            VulkanUtilities::InsertImageMemoryBarrier(
+                singleTimeCommand->Get(),
+                m_ViewportImages[i],
+                VK_ACCESS_TRANSFER_READ_BIT,
+                VK_ACCESS_MEMORY_READ_BIT,
+                VK_IMAGE_LAYOUT_UNDEFINED,
+                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+                VK_PIPELINE_STAGE_TRANSFER_BIT,
+                VK_PIPELINE_STAGE_TRANSFER_BIT,
+                VkImageSubresourceRange{ VK_IMAGE_ASPECT_COLOR_BIT, 0, 1, 0, 1 });
+
+            singleTimeCommand->End();
+        }
+
+        for (size_t i = 0; i < m_ViewportImages.size(); i++) {
+            VkImageViewCreateInfo image_views_create_info{};
+            image_views_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            image_views_create_info.image = m_ViewportImages[i];
+            image_views_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            image_views_create_info.format = VK_FORMAT_B8G8R8A8_SRGB;
+            image_views_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            image_views_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            image_views_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            image_views_create_info.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+            image_views_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            image_views_create_info.subresourceRange.baseMipLevel = 0;
+            image_views_create_info.subresourceRange.levelCount = 1;
+            image_views_create_info.subresourceRange.baseArrayLayer = 0;
+            image_views_create_info.subresourceRange.layerCount = 1;
+
+            if (vkCreateImageView(GpuContextVulkan::s_GPUDevice->GetDevice(), &image_views_create_info, nullptr, &m_ViewportImageViews[i]) != VK_SUCCESS) {
+                throw std::runtime_error("Failed to create Swapchain Image Views!");
+            }
+        }
     }
 
 	void RendererVulkan::Release() {
@@ -358,20 +480,18 @@ namespace Brisk {
             const VkBuffer vertexBuffers[] = { m_VertexBuffer->Get() };
             VkDeviceSize offsets[] = { 0 };
             vkCmdBindVertexBuffers(m_CommandBuffer->Get(), 0, 1, vertexBuffers, offsets);
-
+            
             vkCmdBindDescriptorSets(m_CommandBuffer->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline->GetLayout(), 0, 1, &m_DescriptorSet, 0, nullptr);
-
+            
             vkCmdDraw(m_CommandBuffer->Get(), Vertices.size(), 1, 0, 0);
-
+            
             Engine::s_Editor->Update();
             ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(),
                 static_cast<RendererVulkan*>(Engine::s_Renderer)->GetCommandBuffer(),
                 VK_NULL_HANDLE);
         }
 		m_RenderPass->EndRenderPass(m_CommandBuffer);
-
         vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
-
         {
             VkSubmitInfo submitInfo{};
             submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;

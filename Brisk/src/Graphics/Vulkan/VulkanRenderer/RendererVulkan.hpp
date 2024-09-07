@@ -28,6 +28,7 @@ namespace Brisk {
 		void CreateGraphicsPipeline();
 		void CreateDescriptorSet();
 		void UpdateUniformBuffer(uint32_t currentImage);
+		void CreateViewportResources();
 	private:
 		uint32_t m_ImageIndex;
 
@@ -42,18 +43,29 @@ namespace Brisk {
 		void* m_UniformBufferData;
 
 		CommandBufferVulkan* m_CommandBuffer;
-
-		VkCommandPool m_CommandPool;
-		VkFence m_InFlightFence;
 		VkSemaphore m_RenderFinishedSemaphore;
 		VkSemaphore m_ImageAvailableSemaphore;
+		VkCommandPool m_CommandPool;
+		VkFence m_InFlightFence;
 
 		VkDescriptorPool m_DescriptorPool;
 		VkDescriptorSet m_DescriptorSet;
 		std::vector<VkDescriptorSetLayout> m_DescriptorSetLayouts;
 
+		// Viewport
+		std::vector<VkImage> m_ViewportImages;
+		std::vector<VkDeviceMemory> m_ViewportImageMemory;
+		std::vector<VkImageView> m_ViewportImageViews;
+
+		RenderPassVulkan* m_ViewportRenderPass;
+		GraphicsPipelineVulkan* m_ViewportPipeline;
+		VkCommandPool m_ViewportCommandPool;
+		CommandBufferVulkan* m_ViewportCommandBuffer;
+		// Viewport end
+
 		std::vector<Point> Vertices;
 
 		friend class RendererFactory;
+		friend class ViewportVulkan;
 	};
 }

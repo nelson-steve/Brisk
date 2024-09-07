@@ -2,7 +2,6 @@
 
 #include "imgui.h"
 
-
 namespace Brisk {
     class IEditorPanel {
     public:

@@ -11,8 +11,8 @@ namespace Brisk {
 	class Swapchain {
 	public:
 		enum Mode {
-			DOUBLE_BUFFERING = 2,
-			TRIPLE_BUFFERING = 3,
+			DOUBLE_BUFFERING = 2U,
+			TRIPLE_BUFFERING = 3U,
 		};
 	public:
 		Swapchain(WindowBase* window, uint32_t width, uint32_t height);

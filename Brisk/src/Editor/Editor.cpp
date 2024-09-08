@@ -23,15 +23,15 @@ namespace Brisk {
         static_cast<RendererVulkan*>(Engine::s_Renderer)->SetupImGuiData(info);
         ImGui_ImplVulkan_Init(&info);
 
-        s_Panels.push_back(new HeirarchyPanel());
-        s_Panels.push_back(new ViewportPanel());
-        for (int i = 0; i < s_Panels.size(); i++)
-        {
-            s_Panels[i]->OnCreate();
-        }
+        //s_Panels.push_back(new HeirarchyPanel());
+        //s_Panels.push_back(new ViewportPanel());
+        //for (int i = 0; i < s_Panels.size(); i++)
+        //{
+        //    s_Panels[i]->OnCreate();
+        //}
 	}
 
-    void Editor::Update() {
+    void Editor::Update(VkDescriptorSet viewportDescriptorSet) {
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
         {
             static float f = 0.0f;
@@ -42,9 +42,19 @@ namespace Brisk {
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
-            for (int i = 0; i < s_Panels.size(); i++)
             {
-                s_Panels[i]->OnUpdate();
+                // Create a new window
+                ImGui::Begin("Viewport");
+
+                // Set the size and position of the viewport
+                ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+
+                ImGui::End();
+            }
+
+            //for (int i = 0; i < s_Panels.size(); i++)
+            {
+                //s_Panels[i]->OnUpdate();
             }
 
             ImGui::ShowDemoWindow();

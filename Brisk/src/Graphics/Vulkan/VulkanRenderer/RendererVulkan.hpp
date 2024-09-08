@@ -61,6 +61,12 @@ namespace Brisk {
 		GraphicsPipelineVulkan* m_ViewportPipeline;
 		VkCommandPool m_ViewportCommandPool;
 		CommandBufferVulkan* m_ViewportCommandBuffer;
+
+		VkImage m_StagingImage;
+		VkSampler m_StagingSampler;
+		VkImageView m_StagingImageView;
+		VkDeviceMemory m_StagingMemory;
+		VkDescriptorSet m_ImGuiDescriptorSet;
 		// Viewport end
 
 		std::vector<Point> Vertices;

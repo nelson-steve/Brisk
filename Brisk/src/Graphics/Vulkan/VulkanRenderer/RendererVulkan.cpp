@@ -167,6 +167,7 @@ namespace Brisk {
             throw std::runtime_error("failed to create descriptor pool!");
         }
 
+        Engine::s_Editor->Create();
         CreateViewportResources();
         CreateDescriptorSet();
         CreateGraphicsPipeline();
@@ -255,7 +256,7 @@ namespace Brisk {
         m_Pipeline->CreatePipelineLayout(m_DescriptorSetLayouts, 0);
         m_ViewportPipeline = m_Pipeline;
         m_Pipeline->CreatePipeline(m_RenderPass->GetRenderPass());
-        m_ViewportPipeline->CreatePipeline(m_ViewportRenderPass->GetRenderPass());
+        //m_ViewportPipeline->CreatePipeline(m_ViewportRenderPass->GetRenderPass());
     }
 
     void RendererVulkan::CreateDescriptorSet() {
@@ -316,24 +317,69 @@ namespace Brisk {
             stagingImageInfo.arrayLayers = 1;
             stagingImageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
             stagingImageInfo.tiling = VK_IMAGE_TILING_LINEAR;
-            stagingImageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+            stagingImageInfo.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
             stagingImageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-            VkImage stagingImage;
-            vkCreateImage(m_GpuContext->s_GPUDevice->GetDevice(), &stagingImageInfo, nullptr, &stagingImage);
+            vkCreateImage(m_GpuContext->s_GPUDevice->GetDevice(), &stagingImageInfo, nullptr, &m_StagingImage);
 
             VkMemoryRequirements memRequirements;
-            vkGetImageMemoryRequirements(m_GpuContext->s_GPUDevice->GetDevice(), stagingImage, &memRequirements);
+            vkGetImageMemoryRequirements(m_GpuContext->s_GPUDevice->GetDevice(), m_StagingImage, &memRequirements);
 
             VkMemoryAllocateInfo allocInfo = {};
             allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             allocInfo.allocationSize = memRequirements.size;
             allocInfo.memoryTypeIndex = VulkanUtilities::FindMemoryType(m_GpuContext->s_GPUDevice->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-            VkDeviceMemory stagingImageMemory;
-            vkAllocateMemory(m_GpuContext->s_GPUDevice->GetDevice(), &allocInfo, nullptr, &stagingImageMemory);
-            vkBindImageMemory(m_GpuContext->s_GPUDevice->GetDevice(), stagingImage, stagingImageMemory, 0);
+            vkAllocateMemory(m_GpuContext->s_GPUDevice->GetDevice(), &allocInfo, nullptr, &m_StagingMemory);
+            vkBindImageMemory(m_GpuContext->s_GPUDevice->GetDevice(), m_StagingImage, m_StagingMemory, 0);
+
+            VkSamplerCreateInfo samplerInfo{};
+            samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+            samplerInfo.magFilter = VK_FILTER_LINEAR; // Magnification filtering (when image gets bigger)
+            samplerInfo.minFilter = VK_FILTER_LINEAR; // Minification filtering (when image gets smaller)
+            samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT; // Repeat wrapping mode for U coordinate
+            samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT; // Repeat wrapping mode for V coordinate
+            samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT; // Repeat wrapping mode for W coordinate
+            samplerInfo.anisotropyEnable = VK_FALSE; // Enable anisotropic filtering
+            samplerInfo.maxAnisotropy = 1.0f; // Max level of anisotropy
+            samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK; // Border color if using clamp-to-border addressing mode
+            samplerInfo.unnormalizedCoordinates = VK_FALSE; // Use normalized UV coordinates
+            samplerInfo.compareEnable = VK_FALSE; // No comparison operation
+            samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS; // Comparison function
+            samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR; // Linear mipmapping
+            samplerInfo.mipLodBias = 0.0f; // Optional LOD bias
+            samplerInfo.minLod = 0.0f; // Minimum LOD (mipmap level)
+            samplerInfo.maxLod = 0.0f; // Maximum LOD (mipmap level)
+
+            if (vkCreateSampler(m_GpuContext->s_GPUDevice->GetDevice(), &samplerInfo, nullptr, &m_StagingSampler) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create texture sampler!");
+            }
+
+            VkImageViewCreateInfo imageViewCreateInfo{};
+            imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+            imageViewCreateInfo.image = m_StagingImage;
+            imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            imageViewCreateInfo.format = m_Swapchain->GetFormat().format;
+            imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+            imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+            imageViewCreateInfo.subresourceRange.levelCount = 1;
+            imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+            imageViewCreateInfo.subresourceRange.layerCount = 1;
+
+            if (vkCreateImageView(GpuContextVulkan::s_GPUDevice->GetDevice(), &imageViewCreateInfo, nullptr, &m_StagingImageView) != VK_SUCCESS) {
+                throw std::runtime_error("Failed to create Swapchain Image Views!");
+            }
+
+            m_ImGuiDescriptorSet = ImGui_ImplVulkan_AddTexture(
+                m_StagingSampler,                   // Vulkan sampler for the image
+                m_StagingImageView,           // VkImageView of the staging image
+                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
+        return;
 
         m_ViewportImages.resize(m_Swapchain->GetImageCount());
         m_ViewportImageMemory.resize(m_Swapchain->GetImageCount());
@@ -484,13 +530,91 @@ namespace Brisk {
             vkCmdBindDescriptorSets(m_CommandBuffer->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline->GetLayout(), 0, 1, &m_DescriptorSet, 0, nullptr);
             
             vkCmdDraw(m_CommandBuffer->Get(), Vertices.size(), 1, 0, 0);
-            
-            Engine::s_Editor->Update();
+         
+            Engine::s_Editor->Update(m_ImGuiDescriptorSet);
             ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(),
                 static_cast<RendererVulkan*>(Engine::s_Renderer)->GetCommandBuffer(),
                 VK_NULL_HANDLE);
+
+            //ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(),
+            //    static_cast<RendererVulkan*>(Engine::s_Renderer)->GetCommandBuffer(),
+            //    VK_NULL_HANDLE);
         }
 		m_RenderPass->EndRenderPass(m_CommandBuffer);
+
+        CommandBufferVulkan singleTimeCmdBuffer;
+        {
+            singleTimeCmdBuffer.Allocate(m_CommandPool);
+            singleTimeCmdBuffer.Begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+            // Transition swapchain image to VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL
+            VkImageMemoryBarrier barrier{};
+            barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+            barrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+            barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.image = m_Swapchain->GetSwapchainImages()[m_ImageIndex];
+            barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            barrier.subresourceRange.baseMipLevel = 0;
+            barrier.subresourceRange.levelCount = 1;
+            barrier.subresourceRange.baseArrayLayer = 0;
+            barrier.subresourceRange.layerCount = 1;
+
+            vkCmdPipelineBarrier(
+                singleTimeCmdBuffer.Get(),
+                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+            // Transition staging image to VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL
+            VkImageMemoryBarrier stagingBarrier = barrier;
+            stagingBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            stagingBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+            stagingBarrier.image = m_StagingImage;
+
+            vkCmdPipelineBarrier(
+                singleTimeCmdBuffer.Get(),
+                VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT,
+                0, 0, nullptr, 0, nullptr, 1, &stagingBarrier);
+
+            // Perform the image copy
+            VkImageCopy copyRegion = {};
+            copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            copyRegion.srcSubresource.mipLevel = 0;
+            copyRegion.srcSubresource.baseArrayLayer = 0;
+            copyRegion.srcSubresource.layerCount = 1;
+            copyRegion.srcOffset = { 0, 0, 0 };
+            copyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            copyRegion.dstSubresource.mipLevel = 0;
+            copyRegion.dstSubresource.baseArrayLayer = 0;
+            copyRegion.dstSubresource.layerCount = 1;
+            copyRegion.dstOffset = { 0, 0, 0 };
+            copyRegion.extent = { m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 1 };
+
+            vkCmdCopyImage(
+                singleTimeCmdBuffer.Get(),
+                m_Swapchain->GetSwapchainImages()[m_ImageIndex], VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+                m_StagingImage, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                1, &copyRegion);
+
+            // Transition the swapchain image back to VK_IMAGE_LAYOUT_PRESENT_SRC_KHR
+            barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+            vkCmdPipelineBarrier(
+                singleTimeCmdBuffer.Get(),
+                VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+                0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+            // 
+            //VkDescriptorSet imguiDescriptorSet = ImGui_ImplVulkan_AddTexture(
+            //    m_StagingSampler,                   // Vulkan sampler for the image
+            //    m_StagingImageView,           // VkImageView of the staging image
+            //    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            //);
+
+            singleTimeCmdBuffer.End();
+        }
+
         vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
         {
             VkSubmitInfo submitInfo{};
@@ -502,9 +626,9 @@ namespace Brisk {
             submitInfo.pWaitSemaphores = waitSemaphores;
             submitInfo.pWaitDstStageMask = waitStages;
 
-            VkCommandBuffer cmdBufer = m_CommandBuffer->Get();
+            VkCommandBuffer cmdBuffers[] = { m_CommandBuffer->Get(), singleTimeCmdBuffer.Get()};
             submitInfo.commandBufferCount = 1;
-            submitInfo.pCommandBuffers = &cmdBufer;
+            submitInfo.pCommandBuffers = cmdBuffers;
 
             VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
             submitInfo.signalSemaphoreCount = 1;

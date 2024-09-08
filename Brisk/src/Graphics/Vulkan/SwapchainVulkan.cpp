@@ -64,7 +64,7 @@ namespace Brisk {
 		swapChainCreateInfo.imageColorSpace = m_surface_format.colorSpace;
 		swapChainCreateInfo.imageExtent = surfaceCapabilities.currentExtent;
 		swapChainCreateInfo.imageArrayLayers = 1;
-		swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+		swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
 		m_extent = surfaceCapabilities.currentExtent;
 
 		std::cout << "Swapchain image count: " << imageCount << std::endl;

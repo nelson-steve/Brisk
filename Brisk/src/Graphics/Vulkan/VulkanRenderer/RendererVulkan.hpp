@@ -72,6 +72,5 @@ namespace Brisk {
 		std::vector<Point> Vertices;
 
 		friend class RendererFactory;
-		friend class ViewportVulkan;
 	};
 }

@@ -63,6 +63,5 @@ namespace Brisk
 		friend class RendererVulkan;
 		friend class CommandBufferVulkan;
 		friend class BufferVulkan;
-		friend class ViewportVulkan;
 	};
 }

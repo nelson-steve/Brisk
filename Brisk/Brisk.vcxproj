@@ -111,12 +111,12 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IMGUI_IMPL_VULKAN_USE_VOLK=1</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)vendors\include\GLFW;$(ProjectDir)src;$(ProjectDir)vendors\ImGui;$(ProjectDir)vendors\spdlog\include;C:\VulkanSDK\1.3.280.0\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)vendors\include\GLFW;$(ProjectDir)src;$(ProjectDir)vendors\ImGui;$(ProjectDir)vendors\spdlog\include;C:\VulkanSDK\1.3.290.0\Include</AdditionalIncludeDirectories>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>C:\VulkanSDK\1.3.280.0\Lib\volkd.lib;$(ProjectDir)vendors\lib\glfw3.lib;$(CoreLibraryDependencies);$(ProjectDir)vendors\spdlog\lib\Debug\spdlogd.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>C:\VulkanSDK\1.3.290.0\Lib\volkd.lib;$(ProjectDir)vendors\lib\glfw3.lib;$(CoreLibraryDependencies);$(ProjectDir)vendors\spdlog\lib\Debug\spdlogd.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <EntryPointSymbol>
       </EntryPointSymbol>
     </Link>
@@ -182,7 +182,6 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Graphics\Vulkan\UniformBufferVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\volk.cpp" />
     <ClInclude Include="src\Graphics\Vulkan\VulkanRenderer\RendererVulkan.hpp" />
-    <ClInclude Include="src\Graphics\Vulkan\VulkanRenderer\ViewportVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\VulkanUtilities.hpp" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.hpp" />
     <ClInclude Include="vendors\ImGui\imconfig.h" />
@@ -213,7 +212,6 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClCompile Include="src\Graphics\Vulkan\GpuDeviceVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\UniformBufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\VulkanRenderer\RendererVulkan.cpp" />
-    <ClCompile Include="src\Graphics\Vulkan\VulkanRenderer\ViewportVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\VulkanUtilities.cpp" />
     <ClCompile Include="src\Main\main.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />

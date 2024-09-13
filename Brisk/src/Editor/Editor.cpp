@@ -48,6 +48,7 @@ namespace Brisk {
 
                 // Set the size and position of the viewport
                 ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+                ImGui::Image(viewportDescriptorSet, ImVec2{ viewportSize.x, viewportSize.y });
 
                 ImGui::End();
             }

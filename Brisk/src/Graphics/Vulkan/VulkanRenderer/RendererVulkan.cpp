@@ -379,9 +379,10 @@ namespace Brisk {
                 m_StagingImageView,           // VkImageView of the staging image
                 VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         }
-        return;
+        //return;
 
         m_ViewportImages.resize(m_Swapchain->GetImageCount());
+        m_ViewportImageViews.resize(m_Swapchain->GetImageCount());
         m_ViewportImageMemory.resize(m_Swapchain->GetImageCount());
 
         for (uint32_t i = 0; i < m_ViewportImages.size(); i++)
@@ -400,7 +401,7 @@ namespace Brisk {
             imageCreateCI.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             imageCreateCI.samples = VK_SAMPLE_COUNT_1_BIT;
             imageCreateCI.tiling = VK_IMAGE_TILING_OPTIMAL;
-            imageCreateCI.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;// | VK_IMAGE_USAGE_SAMPLED_BIT;
+            imageCreateCI.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
             imageCreateCI.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
             std::vector<VkFormat> formats = { VK_FORMAT_B8G8R8A8_SRGB, VK_FORMAT_B8G8R8A8_UNORM, VK_FORMAT_B8G8R8A8_UINT,
                 VK_FORMAT_B8G8R8A8_SNORM, VK_FORMAT_B8G8R8_SINT, VK_FORMAT_B8G8R8A8_SSCALED, VK_FORMAT_R8G8B8A8_SINT
@@ -413,7 +414,7 @@ namespace Brisk {
             memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             vkGetImageMemoryRequirements(GpuContextVulkan::s_GPUDevice->GetDevice(), m_ViewportImages[i], &memRequirements);
             memAllocInfo.allocationSize = memRequirements.size;
-            memAllocInfo.memoryTypeIndex = VulkanUtilities::FindMemoryType(GpuContextVulkan::s_GPUDevice->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+            memAllocInfo.memoryTypeIndex = VulkanUtilities::FindMemoryType(GpuContextVulkan::s_GPUDevice->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
             vkAllocateMemory(GpuContextVulkan::s_GPUDevice->GetDevice(), &memAllocInfo, nullptr, &m_ViewportImageMemory[i]);
             vkBindImageMemory(GpuContextVulkan::s_GPUDevice->GetDevice(), m_ViewportImages[i], m_ViewportImageMemory[i], 0);
 
@@ -606,11 +607,11 @@ namespace Brisk {
                 0, 0, nullptr, 0, nullptr, 1, &barrier);
 
             // 
-            //VkDescriptorSet imguiDescriptorSet = ImGui_ImplVulkan_AddTexture(
-            //    m_StagingSampler,                   // Vulkan sampler for the image
-            //    m_StagingImageView,           // VkImageView of the staging image
-            //    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-            //);
+            m_ImGuiDescriptorSet = ImGui_ImplVulkan_AddTexture(
+                m_StagingSampler,                   // Vulkan sampler for the image
+                m_StagingImageView,           // VkImageView of the staging image
+                VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+            );
 
             singleTimeCmdBuffer.End();
         }

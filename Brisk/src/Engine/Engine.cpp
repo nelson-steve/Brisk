@@ -48,6 +48,8 @@ namespace Brisk
 	void Engine::Init() {
 		Log::Init();
 		s_MainWindow = WindowCreator::CreateWindowsWindow(1920, 1080);
+		glfwSetCursorPosCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), mouse_callback);
+		glfwSetScrollCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), scroll_callback);
 
 		s_Renderer = RendererFactory::CreateRenderer();
 		s_Renderer->Create();
@@ -57,8 +59,7 @@ namespace Brisk
 
 		s_Renderer->SetupRenderingPipeline(s_Swapchain);
 		s_Editor = new Editor();
-		glfwSetCursorPosCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), mouse_callback);
-		glfwSetScrollCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), scroll_callback);
+		s_Editor->Create();
 
 		float aspect = s_MainWindow->GetWidth() / s_MainWindow->GetHeight();
 		s_Camera = new Camera(60.0f, aspect, 0.01, 1000.0f, (GLFWwindow*)s_MainWindow->GetWindowHandle());

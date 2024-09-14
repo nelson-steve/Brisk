@@ -48,25 +48,15 @@ namespace Brisk {
 		VkCommandPool m_CommandPool;
 		VkFence m_InFlightFence;
 
+		RenderPassVulkan* m_ViewportRenderPass;
+		GraphicsPipelineVulkan* m_ViewportPipeline;
+
 		VkDescriptorPool m_DescriptorPool;
 		VkDescriptorSet m_DescriptorSet;
 		std::vector<VkDescriptorSetLayout> m_DescriptorSetLayouts;
 
-		// Viewport
-		std::vector<VkImage> m_ViewportImages;
-		std::vector<VkDeviceMemory> m_ViewportImageMemory;
-		std::vector<VkImageView> m_ViewportImageViews;
-
-		RenderPassVulkan* m_ViewportRenderPass;
-		GraphicsPipelineVulkan* m_ViewportPipeline;
-		VkCommandPool m_ViewportCommandPool;
-		CommandBufferVulkan* m_ViewportCommandBuffer;
-
-		VkImage m_StagingImage;
-		VkSampler m_StagingSampler;
-		VkImageView m_StagingImageView;
-		VkDeviceMemory m_StagingMemory;
-		VkDescriptorSet m_ImGuiDescriptorSet;
+		VkSampler m_ViewportSampler;
+		std::vector<VkDescriptorSet> m_ImGuiDescriptorSets;
 		// Viewport end
 
 		std::vector<Point> Vertices;

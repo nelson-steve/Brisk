@@ -14,7 +14,40 @@ namespace Brisk {
 		virtual void Release() override;
 
 		virtual void SetupRenderingPipeline(Swapchain* swapchain) override;
+		void CreateTexture();
+		void CreateOffscreenResources();
 		void SetupImGuiData(ImGui_ImplVulkan_InitInfo& data);
+
+		void InsertImageMemoryBarrier(VkCommandBuffer cmdbuffer,
+			VkImage image,
+			VkAccessFlags srcAccessMask,
+			VkAccessFlags dstAccessMask,
+			VkImageLayout oldImageLayout,
+			VkImageLayout newImageLayout,
+			VkPipelineStageFlags srcStageMask,
+			VkPipelineStageFlags dstStageMask,
+			VkImageSubresourceRange subresourceRange)
+		{
+			VkImageMemoryBarrier imageMemoryBarrier{};
+			imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+			imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+			imageMemoryBarrier.srcAccessMask = srcAccessMask;
+			imageMemoryBarrier.dstAccessMask = dstAccessMask;
+			imageMemoryBarrier.oldLayout = oldImageLayout;
+			imageMemoryBarrier.newLayout = newImageLayout;
+			imageMemoryBarrier.image = image;
+			imageMemoryBarrier.subresourceRange = subresourceRange;
+
+			vkCmdPipelineBarrier(
+				cmdbuffer,
+				srcStageMask,
+				dstStageMask,
+				0,
+				0, nullptr,
+				0, nullptr,
+				1, &imageMemoryBarrier);
+		}
 
 		VkCommandBuffer GetCommandBuffer() const { return m_CommandBuffer->Get(); }
 		const VkPipeline GetPipeline() const { return m_Pipeline->GetPipeline(); }
@@ -28,7 +61,6 @@ namespace Brisk {
 		void CreateGraphicsPipeline();
 		void CreateDescriptorSet();
 		void UpdateUniformBuffer(uint32_t currentImage);
-		void CreateViewportResources();
 	private:
 		uint32_t m_ImageIndex;
 
@@ -48,6 +80,12 @@ namespace Brisk {
 		VkCommandPool m_CommandPool;
 		VkFence m_InFlightFence;
 
+
+		std::vector<VkImageView> m_ViewportImageViews;
+		std::vector<VkImage> m_ViewportImages;
+		std::vector<VkDeviceMemory> m_ViewportImageMemory;
+		VkDescriptorSet m_ImGuiDescriptorSet;
+
 		RenderPassVulkan* m_ViewportRenderPass;
 		GraphicsPipelineVulkan* m_ViewportPipeline;
 
@@ -57,9 +95,20 @@ namespace Brisk {
 
 		VkSampler m_ViewportSampler;
 		std::vector<VkDescriptorSet> m_ImGuiDescriptorSets;
-		// Viewport end
 
-		std::vector<Point> Vertices;
+		RenderPassVulkan* m_ImguiRenderPass;
+
+		struct ImGuiImage {
+			VkImage Image;
+			VkImageView ImageView;
+			VkDeviceMemory Memory;
+		} m_ImGuiImage;
+
+		struct Offscreen {
+			VkImage Image;
+			VkImageView ImageView;
+			VkDeviceMemory Memory;
+		} m_Offscreen;
 
 		friend class RendererFactory;
 	};

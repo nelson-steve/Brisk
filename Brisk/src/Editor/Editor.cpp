@@ -31,7 +31,7 @@ namespace Brisk {
         //}
 	}
 
-    void Editor::Update() {
+    void Editor::Update(VkDescriptorSet set) {
         // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
         {
             static float f = 0.0f;
@@ -47,8 +47,8 @@ namespace Brisk {
                 ImGui::Begin("Viewport");
 
                 // Set the size and position of the viewport
-                //ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-                //ImGui::Image((ImTextureID)viewportDescriptorSet, ImVec2{ viewportSize.x, viewportSize.y });
+                ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+                ImGui::Image((ImTextureID)set, ImVec2{ viewportSize.x, viewportSize.y });
 
                 ImGui::End();
             }

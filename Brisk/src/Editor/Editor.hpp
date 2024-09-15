@@ -14,7 +14,7 @@ namespace Brisk {
 	public:
 		Editor() = default;
 		void Create();
-		void Update();
+		void Update(VkDescriptorSet set);
 		void Release();
 	private:
 		ImGui_ImplVulkanH_Window s_MainWindowData;

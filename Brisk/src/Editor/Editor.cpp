@@ -13,6 +13,9 @@ namespace Brisk {
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
         io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;      // Enable Gamepad Controls
+        ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
+        //ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
+
         // Setup Dear ImGui style
         ImGui::StyleColorsDark();
         //ImGui::StyleColorsLight();
@@ -42,6 +45,7 @@ namespace Brisk {
             ImGui_ImplGlfw_NewFrame();
             ImGui::NewFrame();
 
+            ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
             {
                 // Create a new window
                 ImGui::Begin("Viewport");

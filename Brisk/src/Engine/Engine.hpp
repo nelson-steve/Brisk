@@ -15,16 +15,6 @@ namespace Brisk
 	class Renderer;
 	class Editor;
 
-	//namespace Globals{
-	//	static GraphicsAPI GPU_API = GraphicsAPI::Vulkan;
-	//}
-
-	//struct GlobalGPUDevice {
-	//	static GraphicsDeviceVulkan* m_GPUDeviceVulkan;
-	//	static Swapchain* m_Swapchain;
-	//	static PhysicalDevice* s_PhysicalDevice;
-	//};
-
 	struct Point {
 		glm::vec3 Position;
 		glm::vec3 Color;
@@ -35,7 +25,6 @@ namespace Brisk
 		glm::mat4 View;
 		glm::mat4 Projection;
 	};
-
 
 	/// <summary>
 	/// Main Engine class holding all major systems of the engine
@@ -67,9 +56,24 @@ namespace Brisk
 		/// </summary>
 		static EngineInfo s_EngineInfo;
 
+		/// <summary>
+		/// Editor handle
+		/// </summary>
 		static Editor* s_Editor;
+
+		/// <summary>
+		/// Camera handle
+		/// </summary>
 		static Camera* s_Camera;
+
+		/// <summary>
+		/// Renderer handle
+		/// </summary>
 		static Renderer* s_Renderer;
+
+		/// <summary>
+		/// Swapchain handle
+		/// </summary>
 		static Swapchain* s_Swapchain;
 	private:
 	};

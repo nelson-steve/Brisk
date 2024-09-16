@@ -86,7 +86,7 @@ namespace Brisk {
 		/// <param name="width"></param>
 		/// <param name="height"></param>
 		/// <returns></returns>
-		[[nodiscard]] static WindowBase* CreateWindowsWindow(int width, int height) {
+		[[nodiscard]] static WindowBase* CreateNativeWindow(int width, int height) {
 			WindowBase* window = WindowBase::Create(width, height);
 			return window;
 		}

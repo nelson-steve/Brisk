@@ -18,7 +18,7 @@ namespace Brisk
 	float lastX = 0.0f;
 	float lastY = 0.0f;
 	bool firstMouse = true;
-	void mouse_callback(GLFWwindow* window, double xposIn, double yposIn)
+	void mouseCallback(GLFWwindow* window, double xposIn, double yposIn)
 	{
 		float xpos = static_cast<float>(xposIn);
 		float ypos = static_cast<float>(yposIn);
@@ -40,16 +40,16 @@ namespace Brisk
 		Engine::s_Camera->MouseMoved();
 	}
 
-	void scroll_callback(GLFWwindow* window, double xoffset, double yoffset)
+	void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
 	{
 		Engine::s_Camera->OnMouseScroll(yoffset);
 	}
 
 	void Engine::Init() {
 		Log::Init();
-		s_MainWindow = WindowCreator::CreateWindowsWindow(1920, 1080);
-		glfwSetCursorPosCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), mouse_callback);
-		glfwSetScrollCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), scroll_callback);
+		s_MainWindow = WindowCreator::CreateNativeWindow(1920, 1080);
+		glfwSetCursorPosCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), mouseCallback);
+		glfwSetScrollCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), scrollCallback);
 
 		s_Renderer = RendererFactory::CreateRenderer();
 		s_Renderer->Create();
@@ -58,11 +58,11 @@ namespace Brisk
 		s_Swapchain->Create(Swapchain::Mode::TRIPLE_BUFFERING);
 
 		s_Renderer->SetupRenderingPipeline(s_Swapchain);
+
 		s_Editor = new Editor();
 		s_Editor->Create();
 
-		float aspect = s_MainWindow->GetWidth() / s_MainWindow->GetHeight();
-		s_Camera = new Camera(60.0f, aspect, 0.01, 1000.0f, (GLFWwindow*)s_MainWindow->GetWindowHandle());
+		s_Camera = new Camera(60.0f, s_MainWindow->GetWidth() / s_MainWindow->GetHeight(), 0.01, 1000.0f, (GLFWwindow*)s_MainWindow->GetWindowHandle());
 	}
 
 	void Engine::Update() {
@@ -71,9 +71,8 @@ namespace Brisk
 			auto newTime = std::chrono::high_resolution_clock::now();
 			float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
 			currentTime = newTime;
-			//s_Camera->OnUpdate(frameTime, (GLFWwindow*)s_MainWindow->GetWindowHandle());
 			s_Renderer->Render();
-			//s_Editor->Update();
+			s_Camera->OnUpdate(frameTime, (GLFWwindow*)s_MainWindow->GetWindowHandle());
 			s_MainWindow->ProcessEvents();
 		}
 

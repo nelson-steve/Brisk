@@ -599,13 +599,7 @@ namespace Brisk {
 
     }
 
-    bool firstTime = true;
     void RendererVulkan::Render() {
-        //if (firstTime)
-        //{
-        //    m_ImGuiDescriptorSet = ImGui_ImplVulkan_AddTexture(m_ViewportSampler, m_Offscreen.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-        //    firstTime = false;
-        //}
         vkWaitForFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
 
         VkResult result = m_Swapchain->AquireNextImage(UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_ImageIndex);
@@ -659,7 +653,6 @@ namespace Brisk {
         }
         m_RenderPass->EndRenderPass(m_CommandBuffer, false);
 
-        //m_CommandBuffer->Begin();
         // copying the swapchain image
         {
             // Transition the swapchain image to TRANSFER_SRC layout
@@ -786,14 +779,13 @@ namespace Brisk {
             //
 
             vkWaitForFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
+            vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
 
             m_RenderPass->BeginRenderPass(m_ImGuiCommandBuffer, 0);
-            //m_ImguiRenderPass->BeginRenderPass(m_ImGuiCommandBuffer, 0);
             ImGui_ImplVulkan_RemoveTexture(m_ImGuiDescriptorSet);
             m_ImGuiDescriptorSet = ImGui_ImplVulkan_AddTexture(m_ViewportSampler, m_Offscreen.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
             Engine::s_Editor->Update(m_ImGuiDescriptorSet);
             ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), m_ImGuiCommandBuffer->Get(),VK_NULL_HANDLE);
-            //m_ImguiRenderPass->EndRenderPass(m_ImGuiCommandBuffer);
             m_RenderPass->EndRenderPass(m_ImGuiCommandBuffer);
         }
         vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
@@ -810,7 +802,6 @@ namespace Brisk {
 
             std::vector<VkCommandBuffer> cmdBufers = { m_ImGuiCommandBuffer->Get() };
             submitInfo.commandBufferCount = 1;
-            //submitInfo.pCommandBuffers = &cmdBufer;
             submitInfo.pCommandBuffers = cmdBufers.data();
 
             VkSemaphore signalSemaphores[] = { m_UIFinshedSemaphore };

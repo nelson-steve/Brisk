@@ -14,9 +14,9 @@ namespace Brisk {
         void ReleaseFramebuffers();
         void CreateNAddFramebuffer(std::vector<VkImageView> attachments, uint32_t width, uint32_t height);
 
-        void BindPipeline(void* pipeline);
+        //void BindPipeline(void* pipeline);
         void BeginRenderPass(CommandBufferVulkan* commandBuffer, int imageIndex);
-        void EndRenderPass(CommandBufferVulkan* commandBuffer);
+        void EndRenderPass(CommandBufferVulkan* commandBuffer, bool endCmdBuffer = true);
 
         VkRenderPass GetRenderPass() const { return m_RenderPass; }
         const std::vector<VkFramebuffer> GetFramebuffers() const { return m_Framebuffers; }

@@ -75,6 +75,7 @@ namespace Brisk {
 		void* m_UniformBufferData;
 
 		CommandBufferVulkan* m_CommandBuffer;
+		CommandBufferVulkan* m_ImGuiCommandBuffer;
 		VkSemaphore m_RenderFinishedSemaphore;
 		VkSemaphore m_ImageAvailableSemaphore;
 		VkCommandPool m_CommandPool;
@@ -93,15 +94,20 @@ namespace Brisk {
 		VkDescriptorSet m_DescriptorSet;
 		std::vector<VkDescriptorSetLayout> m_DescriptorSetLayouts;
 
+		VkSemaphore m_UIFinshedSemaphore;
+
 		VkSampler m_ViewportSampler;
 		std::vector<VkDescriptorSet> m_ImGuiDescriptorSets;
 
 		RenderPassVulkan* m_ImguiRenderPass;
 
 		struct ImGuiImage {
-			VkImage Image;
-			VkImageView ImageView;
-			VkDeviceMemory Memory;
+			VkImage ColorImage;
+			VkImage DepthImage;
+			VkImageView ColorImageView;
+			VkImageView DepthImageView;
+			VkDeviceMemory ColorMemory;
+			VkDeviceMemory DepthMemory;
 		} m_ImGuiImage;
 
 		struct Offscreen {

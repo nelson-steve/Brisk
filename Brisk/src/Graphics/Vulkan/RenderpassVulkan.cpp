@@ -47,7 +47,7 @@ namespace Brisk {
     }
 
     void RenderPassVulkan::BeginRenderPass(CommandBufferVulkan* commandBuffer, int imageIndex) {
-        commandBuffer->Begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
+        commandBuffer->Begin();
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = m_RenderPass;
@@ -62,9 +62,9 @@ namespace Brisk {
         vkCmdBeginRenderPass(commandBuffer->Get(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
     }
 
-    void RenderPassVulkan::EndRenderPass(CommandBufferVulkan* commandBuffer) {
+    void RenderPassVulkan::EndRenderPass(CommandBufferVulkan* commandBuffer, bool endCmdBuffer) {
         vkCmdEndRenderPass(commandBuffer->Get());
-
+        if (!endCmdBuffer) return;
         if (vkEndCommandBuffer(commandBuffer->Get()) != VK_SUCCESS) {
             throw std::runtime_error("Failed to record command buffer!");
         }

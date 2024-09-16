@@ -101,6 +101,7 @@ namespace Brisk {
 
         if (vkCreateSemaphore(GpuContextVulkan::s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore) != VK_SUCCESS ||
             vkCreateSemaphore(GpuContextVulkan::s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore) != VK_SUCCESS ||
+            vkCreateSemaphore(GpuContextVulkan::s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_UIFinshedSemaphore) != VK_SUCCESS ||
             vkCreateFence(GpuContextVulkan::s_GPUDevice->GetDevice(), &fenceInfo, nullptr, &m_InFlightFence) != VK_SUCCESS) {
             throw std::runtime_error("failed to create synchronization objects for a frame!");
         }
@@ -215,31 +216,31 @@ namespace Brisk {
             imageCreateInfo.arrayLayers = 1;
             imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
             imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-            imageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+            imageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
             imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
             imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-            if (vkCreateImage(m_GpuContext->s_GPUDevice->GetDevice(), &imageCreateInfo, nullptr, &m_ImGuiImage.Image) != VK_SUCCESS) {
+            if (vkCreateImage(m_GpuContext->s_GPUDevice->GetDevice(), &imageCreateInfo, nullptr, &m_ImGuiImage.ColorImage) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create descriptor pool!");
             }
 
             VkMemoryRequirements memRequirements;
-            vkGetImageMemoryRequirements(m_GpuContext->s_GPUDevice->GetDevice(), m_ImGuiImage.Image, &memRequirements);
+            vkGetImageMemoryRequirements(m_GpuContext->s_GPUDevice->GetDevice(), m_ImGuiImage.ColorImage, &memRequirements);
 
             VkMemoryAllocateInfo allocInfo = {};
             allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             allocInfo.allocationSize = memRequirements.size;
             allocInfo.memoryTypeIndex = VulkanUtilities::FindMemoryType(m_GpuContext->s_GPUDevice->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-            if (vkAllocateMemory(m_GpuContext->s_GPUDevice->GetDevice(), &allocInfo, nullptr, &m_ImGuiImage.Memory) != VK_SUCCESS) {
+            if (vkAllocateMemory(m_GpuContext->s_GPUDevice->GetDevice(), &allocInfo, nullptr, &m_ImGuiImage.ColorMemory) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create descriptor pool!");
             }
-            if (vkBindImageMemory(m_GpuContext->s_GPUDevice->GetDevice(), m_ImGuiImage.Image, m_ImGuiImage.Memory, 0) != VK_SUCCESS) {
+            if (vkBindImageMemory(m_GpuContext->s_GPUDevice->GetDevice(), m_ImGuiImage.ColorImage, m_ImGuiImage.ColorMemory, 0) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create descriptor pool!");
             }
 
             VkImageViewCreateInfo viewInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-            viewInfo.image = m_ImGuiImage.Image;
+            viewInfo.image = m_ImGuiImage.ColorImage;
             viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
             viewInfo.format = VK_FORMAT_B8G8R8A8_UNORM;
             viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -248,35 +249,82 @@ namespace Brisk {
             viewInfo.subresourceRange.baseArrayLayer = 0;
             viewInfo.subresourceRange.layerCount = 1;
 
-            if (vkCreateImageView(m_GpuContext->s_GPUDevice->GetDevice(), &viewInfo, nullptr, &m_ImGuiImage.ImageView) != VK_SUCCESS) {
+            if (vkCreateImageView(m_GpuContext->s_GPUDevice->GetDevice(), &viewInfo, nullptr, &m_ImGuiImage.ColorImageView) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create descriptor pool!");
             }
 
-            VkAttachmentDescription colorAttachment = {};
-            colorAttachment.format = VK_FORMAT_B8G8R8A8_UNORM; // Match your framebuffer format
+            VkAttachmentDescription colorAttachment{};
+            colorAttachment.format = m_Swapchain->GetFormat().format;
             colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
             colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
             colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR; // or VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL for ImGui
+            colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-            VkAttachmentReference colorAttachmentRef = {};
+            VkAttachmentDescription depthAttatchment{};
+            depthAttatchment.format = m_Swapchain->GetDepthFormat();
+            depthAttatchment.samples = VK_SAMPLE_COUNT_1_BIT;
+            depthAttatchment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            depthAttatchment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+            depthAttatchment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+            depthAttatchment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            depthAttatchment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            depthAttatchment.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+            VkAttachmentReference colorAttachmentRef{};
             colorAttachmentRef.attachment = 0;
             colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-            VkSubpassDescription subpass = {};
+            VkAttachmentReference depthAttachmentRef{};
+            depthAttachmentRef.attachment = 1;
+            depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+            VkSubpassDescription subpass{};
             subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
             subpass.colorAttachmentCount = 1;
             subpass.pColorAttachments = &colorAttachmentRef;
+            subpass.pDepthStencilAttachment = &depthAttachmentRef;
+
+            // Subpass dependencies for layout transitions
+            std::array<VkSubpassDependency, 2> dependencies;
+
+            dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+            dependencies[0].dstSubpass = 0;
+            dependencies[0].srcStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            dependencies[0].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+            dependencies[0].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+            dependencies[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+            dependencies[0].dependencyFlags = 0;
+
+            dependencies[1].srcSubpass = VK_SUBPASS_EXTERNAL;
+            dependencies[1].dstSubpass = 0;
+            dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            dependencies[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            dependencies[1].srcAccessMask = 0;
+            dependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+            dependencies[1].dependencyFlags = 0;
+
+            //VkSubpassDependency dependency{};
+            //dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+            //dependency.dstSubpass = 0;
+            //dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+            //dependency.srcAccessMask = 0;
+            //dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+            //dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+            std::vector<VkAttachmentDescription> colorAttachments = { colorAttachment, depthAttatchment };
 
             m_ImguiRenderPass = new RenderPassVulkan();
-            m_ImguiRenderPass->Create({ colorAttachment }, { subpass }, { });
-            std::vector<VkImageView> attachments = {
-                m_ImGuiImage.ImageView
-            };
-            m_ImguiRenderPass->CreateNAddFramebuffer(attachments, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+            m_ImguiRenderPass->Create(colorAttachments, { subpass }, { dependencies[0], dependencies[1] });
+            for (int i = 0; i < m_Swapchain->GetImageCount(); i++) {
+                std::vector<VkImageView> attachments = {
+                    m_ImGuiImage.ColorImageView,
+                    m_Swapchain->GetDepthImageView(),
+                };
+                m_ImguiRenderPass->CreateNAddFramebuffer(attachments, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+            }
         }
 
         CreateOffscreenResources();
@@ -367,6 +415,9 @@ namespace Brisk {
         m_CommandBuffer = new CommandBufferVulkan();
         m_CommandBuffer->Allocate(m_CommandPool);
 
+        m_ImGuiCommandBuffer = new CommandBufferVulkan();
+        m_ImGuiCommandBuffer->Allocate(m_CommandPool);
+
         std::vector<VkDescriptorPoolSize> poolSizes{
             { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10 },
             { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 },
@@ -432,7 +483,6 @@ namespace Brisk {
 
         memcpy(m_UniformBufferData, &ubo, sizeof(ubo));
     }
-
 
     void RendererVulkan::CreateGraphicsPipeline() {
         m_Pipeline = new GraphicsPipelineVulkan();
@@ -549,7 +599,13 @@ namespace Brisk {
 
     }
 
+    bool firstTime = true;
     void RendererVulkan::Render() {
+        //if (firstTime)
+        //{
+        //    m_ImGuiDescriptorSet = ImGui_ImplVulkan_AddTexture(m_ViewportSampler, m_Offscreen.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        //    firstTime = false;
+        //}
         vkWaitForFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
 
         VkResult result = m_Swapchain->AquireNextImage(UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_ImageIndex);
@@ -601,9 +657,9 @@ namespace Brisk {
             
             vkCmdDraw(m_CommandBuffer->Get(), Vertices.size(), 1, 0, 0);
         }
-        m_RenderPass->EndRenderPass(m_CommandBuffer);
+        m_RenderPass->EndRenderPass(m_CommandBuffer, false);
 
-        m_CommandBuffer->Begin();
+        //m_CommandBuffer->Begin();
         // copying the swapchain image
         {
             // Transition the swapchain image to TRANSFER_SRC layout
@@ -688,34 +744,24 @@ namespace Brisk {
                 0, nullptr,
                 0, nullptr,
                 1, &finalBarrier);
-            m_CommandBuffer->End();
 
             // Record command buffer for image layout transition
-            m_CommandBuffer->Begin();
 
             // Transition swapchain image to present layout
             TransitionSwapchainImageLayout(
                 m_CommandBuffer->Get(),
                 m_Swapchain->GetSwapchainImages()[m_ImageIndex],
-                VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
                 VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
                 VK_PIPELINE_STAGE_TRANSFER_BIT,
                 VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT
             );
-            m_CommandBuffer->End();
             // End command buffer recording
+            m_CommandBuffer->End();
 
-            m_ImguiRenderPass->BeginRenderPass(m_CommandBuffer, 0);
-            ImGui_ImplVulkan_RemoveTexture(m_ImGuiDescriptorSet);
-            m_ImGuiDescriptorSet = ImGui_ImplVulkan_AddTexture(m_ViewportSampler, m_Offscreen.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-            Engine::s_Editor->Update(m_ImGuiDescriptorSet);
-            m_ImguiRenderPass->EndRenderPass(m_CommandBuffer);
+            vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
 
-        }
-
-        vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
-
-        {
+            //
             VkSubmitInfo submitInfo{};
             submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -725,11 +771,49 @@ namespace Brisk {
             submitInfo.pWaitSemaphores = waitSemaphores;
             submitInfo.pWaitDstStageMask = waitStages;
 
-            VkCommandBuffer cmdBufer = m_CommandBuffer->Get();
+            std::vector<VkCommandBuffer> cmdBufers = { m_CommandBuffer->Get() };
             submitInfo.commandBufferCount = 1;
-            submitInfo.pCommandBuffers = &cmdBufer;
+            //submitInfo.pCommandBuffers = &cmdBufer;
+            submitInfo.pCommandBuffers = cmdBufers.data();
 
             VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
+            submitInfo.signalSemaphoreCount = 1;
+            submitInfo.pSignalSemaphores = signalSemaphores;
+
+            if (vkQueueSubmit(m_GpuContext->s_GPUDevice->GetGraphicsQueue().Handle, 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
+                throw std::runtime_error("failed to submit draw command buffer!");
+            }
+            //
+
+            vkWaitForFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
+
+            m_RenderPass->BeginRenderPass(m_ImGuiCommandBuffer, 0);
+            //m_ImguiRenderPass->BeginRenderPass(m_ImGuiCommandBuffer, 0);
+            ImGui_ImplVulkan_RemoveTexture(m_ImGuiDescriptorSet);
+            m_ImGuiDescriptorSet = ImGui_ImplVulkan_AddTexture(m_ViewportSampler, m_Offscreen.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            Engine::s_Editor->Update(m_ImGuiDescriptorSet);
+            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), m_ImGuiCommandBuffer->Get(),VK_NULL_HANDLE);
+            //m_ImguiRenderPass->EndRenderPass(m_ImGuiCommandBuffer);
+            m_RenderPass->EndRenderPass(m_ImGuiCommandBuffer);
+        }
+        vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
+
+        {
+            VkSubmitInfo submitInfo{};
+            submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+
+            VkSemaphore waitSemaphores[] = { m_RenderFinishedSemaphore };
+            VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+            submitInfo.waitSemaphoreCount = 1;
+            submitInfo.pWaitSemaphores = waitSemaphores;
+            submitInfo.pWaitDstStageMask = waitStages;
+
+            std::vector<VkCommandBuffer> cmdBufers = { m_ImGuiCommandBuffer->Get() };
+            submitInfo.commandBufferCount = 1;
+            //submitInfo.pCommandBuffers = &cmdBufer;
+            submitInfo.pCommandBuffers = cmdBufers.data();
+
+            VkSemaphore signalSemaphores[] = { m_UIFinshedSemaphore };
             submitInfo.signalSemaphoreCount = 1;
             submitInfo.pSignalSemaphores = signalSemaphores;
 

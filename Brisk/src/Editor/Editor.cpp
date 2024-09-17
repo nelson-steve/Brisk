@@ -42,72 +42,60 @@ namespace Brisk {
 	}
 
     void Editor::Update(VkDescriptorSet set) {
-        // 2. Show a simple window that we create ourselves. We use a Begin/End pair to create a named window.
-        {
-            static float f = 0.0f;
-            static int counter = 0;
+        ImGui_ImplVulkan_NewFrame();
+        ImGui_ImplGlfw_NewFrame();
+        ImGui::NewFrame();
 
-            // Start the Dear ImGui frame
-            ImGui_ImplVulkan_NewFrame();
-            ImGui_ImplGlfw_NewFrame();
-            ImGui::NewFrame();
+        ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
-            ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
+        ImGui::Begin("Scene");
+        ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+        ImGui::Image((ImTextureID)set, ImVec2{ (float)m_Texture->GetWidth(), (float)m_Texture->GetHeight() });
+        ImGui::End();
 
-            {
-                // Create a new window
-                ImGui::Begin("Viewport");
+        ImGui::Begin("Test Image");
+        ImGui::Image((ImTextureID)textureSet, ImVec2{ (float)m_Texture->GetWidth(), (float)m_Texture->GetHeight() });
+        ImGui::End();
 
-                // Set the size and position of the viewport
-                ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-                ImGui::Image((ImTextureID)set, ImVec2{ (float)m_Texture->GetWidth(), (float)m_Texture->GetHeight() });
+        ImGui::Begin("Heirarchy");
+        ImGui::End();
 
-                ImGui::End();
-            }
+        ImGui::Begin("Game");
+        ImGui::End();
 
-            // Create a new window
-            ImGui::Begin("Image");
+        ImGui::Begin("Console");
+        ImGui::End();
 
-            // Set the size and position of the viewport
-            //ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-            ImGui::Image((ImTextureID)textureSet, ImVec2{ (float)m_Texture->GetWidth(), (float)m_Texture->GetHeight() });
+        ImGui::Begin("Inspector");
+        ImGui::End();
 
-            ImGui::End();
+        ImGui::Begin("Assets");
+        ImGui::End();
 
-            //for (int i = 0; i < s_Panels.size(); i++)
-            {
-                //s_Panels[i]->OnUpdate();
-            }
+        //ImGui::ShowDemoWindow();
+        //ImGui::Begin("Debug");
 
-            ImGui::ShowDemoWindow();
-            ImGui::Begin("Debug");
+        //if (ImGui::Button("Button"))
+        //    counter++;
+        //ImGui::SameLine();
+        //ImGui::Text("counter = %d", counter);
 
-            if (ImGui::Button("Button"))
-                counter++;
-            ImGui::SameLine();
-            ImGui::Text("counter = %d", counter);
+        //ImGuiIO& io = ImGui::GetIO();
+        //ImGui::Text("Mouse Pos: (%g, %g)", io.MousePos.x, io.MousePos.y);
+        //ImGui::Text("Mouse Left Click: %d", io.MouseDown[0]);
+        //ImGui::Text("Mouse Right Click: %d", io.MouseDown[1]);
 
-            ImGuiIO& io = ImGui::GetIO();
-            ImGui::Text("Mouse Pos: (%g, %g)", io.MousePos.x, io.MousePos.y);
-            ImGui::Text("Mouse Left Click: %d", io.MouseDown[0]);
-            ImGui::Text("Mouse Right Click: %d", io.MouseDown[1]);
-
-            ImGui::GetIO();
-            ImGui::Text("Mouse Down: %d", io.MouseDown[0]);
-            ImGui::Text("Mouse Clicked: %d", ImGui::IsMouseClicked(0));
-            ImGui::Text("Mouse Dragging: %d", ImGui::IsMouseDragging(0));
-            ImGui::Text("Mouse Double Clicked: %d", ImGui::IsMouseDoubleClicked(0));
+        //ImGui::GetIO();
+        //ImGui::Text("Mouse Down: %d", io.MouseDown[0]);
+        //ImGui::Text("Mouse Clicked: %d", ImGui::IsMouseClicked(0));
+        //ImGui::Text("Mouse Dragging: %d", ImGui::IsMouseDragging(0));
+        //ImGui::Text("Mouse Double Clicked: %d", ImGui::IsMouseDoubleClicked(0));
 
 
-            //ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-            ImGui::End();
+        ////ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
+        //ImGui::End();
 
-            ImGui::Render();
-            //ImGui_ImplVulkan_RenderDrawData(
-            //    ImGui::GetDrawData(),
-            //    static_cast<RendererVulkan*>(Engine::s_Renderer)->GetCommandBuffer(),
-            //    static_cast<RendererVulkan*>(Engine::s_Renderer)->GetPipeline());
-        }
+        ImGui::Render();
     }
 
     void Editor::Release() {

@@ -150,31 +150,6 @@ namespace Brisk {
                 0, nullptr,
                 1, &barrier);
 
-          /*  vkEndCommandBuffer(cmd);
-
-            VkSubmitInfo submit{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
-            submit.commandBufferCount = 1;
-            submit.pCommandBuffers = &cmd;
-
-            vkQueueSubmit(GpuContextVulkan::s_GPUDevice->GetGraphicsQueue().Handle, 1, &submit, VK_NULL_HANDLE);
-            vkQueueWaitIdle(GpuContextVulkan::s_GPUDevice->GetGraphicsQueue().Handle);
-
-            vkFreeCommandBuffers(GpuContextVulkan::s_GPUDevice->GetDevice(), pool, 1, &cmd);
-        }
-
-        {
-            VkCommandBufferAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
-            allocInfo.commandBufferCount = 1;
-            allocInfo.commandPool = pool;
-            VkCommandBuffer cmd;
-            if (vkAllocateCommandBuffers(GpuContextVulkan::s_GPUDevice->GetDevice(), &allocInfo, &cmd) != VK_SUCCESS) {
-                throw std::runtime_error("Failed to allocate command buffer");
-            }*/
-
-       /*     VkCommandBufferBeginInfo beingInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-            beingInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-            vkBeginCommandBuffer(cmd, &beingInfo);*/
-
             VkBufferImageCopy region{};
             region.bufferOffset = 0;
             region.bufferRowLength = 0;
@@ -191,32 +166,6 @@ namespace Brisk {
             };
             vkCmdCopyBufferToImage(cmd, m_StagingBuffer->Get(), m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
-     /*       vkEndCommandBuffer(cmd);
-
-            VkSubmitInfo submit{ VK_STRUCTURE_TYPE_SUBMIT_INFO };
-            submit.commandBufferCount = 1;
-            submit.pCommandBuffers = &cmd;
-
-            vkQueueSubmit(GpuContextVulkan::s_GPUDevice->GetGraphicsQueue().Handle, 1, &submit, VK_NULL_HANDLE);
-            vkQueueWaitIdle(GpuContextVulkan::s_GPUDevice->GetGraphicsQueue().Handle);
-
-            vkFreeCommandBuffers(GpuContextVulkan::s_GPUDevice->GetDevice(), pool, 1, &cmd);
-        }
-
-        {
-            VkCommandBufferAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
-            allocInfo.commandBufferCount = 1;
-            allocInfo.commandPool = pool;
-            VkCommandBuffer cmd;
-            if (vkAllocateCommandBuffers(GpuContextVulkan::s_GPUDevice->GetDevice(), &allocInfo, &cmd) != VK_SUCCESS) {
-                throw std::runtime_error("Failed to allocate command buffer");
-            }
-
-            VkCommandBufferBeginInfo beingInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO };
-            beingInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
-            vkBeginCommandBuffer(cmd, &beingInfo);*/
-
-            // transition the image from undefined to transfer dst optimal
             VkImageMemoryBarrier barrier1{};
             barrier1.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
             barrier1.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;

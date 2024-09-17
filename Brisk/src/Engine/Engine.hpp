@@ -75,6 +75,5 @@ namespace Brisk
 		/// Swapchain handle
 		/// </summary>
 		static Swapchain* s_Swapchain;
-	private:
 	};
 }

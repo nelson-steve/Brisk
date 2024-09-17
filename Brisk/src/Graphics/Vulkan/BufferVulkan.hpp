@@ -5,16 +5,23 @@
 #include "Engine/Engine.hpp"
 
 namespace Brisk {
+	struct Vertex;
 	class BufferVulkan {
 	public:
 		void Create(uint32_t size, VkBufferUsageFlags usageFlags);
 		void Allocate(VkMemoryPropertyFlags properties);
 		void MapMemory(std::vector<Point>& data);
+		void MapMemory(Vertex* data);
 		void MapMemory(void** data);
 		void UnMapMemory();
 		void Release();
 
-		const VkBuffer& Get() const { return m_Handle; }
+		uint64_t GetSize() { 
+			return m_Size; 
+		}
+		const VkBuffer& Get() const { 
+			return m_Handle; 
+		}
 		const VkDeviceMemory GetMemory() const { return m_Memory; }
 	private:
 		uint64_t m_Size;

@@ -81,6 +81,13 @@ namespace Brisk
 		size_t indexBufferSize = index_count * sizeof(uint32_t);
 		//assert(vertexBufferSize > 0);
 
+		m_VertexBuffer = new BufferVulkan();
+		m_VertexBuffer->Create(vertexBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+		m_VertexBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+		m_VertexBuffer->MapMemory(m_vertex_buffer);
+		//m_VertexBuffer->MapMemory((void**)&m_vertex_buffer);
+		m_VertexBuffer->UnMapMemory();
+
 		//struct StagingBuffer {
 		//	VkBuffer buffer;
 		//	VkDeviceMemory memory;

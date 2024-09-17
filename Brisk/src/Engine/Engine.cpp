@@ -64,10 +64,7 @@ namespace Brisk
 		s_Editor = new Editor();
 		s_Editor->Create();
 
-		Model* model = new Model();
-		model->Load("../Data/Models/Cube/Cube.gltf");
-
-		s_Camera = new Camera(60.0f, s_MainWindow->GetWidth() / s_MainWindow->GetHeight(), 0.01, 1000.0f, (GLFWwindow*)s_MainWindow->GetWindowHandle());
+		s_Camera = new Camera(70.0f, s_MainWindow->GetWidth() / s_MainWindow->GetHeight(), 0.01, 1000.0f, (GLFWwindow*)s_MainWindow->GetWindowHandle());
 	}
 
 	void Engine::Update() {

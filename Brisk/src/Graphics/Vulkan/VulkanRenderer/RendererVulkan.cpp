@@ -10,10 +10,11 @@
 #include <glm/gtc/matrix_transform.hpp>
 
 #include <chrono>
+#include <Engine/Model.hpp>
 
 namespace Brisk {
     std::vector<Point> Vertices;
-
+    Model* m_Model;
     void TransitionSwapchainImageLayout(
         VkCommandBuffer commandBuffer,
         VkImage image,
@@ -496,20 +497,38 @@ namespace Brisk {
         bindings.push_back({
             0,
             VK_VERTEX_INPUT_RATE_VERTEX,
-            sizeof(Point),
+            sizeof(Vertex),
             });
         std::vector<GraphicsPipelineVulkan::AttributeDescription> attributes;
         attributes.push_back({
             0,
             0,
             VK_FORMAT_R32G32B32_SFLOAT,
-            offsetof(Point, Point::Position),
+            offsetof(Vertex, Vertex::pos),
             });
         attributes.push_back({
             0,
             1,
             VK_FORMAT_R32G32B32_SFLOAT,
-            offsetof(Point, Point::Color),
+            offsetof(Vertex, Vertex::normal),
+            });
+        attributes.push_back({
+            0,
+            2,
+            VK_FORMAT_R32G32_SFLOAT,
+            offsetof(Vertex, Vertex::uv0),
+            });
+        attributes.push_back({
+            0,
+            3,
+            VK_FORMAT_R32G32_SFLOAT,
+            offsetof(Vertex, Vertex::uv1),
+            });
+        attributes.push_back({
+            0,
+            4,
+            VK_FORMAT_R32G32B32_SFLOAT,
+            offsetof(Vertex, Vertex::color),
             });
         std::vector<VkVertexInputBindingDescription> bindingDescriptions;
         bindingDescriptions.resize(bindings.size());
@@ -544,6 +563,10 @@ namespace Brisk {
         m_Pipeline->CreateDynamicState(dynamicStates);
         m_Pipeline->CreatePipelineLayout(m_DescriptorSetLayouts, 0);
         m_Pipeline->CreatePipeline(m_RenderPass->GetRenderPass());
+
+        m_Model = new Model();
+        m_Model->Load("../Data/Models/Cube/Cube.gltf");
+
     }
 
     void RendererVulkan::CreateDescriptorSet() {
@@ -643,13 +666,14 @@ namespace Brisk {
             vkCmdSetScissor(m_CommandBuffer->Get(), 0, 1, &scissor);
         }
         {
-            const VkBuffer vertexBuffers[] = { m_VertexBuffer->Get() };
+            //const VkBuffer vertexBuffers[] = { m_VertexBuffer->Get() };
+            const VkBuffer vertexBuffers[] = { m_Model->m_VertexBuffer->Get() };
             VkDeviceSize offsets[] = { 0 };
             vkCmdBindVertexBuffers(m_CommandBuffer->Get(), 0, 1, vertexBuffers, offsets); 
             
             vkCmdBindDescriptorSets(m_CommandBuffer->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline->GetLayout(), 0, 1, &m_DescriptorSet, 0, nullptr);
             
-            vkCmdDraw(m_CommandBuffer->Get(), Vertices.size(), 1, 0, 0);
+            vkCmdDraw(m_CommandBuffer->Get(), m_Model->m_VertexBuffer->GetSize(), 1, 0, 0);
         }
         m_RenderPass->EndRenderPass(m_CommandBuffer, false);
 

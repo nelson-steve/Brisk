@@ -2,6 +2,7 @@
 #include "Engine/Engine.hpp"
 #include "VulkanUtilities.hpp"
 #include "GpuContextVulkan.hpp"
+#include "Engine/Model.hpp"
 
 namespace Brisk {
 	void BufferVulkan::Create(uint32_t bufferSize, VkBufferUsageFlags usageFlags) {
@@ -37,6 +38,12 @@ namespace Brisk {
 		void* data;
 		vkMapMemory(GpuContextVulkan::s_GPUDevice->GetDevice(), m_Memory, 0, m_Size, 0, &data);
 		memcpy(data, vertices.data(), (size_t)m_Size);
+	}
+
+	void BufferVulkan::MapMemory(Vertex* vertices) {
+		void* data;
+		vkMapMemory(GpuContextVulkan::s_GPUDevice->GetDevice(), m_Memory, 0, m_Size, 0, &data);
+		memcpy(data, vertices, (size_t)m_Size);
 	}
 
 	void BufferVulkan::MapMemory(void** data) {

@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Graphics/Vulkan/BufferVulkan.hpp"
+
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <tiny_gltf.h>
@@ -139,9 +141,6 @@ namespace Brisk {
 		uint32_t m_index_pos = 0;
 
 	public:
-		//struct {
-		//	VkBuffer buffer;
-		//	VkDeviceMemory memory;
-		//} m_vertices, m_indices;
+		BufferVulkan* m_VertexBuffer;
 	};
 }

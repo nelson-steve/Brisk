@@ -144,12 +144,17 @@ namespace Brisk {
 
     }
 
-    void RendererVulkan::CreateOffscreenResources() {
+    void RendererVulkan::CreateOffscreenResources(int width, int height) {
+        if(m_Offscreen.Image != VK_NULL_HANDLE)
+            vkDestroyImage(m_GpuContext->s_GPUDevice->GetDevice(), m_Offscreen.Image, nullptr);
+        if (m_Offscreen.Memory != VK_NULL_HANDLE)
+            vkFreeMemory(m_GpuContext->s_GPUDevice->GetDevice(), m_Offscreen.Memory, nullptr);
+
         VkImageCreateInfo imageCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
         imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
         imageCreateInfo.format = VK_FORMAT_B8G8R8A8_UNORM; // or another format you prefer
-        imageCreateInfo.extent.width = m_Swapchain->GetExtent().width;
-        imageCreateInfo.extent.height = m_Swapchain->GetExtent().height;
+        imageCreateInfo.extent.width = width;
+        imageCreateInfo.extent.height = height;
         imageCreateInfo.extent.depth = 1;
         imageCreateInfo.mipLevels = 1;
         imageCreateInfo.arrayLayers = 1;
@@ -328,7 +333,9 @@ namespace Brisk {
             }
         }
 
-        CreateOffscreenResources();
+        m_ViewportSize.x = 1920;
+        m_ViewportSize.y = 1080;
+        CreateOffscreenResources(m_ViewportSize.x, m_ViewportSize.y);
         VkAttachmentDescription colorAttachment{};
         colorAttachment.format = m_Swapchain->GetFormat().format;
         colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -644,6 +651,10 @@ namespace Brisk {
             return;
         }
 
+        if (m_ViewportSize != Engine::s_Editor->GetViewportSize() && Engine::s_Editor->GetViewportSize() != glm::vec2(0)) {
+            m_ViewportSize = Engine::s_Editor->GetViewportSize();
+            CreateOffscreenResources(m_ViewportSize.x, m_ViewportSize.y);
+        }
         UpdateUniformBuffer(m_ImageIndex);
 
         vkResetCommandBuffer(m_CommandBuffer->Get(), /*VkCommandBufferResetFlagBits*/ 0);
@@ -654,8 +665,10 @@ namespace Brisk {
             VkViewport viewport{};
             viewport.x = 0.0f;
             viewport.y = 0.0f;
-            viewport.width = static_cast<float>(static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentWidth());
-            viewport.height = static_cast<float>(static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentHeight());
+            //viewport.width = static_cast<float>(static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentWidth());
+            //viewport.height = static_cast<float>(static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentHeight());
+            viewport.width = Engine::s_Editor->GetViewportSize().x;
+            viewport.height = Engine::s_Editor->GetViewportSize().y;
             viewport.minDepth = 0.0f;
             viewport.maxDepth = 1.0f;
             vkCmdSetViewport(m_CommandBuffer->Get(), 0, 1, &viewport);
@@ -731,8 +744,8 @@ namespace Brisk {
             copyRegion.dstSubresource.mipLevel = 0;
             copyRegion.dstSubresource.baseArrayLayer = 0;
             copyRegion.dstSubresource.layerCount = 1;
-            copyRegion.extent.width = m_Swapchain->GetExtent().width;
-            copyRegion.extent.height = m_Swapchain->GetExtent().height;
+            copyRegion.extent.width = m_ViewportSize.x;
+            copyRegion.extent.height = m_ViewportSize.y;
             copyRegion.extent.depth = 1;
 
             vkCmdCopyImage(m_CommandBuffer->Get(),

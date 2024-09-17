@@ -16,7 +16,7 @@ namespace Brisk {
 
 		virtual void SetupRenderingPipeline(Swapchain* swapchain) override;
 		void CreateTexture();
-		void CreateOffscreenResources();
+		void CreateOffscreenResources(int width, int height);
 		void SetupImGuiData(ImGui_ImplVulkan_InitInfo& data);
 
 		void InsertImageMemoryBarrier(VkCommandBuffer cmdbuffer,
@@ -117,6 +117,7 @@ namespace Brisk {
 			VkDeviceMemory Memory;
 		} m_Offscreen;
 
+		glm::vec2 m_ViewportSize;
 		TextureVulkan* m_Texture;
 
 		friend class RendererFactory;

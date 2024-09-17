@@ -50,7 +50,8 @@ namespace Brisk {
 
         ImGui::Begin("Scene");
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-        ImGui::Image((ImTextureID)set, ImVec2{ viewportSize.y, viewportSize.x });
+        m_ViewportSize = glm::vec2(viewportSize.x, viewportSize.y);
+        ImGui::Image((ImTextureID)set, ImVec2{ viewportSize.x, viewportSize.y });
         ImGui::End();
 
         ImGui::Begin("Test Image");

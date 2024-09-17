@@ -7,7 +7,7 @@
 namespace Brisk {
 	class BufferVulkan {
 	public:
-		void Create(uint32_t, VkBufferUsageFlags usageFlags);
+		void Create(uint32_t size, VkBufferUsageFlags usageFlags);
 		void Allocate(VkMemoryPropertyFlags properties);
 		void MapMemory(std::vector<Point>& data);
 		void MapMemory(void** data);

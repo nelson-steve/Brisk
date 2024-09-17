@@ -129,7 +129,7 @@
     <ClInclude Include="src\Editor\ViewportPanel.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Vulkan\VulkanRenderer\ViewportVulkan.hpp">
+    <ClInclude Include="src\Graphics\Vulkan\TextureVulkan.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -218,7 +218,10 @@
     <ClCompile Include="src\Main\main.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Vulkan\VulkanRenderer\ViewportVulkan.cpp">
+    <ClCompile Include="src\Graphics\Vulkan\TextureVulkan.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\stb_image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

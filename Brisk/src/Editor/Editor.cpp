@@ -3,6 +3,8 @@
 #include "Graphics/Vulkan/VulkanRenderer/RendererVulkan.hpp"
 
 namespace Brisk {
+    TextureVulkan* m_Texture;
+    VkDescriptorSet textureSet;
 	void Editor::Create() {
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
@@ -32,6 +34,11 @@ namespace Brisk {
         //{
         //    s_Panels[i]->OnCreate();
         //}
+
+        m_Texture = new TextureVulkan();
+        m_Texture->Create("../Data/Images/texture.jpg");
+
+        textureSet = ImGui_ImplVulkan_AddTexture(m_Texture->GetSampler(), m_Texture->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}
 
     void Editor::Update(VkDescriptorSet set) {
@@ -46,16 +53,26 @@ namespace Brisk {
             ImGui::NewFrame();
 
             ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
+
             {
                 // Create a new window
                 ImGui::Begin("Viewport");
 
                 // Set the size and position of the viewport
                 ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-                ImGui::Image((ImTextureID)set, ImVec2{ viewportSize.x, viewportSize.y });
+                ImGui::Image((ImTextureID)set, ImVec2{ (float)m_Texture->GetWidth(), (float)m_Texture->GetHeight() });
 
                 ImGui::End();
             }
+
+            // Create a new window
+            ImGui::Begin("Image");
+
+            // Set the size and position of the viewport
+            //ImVec2 viewportSize = ImGui::GetContentRegionAvail();
+            ImGui::Image((ImTextureID)textureSet, ImVec2{ (float)m_Texture->GetWidth(), (float)m_Texture->GetHeight() });
+
+            ImGui::End();
 
             //for (int i = 0; i < s_Panels.size(); i++)
             {

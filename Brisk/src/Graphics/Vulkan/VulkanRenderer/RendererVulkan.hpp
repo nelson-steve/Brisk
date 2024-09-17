@@ -4,6 +4,7 @@
 #include "../GpuContextVulkan.hpp"
 #include "../BufferVulkan.hpp"
 #include "../SwapchainVulkan.hpp"
+#include "../TextureVulkan.hpp"
 
 #include "ImGuiBackends/imgui_impl_vulkan.h"
 
@@ -115,6 +116,8 @@ namespace Brisk {
 			VkImageView ImageView;
 			VkDeviceMemory Memory;
 		} m_Offscreen;
+
+		TextureVulkan* m_Texture;
 
 		friend class RendererFactory;
 	};

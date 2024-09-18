@@ -45,6 +45,12 @@ namespace Brisk
 		/// Ends all Engine systems
 		/// </summary>
 		static void Terminate();
+
+		/// <summary>
+		/// UI Binding functions
+		/// </summary>
+		static void AddEmptyElement();
+		static void AddModule();
 	private:
 		Engine() {};
 	public:

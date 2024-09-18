@@ -8,20 +8,21 @@
 namespace Brisk {
     class BriskScene {
     public:
-        std::vector<Element> objects;
-        int nextId = 0;
+        std::vector<Element> Objects;
+        int NextID = 0;
 
         int CreateElement(const std::string& name) {
-            Element newObj{ nextId };
-            newObj.id = nextId++;
-            newObj.name = name;
-            newObj.transform = { {0, 0, 0}, {0, 0, 0, 1}, {1, 1, 1} };
-            objects.push_back(newObj);
-            return newObj.id;
+            Element newElement{ NextID };
+            newElement.id = NextID++;
+            newElement.name = name + std::to_string(NextID);
+            newElement.transform = { {0, 0, 0}, {0, 0, 0, 1}, {1, 1, 1} };
+            Objects.push_back(newElement);
+            return newElement.id;
         }
 
         void AddChild(int parentId, int childId) {
-            auto& parent = objects[parentId];
+            CreateElement("Child");
+            auto& parent = Objects[parentId];
             parent.children.push_back(childId);
         }
 

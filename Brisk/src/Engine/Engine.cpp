@@ -95,4 +95,12 @@ namespace Brisk
 		s_Renderer->Release();
 		s_MainWindow->DestroyWindow();
 	}
+
+	// UI Bindings
+	void Engine::AddEmptyElement() {
+		m_Scene->CreateElement("Empty");
+	}
+	void Engine::AddModule() {
+
+	}
 }

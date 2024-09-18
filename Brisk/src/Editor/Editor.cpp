@@ -18,6 +18,14 @@ namespace Brisk {
         std::string unit;
     };
 
+    struct BTransform {
+        glm::vec3 position;
+        glm::vec3 rotation;  // Assuming rotation in degrees for simplicity
+        glm::vec3 scale;
+
+        BTransform() : position(0.0f), rotation(0.0f), scale(1.0f) {}
+    };
+
     TextureVulkan* m_Texture;
     VkDescriptorSet textureSet;
 
@@ -140,11 +148,6 @@ namespace Brisk {
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         //ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-        // Setup Dear ImGui style
-        //ImGui::StyleColorsDark();
-        //ImGui::StyleColorsLight();
-        //SetLightGreenishTheme();
-        //SetDarkGreenishTheme();
         LavenderTheme();
         
         ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Engine::s_MainWindow->GetWindowHandle(), true);
@@ -152,13 +155,6 @@ namespace Brisk {
         ImGui_ImplVulkan_InitInfo info{};
         static_cast<RendererVulkan*>(Engine::s_Renderer)->SetupImGuiData(info);
         ImGui_ImplVulkan_Init(&info);
-
-        //s_Panels.push_back(new HeirarchyPanel());
-        //s_Panels.push_back(new ViewportPanel());
-        //for (int i = 0; i < s_Panels.size(); i++)
-        //{
-        //    s_Panels[i]->OnCreate();
-        //}
 
         m_Texture = new TextureVulkan();
         m_Texture->Create("../Data/Images/texture.jpg");
@@ -223,6 +219,24 @@ namespace Brisk {
         ImGui::End();
     }
 
+    void RenderTransformUI(BTransform& transform) {
+        //ImGui::Begin("Transform");
+
+        // Position
+        ImGui::Text("Position");
+        ImGui::DragFloat3("##Position", &transform.position[0], 0.1f);
+
+        // Rotation
+        ImGui::Text("Rotation");
+        ImGui::DragFloat3("##Rotation", &transform.rotation[0], 0.1f);
+
+        // Scale
+        ImGui::Text("Scale");
+        ImGui::DragFloat3("##Scale", &transform.scale[0], 0.1f);
+
+        //ImGui::End();
+    }
+
     void Editor::Update(VkDescriptorSet set) {
         // Sample asset hierarchy (could be loaded from file)
         std::vector<Asset> assets = {
@@ -236,40 +250,6 @@ namespace Brisk {
         ImGui::NewFrame();
 
         ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
-
-        //{
-        //    // Set the window to be docked at the top
-        //    ImGuiWindowFlags windowFlags = ImGuiWindowFlags_NoTitleBar | ImGuiWindowFlags_NoMove | ImGuiWindowFlags_NoResize |
-        //        ImGuiWindowFlags_NoCollapse /* | ImGuiWindowFlags_NoDocking*/ | ImGuiWindowFlags_AlwaysAutoResize;
-
-        //    // Adjust the position to the top
-        //    ImGui::SetNextWindowPos(ImVec2(0, 0)); // Top-left corner
-        //    ImGui::SetNextWindowSize(ImVec2(ImGui::GetIO().DisplaySize.x, 30)); // Full width of the screen and a height of 30
-
-        //    // Begin the top bar window
-        //    ImGui::Begin("Top Bar", nullptr, windowFlags);
-
-        //    // Create buttons for the top bar
-        //    if (ImGui::Button("File"))
-        //    {
-        //        // Logic for File button click
-        //    }
-
-        //    ImGui::SameLine();
-        //    if (ImGui::Button("Assets"))
-        //    {
-        //        // Logic for Assets button click
-        //    }
-
-        //    ImGui::SameLine();
-        //    if (ImGui::Button("Edit"))
-        //    {
-        //        // Logic for Edit button click
-        //    }
-
-        //    // End the top bar window
-        //    ImGui::End();
-        //}
 
         ImGui::Begin("Scene");
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();
@@ -291,12 +271,11 @@ namespace Brisk {
             ImVec2 windowPos = ImGui::GetWindowPos();
             ImVec2 windowSize = ImGui::GetWindowSize();
 
+
             // Example items in the hierarchy
-            if (ImGui::Selectable("Item 1")) {
-                // Handle selection
-            }
-            if (ImGui::Selectable("Item 2")) {
-                // Handle selection
+            for (int i = 0; i < Engine::m_Scene->Objects.size(); i++) {
+                if (ImGui::Selectable(Engine::m_Scene->Objects[i].name.c_str())) {
+                }
             }
 
             // Check if right-click is inside the window and not on any item
@@ -311,10 +290,10 @@ namespace Brisk {
             // Render the context menu
             if (ImGui::BeginPopup("ContextMenu")) {
                 if (ImGui::MenuItem("Create Empty")) {
-                    // Handle creating an empty item
+                    Engine::AddEmptyElement();
                 }
                 if (ImGui::MenuItem("Create Element")) {
-                    // Handle creating a new element
+                    Engine::AddEmptyElement();
                 }
                 ImGui::EndPopup();
             }
@@ -322,37 +301,15 @@ namespace Brisk {
             ImGui::End();
         }
 
-        //ImGui::Begin("Heirarchy");
-        //{
-        //    for (int i = 0; i < Engine::m_Scene->objects.size(); i++) {
-        //        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow;
-        //        flags |= ImGuiTreeNodeFlags_SpanAvailWidth;
-        //        bool opened = ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)Engine::m_Scene->objects[i].id, flags, Engine::m_Scene->objects[i].name.c_str());
-        //        if (ImGui::IsItemClicked())
-        //        {
-        //        }
-
-        //        bool entityDeleted = false;
-        //        if (ImGui::BeginPopupContextItem())
-        //        {
-        //            if (ImGui::MenuItem("Delete Entity"))
-        //                entityDeleted = true;
-
-        //            ImGui::EndPopup();
-        //        }
-        //        if (opened)
-        //            ImGui::TreePop();
-        //    }
-        //}
-        //ImGui::End();
-
         ImGui::Begin("Game");
         ImGui::End();
 
         ImGui::Begin("Console");
         ImGui::End();
 
+        BTransform t;
         ImGui::Begin("Inspector");
+        RenderTransformUI(t);
         ImGui::End();
 
         // Sample performance stats (add more as needed)
@@ -367,29 +324,6 @@ namespace Brisk {
         float deltaTime = 0.1;
         ShowPerformanceStatsWindow(deltaTime, stats);
 
-        //ImGui::ShowDemoWindow();
-        //ImGui::Begin("Debug");
-
-        //if (ImGui::Button("Button"))
-        //    counter++;
-        //ImGui::SameLine();
-        //ImGui::Text("counter = %d", counter);
-
-        //ImGuiIO& io = ImGui::GetIO();
-        //ImGui::Text("Mouse Pos: (%g, %g)", io.MousePos.x, io.MousePos.y);
-        //ImGui::Text("Mouse Left Click: %d", io.MouseDown[0]);
-        //ImGui::Text("Mouse Right Click: %d", io.MouseDown[1]);
-
-        //ImGui::GetIO();
-        //ImGui::Text("Mouse Down: %d", io.MouseDown[0]);
-        //ImGui::Text("Mouse Clicked: %d", ImGui::IsMouseClicked(0));
-        //ImGui::Text("Mouse Dragging: %d", ImGui::IsMouseDragging(0));
-        //ImGui::Text("Mouse Double Clicked: %d", ImGui::IsMouseDoubleClicked(0));
-
-
-        ////ImGui::Text("Application average %.3f ms/frame (%.1f FPS)", 1000.0f / io.Framerate, io.Framerate);
-        //ImGui::End();
-
         ImGui::Render();
     }
 
@@ -399,7 +333,6 @@ namespace Brisk {
             s_Panels[i]->OnDestroy();
             delete s_Panels[i];
         }
-        //ImGui::EndFrame();
         ImGui_ImplVulkan_Shutdown();
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();

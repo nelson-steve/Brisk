@@ -4,6 +4,7 @@
 #include "Renderer/Renderer.hpp"
 #include "Renderer/RendererFactory.hpp"
 #include "Editor/Editor.hpp"
+#include "Scene.hpp"
 
 #include "Model.hpp"
 
@@ -16,6 +17,8 @@ namespace Brisk
 	Renderer* Engine::s_Renderer;
 	Camera* Engine::s_Camera;
 	Editor* Engine::s_Editor;
+
+	BriskScene* Engine::m_Scene;
 
 	float lastX = 0.0f;
 	float lastY = 0.0f;
@@ -63,6 +66,11 @@ namespace Brisk
 
 		s_Editor = new Editor();
 		s_Editor->Create();
+
+		m_Scene = new BriskScene();
+		m_Scene->CreateElement("test 1");
+		m_Scene->CreateElement("test 2");
+		m_Scene->CreateElement("test 3");
 
 		s_Camera = new Camera(70.0f, s_MainWindow->GetWidth() / s_MainWindow->GetHeight(), 0.01, 1000.0f, (GLFWwindow*)s_MainWindow->GetWindowHandle());
 	}

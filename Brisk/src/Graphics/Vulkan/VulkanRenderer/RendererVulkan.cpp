@@ -653,7 +653,7 @@ namespace Brisk {
 
         if (m_ViewportSize != Engine::s_Editor->GetViewportSize() && Engine::s_Editor->GetViewportSize() != glm::vec2(0)) {
             m_ViewportSize = Engine::s_Editor->GetViewportSize();
-            CreateOffscreenResources(m_ViewportSize.x, m_ViewportSize.y);
+              CreateOffscreenResources(m_ViewportSize.x, m_ViewportSize.y);
         }
         UpdateUniformBuffer(m_ImageIndex);
 

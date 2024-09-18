@@ -9,6 +9,7 @@
 #include <glm/glm.hpp>
 
 #include <string>
+#include "Scene.hpp"
 
 namespace Brisk 
 {
@@ -75,5 +76,7 @@ namespace Brisk
 		/// Swapchain handle
 		/// </summary>
 		static Swapchain* s_Swapchain;
+
+		static BriskScene* m_Scene;
 	};
 }

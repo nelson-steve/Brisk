@@ -1,22 +1,31 @@
 #pragma once
 
-#include "SceneObject.hpp"
+#include "Element.hpp"
 
 #include <vector>
+#include <string>
 
 namespace Brisk {
-	class Scnene {
-	public:
-		void Create() {};
-		void Update() {};
-		void Destroy() {};
+    class BriskScene {
+    public:
+        std::vector<Element> objects;
+        int nextId = 0;
 
-		const std::vector<SceneObject*> GetObjects() const { return m_Objects; }
+        int CreateElement(const std::string& name) {
+            Element newObj{ nextId };
+            newObj.id = nextId++;
+            newObj.name = name;
+            newObj.transform = { {0, 0, 0}, {0, 0, 0, 1}, {1, 1, 1} };
+            objects.push_back(newObj);
+            return newObj.id;
+        }
 
-		void AddObject(SceneObject* obj) {
-			m_Objects.push_back(obj);
-		}
-	private:
-		std::vector<SceneObject*> m_Objects;
-	};
+        void AddChild(int parentId, int childId) {
+            auto& parent = objects[parentId];
+            parent.children.push_back(childId);
+        }
+
+        // Additional methods for removal, updating transforms, etc.
+    };
+
 }

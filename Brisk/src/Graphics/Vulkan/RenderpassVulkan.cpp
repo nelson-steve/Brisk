@@ -55,7 +55,7 @@ namespace Brisk {
         renderPassInfo.renderArea.offset = { 0, 0 };
         renderPassInfo.renderArea.extent = static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtent();
 
-        std::vector<VkClearValue> clearColors = { {{0.0f, 0.0f, 0.0f, 1.0f}}, { 1.0f, 0 } };
+        std::vector<VkClearValue> clearColors = { {{0.2f, 0.2f, 0.2f, 1.0f}}, { 1.0f, 0 } };
         renderPassInfo.clearValueCount = clearColors.size();
         renderPassInfo.pClearValues = clearColors.data();
 

@@ -273,8 +273,8 @@ namespace Brisk {
 
 
             // Example items in the hierarchy
-            for (int i = 0; i < Engine::m_Scene->Objects.size(); i++) {
-                if (ImGui::Selectable(Engine::m_Scene->Objects[i].name.c_str())) {
+            for (int i = 0; i < Engine::m_Scene->Elements.size(); i++) {
+                if (ImGui::Selectable(Engine::m_Scene->Elements[i].name.c_str())) {
                 }
             }
 

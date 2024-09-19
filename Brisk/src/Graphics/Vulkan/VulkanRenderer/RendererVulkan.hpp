@@ -16,7 +16,7 @@ namespace Brisk {
 
 		virtual void SetupRenderingPipeline(Swapchain* swapchain) override;
 		void CreateTexture();
-		void CreateOffscreenResources(int width, int height);
+		void CreateOffscreenResources();
 		void SetupImGuiData(ImGui_ImplVulkan_InitInfo& data);
 
 		void InsertImageMemoryBarrier(VkCommandBuffer cmdbuffer,
@@ -97,25 +97,25 @@ namespace Brisk {
 
 		VkSemaphore m_UIFinshedSemaphore;
 
-		VkSampler m_ViewportSampler;
+		//VkSampler m_ViewportSampler;
 		std::vector<VkDescriptorSet> m_ImGuiDescriptorSets;
 
-		RenderPassVulkan* m_ImguiRenderPass;
+		//RenderPassVulkan* m_ImguiRenderPass;
 
-		struct ImGuiImage {
+		struct Viewport {
 			VkImage ColorImage;
-			VkImage DepthImage;
-			VkImageView ColorImageView;
-			VkImageView DepthImageView;
+			VkImageView pColorImageView;
 			VkDeviceMemory ColorMemory;
-			VkDeviceMemory DepthMemory;
-		} m_ImGuiImage;
+			VkSampler pSampler;
 
-		struct Offscreen {
-			VkImage Image;
-			VkImageView ImageView;
-			VkDeviceMemory Memory;
-		} m_Offscreen;
+			GraphicsPipelineVulkan* pPipeline;
+			RenderPassVulkan* pRenderpass;
+		} m_Viewport;
+		//struct Offscreen {
+		//	VkImage Image;
+		//	VkImageView ImageView;
+		//	VkDeviceMemory Memory;
+		//} m_Offscreen;
 
 		glm::vec2 m_ViewportSize;
 		TextureVulkan* m_Texture;

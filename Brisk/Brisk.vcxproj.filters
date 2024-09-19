@@ -132,9 +132,6 @@
     <ClInclude Include="src\Graphics\Vulkan\TextureVulkan.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Core\Transform.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\SceneCamera.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>

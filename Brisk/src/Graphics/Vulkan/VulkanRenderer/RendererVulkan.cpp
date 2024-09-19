@@ -144,73 +144,8 @@ namespace Brisk {
 
     }
 
-    void RendererVulkan::CreateOffscreenResources(int width, int height) {
-        if(m_Offscreen.Image != VK_NULL_HANDLE)
-            vkDestroyImage(m_GpuContext->s_GPUDevice->GetDevice(), m_Offscreen.Image, nullptr);
-        if (m_Offscreen.Memory != VK_NULL_HANDLE)
-            vkFreeMemory(m_GpuContext->s_GPUDevice->GetDevice(), m_Offscreen.Memory, nullptr);
-
-        VkImageCreateInfo imageCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
-        imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-        imageCreateInfo.format = VK_FORMAT_B8G8R8A8_UNORM; // or another format you prefer
-        imageCreateInfo.extent.width = width;
-        imageCreateInfo.extent.height = height;
-        imageCreateInfo.extent.depth = 1;
-        imageCreateInfo.mipLevels = 1;
-        imageCreateInfo.arrayLayers = 1;
-        imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-        imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-        imageCreateInfo.usage = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL | VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-
-        if (vkCreateImage(m_GpuContext->s_GPUDevice->GetDevice(), &imageCreateInfo, nullptr, &m_Offscreen.Image) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create descriptor pool!");
-        }
-
-        VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(m_GpuContext->s_GPUDevice->GetDevice(), m_Offscreen.Image, &memRequirements);
-
-        VkMemoryAllocateInfo allocInfo = {};
-        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = VulkanUtilities::FindMemoryType(m_GpuContext->s_GPUDevice->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-        if (vkAllocateMemory(m_GpuContext->s_GPUDevice->GetDevice(), &allocInfo, nullptr, &m_Offscreen.Memory) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create descriptor pool!");
-        }
-        if (vkBindImageMemory(m_GpuContext->s_GPUDevice->GetDevice(), m_Offscreen.Image, m_Offscreen.Memory, 0) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create descriptor pool!");
-        }
-
-        VkImageViewCreateInfo viewInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-        viewInfo.image = m_Offscreen.Image;
-        viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        viewInfo.format = VK_FORMAT_B8G8R8A8_UNORM;
-        viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        viewInfo.subresourceRange.baseMipLevel = 0;
-        viewInfo.subresourceRange.levelCount = 1;
-        viewInfo.subresourceRange.baseArrayLayer = 0;
-        viewInfo.subresourceRange.layerCount = 1;
-
-        if (vkCreateImageView(m_GpuContext->s_GPUDevice->GetDevice(), &viewInfo, nullptr, &m_Offscreen.ImageView) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create descriptor pool!");
-        }
-    }
-
-    //void RendererVulkan::UploadImGuiTextureAtlas() {
-    //    CommandBufferVulkan singleUseCmdBuf;
-    //    singleUseCmdBuf.Allocate(m_CommandPool);
-    //    singleUseCmdBuf.Begin(VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT);
-    //    ImGui_ImplVulkan_CreateFontsTexture();
-    //    singleUseCmdBuf.End();
-    //
-    //    //vkDeviceWaitIdle();
-    //}
-
-    void RendererVulkan::SetupRenderingPipeline(Swapchain* swap) {
-        m_Swapchain = static_cast<SwapchainVulkan*>(swap);
-
+    void RendererVulkan::CreateOffscreenResources() {
+        // Creating image stuff
         {
             VkImageCreateInfo imageCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
             imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
@@ -226,27 +161,27 @@ namespace Brisk {
             imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
             imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-            if (vkCreateImage(m_GpuContext->s_GPUDevice->GetDevice(), &imageCreateInfo, nullptr, &m_ImGuiImage.ColorImage) != VK_SUCCESS) {
+            if (vkCreateImage(m_GpuContext->s_GPUDevice->GetDevice(), &imageCreateInfo, nullptr, &m_Viewport.ColorImage) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create descriptor pool!");
             }
 
             VkMemoryRequirements memRequirements;
-            vkGetImageMemoryRequirements(m_GpuContext->s_GPUDevice->GetDevice(), m_ImGuiImage.ColorImage, &memRequirements);
+            vkGetImageMemoryRequirements(m_GpuContext->s_GPUDevice->GetDevice(), m_Viewport.ColorImage, &memRequirements);
 
             VkMemoryAllocateInfo allocInfo = {};
             allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
             allocInfo.allocationSize = memRequirements.size;
             allocInfo.memoryTypeIndex = VulkanUtilities::FindMemoryType(m_GpuContext->s_GPUDevice->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-            if (vkAllocateMemory(m_GpuContext->s_GPUDevice->GetDevice(), &allocInfo, nullptr, &m_ImGuiImage.ColorMemory) != VK_SUCCESS) {
+            if (vkAllocateMemory(m_GpuContext->s_GPUDevice->GetDevice(), &allocInfo, nullptr, &m_Viewport.ColorMemory) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create descriptor pool!");
             }
-            if (vkBindImageMemory(m_GpuContext->s_GPUDevice->GetDevice(), m_ImGuiImage.ColorImage, m_ImGuiImage.ColorMemory, 0) != VK_SUCCESS) {
+            if (vkBindImageMemory(m_GpuContext->s_GPUDevice->GetDevice(), m_Viewport.ColorImage, m_Viewport.ColorMemory, 0) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create descriptor pool!");
             }
 
             VkImageViewCreateInfo viewInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-            viewInfo.image = m_ImGuiImage.ColorImage;
+            viewInfo.image = m_Viewport.ColorImage;
             viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
             viewInfo.format = VK_FORMAT_B8G8R8A8_UNORM;
             viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -255,19 +190,45 @@ namespace Brisk {
             viewInfo.subresourceRange.baseArrayLayer = 0;
             viewInfo.subresourceRange.layerCount = 1;
 
-            if (vkCreateImageView(m_GpuContext->s_GPUDevice->GetDevice(), &viewInfo, nullptr, &m_ImGuiImage.ColorImageView) != VK_SUCCESS) {
+            if (vkCreateImageView(m_GpuContext->s_GPUDevice->GetDevice(), &viewInfo, nullptr, &m_Viewport.pColorImageView) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create descriptor pool!");
             }
 
+            VkSamplerCreateInfo samplerInfo{};
+            samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+            samplerInfo.magFilter = VK_FILTER_LINEAR;
+            samplerInfo.minFilter = VK_FILTER_LINEAR;
+            samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            samplerInfo.anisotropyEnable = VK_FALSE;
+            samplerInfo.maxAnisotropy = 1.0f;
+            samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+            samplerInfo.unnormalizedCoordinates = VK_FALSE;
+            samplerInfo.compareEnable = VK_FALSE;
+            samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+            samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+            samplerInfo.mipLodBias = 0.0f;
+            samplerInfo.minLod = 0.0f;
+            samplerInfo.maxLod = 0.0f;
+
+            if (vkCreateSampler(m_GpuContext->s_GPUDevice->GetDevice(), &samplerInfo, nullptr, &m_Viewport.pSampler) != VK_SUCCESS)
+            {
+                throw std::runtime_error("failed to create texture sampler!");
+            }
+        }
+
+        // Creating renderpass
+        {
             VkAttachmentDescription colorAttachment{};
-            colorAttachment.format = m_Swapchain->GetFormat().format;
+            colorAttachment.format = VK_FORMAT_B8G8R8A8_UNORM;
             colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
             colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
             colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             colorAttachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             colorAttachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            colorAttachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+            colorAttachment.finalLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
             VkAttachmentDescription depthAttatchment{};
             depthAttatchment.format = m_Swapchain->GetDepthFormat();
@@ -322,20 +283,100 @@ namespace Brisk {
 
             std::vector<VkAttachmentDescription> colorAttachments = { colorAttachment, depthAttatchment };
 
-            m_ImguiRenderPass = new RenderPassVulkan();
-            m_ImguiRenderPass->Create(colorAttachments, { subpass }, { dependencies[0], dependencies[1] });
-            for (int i = 0; i < m_Swapchain->GetImageCount(); i++) {
-                std::vector<VkImageView> attachments = {
-                    m_ImGuiImage.ColorImageView,
-                    m_Swapchain->GetDepthImageView(),
-                };
-                m_ImguiRenderPass->CreateNAddFramebuffer(attachments, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
-            }
+            m_Viewport.pRenderpass = new RenderPassVulkan();
+            m_Viewport.pRenderpass->Create(colorAttachments, { subpass }, { dependencies[0], dependencies[1] });
+            std::vector<VkImageView> attachments = {
+                m_Viewport.pColorImageView,
+                m_Swapchain->GetDepthImageView(),
+            };
+            m_Viewport.pRenderpass->CreateNAddFramebuffer(attachments, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
         }
 
-        m_ViewportSize.x = 1920;
-        m_ViewportSize.y = 1080;
-        CreateOffscreenResources(m_ViewportSize.x, m_ViewportSize.y);
+        // Pipeline
+        {
+            m_Viewport.pPipeline = new GraphicsPipelineVulkan();
+
+            VkShaderModule vertexModule = VulkanUtilities::CreateShaderModule(GpuContextVulkan::s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleVS.spv");
+            VkShaderModule fragmentModule = VulkanUtilities::CreateShaderModule(GpuContextVulkan::s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleFS.spv");
+            m_Viewport.pPipeline->CreateShaderStage(vertexModule, VK_SHADER_STAGE_VERTEX_BIT);
+            m_Viewport.pPipeline->CreateShaderStage(fragmentModule, VK_SHADER_STAGE_FRAGMENT_BIT);
+
+            std::vector<GraphicsPipelineVulkan::Binding> bindings;
+            bindings.push_back({
+                0,
+                VK_VERTEX_INPUT_RATE_VERTEX,
+                sizeof(Vertex),
+                });
+            std::vector<GraphicsPipelineVulkan::AttributeDescription> attributes;
+            attributes.push_back({
+                0,
+                0,
+                VK_FORMAT_R32G32B32_SFLOAT,
+                offsetof(Vertex, Vertex::pos),
+                });
+            attributes.push_back({
+                0,
+                1,
+                VK_FORMAT_R32G32B32_SFLOAT,
+                offsetof(Vertex, Vertex::normal),
+                });
+            attributes.push_back({
+                0,
+                2,
+                VK_FORMAT_R32G32_SFLOAT,
+                offsetof(Vertex, Vertex::uv0),
+                });
+            attributes.push_back({
+                0,
+                3,
+                VK_FORMAT_R32G32_SFLOAT,
+                offsetof(Vertex, Vertex::uv1),
+                });
+            attributes.push_back({
+                0,
+                4,
+                VK_FORMAT_R32G32B32_SFLOAT,
+                offsetof(Vertex, Vertex::color),
+                });
+            std::vector<VkVertexInputBindingDescription> bindingDescriptions;
+            bindingDescriptions.resize(bindings.size());
+            for (int i = 0; i < bindingDescriptions.size(); i++) {
+                bindingDescriptions[i].binding = bindings[i].BindingIndex;
+                bindingDescriptions[i].inputRate = bindings[i].InputRate;
+                bindingDescriptions[i].stride = bindings[i].Stride;
+            }
+            std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
+            attributeDescriptions.resize(attributes.size());
+            for (int i = 0; i < attributeDescriptions.size(); i++) {
+                attributeDescriptions[i].binding = attributes[i].BindingIndex;
+                attributeDescriptions[i].location = attributes[i].Location;
+                attributeDescriptions[i].format = attributes[i].Format;
+                attributeDescriptions[i].offset = attributes[i].Offset;
+            }
+            m_Viewport.pPipeline->CreateVertexInputState(bindingDescriptions, attributeDescriptions);
+            m_Viewport.pPipeline->CreateInputAssembly(false, VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST);
+            m_Viewport.pPipeline->CreateViewportState(1, 1);
+            m_Viewport.pPipeline->CreateRasterizer(false, false, VK_POLYGON_MODE_FILL, 1.0f, VK_CULL_MODE_NONE, VK_FRONT_FACE_COUNTER_CLOCKWISE, false);
+            m_Viewport.pPipeline->CreateMultiSampling(false, VK_SAMPLE_COUNT_1_BIT);
+            m_Viewport.pPipeline->CreateDepthStencil(true, true, VK_COMPARE_OP_LESS, false, false);
+            VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+            colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+            colorBlendAttachment.blendEnable = VK_FALSE;
+            std::vector< VkPipelineColorBlendAttachmentState> colorBlendAttachments = { colorBlendAttachment };
+            m_Viewport.pPipeline->CrateColorBlending(colorBlendAttachments, false, VK_LOGIC_OP_COPY);
+            std::vector<VkDynamicState> dynamicStates = {
+                VK_DYNAMIC_STATE_VIEWPORT,
+                VK_DYNAMIC_STATE_SCISSOR
+            };
+            m_Viewport.pPipeline->CreateDynamicState(dynamicStates);
+            m_Viewport.pPipeline->CreatePipelineLayout(m_DescriptorSetLayouts, 0);
+            m_Viewport.pPipeline->CreatePipeline(m_Viewport.pRenderpass->GetRenderPass());
+        }
+    }
+
+    void RendererVulkan::SetupRenderingPipeline(Swapchain* swap) {
+        m_Swapchain = static_cast<SwapchainVulkan*>(swap);
+
         VkAttachmentDescription colorAttachment{};
         colorAttachment.format = m_Swapchain->GetFormat().format;
         colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -358,7 +399,7 @@ namespace Brisk {
 
         VkAttachmentReference colorAttachmentRef{};
         colorAttachmentRef.attachment = 0;
-        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
         VkAttachmentReference depthAttachmentRef{};
         depthAttachmentRef.attachment = 1;
@@ -371,36 +412,36 @@ namespace Brisk {
         subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
         // Subpass dependencies for layout transitions
-        std::array<VkSubpassDependency, 2> dependencies;
+        //std::array<VkSubpassDependency, 2> dependencies;
 
-        dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-        dependencies[0].dstSubpass = 0;
-        dependencies[0].srcStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-        dependencies[0].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-        dependencies[0].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-        dependencies[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-        dependencies[0].dependencyFlags = 0;
+        //dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
+        //dependencies[0].dstSubpass = 0;
+        //dependencies[0].srcStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        //dependencies[0].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        //dependencies[0].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        //dependencies[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+        //dependencies[0].dependencyFlags = 0;
 
-        dependencies[1].srcSubpass = VK_SUBPASS_EXTERNAL;
-        dependencies[1].dstSubpass = 0;
-        dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependencies[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependencies[1].srcAccessMask = 0;
-        dependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
-        dependencies[1].dependencyFlags = 0;
+        //dependencies[1].srcSubpass = VK_SUBPASS_EXTERNAL;
+        //dependencies[1].dstSubpass = 0;
+        //dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        //dependencies[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        //dependencies[1].srcAccessMask = 0;
+        //dependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
+        //dependencies[1].dependencyFlags = 0;
 
-        //VkSubpassDependency dependency{};
-        //dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-        //dependency.dstSubpass = 0;
-        //dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        //dependency.srcAccessMask = 0;
-        //dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        //dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        VkSubpassDependency dependency{};
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
         std::vector<VkAttachmentDescription> colorAttachments = { colorAttachment, depthAttatchment };
 
         m_RenderPass = new RenderPassVulkan();
-        m_RenderPass->Create(colorAttachments, { subpass }, { dependencies[0], dependencies[1] });
+        m_RenderPass->Create(colorAttachments, { subpass }, { dependency });
         for (int i = 0; i < m_Swapchain->GetImageCount(); i++) {
             std::vector<VkImageView> attachments = {
                 m_Swapchain->GetSwapchainImageViews()[i],
@@ -447,28 +488,7 @@ namespace Brisk {
         CreateDescriptorSet();
         CreateGraphicsPipeline();
 
-        VkSamplerCreateInfo samplerInfo{};
-        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerInfo.magFilter = VK_FILTER_LINEAR;
-        samplerInfo.minFilter = VK_FILTER_LINEAR;
-        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.anisotropyEnable = VK_FALSE;
-        samplerInfo.maxAnisotropy = 1.0f;
-        samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-        samplerInfo.unnormalizedCoordinates = VK_FALSE;
-        samplerInfo.compareEnable = VK_FALSE;
-        samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        samplerInfo.mipLodBias = 0.0f;
-        samplerInfo.minLod = 0.0f;
-        samplerInfo.maxLod = 0.0f;
-
-        if (vkCreateSampler(m_GpuContext->s_GPUDevice->GetDevice(), &samplerInfo, nullptr, &m_ViewportSampler) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create texture sampler!");
-        }
+        CreateOffscreenResources();
     }
 
     void RendererVulkan::UpdateUniformBuffer(uint32_t currentImage) {
@@ -651,24 +671,20 @@ namespace Brisk {
             return;
         }
 
-        if (m_ViewportSize != Engine::s_Editor->GetViewportSize() && Engine::s_Editor->GetViewportSize() != glm::vec2(0)) {
-            m_ViewportSize = Engine::s_Editor->GetViewportSize();
-              CreateOffscreenResources(m_ViewportSize.x, m_ViewportSize.y);
-        }
         UpdateUniformBuffer(m_ImageIndex);
 
         vkResetCommandBuffer(m_CommandBuffer->Get(), /*VkCommandBufferResetFlagBits*/ 0);
 
-        m_RenderPass->BeginRenderPass(m_CommandBuffer, m_ImageIndex);
-        vkCmdBindPipeline(m_CommandBuffer->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline->GetPipeline());
+        m_Viewport.pRenderpass->BeginRenderPass(m_CommandBuffer, 0);
+        vkCmdBindPipeline(m_CommandBuffer->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Viewport.pPipeline->GetPipeline());
         {
             VkViewport viewport{};
             viewport.x = 0.0f;
             viewport.y = 0.0f;
-            //viewport.width = static_cast<float>(static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentWidth());
-            //viewport.height = static_cast<float>(static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentHeight());
-            viewport.width = Engine::s_Editor->GetViewportSize().x;
-            viewport.height = Engine::s_Editor->GetViewportSize().y;
+            viewport.width = static_cast<float>(static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentWidth());
+            viewport.height = static_cast<float>(static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentHeight());
+            //viewport.width = Engine::s_Editor->GetViewportSize().x;
+            //viewport.height = Engine::s_Editor->GetViewportSize().y;
             viewport.minDepth = 0.0f;
             viewport.maxDepth = 1.0f;
             vkCmdSetViewport(m_CommandBuffer->Get(), 0, 1, &viewport);
@@ -684,109 +700,48 @@ namespace Brisk {
             VkDeviceSize offsets[] = { 0 };
             vkCmdBindVertexBuffers(m_CommandBuffer->Get(), 0, 1, vertexBuffers, offsets); 
             
-            vkCmdBindDescriptorSets(m_CommandBuffer->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline->GetLayout(), 0, 1, &m_DescriptorSet, 0, nullptr);
+            vkCmdBindDescriptorSets(m_CommandBuffer->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Viewport.pPipeline->GetLayout(), 0, 1, &m_DescriptorSet, 0, nullptr);
             
             vkCmdDraw(m_CommandBuffer->Get(), m_Model->m_VertexBuffer->GetSize(), 1, 0, 0);
         }
-        m_RenderPass->EndRenderPass(m_CommandBuffer, false);
+        m_Viewport.pRenderpass->EndRenderPass(m_CommandBuffer, false);
 
         // copying the swapchain image
         {
-            // Transition the swapchain image to TRANSFER_SRC layout
-            VkImageMemoryBarrier swapchainBarrier = {};
-            swapchainBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-            swapchainBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-            swapchainBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-            swapchainBarrier.oldLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-            swapchainBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-            swapchainBarrier.image = m_Swapchain->GetSwapchainImages()[m_ImageIndex];
-            swapchainBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            swapchainBarrier.subresourceRange.baseMipLevel = 0;
-            swapchainBarrier.subresourceRange.levelCount = 1;
-            swapchainBarrier.subresourceRange.baseArrayLayer = 0;
-            swapchainBarrier.subresourceRange.layerCount = 1;
+            VkImageMemoryBarrier imageMemoryBarrier = {};
+            imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+            imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            imageMemoryBarrier.image = m_Viewport.ColorImage;  // The VkImage you're transitioning
 
-            // Transition the destination image to TRANSFER_DST layout
-            VkImageMemoryBarrier destinationBarrier = {};
-            destinationBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-            destinationBarrier.srcAccessMask = 0;
-            destinationBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            destinationBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-            destinationBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-            destinationBarrier.image = m_Offscreen.Image;
-            destinationBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            destinationBarrier.subresourceRange.baseMipLevel = 0;
-            destinationBarrier.subresourceRange.levelCount = 1;
-            destinationBarrier.subresourceRange.baseArrayLayer = 0;
-            destinationBarrier.subresourceRange.layerCount = 1;
+            // Define which aspects of the image are affected (typically color)
+            imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            imageMemoryBarrier.subresourceRange.baseMipLevel = 0;
+            imageMemoryBarrier.subresourceRange.levelCount = 1;
+            imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
+            imageMemoryBarrier.subresourceRange.layerCount = 1;
 
-            vkCmdPipelineBarrier(m_CommandBuffer->Get(),
-                VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
-                VK_PIPELINE_STAGE_TRANSFER_BIT,
-                0,
-                0, nullptr,
-                0, nullptr,
-                1, &swapchainBarrier);
-            vkCmdPipelineBarrier(m_CommandBuffer->Get(),
-                VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
-                VK_PIPELINE_STAGE_TRANSFER_BIT,
-                0,
-                0, nullptr,
-                0, nullptr,
-                1, &destinationBarrier);
+            // Source access mask – operations that must complete before the transition
+            imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
-            VkImageCopy copyRegion = {};
-            copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            copyRegion.srcSubresource.mipLevel = 0;
-            copyRegion.srcSubresource.baseArrayLayer = 0;
-            copyRegion.srcSubresource.layerCount = 1;
-            copyRegion.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            copyRegion.dstSubresource.mipLevel = 0;
-            copyRegion.dstSubresource.baseArrayLayer = 0;
-            copyRegion.dstSubresource.layerCount = 1;
-            copyRegion.extent.width = m_ViewportSize.x;
-            copyRegion.extent.height = m_ViewportSize.y;
-            copyRegion.extent.depth = 1;
+            // Destination access mask – operations that will happen after the transition
+            imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
-            vkCmdCopyImage(m_CommandBuffer->Get(),
-                m_Swapchain->GetSwapchainImages()[m_ImageIndex], VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                m_Offscreen.Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-                1, &copyRegion);
+            VkPipelineStageFlags srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            VkPipelineStageFlags dstStage = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 
-            // Transition the destination image to SHADER_READ layout
-            VkImageMemoryBarrier finalBarrier = {};
-            finalBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-            finalBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            finalBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-            finalBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-            finalBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            finalBarrier.image = m_Offscreen.Image;
-            finalBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            finalBarrier.subresourceRange.baseMipLevel = 0;
-            finalBarrier.subresourceRange.levelCount = 1;
-            finalBarrier.subresourceRange.baseArrayLayer = 0;
-            finalBarrier.subresourceRange.layerCount = 1;
-
-            vkCmdPipelineBarrier(m_CommandBuffer->Get(),
-                VK_PIPELINE_STAGE_TRANSFER_BIT,
-                VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
-                0,
-                0, nullptr,
-                0, nullptr,
-                1, &finalBarrier);
-
-            // Record command buffer for image layout transition
-
-            // Transition swapchain image to present layout
-            TransitionSwapchainImageLayout(
+            vkCmdPipelineBarrier(
                 m_CommandBuffer->Get(),
-                m_Swapchain->GetSwapchainImages()[m_ImageIndex],
-                VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-                VK_IMAGE_LAYOUT_PRESENT_SRC_KHR,
-                VK_PIPELINE_STAGE_TRANSFER_BIT,
-                VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT
+                srcStage,                // Source pipeline stage
+                dstStage,                // Destination pipeline stage
+                0,                       // No dependency flags
+                0, nullptr,              // Memory barriers
+                0, nullptr,              // Buffer memory barriers
+                1, &imageMemoryBarrier   // Image memory barriers
             );
-            // End command buffer recording
+
             m_CommandBuffer->End();
 
             vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
@@ -820,7 +775,7 @@ namespace Brisk {
 
             m_RenderPass->BeginRenderPass(m_ImGuiCommandBuffer, 0);
             ImGui_ImplVulkan_RemoveTexture(m_ImGuiDescriptorSet);
-            m_ImGuiDescriptorSet = ImGui_ImplVulkan_AddTexture(m_ViewportSampler, m_Offscreen.ImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            m_ImGuiDescriptorSet = ImGui_ImplVulkan_AddTexture(m_Viewport.pSampler, m_Viewport.pColorImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
             Engine::s_Editor->Update(m_ImGuiDescriptorSet);
             ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), m_ImGuiCommandBuffer->Get(),VK_NULL_HANDLE);
             m_RenderPass->EndRenderPass(m_ImGuiCommandBuffer);

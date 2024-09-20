@@ -101,8 +101,8 @@ namespace Brisk {
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
         if (vkCreateSemaphore(GpuContextVulkan::s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore) != VK_SUCCESS ||
-            vkCreateSemaphore(GpuContextVulkan::s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_RenderFinishedSemaphore) != VK_SUCCESS ||
-            vkCreateSemaphore(GpuContextVulkan::s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_UIFinshedSemaphore) != VK_SUCCESS ||
+            vkCreateSemaphore(GpuContextVulkan::s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_RenderToTextureFinished) != VK_SUCCESS ||
+            vkCreateSemaphore(GpuContextVulkan::s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_RenderToSwapchainFinished) != VK_SUCCESS ||
             vkCreateFence(GpuContextVulkan::s_GPUDevice->GetDevice(), &fenceInfo, nullptr, &m_InFlightFence) != VK_SUCCESS) {
             throw std::runtime_error("failed to create synchronization objects for a frame!");
         }
@@ -399,7 +399,7 @@ namespace Brisk {
 
         VkAttachmentReference colorAttachmentRef{};
         colorAttachmentRef.attachment = 0;
-        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
         VkAttachmentReference depthAttachmentRef{};
         depthAttachmentRef.attachment = 1;
@@ -654,10 +654,12 @@ namespace Brisk {
 
         VkResult result = m_Swapchain->AquireNextImage(UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_ImageIndex);
 
-        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || Engine::s_MainWindow->IsWindowResized()) {
+        //if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR || Engine::s_MainWindow->IsWindowResized()) {
+        if (result == VK_ERROR_OUT_OF_DATE_KHR || result == VK_SUBOPTIMAL_KHR) {
             WaitDeviceIdle();
             Engine::s_Swapchain->Release();
             m_RenderPass->ReleaseFramebuffers();
+            delete Engine::s_Swapchain;
             Engine::s_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_MainWindow);
             Engine::s_Swapchain->Create(Swapchain::Mode::TRIPLE_BUFFERING);
             m_Swapchain = static_cast<SwapchainVulkan*>(Engine::s_Swapchain);
@@ -670,7 +672,11 @@ namespace Brisk {
             }
             return;
         }
+        else if (result != VK_SUCCESS && result != VK_SUBOPTIMAL_KHR) {
+            throw std::runtime_error("Failed to acquire swapchain image");
+        }
 
+        vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
         UpdateUniformBuffer(m_ImageIndex);
 
         vkResetCommandBuffer(m_CommandBuffer->Get(), /*VkCommandBufferResetFlagBits*/ 0);
@@ -681,10 +687,8 @@ namespace Brisk {
             VkViewport viewport{};
             viewport.x = 0.0f;
             viewport.y = 0.0f;
-            viewport.width = static_cast<float>(static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentWidth());
-            viewport.height = static_cast<float>(static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetExtentHeight());
-            //viewport.width = Engine::s_Editor->GetViewportSize().x;
-            //viewport.height = Engine::s_Editor->GetViewportSize().y;
+            viewport.width = static_cast<float>(m_Swapchain->GetExtentWidth());
+            viewport.height = static_cast<float>(m_Swapchain->GetExtentHeight());
             viewport.minDepth = 0.0f;
             viewport.maxDepth = 1.0f;
             vkCmdSetViewport(m_CommandBuffer->Get(), 0, 1, &viewport);
@@ -695,18 +699,14 @@ namespace Brisk {
             vkCmdSetScissor(m_CommandBuffer->Get(), 0, 1, &scissor);
         }
         {
-            //const VkBuffer vertexBuffers[] = { m_VertexBuffer->Get() };
             const VkBuffer vertexBuffers[] = { m_Model->m_VertexBuffer->Get() };
             VkDeviceSize offsets[] = { 0 };
-            vkCmdBindVertexBuffers(m_CommandBuffer->Get(), 0, 1, vertexBuffers, offsets); 
-            
+            vkCmdBindVertexBuffers(m_CommandBuffer->Get(), 0, 1, vertexBuffers, offsets);             
             vkCmdBindDescriptorSets(m_CommandBuffer->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Viewport.pPipeline->GetLayout(), 0, 1, &m_DescriptorSet, 0, nullptr);
-            
             vkCmdDraw(m_CommandBuffer->Get(), m_Model->m_VertexBuffer->GetSize(), 1, 0, 0);
         }
         m_Viewport.pRenderpass->EndRenderPass(m_CommandBuffer, false);
 
-        // copying the swapchain image
         {
             VkImageMemoryBarrier imageMemoryBarrier = {};
             imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -734,61 +734,53 @@ namespace Brisk {
 
             vkCmdPipelineBarrier(
                 m_CommandBuffer->Get(),
-                srcStage,                // Source pipeline stage
-                dstStage,                // Destination pipeline stage
-                0,                       // No dependency flags
-                0, nullptr,              // Memory barriers
-                0, nullptr,              // Buffer memory barriers
-                1, &imageMemoryBarrier   // Image memory barriers
+                srcStage,
+                dstStage,
+                0,
+                0, nullptr,
+                0, nullptr,
+                1, &imageMemoryBarrier
             );
 
             m_CommandBuffer->End();
 
             vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
 
-            //
             VkSubmitInfo submitInfo{};
             submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-            VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore };
-            VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-            submitInfo.waitSemaphoreCount = 1;
-            submitInfo.pWaitSemaphores = waitSemaphores;
-            submitInfo.pWaitDstStageMask = waitStages;
-
             std::vector<VkCommandBuffer> cmdBufers = { m_CommandBuffer->Get() };
             submitInfo.commandBufferCount = 1;
-            //submitInfo.pCommandBuffers = &cmdBufer;
             submitInfo.pCommandBuffers = cmdBufers.data();
 
-            VkSemaphore signalSemaphores[] = { m_RenderFinishedSemaphore };
+            VkSemaphore signalSemaphores[] = { m_RenderToTextureFinished };
             submitInfo.signalSemaphoreCount = 1;
             submitInfo.pSignalSemaphores = signalSemaphores;
 
             if (vkQueueSubmit(m_GpuContext->s_GPUDevice->GetGraphicsQueue().Handle, 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
                 throw std::runtime_error("failed to submit draw command buffer!");
             }
-            //
+
+            vkDeviceWaitIdle(m_GpuContext->s_GPUDevice->GetDevice());
 
             vkWaitForFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
             vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
 
-            m_RenderPass->BeginRenderPass(m_ImGuiCommandBuffer, 0);
+            m_RenderPass->BeginRenderPass(m_ImGuiCommandBuffer, m_ImageIndex);
             ImGui_ImplVulkan_RemoveTexture(m_ImGuiDescriptorSet);
             m_ImGuiDescriptorSet = ImGui_ImplVulkan_AddTexture(m_Viewport.pSampler, m_Viewport.pColorImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
             Engine::s_Editor->Update(m_ImGuiDescriptorSet);
             ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), m_ImGuiCommandBuffer->Get(),VK_NULL_HANDLE);
             m_RenderPass->EndRenderPass(m_ImGuiCommandBuffer);
         }
-        vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
 
         {
             VkSubmitInfo submitInfo{};
             submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
-            VkSemaphore waitSemaphores[] = { m_RenderFinishedSemaphore };
-            VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
-            submitInfo.waitSemaphoreCount = 1;
+            VkSemaphore waitSemaphores[] = { m_ImageAvailableSemaphore, m_RenderToTextureFinished };
+            VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+            submitInfo.waitSemaphoreCount = 2;
             submitInfo.pWaitSemaphores = waitSemaphores;
             submitInfo.pWaitDstStageMask = waitStages;
 
@@ -796,7 +788,7 @@ namespace Brisk {
             submitInfo.commandBufferCount = 1;
             submitInfo.pCommandBuffers = cmdBufers.data();
 
-            VkSemaphore signalSemaphores[] = { m_UIFinshedSemaphore };
+            VkSemaphore signalSemaphores[] = { m_RenderToSwapchainFinished };
             submitInfo.signalSemaphoreCount = 1;
             submitInfo.pSignalSemaphores = signalSemaphores;
 

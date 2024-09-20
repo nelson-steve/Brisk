@@ -77,8 +77,11 @@ namespace Brisk {
 
 		CommandBufferVulkan* m_CommandBuffer;
 		CommandBufferVulkan* m_ImGuiCommandBuffer;
-		VkSemaphore m_RenderFinishedSemaphore;
+
 		VkSemaphore m_ImageAvailableSemaphore;
+		VkSemaphore m_RenderToTextureFinished;
+		VkSemaphore m_RenderToSwapchainFinished;
+
 		VkCommandPool m_CommandPool;
 		VkFence m_InFlightFence;
 

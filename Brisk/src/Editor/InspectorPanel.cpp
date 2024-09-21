@@ -7,7 +7,7 @@ namespace Brisk
 
     void InspectorPanel::OnUpdate() {
         ImGui::Begin("Inspector");
-        //RenderTransformUI(t);
+
         ImGui::End();
     }
 

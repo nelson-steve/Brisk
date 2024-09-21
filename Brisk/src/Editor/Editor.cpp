@@ -128,6 +128,116 @@ namespace Brisk {
         colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.08f, 0.08f, 0.1f, 1.0f }; // Very dark for collapsed title
     }
 
+    void PinkTheme() {
+        auto& colors = ImGui::GetStyle().Colors;
+
+        // Background (bright, pinkish tone)
+        colors[ImGuiCol_WindowBg] = ImVec4{ 0.9f, 0.78f, 0.85f, 1.0f }; // Bright pinkish background
+
+        // Headers
+        colors[ImGuiCol_Header] = ImVec4{ 0.85f, 0.55f, 0.7f, 1.0f };        // Bright pink
+        colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.9f, 0.6f, 0.75f, 1.0f };  // Slightly brighter pink on hover
+        colors[ImGuiCol_HeaderActive] = ImVec4{ 0.8f, 0.5f, 0.65f, 1.0f };   // Slightly darker pink when active
+
+        // Buttons
+        colors[ImGuiCol_Button] = ImVec4{ 0.85f, 0.55f, 0.7f, 1.0f };        // Bright pink buttons
+        colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.9f, 0.6f, 0.75f, 1.0f };  // Brighter pink hover effect
+        colors[ImGuiCol_ButtonActive] = ImVec4{ 0.8f, 0.5f, 0.65f, 1.0f };   // Slightly darker pink for active
+
+        // Frame Background
+        colors[ImGuiCol_FrameBg] = ImVec4{ 0.8f, 0.55f, 0.65f, 1.0f };       // Pink frame background
+        colors[ImGuiCol_FrameBgHovered] = ImVec4{ 0.9f, 0.6f, 0.75f, 1.0f }; // Brighter pink on hover
+        colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.85f, 0.55f, 0.7f, 1.0f }; // Active state with bright pink
+
+        // Popup
+        colors[ImGuiCol_PopupBg] = ImVec4{ 0.9f, 0.65f, 0.75f, 1.0f };       // Bright pink popup background
+
+        // Tabs
+        colors[ImGuiCol_Tab] = ImVec4{ 0.85f, 0.55f, 0.7f, 1.0f };           // Bright pink tabs
+        colors[ImGuiCol_TabHovered] = ImVec4{ 0.9f, 0.6f, 0.75f, 1.0f };     // Brighter pink on hover
+        colors[ImGuiCol_TabActive] = ImVec4{ 0.8f, 0.5f, 0.65f, 1.0f };      // Slightly darker for active
+        colors[ImGuiCol_TabUnfocused] = ImVec4{ 0.75f, 0.5f, 0.6f, 1.0f };   // Slightly muted pink for unfocused
+        colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.85f, 0.55f, 0.7f, 1.0f }; // Bright when active and unfocused
+
+        // Text
+        colors[ImGuiCol_Text] = ImVec4{ 0.75f, 0.45f, 0.65f, 1.0f };         // Bright pink title background
+        // Title
+        colors[ImGuiCol_TitleBg] = ImVec4{ 0.75f, 0.45f, 0.65f, 1.0f };         // Bright pink title background
+        colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.85f, 0.55f, 0.7f, 1.0f };    // Brighter pink when active
+        colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.7f, 0.4f, 0.6f, 1.0f };   // Muted pink for collapsed title
+
+    }
+
+    void PinkTheme2() {
+        auto& colors = ImGui::GetStyle().Colors;
+
+        // Background (less bright, solid tone)
+        colors[ImGuiCol_WindowBg] = ImVec4{ 0.25f, 0.2f, 0.28f, 1.0f }; // Darker, more solid background
+
+        // Headers
+        colors[ImGuiCol_Header] = ImVec4{ 0.65f, 0.35f, 0.5f, 1.0f };        // Darker, solid pink
+        colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.7f, 0.4f, 0.55f, 1.0f };  // Slightly lighter on hover
+        colors[ImGuiCol_HeaderActive] = ImVec4{ 0.6f, 0.3f, 0.45f, 1.0f };   // Even darker when active
+
+        // Buttons
+        colors[ImGuiCol_Button] = ImVec4{ 0.65f, 0.35f, 0.5f, 1.0f };        // Solid pink buttons
+        colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.7f, 0.4f, 0.55f, 1.0f };  // Brighter on hover
+        colors[ImGuiCol_ButtonActive] = ImVec4{ 0.6f, 0.3f, 0.45f, 1.0f };   // Darker pink when active
+
+        // Frame Background
+        colors[ImGuiCol_FrameBg] = ImVec4{ 0.55f, 0.3f, 0.4f, 1.0f };        // Solid pink frame background
+        colors[ImGuiCol_FrameBgHovered] = ImVec4{ 0.65f, 0.35f, 0.5f, 1.0f }; // Brighter on hover
+        colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.6f, 0.3f, 0.45f, 1.0f };  // Darker when active
+
+        // Popup
+        colors[ImGuiCol_PopupBg] = ImVec4{ 0.3f, 0.25f, 0.35f, 1.0f };       // Solid background for popups
+
+        // Tabs
+        colors[ImGuiCol_Tab] = ImVec4{ 0.6f, 0.3f, 0.45f, 1.0f };           // Darker pink tabs
+        colors[ImGuiCol_TabHovered] = ImVec4{ 0.7f, 0.4f, 0.55f, 1.0f };    // Lighter on hover
+        colors[ImGuiCol_TabActive] = ImVec4{ 0.65f, 0.35f, 0.5f, 1.0f };    // Brighter when active
+        colors[ImGuiCol_TabUnfocused] = ImVec4{ 0.4f, 0.25f, 0.35f, 1.0f }; // Muted pink for unfocused
+        colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.55f, 0.3f, 0.45f, 1.0f }; // Brighter when active and unfocused
+
+        // Title
+        colors[ImGuiCol_TitleBg] = ImVec4{ 0.45f, 0.25f, 0.35f, 1.0f };         // Solid title background
+        colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.55f, 0.3f, 0.45f, 1.0f };    // Brighter when active
+        colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.35f, 0.2f, 0.3f, 1.0f };  // Darker for collapsed title
+
+        // Text
+        colors[ImGuiCol_Text] = ImVec4{ 0.9f, 0.9f, 0.9f, 1.0f };               // Brighter text for contrast
+
+        // Scrollbars
+        colors[ImGuiCol_ScrollbarBg] = ImVec4{ 0.25f, 0.2f, 0.28f, 1.0f };      // Solid scrollbar background
+        colors[ImGuiCol_ScrollbarGrab] = ImVec4{ 0.55f, 0.3f, 0.4f, 1.0f };     // Pink grab
+        colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4{ 0.65f, 0.35f, 0.5f, 1.0f }; // Lighter on hover
+        colors[ImGuiCol_ScrollbarGrabActive] = ImVec4{ 0.6f, 0.3f, 0.45f, 1.0f };  // Darker when active
+
+        // Checkboxes
+        colors[ImGuiCol_CheckMark] = ImVec4{ 0.9f, 0.9f, 0.9f, 1.0f };           // White for contrast on checkboxes
+
+        // Slider
+        colors[ImGuiCol_SliderGrab] = ImVec4{ 0.55f, 0.3f, 0.4f, 1.0f };         // Solid pink grab
+        colors[ImGuiCol_SliderGrabActive] = ImVec4{ 0.65f, 0.35f, 0.5f, 1.0f };  // Brighter on active
+
+        // Separators
+        colors[ImGuiCol_Separator] = ImVec4{ 0.35f, 0.2f, 0.3f, 1.0f };          // Solid, darker separator
+        colors[ImGuiCol_SeparatorHovered] = ImVec4{ 0.4f, 0.25f, 0.35f, 1.0f };  // Slightly brighter on hover
+        colors[ImGuiCol_SeparatorActive] = ImVec4{ 0.45f, 0.3f, 0.4f, 1.0f };    // Brighter when active
+
+        // Resize grip
+        colors[ImGuiCol_ResizeGrip] = ImVec4{ 0.55f, 0.3f, 0.4f, 1.0f };         // Pink grip
+        colors[ImGuiCol_ResizeGripHovered] = ImVec4{ 0.65f, 0.35f, 0.5f, 1.0f }; // Brighter on hover
+        colors[ImGuiCol_ResizeGripActive] = ImVec4{ 0.7f, 0.4f, 0.55f, 1.0f };   // Brighter when active
+
+        // Modals
+        colors[ImGuiCol_ModalWindowDimBg] = ImVec4{ 0.2f, 0.15f, 0.25f, 0.75f }; // Dimmed background for modals
+
+        // DragDrop
+        colors[ImGuiCol_DragDropTarget] = ImVec4{ 0.85f, 0.55f, 0.7f, 1.0f };    // Brighter pink for drag-and-drop target
+
+    }
+
 	void Editor::Create() {
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
@@ -142,6 +252,8 @@ namespace Brisk {
         //ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
         LavenderTheme();
+        //PinkTheme();
+        //PinkTheme2();
         
         ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Engine::s_MainWindow->GetWindowHandle(), true);
 
@@ -173,6 +285,9 @@ namespace Brisk {
 
         HeirarchyPanel* heirarchyPanel = new HeirarchyPanel();
         m_Panels.insert({ "Heirarchy" , heirarchyPanel });
+
+        InspectorPanel* inspectorPanel = new InspectorPanel();
+        m_Panels.insert({ "Inspector" , inspectorPanel });
 
         //m_Texture = new TextureVulkan();
         //m_Texture->Create("../Data/Images/texture.jpg");

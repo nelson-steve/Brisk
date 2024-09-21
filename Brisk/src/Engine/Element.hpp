@@ -9,11 +9,12 @@
 namespace Brisk {
     class Element {
     public:
-        uint64_t id;
+        int32_t id;
         std::vector<int> children;
         std::string name;
+        bool IsRoot = true;
 
-        Element(uint64_t id) : id(id) {
+        Element(int32_t id) : id(id) {
             AddModule(new Transform());
         }
 

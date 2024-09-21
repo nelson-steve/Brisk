@@ -70,7 +70,10 @@ namespace Brisk
 		m_Scene = new BriskScene();
 		m_Scene->CreateElement("test 1");
 		m_Scene->CreateElement("test 2");
-		m_Scene->CreateElement("test 3");
+		int32_t parent = m_Scene->CreateElement("test 3");
+		parent = m_Scene->AddChildElement(parent);
+		parent = m_Scene->AddChildElement(parent);
+		m_Scene->AddChildElement(parent);
 
 		s_Camera = new Camera(70.0f, s_MainWindow->GetWidth() / s_MainWindow->GetHeight(), 0.01, 1000.0f, (GLFWwindow*)s_MainWindow->GetWindowHandle());
 	}

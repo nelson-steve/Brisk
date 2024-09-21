@@ -41,22 +41,3 @@ namespace Brisk {
     };
 
 }
-
-/*
-
-RenderManager {
-Renderer* renderer;
-
-SetupGraphicsPipeline();
-RenderCube(){
-renderer->render();
-assign resources and render the cube
-}
-ApplyPostProcessing(){
-Take input from previos funciotn and apply post processing
-}
-
-
-}
-
-*/

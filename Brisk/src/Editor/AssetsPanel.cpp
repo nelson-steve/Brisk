@@ -1,26 +1,98 @@
 #include "AssetsPanel.hpp"
+#include "Graphics/Vulkan/TextureVulkan.hpp"
+
+#include "ImGuiBackends/imgui_impl_vulkan.h"
+
+#include <filesystem>
 
 namespace Brisk 
 {
+    std::vector<std::filesystem::directory_entry> assets;
+    std::filesystem::directory_entry selectedAsset;
+    std::string CurrentPath;
+    VkDescriptorSet FBXDescriptorSet;
+    VkDescriptorSet OBJDescriptorSet;
+    VkDescriptorSet FolderDescriptorSet;
+    VkDescriptorSet PhotoDescriptorSet;
+
+    void LoadAssets(const std::string& path) {
+        CurrentPath = path;
+        assets.clear();
+        for (const auto& entry : std::filesystem::directory_iterator(path)) {
+            if (entry.is_regular_file() || entry.is_directory()) {
+                assets.push_back(entry);
+            }
+        }
+    }
     void AssetsPanel::OnCreate() {
-        m_Assets = {
-            {"Folder 1", true, {{"Asset 1", false}, {"Asset 2", false}}},
-            {"Folder 2", true, {{"Asset 3", false}, {"Folder 2.1", true, {{"Asset 4", false}}}}},
-            {"Asset 5", false}
-        };
+        LoadAssets("../Data");
+
+        TextureVulkan* m_Texture1 = new TextureVulkan();
+        m_Texture1->Create("../Data/Images/fbx.png");
+        FBXDescriptorSet = ImGui_ImplVulkan_AddTexture(m_Texture1->GetSampler(), m_Texture1->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+        TextureVulkan* m_Texture2 = new TextureVulkan();
+        m_Texture2->Create("../Data/Images/folder.png");
+        FolderDescriptorSet = ImGui_ImplVulkan_AddTexture(m_Texture2->GetSampler(), m_Texture2->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+        TextureVulkan* m_Texture3 = new TextureVulkan();
+        m_Texture3->Create("../Data/Images/obj.png");
+        OBJDescriptorSet = ImGui_ImplVulkan_AddTexture(m_Texture3->GetSampler(), m_Texture3->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+
+        TextureVulkan* m_Texture4 = new TextureVulkan();
+        m_Texture4->Create("../Data/Images/photo.png");
+        PhotoDescriptorSet = ImGui_ImplVulkan_AddTexture(m_Texture4->GetSampler(), m_Texture4->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
     void AssetsPanel::OnUpdate() {
-        // Begin the assets window
         ImGui::Begin("Assets");
+        float windowVisibleX2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 
-        // Iterate over the root-level assets (could be folders or files)
-        for (const auto& asset : m_Assets)
-        {
-            ShowAssetFolder(asset);
+        if (CurrentPath != "../Data") {
+            if (ImGui::Button(" <-- ")) {
+                std::filesystem::path parentPath = std::filesystem::path(CurrentPath).parent_path();
+                LoadAssets(parentPath.string());
+            }
         }
 
-        // End the assets window
+        for (int i = 0; i < assets.size(); i++) {
+            std::string fileName = assets[i].path().filename().string();
+            std::string extension = assets[i].path().extension().string();
+
+            if (extension == ".png" || extension == ".jpg") {
+                ImGui::Image((void*)(intptr_t)PhotoDescriptorSet, ImVec2(64, 64));
+            }
+            else if (extension == ".obj") {
+                ImGui::Image((void*)(intptr_t)OBJDescriptorSet, ImVec2(64, 64));
+            }
+            else if (extension == ".fbx") {
+                ImGui::Image((void*)(intptr_t)FBXDescriptorSet, ImVec2(64, 64));
+            }
+            else if(assets[i].is_directory()){
+                ImGui::Image((void*)(intptr_t)FolderDescriptorSet, ImVec2(64, 64));
+            }
+
+            float lastItemX2 = ImGui::GetItemRectMax().x;
+            float nextItemX2 = lastItemX2 + ImGui::GetStyle().ItemSpacing.x + 64;
+
+            if (nextItemX2 < windowVisibleX2) {
+                ImGui::SameLine();
+            }
+
+            if (ImGui::IsItemHovered() && ImGui::IsMouseDoubleClicked(0)) {
+                if (assets[i].is_directory()) {
+                    LoadAssets(assets[i].path().string());
+                    i = -1;
+                }
+                else {
+                    selectedAsset = assets[i];
+                }
+            }
+            else if (ImGui::IsItemClicked()) {
+                selectedAsset = assets[i];
+            }
+        }
+
         ImGui::End();
     }
 
@@ -28,18 +100,17 @@ namespace Brisk
     {
         if (asset.isFolder)
         {
-            if (ImGui::TreeNode(asset.name.c_str())) // Folder node
+            if (ImGui::TreeNode(asset.name.c_str()))
             {
                 for (const auto& child : asset.children)
                 {
-                    ShowAssetFolder(child); // Recursively show child assets/folders
+                    ShowAssetFolder(child);
                 }
-                ImGui::TreePop(); // Close the folder node
+                ImGui::TreePop();
             }
         }
         else
         {
-            // Show individual asset
             ImGui::Text(asset.name.c_str());
         }
     }

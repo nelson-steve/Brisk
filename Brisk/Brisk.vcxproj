@@ -112,6 +112,7 @@
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IMGUI_IMPL_VULKAN_USE_VOLK=1</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)vendors\include\GLFW;$(ProjectDir)vendors\json;$(ProjectDir)src;$(ProjectDir)vendors\tiny_gltf;$(ProjectDir)vendors\ImGui;$(ProjectDir)vendors\stb_image;$(ProjectDir)vendors\spdlog\include;C:\VulkanSDK\1.3.290.0\Include</AdditionalIncludeDirectories>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
@@ -134,7 +135,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IMGUI_IMPL_VULKAN_USE_VOLK=1</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
       <AdditionalIncludeDirectories>$(ProjectDir)vendors\include\GLFW;$(ProjectDir)vendors\json;$(ProjectDir)src;$(ProjectDir)vendors\tiny_gltf;$(ProjectDir)vendors\ImGui;$(ProjectDir)vendors\stb_image;$(ProjectDir)vendors\spdlog\include;C:\VulkanSDK\1.3.280.0\Include</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp14</LanguageStandard>
+      <LanguageStandard>stdcpp17</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>

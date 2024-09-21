@@ -20,7 +20,5 @@ namespace Brisk {
         virtual void OnDestroy() override;
     private:
         void ShowAssetFolder(const Asset& asset);
-    private:
-        std::vector<Asset> m_Assets;
     };
 }

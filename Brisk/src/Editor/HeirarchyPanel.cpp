@@ -3,10 +3,6 @@
 #include <functional>
 
 namespace Brisk {
-    static int selectedElement = -1;
-    static int rightClickedElement = -1;
-
-
     void HeirarchyPanel::OnCreate() {
     }
 
@@ -17,20 +13,13 @@ namespace Brisk {
         ImVec2 windowPos = ImGui::GetWindowPos();
         ImVec2 windowSize = ImGui::GetWindowSize();
 
-
-        //// Example items in the hierarchy
-        //for (int i = 0; i < Engine::m_Scene->Elements.size(); i++) {
-        //    if (ImGui::Selectable(Engine::m_Scene->Elements[i].name.c_str())) {
-        //    }
-        //}
-
         bool isElementSelected = false;
         // Function to recursively display elements and their children
         std::function<void(int)> DisplayElementWithChildren = [&](int elementIndex) {
             auto& element = Engine::m_Scene->Elements[elementIndex];
 
             ImGuiTreeNodeFlags flags = 0;
-            if (elementIndex == selectedElement)
+            if (elementIndex == Engine::m_Scene->SelectedElement)
                 flags |= ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_OpenOnArrow;
             else
                 flags |= ImGuiTreeNodeFlags_OpenOnArrow ;
@@ -51,22 +40,16 @@ namespace Brisk {
                 // If right-clicked, set as the target for context menu
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
                     isElementSelected = true;
-                    selectedElement = elementIndex;
+                    Engine::m_Scene->SelectedElement = elementIndex;
                 }
                 else if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
                     isElementSelected = true;
-                    selectedElement = elementIndex;
+                    Engine::m_Scene->SelectedElement = elementIndex;
                 }
                 else {
                     isElementSelected = false;
 
                 }
-
-                //// If right-clicked, set as the target for context menu
-                //if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-                //    rightClickedElement = elementIndex;
-                //    ImGui::OpenPopup("ContextMenu");
-                //}
 
                 // Recursively display children
                 for (int childIndex : element.children) {
@@ -112,11 +95,10 @@ namespace Brisk {
         // Render the context menu
         if (ImGui::BeginPopup("ElementContextMenu")) {
             if (ImGui::MenuItem("Create Element")) {
-                Engine::m_Scene->AddChildElement(selectedElement);
+                Engine::m_Scene->AddChildElement(Engine::m_Scene->SelectedElement);
             }
             ImGui::EndPopup();
         }
-
 
         ImGui::End();
     }

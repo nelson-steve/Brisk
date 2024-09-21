@@ -10,7 +10,7 @@ namespace Brisk
     }
 
     void GamePanel::OnUpdate(){
-        ImGui::Begin("Scene");
+        ImGui::Begin("Game");
         //ImVec2 viewportSize = ImGui::GetContentRegionAvail();
         //m_ViewportSize = glm::vec2(viewportSize.x, viewportSize.y);
         //ImGui::Image((ImTextureID)m_SceneDescriptorSet, ImVec2{ viewportSize.x, viewportSize.y });

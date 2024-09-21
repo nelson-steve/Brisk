@@ -113,7 +113,7 @@ namespace Brisk {
         colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.18f, 0.14f, 0.22f, 1.0f }; // Active state with muted lavender
 
         //colors[ImGuiCol_MenuBarBg] = ImVec4{ 1.0f, 0.14f, 0.0f, 1.0f }; // Active state with muted lavender
-        colors[ImGuiCol_PopupBg] = ImVec4{ 1.0f, 0.14f, 0.0f, 1.0f }; // Active state with muted lavender
+        colors[ImGuiCol_PopupBg] = ImVec4{ 0.15f, 0.12f, 0.2f, 1.0f }; // Active state with muted lavender
 
         // Tabs
         colors[ImGuiCol_Tab] = ImVec4{ 0.15f, 0.12f, 0.2f, 1.0f };           // Muted lavender tabs
@@ -126,6 +126,8 @@ namespace Brisk {
         colors[ImGuiCol_TitleBg] = ImVec4{ 0.1f, 0.1f, 0.13f, 1.0f };         // Darker title background
         colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.18f, 0.14f, 0.22f, 1.0f }; // Muted lavender when active
         colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.08f, 0.08f, 0.1f, 1.0f }; // Very dark for collapsed title
+
+        colors[ImGuiCol_MenuBarBg] = ImVec4{ 0.08f, 0.08f, 0.1f, 1.0f }; // Very dark for collapsed title
     }
 
     void PinkTheme() {
@@ -251,9 +253,11 @@ namespace Brisk {
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         //ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-        LavenderTheme();
+        io.FontDefault = io.Fonts->AddFontFromFileTTF("../Data/Fonts/Nunito/Nunito-Medium.ttf", 18.0f);
+
+        //LavenderTheme();
         //PinkTheme();
-        //PinkTheme2();
+        PinkTheme2();
         
         ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Engine::s_MainWindow->GetWindowHandle(), true);
 

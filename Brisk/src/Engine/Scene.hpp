@@ -8,7 +8,7 @@
 namespace Brisk {
     class BriskScene {
     public:
-        int32_t SelectedElement = 0;
+        int32_t SelectedElement = -1;
         std::vector<Element> Elements;
         int32_t p_ID = -1;
         int32_t CreateElement(const std::string& name, bool isRoot = true) {

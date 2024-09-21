@@ -1,9 +1,13 @@
 #pragma once
 
-#include "EditorPanel.hpp"
+#include "IEditorPanel.hpp"
 
-namespace Brisk {
-    class ViewportPanel : public IEditorPanel {
+#include <string>
+#include <vector>
+
+namespace Brisk 
+{
+    class ConsolePanel : public IEditorPanel {
     public:
         virtual void OnCreate() override;
         virtual void OnUpdate() override;

@@ -1,15 +1,18 @@
 #include "Editor.hpp"
 #include "Engine/Engine.hpp"
+//#include "Graphics/Vulkan/TextureVulkan.hpp"
 #include "Graphics/Vulkan/VulkanRenderer/RendererVulkan.hpp"
 
+#include "AssetsPanel.hpp"
+#include "ConsolePanel.hpp"
+#include "GamePanel.hpp"
+#include "HeirarchyPanel.hpp"
+#include "InspectorPanel.hpp"
+#include "ScenePanel.hpp"
+
+
 namespace Brisk {
-    // Sample asset data
-    struct Asset
-    {
-        std::string name;
-        bool isFolder;
-        std::vector<Asset> children; // Only used if isFolder is true
-    };
+    // Sample asset dat
 
     struct PerformanceStat
     {
@@ -17,17 +20,6 @@ namespace Brisk {
         float value;
         std::string unit;
     };
-
-    struct BTransform {
-        glm::vec3 position;
-        glm::vec3 rotation;  // Assuming rotation in degrees for simplicity
-        glm::vec3 scale;
-
-        BTransform() : position(0.0f), rotation(0.0f), scale(1.0f) {}
-    };
-
-    TextureVulkan* m_Texture;
-    VkDescriptorSet textureSet;
 
     void SetLightGreenishTheme() {
         auto& colors = ImGui::GetStyle().Colors;
@@ -120,6 +112,9 @@ namespace Brisk {
         colors[ImGuiCol_FrameBgHovered] = ImVec4{ 0.2f, 0.15f, 0.25f, 1.0f }; // Subtle pinkish lavender on hover
         colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.18f, 0.14f, 0.22f, 1.0f }; // Active state with muted lavender
 
+        //colors[ImGuiCol_MenuBarBg] = ImVec4{ 1.0f, 0.14f, 0.0f, 1.0f }; // Active state with muted lavender
+        colors[ImGuiCol_PopupBg] = ImVec4{ 1.0f, 0.14f, 0.0f, 1.0f }; // Active state with muted lavender
+
         // Tabs
         colors[ImGuiCol_Tab] = ImVec4{ 0.15f, 0.12f, 0.2f, 1.0f };           // Muted lavender tabs
         colors[ImGuiCol_TabHovered] = ImVec4{ 0.2f, 0.15f, 0.25f, 1.0f };    // Subtle pinkish lavender on hover
@@ -131,8 +126,6 @@ namespace Brisk {
         colors[ImGuiCol_TitleBg] = ImVec4{ 0.1f, 0.1f, 0.13f, 1.0f };         // Darker title background
         colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.18f, 0.14f, 0.22f, 1.0f }; // Muted lavender when active
         colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.08f, 0.08f, 0.1f, 1.0f }; // Very dark for collapsed title
-
-
     }
 
 	void Editor::Create() {
@@ -153,49 +146,45 @@ namespace Brisk {
         ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Engine::s_MainWindow->GetWindowHandle(), true);
 
         ImGui_ImplVulkan_InitInfo info{};
-        static_cast<RendererVulkan*>(Engine::s_Renderer)->SetupImGuiData(info);
+        info.Instance = GpuContextVulkan::s_Instance;
+        info.PhysicalDevice = GpuContextVulkan::s_GPUDevice->GetPhysicalDevice();
+        info.Device = GpuContextVulkan::s_GPUDevice->GetDevice();
+        info.QueueFamily = 0;
+        info.Queue = GpuContextVulkan::s_GPUDevice->GetGraphicsQueue().Handle;
+        info.DescriptorPool = static_cast<RendererVulkan*>(Engine::s_Renderer)->GetUIDescriptorPool();
+        info.RenderPass = static_cast<RendererVulkan*>(Engine::s_Renderer)->GetUIRenderpass();
+        info.ImageCount = 2;
+        info.MinImageCount = 2;
+        info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+
         ImGui_ImplVulkan_Init(&info);
 
-        m_Texture = new TextureVulkan();
-        m_Texture->Create("../Data/Images/texture.jpg");
+        ScenePanel* scenePanel = new ScenePanel();
+        m_Panels.insert({ "Scene" , scenePanel });
 
-        textureSet = ImGui_ImplVulkan_AddTexture(m_Texture->GetSampler(), m_Texture->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        AssetsPanel* assetsPanel = new AssetsPanel();
+        m_Panels.insert({ "Assets" , assetsPanel });
+
+        ConsolePanel* consolePanel = new ConsolePanel();
+        m_Panels.insert({ "Console" , consolePanel });
+
+        GamePanel* gamePanel = new GamePanel();
+        m_Panels.insert({ "Game" , gamePanel });
+
+        HeirarchyPanel* heirarchyPanel = new HeirarchyPanel();
+        m_Panels.insert({ "Heirarchy" , heirarchyPanel });
+
+        //m_Texture = new TextureVulkan();
+        //m_Texture->Create("../Data/Images/texture.jpg");
+
+        for (const auto& panel : m_Panels) {
+            panel.second->OnCreate();
+        }
+
+        static_cast<RendererVulkan*>(Engine::s_Renderer)->CreateOffscreenResources();
+
+        //textureSet = ImGui_ImplVulkan_AddTexture(m_Texture->GetSampler(), m_Texture->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}
-
-    void ShowAssetFolder(const Asset& asset)
-    {
-        if (asset.isFolder)
-        {
-            if (ImGui::TreeNode(asset.name.c_str())) // Folder node
-            {
-                for (const auto& child : asset.children)
-                {
-                    ShowAssetFolder(child); // Recursively show child assets/folders
-                }
-                ImGui::TreePop(); // Close the folder node
-            }
-        }
-        else
-        {
-            // Show individual asset
-            ImGui::Text(asset.name.c_str());
-        }
-    }
-
-    void ShowAssetsWindow(const std::vector<Asset>& assets)
-    {
-        // Begin the assets window
-        ImGui::Begin("Assets");
-
-        // Iterate over the root-level assets (could be folders or files)
-        for (const auto& asset : assets)
-        {
-            ShowAssetFolder(asset);
-        }
-
-        // End the assets window
-        ImGui::End();
-    }
 
     // Function to show the performance stats window
     void ShowPerformanceStatsWindow(float deltaTime, const std::vector<PerformanceStat>& stats)
@@ -219,97 +208,62 @@ namespace Brisk {
         ImGui::End();
     }
 
-    void RenderTransformUI(BTransform& transform) {
-        //ImGui::Begin("Transform");
+    void MenuBar() {
+        if (ImGui::BeginMainMenuBar())
+        {
+            if (ImGui::BeginMenu("File"))
+            {
+                if (ImGui::MenuItem("New", "Ctrl+N")) { /* Handle New action */ }
+                if (ImGui::MenuItem("Open", "Ctrl+O")) { /* Handle Open action */ }
+                if (ImGui::MenuItem("Save", "Ctrl+S")) { /* Handle Save action */ }
+                if (ImGui::MenuItem("Exit", "Alt+F4")) { /* Handle Exit action */ }
+                ImGui::EndMenu();
+            }
 
-        // Position
-        ImGui::Text("Position");
-        ImGui::DragFloat3("##Position", &transform.position[0], 0.1f);
+            if (ImGui::BeginMenu("Edit"))
+            {
+                if (ImGui::MenuItem("Undo", "Ctrl+Z")) { /* Handle Undo action */ }
+                if (ImGui::MenuItem("Redo", "Ctrl+Y", false, false)) { /* Handle Redo action (disabled in this case) */ }
+                if (ImGui::MenuItem("Cut", "Ctrl+X")) { /* Handle Cut action */ }
+                if (ImGui::MenuItem("Copy", "Ctrl+C")) { /* Handle Copy action */ }
+                if (ImGui::MenuItem("Paste", "Ctrl+V")) { /* Handle Paste action */ }
+                ImGui::EndMenu();
+            }
 
-        // Rotation
-        ImGui::Text("Rotation");
-        ImGui::DragFloat3("##Rotation", &transform.rotation[0], 0.1f);
+            if (ImGui::BeginMenu("Tools"))
+            {
+                if (ImGui::MenuItem("Options", "")) { /* Handle Options action */ }
+                ImGui::EndMenu();
+            }
 
-        // Scale
-        ImGui::Text("Scale");
-        ImGui::DragFloat3("##Scale", &transform.scale[0], 0.1f);
+            if (ImGui::BeginMenu("Options"))
+            {
+                if (ImGui::MenuItem("Settings", "")) { /* Handle Settings action */ }
+                ImGui::EndMenu();
+            }
 
-        //ImGui::End();
+            ImGui::EndMainMenuBar();
+        }
     }
 
-    void Editor::Update(VkDescriptorSet set) {
-        // Sample asset hierarchy (could be loaded from file)
-        std::vector<Asset> assets = {
-            {"Folder 1", true, {{"Asset 1", false}, {"Asset 2", false}}},
-            {"Folder 2", true, {{"Asset 3", false}, {"Folder 2.1", true, {{"Asset 4", false}}}}},
-            {"Asset 5", false}
-        };
-
+    void Editor::Update() {
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
         ImGui::NewFrame();
 
+        MenuBar();
+
         ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
 
-        ImGui::Begin("Scene");
-        ImVec2 viewportSize = ImGui::GetContentRegionAvail();
-        m_ViewportSize = glm::vec2(viewportSize.x, viewportSize.y);
-        ImGui::Image((ImTextureID)set, ImVec2{ viewportSize.x, viewportSize.y });
-        ImGui::End();
-
-        // Display the Assets window
-        ShowAssetsWindow(assets);
-
-        ImGui::Begin("Test Image");
-        ImGui::Image((ImTextureID)textureSet, ImVec2{ (float)m_Texture->GetWidth(), (float)m_Texture->GetHeight() });
-        ImGui::End();
-
-        {
-            ImGui::Begin("Hierarchy");
-
-            ImVec2 mousePos = ImGui::GetMousePos();
-            ImVec2 windowPos = ImGui::GetWindowPos();
-            ImVec2 windowSize = ImGui::GetWindowSize();
-
-
-            // Example items in the hierarchy
-            for (int i = 0; i < Engine::m_Scene->Elements.size(); i++) {
-                if (ImGui::Selectable(Engine::m_Scene->Elements[i].name.c_str())) {
-                }
-            }
-
-            // Check if right-click is inside the window and not on any item
-            bool isHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup);
-            bool isRightClick = ImGui::IsMouseReleased(ImGuiMouseButton_Right);
-
-            if (isHovered && isRightClick) {
-                // Open context menu only if mouse is inside the window
-                ImGui::OpenPopup("ContextMenu");
-            }
-
-            // Render the context menu
-            if (ImGui::BeginPopup("ContextMenu")) {
-                if (ImGui::MenuItem("Create Empty")) {
-                    Engine::AddEmptyElement();
-                }
-                if (ImGui::MenuItem("Create Element")) {
-                    Engine::AddEmptyElement();
-                }
-                ImGui::EndPopup();
-            }
-
-            ImGui::End();
+        for (const auto& panel : m_Panels) {
+            panel.second->OnUpdate();
         }
 
-        ImGui::Begin("Game");
-        ImGui::End();
+        //ImGui::Begin("Test Image");
+        //ImGui::Image((ImTextureID)textureSet, ImVec2{ (float)m_Texture->GetWidth(), (float)m_Texture->GetHeight() });
+        //ImGui::End();
 
         ImGui::Begin("Console");
-        ImGui::End();
-
-        BTransform t;
-        ImGui::Begin("Inspector");
-        RenderTransformUI(t);
         ImGui::End();
 
         // Sample performance stats (add more as needed)
@@ -327,11 +281,14 @@ namespace Brisk {
         ImGui::Render();
     }
 
+    VkDescriptorSet Editor::AddTexToUI(BriskTexture* texture) {
+        return ImGui_ImplVulkan_AddTexture(
+            static_cast<TextureVulkan*>(texture)->GetSampler(), static_cast<TextureVulkan*>(texture)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    }
+
     void Editor::Release() {
-        for (int i = 0; i < s_Panels.size(); i++)
-        {
-            s_Panels[i]->OnDestroy();
-            delete s_Panels[i];
+        for (const auto& panel : m_Panels) {
+            panel.second->OnDestroy();
         }
         ImGui_ImplVulkan_Shutdown();
         ImGui_ImplGlfw_Shutdown();

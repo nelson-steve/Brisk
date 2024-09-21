@@ -1,25 +1,36 @@
+#pragma once
+
 #include "BufferVulkan.hpp"
+#include "Graphics/BriskTexture.hpp"
 
 #include <stb_image.h>
 #include <Volk/volk.h>
 
 #include <string>
 
-namespace Brisk {
-	class TextureVulkan {
+namespace Brisk 
+{
+	class TextureVulkan : public BriskTexture {
 	public:
-		void Create(const std::string& path);
 		VkImageView GetView() { return m_ImageView; }
+		VkImage GetImage() { return m_Image; }
 		VkSampler GetSampler() { return m_Sampler; }
 		VkImage Get() const { return m_Image; }
-		uint32_t GetWidth() const { return m_Width; }
-		uint32_t GetHeight() const { return m_Height; }
+		
+		virtual uint32_t GetWidth() const override { return m_Width; }
+		virtual uint32_t GetHeight() const override { return m_Height; }
+		virtual void Resize() override {}
+
+		void Create();
+		//void Create(int width, int height);
+		void Create(int width, int height, Format format, Type type);
+		void Create(const std::string& path);
+	private:
+
 	private:
 		VkImage m_Image;
 		VkImageView m_ImageView;
 		VkDeviceMemory m_Memory;
 		VkSampler m_Sampler;
-		uint32_t m_Width, m_Height;
-		BufferVulkan* m_StagingBuffer;
 	};
 }

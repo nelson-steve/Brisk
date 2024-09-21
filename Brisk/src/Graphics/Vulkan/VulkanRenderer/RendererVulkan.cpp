@@ -144,78 +144,84 @@ namespace Brisk {
 
     }
 
+    void RendererVulkan::AddRenderTarget(RenderTarget renderTarget) {
+        m_RenderTarget = renderTarget;
+    }
+
     void RendererVulkan::CreateOffscreenResources() {
         // Creating image stuff
         {
-            VkImageCreateInfo imageCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
-            imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-            imageCreateInfo.format = VK_FORMAT_B8G8R8A8_UNORM; // or another format you prefer
-            imageCreateInfo.extent.width = m_Swapchain->GetExtent().width;
-            imageCreateInfo.extent.height = m_Swapchain->GetExtent().height;
-            imageCreateInfo.extent.depth = 1;
-            imageCreateInfo.mipLevels = 1;
-            imageCreateInfo.arrayLayers = 1;
-            imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-            imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-            imageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-            imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-            imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            //VkImageCreateInfo imageCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+            //imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+            //imageCreateInfo.format = VK_FORMAT_B8G8R8A8_UNORM; // or another format you prefer
+            //imageCreateInfo.extent.width = m_Swapchain->GetExtent().width;
+            //imageCreateInfo.extent.height = m_Swapchain->GetExtent().height;
+            //imageCreateInfo.extent.depth = 1;
+            //imageCreateInfo.mipLevels = 1;
+            //imageCreateInfo.arrayLayers = 1;
+            //imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+            //imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+            //imageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+            //imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            //imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
-            if (vkCreateImage(m_GpuContext->s_GPUDevice->GetDevice(), &imageCreateInfo, nullptr, &m_Viewport.ColorImage) != VK_SUCCESS) {
-                throw std::runtime_error("failed to create descriptor pool!");
-            }
+            //if (vkCreateImage(m_GpuContext->s_GPUDevice->GetDevice(), &imageCreateInfo, nullptr, &m_Viewport.ColorImage) != VK_SUCCESS) {
+            //    throw std::runtime_error("failed to create descriptor pool!");
+            //}
 
-            VkMemoryRequirements memRequirements;
-            vkGetImageMemoryRequirements(m_GpuContext->s_GPUDevice->GetDevice(), m_Viewport.ColorImage, &memRequirements);
+            //VkMemoryRequirements memRequirements;
+            //vkGetImageMemoryRequirements(m_GpuContext->s_GPUDevice->GetDevice(), m_Viewport.ColorImage, &memRequirements);
 
-            VkMemoryAllocateInfo allocInfo = {};
-            allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-            allocInfo.allocationSize = memRequirements.size;
-            allocInfo.memoryTypeIndex = VulkanUtilities::FindMemoryType(m_GpuContext->s_GPUDevice->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+            //VkMemoryAllocateInfo allocInfo = {};
+            //allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+            //allocInfo.allocationSize = memRequirements.size;
+            //allocInfo.memoryTypeIndex = VulkanUtilities::FindMemoryType(m_GpuContext->s_GPUDevice->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-            if (vkAllocateMemory(m_GpuContext->s_GPUDevice->GetDevice(), &allocInfo, nullptr, &m_Viewport.ColorMemory) != VK_SUCCESS) {
-                throw std::runtime_error("failed to create descriptor pool!");
-            }
-            if (vkBindImageMemory(m_GpuContext->s_GPUDevice->GetDevice(), m_Viewport.ColorImage, m_Viewport.ColorMemory, 0) != VK_SUCCESS) {
-                throw std::runtime_error("failed to create descriptor pool!");
-            }
+            //if (vkAllocateMemory(m_GpuContext->s_GPUDevice->GetDevice(), &allocInfo, nullptr, &m_Viewport.ColorMemory) != VK_SUCCESS) {
+            //    throw std::runtime_error("failed to create descriptor pool!");
+            //}
+            //if (vkBindImageMemory(m_GpuContext->s_GPUDevice->GetDevice(), m_Viewport.ColorImage, m_Viewport.ColorMemory, 0) != VK_SUCCESS) {
+            //    throw std::runtime_error("failed to create descriptor pool!");
+            //}
 
-            VkImageViewCreateInfo viewInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-            viewInfo.image = m_Viewport.ColorImage;
-            viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            viewInfo.format = VK_FORMAT_B8G8R8A8_UNORM;
-            viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            viewInfo.subresourceRange.baseMipLevel = 0;
-            viewInfo.subresourceRange.levelCount = 1;
-            viewInfo.subresourceRange.baseArrayLayer = 0;
-            viewInfo.subresourceRange.layerCount = 1;
+            //VkImageViewCreateInfo viewInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+            //viewInfo.image = m_Viewport.ColorImage;
+            //viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+            //viewInfo.format = VK_FORMAT_B8G8R8A8_UNORM;
+            //viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            //viewInfo.subresourceRange.baseMipLevel = 0;
+            //viewInfo.subresourceRange.levelCount = 1;
+            //viewInfo.subresourceRange.baseArrayLayer = 0;
+            //viewInfo.subresourceRange.layerCount = 1;
 
-            if (vkCreateImageView(m_GpuContext->s_GPUDevice->GetDevice(), &viewInfo, nullptr, &m_Viewport.pColorImageView) != VK_SUCCESS) {
-                throw std::runtime_error("failed to create descriptor pool!");
-            }
+            //if (vkCreateImageView(m_GpuContext->s_GPUDevice->GetDevice(), &viewInfo, nullptr, &m_Viewport.pColorImageView) != VK_SUCCESS) {
+            //    throw std::runtime_error("failed to create descriptor pool!");
+            //}
 
-            VkSamplerCreateInfo samplerInfo{};
-            samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-            samplerInfo.magFilter = VK_FILTER_LINEAR;
-            samplerInfo.minFilter = VK_FILTER_LINEAR;
-            samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            samplerInfo.anisotropyEnable = VK_FALSE;
-            samplerInfo.maxAnisotropy = 1.0f;
-            samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-            samplerInfo.unnormalizedCoordinates = VK_FALSE;
-            samplerInfo.compareEnable = VK_FALSE;
-            samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-            samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-            samplerInfo.mipLodBias = 0.0f;
-            samplerInfo.minLod = 0.0f;
-            samplerInfo.maxLod = 0.0f;
+            //VkSamplerCreateInfo samplerInfo{};
+            //samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+            //samplerInfo.magFilter = VK_FILTER_LINEAR;
+            //samplerInfo.minFilter = VK_FILTER_LINEAR;
+            //samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            //samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            //samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+            //samplerInfo.anisotropyEnable = VK_FALSE;
+            //samplerInfo.maxAnisotropy = 1.0f;
+            //samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
+            //samplerInfo.unnormalizedCoordinates = VK_FALSE;
+            //samplerInfo.compareEnable = VK_FALSE;
+            //samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
+            //samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+            //samplerInfo.mipLodBias = 0.0f;
+            //samplerInfo.minLod = 0.0f;
+            //samplerInfo.maxLod = 0.0f;
 
-            if (vkCreateSampler(m_GpuContext->s_GPUDevice->GetDevice(), &samplerInfo, nullptr, &m_Viewport.pSampler) != VK_SUCCESS)
-            {
-                throw std::runtime_error("failed to create texture sampler!");
-            }
+            //if (vkCreateSampler(m_GpuContext->s_GPUDevice->GetDevice(), &samplerInfo, nullptr, &m_Viewport.pSampler) != VK_SUCCESS)
+            //{
+            //    throw std::runtime_error("failed to create texture sampler!");
+            //}
+
+            m_Viewport.pSceneTexture = static_cast<TextureVulkan*>(m_RenderTarget.pTexture);
         }
 
         // Creating renderpass
@@ -286,7 +292,7 @@ namespace Brisk {
             m_Viewport.pRenderpass = new RenderPassVulkan();
             m_Viewport.pRenderpass->Create(colorAttachments, { subpass }, { dependencies[0], dependencies[1] });
             std::vector<VkImageView> attachments = {
-                m_Viewport.pColorImageView,
+                m_Viewport.pSceneTexture->GetView(),
                 m_Swapchain->GetDepthImageView(),
             };
             m_Viewport.pRenderpass->CreateNAddFramebuffer(attachments, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
@@ -488,7 +494,7 @@ namespace Brisk {
         CreateDescriptorSet();
         CreateGraphicsPipeline();
 
-        CreateOffscreenResources();
+        //CreateOffscreenResources();
     }
 
     void RendererVulkan::UpdateUniformBuffer(uint32_t currentImage) {
@@ -649,7 +655,12 @@ namespace Brisk {
 
     }
 
+    bool firstTime = true;
     void RendererVulkan::Render() {
+        if (firstTime) {
+            m_ImGuiDescriptorSet = ImGui_ImplVulkan_AddTexture(m_Viewport.pSceneTexture->GetSampler(), m_Viewport.pSceneTexture->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+            firstTime = false;
+        }
         vkWaitForFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
 
         VkResult result = m_Swapchain->AquireNextImage(UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_ImageIndex);
@@ -714,7 +725,7 @@ namespace Brisk {
             imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             imageMemoryBarrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
             imageMemoryBarrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            imageMemoryBarrier.image = m_Viewport.ColorImage;  // The VkImage you're transitioning
+            imageMemoryBarrier.image = m_Viewport.pSceneTexture->GetImage();  // The VkImage you're transitioning
 
             // Define which aspects of the image are affected (typically color)
             imageMemoryBarrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -767,9 +778,7 @@ namespace Brisk {
             vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
 
             m_RenderPass->BeginRenderPass(m_ImGuiCommandBuffer, m_ImageIndex);
-            ImGui_ImplVulkan_RemoveTexture(m_ImGuiDescriptorSet);
-            m_ImGuiDescriptorSet = ImGui_ImplVulkan_AddTexture(m_Viewport.pSampler, m_Viewport.pColorImageView, VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-            Engine::s_Editor->Update(m_ImGuiDescriptorSet);
+            Engine::s_Editor->Update();
             ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), m_ImGuiCommandBuffer->Get(),VK_NULL_HANDLE);
             m_RenderPass->EndRenderPass(m_ImGuiCommandBuffer);
         }
@@ -802,7 +811,7 @@ namespace Brisk {
             presentInfo.waitSemaphoreCount = 1;
             presentInfo.pWaitSemaphores = signalSemaphores;
 
-            VkSwapchainKHR swapChains[] = { static_cast<SwapchainVulkan*>(Engine::s_Swapchain)->GetSwapchain() };
+            VkSwapchainKHR swapChains[] = { m_Swapchain->GetSwapchain() };
             presentInfo.swapchainCount = 1;
             presentInfo.pSwapchains = swapChains;
 

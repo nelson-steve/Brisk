@@ -14,10 +14,13 @@ namespace Brisk {
 		virtual void Create() override;
 		virtual void Release() override;
 
+		virtual void AddRenderTarget(RenderTarget renderTarget) override;
 		virtual void SetupRenderingPipeline(Swapchain* swapchain) override;
 		void CreateTexture();
 		void CreateOffscreenResources();
 		void SetupImGuiData(ImGui_ImplVulkan_InitInfo& data);
+		VkDescriptorPool GetUIDescriptorPool() { return m_DescriptorPool; }
+		VkRenderPass GetUIRenderpass() { return m_RenderPass->GetRenderPass(); }
 
 		void InsertImageMemoryBarrier(VkCommandBuffer cmdbuffer,
 			VkImage image,
@@ -75,6 +78,8 @@ namespace Brisk {
 		BufferVulkan* m_UniformBuffer;
 		void* m_UniformBufferData;
 
+		RenderTarget m_RenderTarget;
+
 		CommandBufferVulkan* m_CommandBuffer;
 		CommandBufferVulkan* m_ImGuiCommandBuffer;
 
@@ -84,7 +89,6 @@ namespace Brisk {
 
 		VkCommandPool m_CommandPool;
 		VkFence m_InFlightFence;
-
 
 		std::vector<VkImageView> m_ViewportImageViews;
 		std::vector<VkImage> m_ViewportImages;
@@ -98,30 +102,18 @@ namespace Brisk {
 		VkDescriptorSet m_DescriptorSet;
 		std::vector<VkDescriptorSetLayout> m_DescriptorSetLayouts;
 
-		VkSemaphore m_UIFinshedSemaphore;
+		//VkSemaphore m_UIFinshedSemaphore;
 
-		//VkSampler m_ViewportSampler;
-		std::vector<VkDescriptorSet> m_ImGuiDescriptorSets;
-
-		//RenderPassVulkan* m_ImguiRenderPass;
+		//std::vector<VkDescriptorSet> m_ImGuiDescriptorSets;
 
 		struct Viewport {
-			VkImage ColorImage;
-			VkImageView pColorImageView;
-			VkDeviceMemory ColorMemory;
-			VkSampler pSampler;
+			TextureVulkan* pSceneTexture;
 
 			GraphicsPipelineVulkan* pPipeline;
 			RenderPassVulkan* pRenderpass;
 		} m_Viewport;
-		//struct Offscreen {
-		//	VkImage Image;
-		//	VkImageView ImageView;
-		//	VkDeviceMemory Memory;
-		//} m_Offscreen;
 
 		glm::vec2 m_ViewportSize;
-		TextureVulkan* m_Texture;
 
 		friend class RendererFactory;
 	};

@@ -11,7 +11,6 @@ namespace Brisk {
 		virtual void OnDestroy() override;
 	private:
 		BriskTexture* m_SceneTexture;
-		glm::vec2 m_ViewportSize;
 		VkDescriptorSet m_SceneDescriptorSet;
 	};
 }

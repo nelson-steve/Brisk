@@ -85,6 +85,7 @@ namespace Brisk
 			float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
 			currentTime = newTime;
 			s_Renderer->Render();
+			s_Camera->SetViewportSize(s_Swapchain->GetExtentWidth(), s_Swapchain->GetExtentHeight());
 			s_Camera->OnUpdate(frameTime, (GLFWwindow*)s_MainWindow->GetWindowHandle());
 			s_MainWindow->ProcessEvents();
 		}

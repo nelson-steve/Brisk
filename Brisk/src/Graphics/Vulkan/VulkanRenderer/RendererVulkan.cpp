@@ -149,80 +149,7 @@ namespace Brisk {
     }
 
     void RendererVulkan::CreateOffscreenResources() {
-        // Creating image stuff
-        {
-            //VkImageCreateInfo imageCreateInfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
-            //imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
-            //imageCreateInfo.format = VK_FORMAT_B8G8R8A8_UNORM; // or another format you prefer
-            //imageCreateInfo.extent.width = m_Swapchain->GetExtent().width;
-            //imageCreateInfo.extent.height = m_Swapchain->GetExtent().height;
-            //imageCreateInfo.extent.depth = 1;
-            //imageCreateInfo.mipLevels = 1;
-            //imageCreateInfo.arrayLayers = 1;
-            //imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
-            //imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-            //imageCreateInfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-            //imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-            //imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-
-            //if (vkCreateImage(m_GpuContext->s_GPUDevice->GetDevice(), &imageCreateInfo, nullptr, &m_Viewport.ColorImage) != VK_SUCCESS) {
-            //    throw std::runtime_error("failed to create descriptor pool!");
-            //}
-
-            //VkMemoryRequirements memRequirements;
-            //vkGetImageMemoryRequirements(m_GpuContext->s_GPUDevice->GetDevice(), m_Viewport.ColorImage, &memRequirements);
-
-            //VkMemoryAllocateInfo allocInfo = {};
-            //allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-            //allocInfo.allocationSize = memRequirements.size;
-            //allocInfo.memoryTypeIndex = VulkanUtilities::FindMemoryType(m_GpuContext->s_GPUDevice->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-
-            //if (vkAllocateMemory(m_GpuContext->s_GPUDevice->GetDevice(), &allocInfo, nullptr, &m_Viewport.ColorMemory) != VK_SUCCESS) {
-            //    throw std::runtime_error("failed to create descriptor pool!");
-            //}
-            //if (vkBindImageMemory(m_GpuContext->s_GPUDevice->GetDevice(), m_Viewport.ColorImage, m_Viewport.ColorMemory, 0) != VK_SUCCESS) {
-            //    throw std::runtime_error("failed to create descriptor pool!");
-            //}
-
-            //VkImageViewCreateInfo viewInfo{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-            //viewInfo.image = m_Viewport.ColorImage;
-            //viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
-            //viewInfo.format = VK_FORMAT_B8G8R8A8_UNORM;
-            //viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-            //viewInfo.subresourceRange.baseMipLevel = 0;
-            //viewInfo.subresourceRange.levelCount = 1;
-            //viewInfo.subresourceRange.baseArrayLayer = 0;
-            //viewInfo.subresourceRange.layerCount = 1;
-
-            //if (vkCreateImageView(m_GpuContext->s_GPUDevice->GetDevice(), &viewInfo, nullptr, &m_Viewport.pColorImageView) != VK_SUCCESS) {
-            //    throw std::runtime_error("failed to create descriptor pool!");
-            //}
-
-            //VkSamplerCreateInfo samplerInfo{};
-            //samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-            //samplerInfo.magFilter = VK_FILTER_LINEAR;
-            //samplerInfo.minFilter = VK_FILTER_LINEAR;
-            //samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            //samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            //samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            //samplerInfo.anisotropyEnable = VK_FALSE;
-            //samplerInfo.maxAnisotropy = 1.0f;
-            //samplerInfo.borderColor = VK_BORDER_COLOR_INT_OPAQUE_BLACK;
-            //samplerInfo.unnormalizedCoordinates = VK_FALSE;
-            //samplerInfo.compareEnable = VK_FALSE;
-            //samplerInfo.compareOp = VK_COMPARE_OP_ALWAYS;
-            //samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-            //samplerInfo.mipLodBias = 0.0f;
-            //samplerInfo.minLod = 0.0f;
-            //samplerInfo.maxLod = 0.0f;
-
-            //if (vkCreateSampler(m_GpuContext->s_GPUDevice->GetDevice(), &samplerInfo, nullptr, &m_Viewport.pSampler) != VK_SUCCESS)
-            //{
-            //    throw std::runtime_error("failed to create texture sampler!");
-            //}
-
-            m_Viewport.pSceneTexture = static_cast<TextureVulkan*>(m_RenderTarget.pTexture);
-        }
+        m_Viewport.pSceneTexture = static_cast<TextureVulkan*>(m_RenderTarget.pTexture);
 
         // Creating renderpass
         {
@@ -278,14 +205,6 @@ namespace Brisk {
             dependencies[1].srcAccessMask = 0;
             dependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
             dependencies[1].dependencyFlags = 0;
-
-            //VkSubpassDependency dependency{};
-            //dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-            //dependency.dstSubpass = 0;
-            //dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-            //dependency.srcAccessMask = 0;
-            //dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-            //dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
             std::vector<VkAttachmentDescription> colorAttachments = { colorAttachment, depthAttatchment };
 
@@ -416,25 +335,6 @@ namespace Brisk {
         subpass.colorAttachmentCount = 1;
         subpass.pColorAttachments = &colorAttachmentRef;
         subpass.pDepthStencilAttachment = &depthAttachmentRef;
-
-        // Subpass dependencies for layout transitions
-        //std::array<VkSubpassDependency, 2> dependencies;
-
-        //dependencies[0].srcSubpass = VK_SUBPASS_EXTERNAL;
-        //dependencies[0].dstSubpass = 0;
-        //dependencies[0].srcStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-        //dependencies[0].dstStageMask = VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT | VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-        //dependencies[0].srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-        //dependencies[0].dstAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
-        //dependencies[0].dependencyFlags = 0;
-
-        //dependencies[1].srcSubpass = VK_SUBPASS_EXTERNAL;
-        //dependencies[1].dstSubpass = 0;
-        //dependencies[1].srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        //dependencies[1].dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        //dependencies[1].srcAccessMask = 0;
-        //dependencies[1].dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
-        //dependencies[1].dependencyFlags = 0;
 
         VkSubpassDependency dependency{};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -658,12 +558,7 @@ namespace Brisk {
 
     }
 
-    bool firstTime = true;
     void RendererVulkan::Render() {
-        if (firstTime) {
-            m_ImGuiDescriptorSet = ImGui_ImplVulkan_AddTexture(m_Viewport.pSceneTexture->GetSampler(), m_Viewport.pSceneTexture->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-            firstTime = false;
-        }
         vkWaitForFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
 
         VkResult result = m_Swapchain->AquireNextImage(UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_ImageIndex);

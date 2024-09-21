@@ -113,7 +113,7 @@ namespace Brisk {
 			RenderPassVulkan* pRenderpass;
 		} m_Viewport;
 
-		glm::vec2 m_ViewportSize;
+		//glm::vec2 m_ViewportSize;
 
 		friend class RendererFactory;
 	};

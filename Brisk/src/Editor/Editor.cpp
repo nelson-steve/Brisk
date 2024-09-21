@@ -255,9 +255,9 @@ namespace Brisk {
 
         io.FontDefault = io.Fonts->AddFontFromFileTTF("../Data/Fonts/Nunito/Nunito-Medium.ttf", 18.0f);
 
-        //LavenderTheme();
+        LavenderTheme();
         //PinkTheme();
-        PinkTheme2();
+        //PinkTheme2();
         
         ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Engine::s_MainWindow->GetWindowHandle(), true);
 

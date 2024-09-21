@@ -28,12 +28,12 @@ namespace Brisk {
         }
 
         template<typename T>
-        T* GetComponent() {
+        T* GetModule() {
             auto it = Modules.find(typeid(T).name());
-            return (it != Modules.end()) ? static_cast<T*>(it->second.get()) : nullptr;
+            return (it != Modules.end()) ? static_cast<T*>(it->second) : nullptr;
         }
 
-        void UpdateComponents(float deltaTime) {
+        void UpdateModule(float deltaTime) {
             for (auto& pair : Modules) {
                 //if (auto module = dynamic_cast<IUpdatable*>(pair.second.get())) { // not efficient
                 //    component->Update(deltaTime);

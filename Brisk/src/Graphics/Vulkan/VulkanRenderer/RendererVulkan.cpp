@@ -511,6 +511,9 @@ namespace Brisk {
         //ubo.Projection[1][1] *= -1;
 
         ubo.Model = glm::mat4(1);
+        if (Engine::m_Scene->SelectedElement != -1)
+            ubo.Model = Engine::m_Scene->Elements[Engine::m_Scene->SelectedElement].GetModule<Transform>()->GetMat();
+
         ubo.View = Engine::s_Camera->GetViewMatrix();
         ubo.Projection = Engine::s_Camera->GetProjection();
         ubo.Projection[1][1] *= -1;

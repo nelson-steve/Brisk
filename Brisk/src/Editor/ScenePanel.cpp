@@ -1,4 +1,5 @@
 #include "ScenePanel.hpp"
+#include "Graphics/Vulkan/VulkanRenderer/RendererVulkan.hpp"
 
 #include "Editor.hpp"
 
@@ -6,8 +7,8 @@ namespace Brisk {
     void ScenePanel::OnCreate() {
         m_SceneTexture = BriskTexture::Create(Engine::s_Swapchain->GetExtentWidth(), Engine::s_Swapchain->GetExtentHeight(), BriskTexture::BGR, BriskTexture::TEXTURE2D);
         m_SceneDescriptorSet = Editor::AddTexToUI(m_SceneTexture);
-        Engine::s_Renderer->AddRenderTarget({ m_SceneTexture });
 
+        Engine::s_Renderer->AddRenderTarget({ m_SceneTexture });
     }
 
     void ScenePanel::OnUpdate() {
@@ -34,7 +35,6 @@ namespace Brisk {
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-
         ImGui::Image((void*)(intptr_t)m_SceneDescriptorSet, imageSize);
 
         ImGui::PopStyleColor(2);

@@ -27,6 +27,8 @@ namespace Brisk {
 		Swapchain& operator=(const Swapchain&) = delete;
 		Swapchain& operator=(const Swapchain&&) = delete;
 
+		uint32_t GetImageCount() const { return m_ImageCount; }
+
 		virtual uint32_t GetExtentWidth() const = 0;
 		virtual uint32_t GetExtentHeight() const = 0;
 	protected:

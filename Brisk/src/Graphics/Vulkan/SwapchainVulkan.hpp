@@ -19,7 +19,6 @@ namespace Brisk {
 		VkSurfaceFormatKHR GetFormat() const { return m_surface_format; }
 		VkFormat GetDepthFormat() const { return m_DepthFormat; }
 		VkExtent2D GetExtent() const { return m_extent; }
-		uint32_t GetImageCount() const { return m_ImageCount; }
 		VkPresentModeKHR GetPresentMode() const { return m_present_mode; }
 	private:
 		SwapchainVulkan(WindowBase* window);

@@ -8,6 +8,8 @@
 
 #include "ImGuiBackends/imgui_impl_vulkan.h"
 
+#include <vector>
+
 namespace Brisk {
 	class RendererVulkan : public Renderer {
 	public:
@@ -56,6 +58,8 @@ namespace Brisk {
 		VkCommandBuffer GetCommandBuffer() const { return m_CommandBuffer->Get(); }
 		const VkPipeline GetPipeline() const { return m_Pipeline->GetPipeline(); }
 
+		uint32_t GetImageIndex() const { return m_ImageIndex; }
+
 		virtual void PreRender() override;
 		virtual void Render() override;
 		virtual void PostRender() override;
@@ -102,18 +106,12 @@ namespace Brisk {
 		VkDescriptorSet m_DescriptorSet;
 		std::vector<VkDescriptorSetLayout> m_DescriptorSetLayouts;
 
-		//VkSemaphore m_UIFinshedSemaphore;
-
-		//std::vector<VkDescriptorSet> m_ImGuiDescriptorSets;
-
 		struct Viewport {
 			TextureVulkan* pSceneTexture;
 
 			GraphicsPipelineVulkan* pPipeline;
 			RenderPassVulkan* pRenderpass;
 		} m_Viewport;
-
-		//glm::vec2 m_ViewportSize;
 
 		friend class RendererFactory;
 	};

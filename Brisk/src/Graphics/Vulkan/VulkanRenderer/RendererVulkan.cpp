@@ -1,4 +1,4 @@
-#include "RendererVulkan.hpp"
+ï»¿#include "RendererVulkan.hpp"
 #include "../SwapchainVulkan.hpp"
 #include "../RenderPassVulkan.hpp"
 #include "../VulkanUtilities.hpp"
@@ -377,8 +377,6 @@ namespace Brisk {
             { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10 },
             { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 },
         };
-        //poolSize.type = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-        //poolSize.descriptorCount = 1;
 
         VkDescriptorPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
@@ -393,8 +391,6 @@ namespace Brisk {
 
         CreateDescriptorSet();
         CreateGraphicsPipeline();
-
-        //CreateOffscreenResources();
     }
 
     void RendererVulkan::UpdateUniformBuffer(uint32_t currentImage) {
@@ -405,10 +401,6 @@ namespace Brisk {
 
         MVPBuffer ubo{};
         ubo.Model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        //ubo.View = glm::lookAt(glm::vec3(2.0f, 2.0f, 2.0f), glm::vec3(0.0f, 0.0f, 0.0f), glm::vec3(0.0f, 0.0f, 1.0f));
-        //float value = m_Swapchain->GetExtentWidth() / (float)m_Swapchain->GetExtentHeight();
-        //ubo.Projection = glm::perspective(glm::radians(60.0f), value, 0.1f, 1000.0f);
-        //ubo.Projection[1][1] *= -1;
 
         ubo.Model = glm::mat4(1);
         if (Engine::m_Scene->SelectedElement != -1)
@@ -502,6 +494,8 @@ namespace Brisk {
 
         m_Model = new Model();
         m_Model->Load("../Data/Models/Cube/Cube.gltf");
+        //m_Model->Load("../Data/Models/gun/gun.obj");
+        //m_Model->Load("../Data/Models/Fox/glTF/Fox.gltf");
 
     }
 
@@ -610,7 +604,7 @@ namespace Brisk {
         {
             const VkBuffer vertexBuffers[] = { m_Model->m_VertexBuffer->Get() };
             VkDeviceSize offsets[] = { 0 };
-            vkCmdBindVertexBuffers(m_CommandBuffer->Get(), 0, 1, vertexBuffers, offsets);             
+            vkCmdBindVertexBuffers(m_CommandBuffer->Get(), 0, 1, vertexBuffers, offsets);
             vkCmdBindDescriptorSets(m_CommandBuffer->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Viewport.pPipeline->GetLayout(), 0, 1, &m_DescriptorSet, 0, nullptr);
             vkCmdDraw(m_CommandBuffer->Get(), m_Model->m_VertexBuffer->GetSize(), 1, 0, 0);
         }
@@ -632,10 +626,10 @@ namespace Brisk {
             imageMemoryBarrier.subresourceRange.baseArrayLayer = 0;
             imageMemoryBarrier.subresourceRange.layerCount = 1;
 
-            // Source access mask – operations that must complete before the transition
+            // Source access mask ï¿½ operations that must complete before the transition
             imageMemoryBarrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
-            // Destination access mask – operations that will happen after the transition
+            // Destination access mask ï¿½ operations that will happen after the transition
             imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
 
             VkPipelineStageFlags srcStage = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
@@ -677,7 +671,7 @@ namespace Brisk {
 
             m_RenderPass->BeginRenderPass(m_ImGuiCommandBuffer, m_ImageIndex);
             Engine::s_Editor->Update();
-            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), m_ImGuiCommandBuffer->Get(),VK_NULL_HANDLE);
+            ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), m_ImGuiCommandBuffer->Get(), VK_NULL_HANDLE);
             m_RenderPass->EndRenderPass(m_ImGuiCommandBuffer);
         }
 

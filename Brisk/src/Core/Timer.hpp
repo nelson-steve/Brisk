@@ -1,7 +1,8 @@
 #pragma once
 #include <chrono>
 
-namespace Brisk {
+namespace Brisk 
+{
     namespace Core {
         class Timer
         {

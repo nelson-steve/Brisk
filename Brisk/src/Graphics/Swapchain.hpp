@@ -2,7 +2,8 @@
 
 #include "Engine/WindowBase.hpp"
 
-namespace Brisk {
+namespace Brisk 
+{
 	struct SwapchainExtent2D {
 		uint32_t Width;
 		uint32_t Height;

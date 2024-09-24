@@ -2,7 +2,8 @@
 
 #include "imgui.h"
 
-namespace Brisk {
+namespace Brisk 
+{
     class IEditorPanel {
     public:
         virtual void OnCreate() = 0;

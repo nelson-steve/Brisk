@@ -10,7 +10,8 @@
 #include "ScenePanel.hpp"
 
 
-namespace Brisk {
+namespace Brisk 
+{
     // Sample asset dat
 
     struct PerformanceStat

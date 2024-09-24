@@ -2,7 +2,8 @@
 
 #include "IEditorPanel.hpp"
 
-namespace Brisk {
+namespace Brisk 
+{
     class HeirarchyPanel : public IEditorPanel {
     public:
         virtual void OnCreate() override;

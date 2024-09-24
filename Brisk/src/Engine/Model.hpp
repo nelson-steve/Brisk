@@ -8,8 +8,8 @@
 
 #include <iostream>
 
-namespace Brisk {
-
+namespace Brisk 
+{
 	struct Vertex {
 		glm::vec3 pos;
 		glm::vec3 normal;

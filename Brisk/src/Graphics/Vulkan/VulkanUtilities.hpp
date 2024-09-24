@@ -6,7 +6,8 @@
 #include <vector>
 #include <string>
 
-namespace Brisk {
+namespace Brisk 
+{
 	class VulkanUtilities {
 	public:
 		static std::vector<const char*> GetRequiredExtensions();

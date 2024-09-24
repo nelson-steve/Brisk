@@ -2,8 +2,6 @@
 #include "GpuContextVulkan.hpp"
 #include "VulkanUtilities.hpp"
 
-#include <stdexcept>
-
 namespace Brisk 
 {
     void TextureVulkan::Create() {

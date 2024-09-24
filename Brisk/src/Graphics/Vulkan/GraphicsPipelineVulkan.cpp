@@ -5,7 +5,8 @@
 #include "Engine/Renderer/Renderer.hpp"
 #include "GpuContextVulkan.hpp"
 
-namespace Brisk {
+namespace Brisk 
+{
     GraphicsPipelineVulkan::GraphicsPipelineVulkan() {
         VkPipelineVertexInputStateCreateInfo m_VertexInputInfo{};
         m_VertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;

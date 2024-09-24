@@ -2,7 +2,8 @@
 #include "Engine/Engine.hpp"
 #include "Graphics/Vulkan/VulkanRenderer/RendererVulkan.hpp"
 
-namespace Brisk {
+namespace Brisk 
+{
 	class RendererFactory {
 	public:
 		[[nodiscard]] static Renderer* CreateRenderer() {

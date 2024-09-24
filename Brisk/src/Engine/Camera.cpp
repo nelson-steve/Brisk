@@ -2,7 +2,8 @@
 
 #include "glfw3.h"
 
-namespace Brisk {
+namespace Brisk 
+{
 	Camera::Camera(float fov, float aspectRatio, float nearClip, float farClip, GLFWwindow* window)
 		: m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip) {
 		m_Projection = glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip);

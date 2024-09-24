@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Core/Log.hpp"
+
 #define VK_NO_PROTOYPES
 #include <vulkan/vulkan.hpp>
 

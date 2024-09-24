@@ -1,8 +1,8 @@
 #include "Log.hpp"
 #include "spdlog/sinks/stdout_color_sinks.h"
 
-namespace Brisk {
-
+namespace Brisk 
+{
 	std::shared_ptr<spdlog::logger> Log::m_CoreLogger;
 	std::shared_ptr<spdlog::logger> Log::m_AppLogger;
 

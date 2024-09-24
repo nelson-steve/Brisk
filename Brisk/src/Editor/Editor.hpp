@@ -10,7 +10,8 @@
 
 #include <unordered_map>
 
-namespace Brisk {
+namespace Brisk 
+{
 	class Editor {
 	public:
 		Editor() = default;

@@ -1,7 +1,8 @@
 #pragma once
 #include <iostream>
 
-namespace Brisk {
+namespace Brisk 
+{
 	/// <summary>
 	/// Base Window class
 	/// </summary>

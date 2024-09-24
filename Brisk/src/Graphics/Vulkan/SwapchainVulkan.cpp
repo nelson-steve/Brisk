@@ -4,7 +4,8 @@
 #include "VulkanUtilities.hpp"
 #include "GpuContextVulkan.hpp"
 
-namespace Brisk {
+namespace Brisk 
+{
 	SwapchainVulkan::SwapchainVulkan(WindowBase* window)
 		: Swapchain(window, window->GetWidth(), window->GetHeight()) {}
 

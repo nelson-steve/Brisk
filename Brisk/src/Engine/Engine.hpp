@@ -83,6 +83,6 @@ namespace Brisk
 		/// </summary>
 		static Swapchain* s_Swapchain;
 
-		static BriskScene* m_Scene;
+		static BriskScene* m_ActiveScene;
 	};
 }

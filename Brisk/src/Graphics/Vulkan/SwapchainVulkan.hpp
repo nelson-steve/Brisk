@@ -3,7 +3,8 @@
 #include "Graphics/Swapchain.hpp"
 #include "Graphics/Vulkan/GpuDeviceVulkan.hpp"
 
-namespace Brisk {
+namespace Brisk 
+{
 	class SwapchainVulkan : public Swapchain {
 	public:
 		virtual void Create(Mode mode) override;

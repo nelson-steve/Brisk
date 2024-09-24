@@ -1,8 +1,9 @@
 #pragma once
 
-#include <Volk/volk.h>
 #include "GraphicsPipelineVulkan.hpp"
 #include "Engine/Engine.hpp"
+
+#include <Volk/volk.h>
 
 namespace Brisk {
 	struct Vertex;

@@ -3,7 +3,8 @@
 #include "Core/Log.hpp"
 #include "Platform/Windows/WindowsWindow.hpp"
 
-namespace Brisk {
+namespace Brisk 
+{
 	[[nodiscard]] WindowBase* WindowBase::Create(int width, int height) {
 #if defined(WIN32) || defined(_WIN32) || defined(__WIN32) && !defined(__CYGWIN__)
 		WindowBase* window = new WindowsWindow(width, height);

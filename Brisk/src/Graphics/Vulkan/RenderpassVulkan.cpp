@@ -5,7 +5,8 @@
 #include "GraphicsPipelineVulkan.hpp"
 #include "GPUContextVulkan.hpp"
 
-namespace Brisk {
+namespace Brisk 
+{
     void RenderPassVulkan::Create(std::vector<VkAttachmentDescription> attachments, std::vector<VkSubpassDescription> subpasses, std::vector<VkSubpassDependency> dependencies) {
         VkRenderPassCreateInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;

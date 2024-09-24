@@ -6,7 +6,8 @@
 #include <string>
 #include <memory>
 
-namespace Brisk {
+namespace Brisk 
+{
     class Element {
     public:
         int32_t id;

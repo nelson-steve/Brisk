@@ -3,7 +3,8 @@
 #include "IEditorPanel.hpp"
 #include "Graphics/Vulkan/TextureVulkan.hpp"
 
-namespace Brisk {
+namespace Brisk 
+{
 	class ScenePanel : public IEditorPanel {
 	public:
 		virtual void OnCreate() override;

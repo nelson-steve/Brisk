@@ -8,7 +8,8 @@
 
 struct GLFWwindow;
 
-namespace Brisk {
+namespace Brisk 
+{
 	class Camera {
 	public:
 		Camera() = default;

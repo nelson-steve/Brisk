@@ -5,7 +5,8 @@
 #include <vector>
 #include <string>
 
-namespace Brisk {
+namespace Brisk 
+{
     class BriskScene {
     public:
         int32_t SelectedElement = -1;

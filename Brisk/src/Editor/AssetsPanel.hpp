@@ -5,7 +5,8 @@
 #include <string>
 #include <vector>
 
-namespace Brisk {
+namespace Brisk 
+{
     struct Asset
     {
         std::string name;

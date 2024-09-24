@@ -2,7 +2,8 @@
 #include "Engine/Engine.hpp"
 #include <functional>
 
-namespace Brisk {
+namespace Brisk 
+{
     void HeirarchyPanel::OnCreate() {
     }
 
@@ -20,14 +21,14 @@ namespace Brisk {
         bool isElementSelected = false;
         // Function to recursively display elements and their children
         std::function<void(int, float)> DisplayElementWithChildren = [&](int elementIndex, float parentXPos) {
-            auto& element = Engine::m_Scene->Elements[elementIndex];
+            auto& element = Engine::m_ActiveScene->Elements[elementIndex];
 
             ImGuiTreeNodeFlags flags = 0;
-            if (elementIndex == Engine::m_Scene->SelectedElement)
+            if (elementIndex == Engine::m_ActiveScene->SelectedElement)
                 flags |= ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_OpenOnArrow;
             else
                 flags |= ImGuiTreeNodeFlags_OpenOnArrow ;
-            if (Engine::m_Scene->Elements[elementIndex].children.size() <= 0) {
+            if (Engine::m_ActiveScene->Elements[elementIndex].children.size() <= 0) {
                 flags |= ImGuiTreeNodeFlags_Leaf; // Mark as a leaf node (no arrow)
             }
             // Start the tree node for the element
@@ -56,11 +57,11 @@ namespace Brisk {
                 // If right-clicked, set as the target for context menu
                 if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
                     isElementSelected = true;
-                    Engine::m_Scene->SelectedElement = elementIndex;
+                    Engine::m_ActiveScene->SelectedElement = elementIndex;
                 }
                 else if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
                     isElementSelected = true;
-                    Engine::m_Scene->SelectedElement = elementIndex;
+                    Engine::m_ActiveScene->SelectedElement = elementIndex;
                 }
                 else {
                     isElementSelected = false;
@@ -77,9 +78,9 @@ namespace Brisk {
         };
 
         // Traverse the hierarchy and display each element
-        for (int i = 0; i < Engine::m_Scene->Elements.size(); i++) {
+        for (int i = 0; i < Engine::m_ActiveScene->Elements.size(); i++) {
             // Only display root elements (elements without parents)
-            if (Engine::m_Scene->Elements[i].IsRoot) {
+            if (Engine::m_ActiveScene->Elements[i].IsRoot) {
                 DisplayElementWithChildren(i, -1.0f);
             }
         }
@@ -111,7 +112,7 @@ namespace Brisk {
         // Render the context menu
         if (ImGui::BeginPopup("ElementContextMenu")) {
             if (ImGui::MenuItem("Create Element")) {
-                Engine::m_Scene->AddChildElement(Engine::m_Scene->SelectedElement);
+                Engine::m_ActiveScene->AddChildElement(Engine::m_ActiveScene->SelectedElement);
             }
             ImGui::EndPopup();
         }

@@ -81,9 +81,6 @@
     <ClInclude Include="src\Editor\Editor.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Vulkan\UniformBufferVulkan.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Graphics\Vulkan\VulkanRenderer\RendererVulkan.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -130,9 +127,6 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Vulkan\TextureVulkan.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\SceneCamera.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Model.hpp">
@@ -206,9 +200,6 @@
     <ClCompile Include="src\Graphics\Vulkan\BufferVulkan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\Vulkan\UniformBufferVulkan.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\Vulkan\VulkanRenderer\RendererVulkan.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
@@ -249,9 +240,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Vulkan\TextureVulkan.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\stb_image.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Model.cpp">

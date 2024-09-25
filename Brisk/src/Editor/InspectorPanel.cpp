@@ -96,7 +96,7 @@ namespace Brisk
 
     void InspectorPanel::OnUpdate() {
         ImGui::Begin("Inspector");
-		if (Engine::m_Scene->SelectedElement != -1) {
+		if (Engine::m_ActiveScene->SelectedElement != -1) {
 			const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
 			ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
@@ -122,23 +122,23 @@ namespace Brisk
 
 			if (open)
 			{
-				DrawVec3Control("Position", Engine::m_Scene->Elements[Engine::m_Scene->SelectedElement].GetModule<Transform>()->pPosition);
-				DrawVec3Control("Rotation", Engine::m_Scene->Elements[Engine::m_Scene->SelectedElement].GetModule<Transform>()->pRotation);
-				DrawVec3Control("Scale", Engine::m_Scene->Elements[Engine::m_Scene->SelectedElement].GetModule<Transform>()->pScale);
+				DrawVec3Control("Position", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pPosition);
+				DrawVec3Control("Rotation", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pRotation);
+				DrawVec3Control("Scale", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pScale);
 				ImGui::TreePop();
 			}
 
 			//if (removeComponent)
 			//	entity.RemoveComponent<T>();
 
-			//DrawVec3Control("Position", Engine::m_Scene->Elements[Engine::m_Scene->SelectedElement].GetModule<Transform>()->pPosition);
-			//DrawVec3Control("Rotation", Engine::m_Scene->Elements[Engine::m_Scene->SelectedElement].GetModule<Transform>()->pRotation);
-			//DrawVec3Control("Scale", Engine::m_Scene->Elements[Engine::m_Scene->SelectedElement].GetModule<Transform>()->pScale);
+			//DrawVec3Control("Position", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pPosition);
+			//DrawVec3Control("Rotation", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pRotation);
+			//DrawVec3Control("Scale", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pScale);
 		}
         ImGui::End();
     }
 
     void InspectorPanel::OnDestroy() {
-        //m_SceneTexture->Release();
+        //m_ActiveSceneTexture->Release();
     }
 }

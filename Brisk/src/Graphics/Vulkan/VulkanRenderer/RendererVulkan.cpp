@@ -403,8 +403,8 @@ namespace Brisk {
         ubo.Model = glm::rotate(glm::mat4(1.0f), time * glm::radians(90.0f), glm::vec3(0.0f, 0.0f, 1.0f));
 
         ubo.Model = glm::mat4(1);
-        if (Engine::m_Scene->SelectedElement != -1)
-            ubo.Model = Engine::m_Scene->Elements[Engine::m_Scene->SelectedElement].GetModule<Transform>()->GetMat();
+        if (Engine::m_ActiveScene->SelectedElement != -1)
+            ubo.Model = Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->GetMat();
 
         ubo.View = Engine::s_Camera->GetViewMatrix();
         ubo.Projection = Engine::s_Camera->GetProjection();

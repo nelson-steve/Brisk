@@ -175,7 +175,6 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Engine\Renderer\Renderer.hpp" />
     <ClInclude Include="src\Engine\Renderer\RendererFactory.hpp" />
     <ClInclude Include="src\Engine\Scene.hpp" />
-    <ClInclude Include="src\Engine\SceneCamera.hpp" />
     <ClInclude Include="src\Engine\WindowBase.hpp" />
     <ClInclude Include="src\Graphics\DirectX11\GpuDeviceDirectX11.hpp" />
     <ClInclude Include="src\Graphics\Factories\SwapchainFactory.hpp" />
@@ -191,7 +190,6 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Graphics\Vulkan\SwapchainVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\GpuDeviceVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\TextureVulkan.hpp" />
-    <ClInclude Include="src\Graphics\Vulkan\UniformBufferVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\volk.cpp" />
     <ClInclude Include="src\Graphics\Vulkan\VulkanRenderer\RendererVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\VulkanUtilities.hpp" />
@@ -229,12 +227,10 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClCompile Include="src\Graphics\Vulkan\SwapchainVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\GpuDeviceVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\TextureVulkan.cpp" />
-    <ClCompile Include="src\Graphics\Vulkan\UniformBufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\VulkanRenderer\RendererVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\VulkanUtilities.cpp" />
     <ClCompile Include="src\Main\main.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
-    <ClCompile Include="src\stb_image.cpp" />
     <ClCompile Include="src\tiny_gltf.cc" />
     <ClCompile Include="vendors\ImGui\imgui.cpp" />
     <ClCompile Include="vendors\ImGui\ImGuiBackends\imgui_impl_glfw.cpp" />

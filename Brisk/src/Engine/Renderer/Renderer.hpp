@@ -10,6 +10,26 @@ namespace Brisk
 		BriskTexture* pTexture;
 	};
 
+	template<typename TRenderer>
+	class RenderManager {
+	public:
+		void TestRenderFunction() {
+			TRenderer::Render();
+		}
+	};
+
+	struct VulkanRenderer {
+		static void Render() {
+
+		}
+	};
+
+	struct DirectX12Renderer {
+		static void Render() {
+
+		}
+	};
+
 	class Renderer {
 	public:
 		virtual ~Renderer() {};

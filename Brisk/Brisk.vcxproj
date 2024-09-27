@@ -166,6 +166,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Editor\ScenePanel.hpp" />
     <ClInclude Include="src\Editor\GamePanel.hpp" />
     <ClInclude Include="src\Engine\Application.hpp" />
+    <ClInclude Include="src\Engine\AssetManager.hpp" />
     <ClInclude Include="src\Engine\Camera.hpp" />
     <ClInclude Include="src\Engine\Element.hpp" />
     <ClInclude Include="src\Engine\Engine.hpp" />

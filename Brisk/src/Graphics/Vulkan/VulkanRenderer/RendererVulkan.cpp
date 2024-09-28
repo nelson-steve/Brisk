@@ -493,8 +493,8 @@ namespace Brisk {
         m_Pipeline->CreatePipeline(m_RenderPass->GetRenderPass());
 
         m_Model = new Model();
-        m_Model->Load("../Data/Models/Cube/Cube.gltf");
-        //m_Model->Load("../Data/Models/gun/gun.obj");
+        //m_Model->Load("../Data/Models/Cube/Cube.gltf");
+        m_Model->Load("../Data/Models/gun/gun.obj");
         //m_Model->Load("../Data/Models/Fox/glTF/Fox.gltf");
 
     }
@@ -584,7 +584,7 @@ namespace Brisk {
 
         vkResetCommandBuffer(m_CommandBuffer->Get(), /*VkCommandBufferResetFlagBits*/ 0);
 
-        m_Viewport.pRenderpass->BeginRenderPass(m_CommandBuffer, 0);
+        m_Viewport.pRenderpass->BeginRenderPass(m_CommandBuffer, m_ImageIndex);
         vkCmdBindPipeline(m_CommandBuffer->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Viewport.pPipeline->GetPipeline());
         {
             VkViewport viewport{};
@@ -676,6 +676,10 @@ namespace Brisk {
         }
 
         {
+            VkFence fence;
+            VkFenceCreateInfo CI{};
+            CI.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+            vkCreateFence(m_GpuContext->s_GPUDevice->GetDevice(), &CI, nullptr, &fence);
             VkSubmitInfo submitInfo{};
             submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -693,7 +697,7 @@ namespace Brisk {
             submitInfo.signalSemaphoreCount = 1;
             submitInfo.pSignalSemaphores = signalSemaphores;
 
-            if (vkQueueSubmit(m_GpuContext->s_GPUDevice->GetGraphicsQueue().Handle, 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
+            if (vkQueueSubmit(m_GpuContext->s_GPUDevice->GetGraphicsQueue().Handle, 1, &submitInfo, fence) != VK_SUCCESS) {
                 throw std::runtime_error("failed to submit draw command buffer!");
             }
 
@@ -710,6 +714,8 @@ namespace Brisk {
             presentInfo.pImageIndices = &m_ImageIndex;
 
             vkQueuePresentKHR(m_GpuContext->s_GPUDevice->GetGraphicsQueue().Handle, &presentInfo);
+            vkWaitForFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
+            vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &fence);
         }
     }
 

@@ -11,13 +11,13 @@
 #include <vector>
 
 namespace Brisk {
-	class RendererVulkan : public Renderer {
+	class RendererVulkan{
 	public:
-		virtual void Create() override;
-		virtual void Release() override;
+		void Init();
+		void Release();
 
-		virtual void AddRenderTarget(RenderTarget renderTarget) override;
-		virtual void SetupRenderingPipeline(Swapchain* swapchain) override;
+		//void AddRenderTarget(RenderTarget renderTarget);
+		void SetupRenderingPipeline(Swapchain* swapchain);
 		void CreateTexture();
 		void CreateOffscreenResources();
 		void SetupImGuiData(ImGui_ImplVulkan_InitInfo& data);
@@ -60,10 +60,10 @@ namespace Brisk {
 
 		uint32_t GetImageIndex() const { return m_ImageIndex; }
 
-		virtual void PreRender() override;
-		virtual void Render() override;
-		virtual void PostRender() override;
-		virtual void WaitDeviceIdle() override;
+		void PreRender();
+		void Render();
+		void PostRender();
+		void WaitDeviceIdle();
 	private:
 		RendererVulkan() = default;
 		void CreateGraphicsPipeline();

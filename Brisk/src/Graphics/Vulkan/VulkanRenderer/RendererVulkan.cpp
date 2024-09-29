@@ -13,7 +13,6 @@
 #include <Engine/Model.hpp>
 
 namespace Brisk {
-    std::vector<Point> Vertices;
     Model* m_Model;
     void TransitionSwapchainImageLayout(
         VkCommandBuffer commandBuffer,
@@ -84,7 +83,7 @@ namespace Brisk {
         );
     }
 
-    void RendererVulkan::Create() {
+    void RendererVulkan::Init() {
         m_GpuContext = new GpuContextVulkan();
         m_GpuContext->Create();
 
@@ -115,16 +114,6 @@ namespace Brisk {
         if (vkCreateCommandPool(GpuContextVulkan::s_GPUDevice->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create command pool!");
         }
-
-        std::vector<Point> vertices {
-            {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-            {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
-            {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-            {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-            {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-            {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}}
-        };
-        Vertices = vertices;
     }
 
     void RendererVulkan::SetupImGuiData(ImGui_ImplVulkan_InitInfo& data) {
@@ -138,14 +127,6 @@ namespace Brisk {
         data.ImageCount = 2;
         data.MinImageCount = 2;
         data.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-    }
-
-    void RendererVulkan::CreateTexture() {
-
-    }
-
-    void RendererVulkan::AddRenderTarget(RenderTarget renderTarget) {
-        m_RenderTarget = renderTarget;
     }
 
     void RendererVulkan::CreateOffscreenResources() {
@@ -493,10 +474,9 @@ namespace Brisk {
         m_Pipeline->CreatePipeline(m_RenderPass->GetRenderPass());
 
         m_Model = new Model();
-        //m_Model->Load("../Data/Models/Cube/Cube.gltf");
-        m_Model->Load("../Data/Models/gun/gun.obj");
+        m_Model->Load("../Data/Models/Cube/Cube.gltf");
+        //m_Model->Load("../Data/Models/gun/gun.obj");
         //m_Model->Load("../Data/Models/Fox/glTF/Fox.gltf");
-
     }
 
     void RendererVulkan::CreateDescriptorSet() {
@@ -700,6 +680,8 @@ namespace Brisk {
             if (vkQueueSubmit(m_GpuContext->s_GPUDevice->GetGraphicsQueue().Handle, 1, &submitInfo, fence) != VK_SUCCESS) {
                 throw std::runtime_error("failed to submit draw command buffer!");
             }
+            vkWaitForFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
+            vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &fence);
 
             VkPresentInfoKHR presentInfo{};
             presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -714,8 +696,6 @@ namespace Brisk {
             presentInfo.pImageIndices = &m_ImageIndex;
 
             vkQueuePresentKHR(m_GpuContext->s_GPUDevice->GetGraphicsQueue().Handle, &presentInfo);
-            vkWaitForFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
-            vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &fence);
         }
     }
 

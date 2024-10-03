@@ -72,6 +72,25 @@ namespace Brisk {
 	private:
 		uint32_t m_ImageIndex;
 
+		/// <summary>
+		/// Vulkan handles
+		/// </summary>
+		static VkInstance s_Instance;
+
+		/// <summary>
+		/// Vulkan helper variables
+		/// </summary>
+		static std::vector<const char*> s_Extensions;
+		static std::vector<const char*> s_Layers;
+		static std::vector<const char*> s_RequiredExtensions;
+		static std::vector<const char*> s_ValidationLayers;
+		static VkDebugUtilsMessengerCreateInfoEXT s_DebugCreateInfo;
+		static VkDebugUtilsMessengerEXT s_DebugMessenger;
+		static bool m_ValidationLayersFound;
+
+		GpuDeviceVulkan* s_GPUDevice;
+		SurfaceVulkan* s_Surface;
+
 		// API specific handle for Swapchain - does not need to be released here(it will get released by the main Engine class)
 		SwapchainVulkan* m_Swapchain;
 
@@ -82,7 +101,7 @@ namespace Brisk {
 		BufferVulkan* m_UniformBuffer;
 		void* m_UniformBufferData;
 
-		RenderTarget m_RenderTarget;
+		//RenderTarget m_RenderTarget;
 
 		CommandBufferVulkan* m_CommandBuffer;
 		CommandBufferVulkan* m_ImGuiCommandBuffer;

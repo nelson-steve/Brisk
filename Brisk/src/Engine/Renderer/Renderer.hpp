@@ -6,7 +6,7 @@ namespace Brisk
 	class Renderer {
 	public:
 		void Init() {
-			RendererClass::Init();		
+			RendererClass::Init();
 		}
 	};
 }

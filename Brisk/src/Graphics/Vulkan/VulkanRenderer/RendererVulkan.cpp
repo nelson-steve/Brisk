@@ -11,9 +11,60 @@
 
 #include <chrono>
 #include <Engine/Model.hpp>
+#include <Graphics/Vulkan/Defines.h>
 
 namespace Brisk {
     Model* m_Model;
+
+    static void CheckAvailableExtensions() {
+        VkResult result;
+
+        /*
+         * From the link above:
+         * If `pProperties` is NULL, then the number of extensions properties
+         * available is returned in `pPropertyCount`.
+         *
+         * Basically, gets the number of extensions.
+         */
+        uint32_t count = 0;
+        result = vkEnumerateInstanceExtensionProperties(nullptr, &count, nullptr);
+        if (result != VK_SUCCESS) {
+            // Throw an exception or log the error
+        }
+
+        std::vector<VkExtensionProperties> extensionProperties(count);
+
+        // Get the extensions
+        result = vkEnumerateInstanceExtensionProperties(nullptr, &count, extensionProperties.data());
+        if (result != VK_SUCCESS) {
+            assert(false);
+        }
+
+        //std::set<std::string> extensions;
+        std::cout << "Availble Instance Extension:" << std::endl;
+        for (auto& extension : extensionProperties) {
+            std::cout << extension.extensionName << std::endl;
+        }
+
+        std::vector<VkLayerProperties> layers;
+
+        count = 0;
+        result = vkEnumerateInstanceLayerProperties(&count, nullptr);
+        if (result != VK_SUCCESS) {
+            assert(false);
+        }
+
+        layers.resize(count);
+        result = vkEnumerateInstanceLayerProperties(&count, layers.data());
+        if (result != VK_SUCCESS) {
+            assert(false);
+        }
+        std::cout << "Availble Instance Layers:" << std::endl;
+        for (auto& layer : layers) {
+            std::cout << layer.layerName << std::endl;
+        }
+
+    }
     void TransitionSwapchainImageLayout(
         VkCommandBuffer commandBuffer,
         VkImage image,
@@ -83,14 +134,84 @@ namespace Brisk {
         );
     }
 
+    //void GpuContextVulkan::Release() {
+    //    s_GPUDevice->Release();
+    //    vkDestroySurfaceKHR(s_Instance, s_Surface->GetRef(), nullptr);
+    //    vkDestroyDebugUtilsMessengerEXT(s_Instance, s_DebugMessenger, nullptr);
+    //    vkDestroyInstance(s_Instance, nullptr);
+    //}
+
     void RendererVulkan::Init() {
-        m_GpuContext = new GpuContextVulkan();
-        m_GpuContext->Create();
+        volkInitialize();
+
+        s_ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
+
+        VkApplicationInfo appInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
+        appInfo.pApplicationName = "Demo";
+        appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+        appInfo.pEngineName = Engine::s_EngineInfo.EngineName.c_str();
+        appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+        appInfo.apiVersion = VK_API_VERSION_1_0;
+
+        s_Extensions = VulkanUtilities::GetRequiredExtensions();
+        m_ValidationLayersFound = false;
+#if _DEBUG
+        m_ValidationLayersFound = VulkanUtilities::CheckValidationLayerSupport(s_ValidationLayers);
+        if (!m_ValidationLayersFound) {
+            BRISK_APP_ERROR("Validation layers not found");
+        }
+#endif
+        VkInstanceCreateInfo createInfo{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
+        createInfo.pApplicationInfo = &appInfo;
+        createInfo.enabledExtensionCount = static_cast<uint32_t>(s_Extensions.size());
+        createInfo.ppEnabledExtensionNames = s_Extensions.data();
+#if _DEBUG
+        createInfo.enabledLayerCount =
+            m_ValidationLayersFound ? static_cast<uint32_t>(s_ValidationLayers.size()) : 0;
+        createInfo.ppEnabledLayerNames =
+            m_ValidationLayersFound ? s_ValidationLayers.data() : nullptr;
+
+        VulkanUtilities::PopulateDebugMessengerCreateInfo(s_DebugCreateInfo);
+        createInfo.pNext = &s_DebugCreateInfo;
+#endif
+        VK_LOG(vkCreateInstance(&createInfo, nullptr, &s_Instance),
+            "Failed to create Vulkan instance");
+
+        volkLoadInstance(s_Instance);
+
+#if _DEBUG
+        VkResult result = VulkanUtilities::CreateDebugUtilsMessengerEXT(s_Instance, s_DebugCreateInfo, s_DebugMessenger);
+        if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
+            BRISK_APP_ERROR("Debug Utils extension not present");
+        }
+        else if (result != VK_SUCCESS) {
+            BRISK_APP_ERROR("Failed to create debug messenger");
+        }
+#endif
+
+        s_RequiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
 
         std::vector<GpuDeviceVulkan::QueueType> queueTypes;
         std::vector<GpuDeviceVulkan::DeviceFeatures> features;
         GpuDeviceVulkan::GpuRequirements req{};
-        m_GpuContext->CreateDevice(req);
+
+        s_GPUDevice = new GpuDeviceVulkan();
+        std::vector<VkPhysicalDevice> availableDevices = s_GPUDevice->RetrieveAvailableDevice();
+        bool deviceFound = false;
+        for (const auto& device : availableDevices) {
+            if (s_GPUDevice->IsDeviceSuitable(device, req)) {
+                s_GPUDevice->SetPhysicalDevice(device);
+                deviceFound = true;
+                break;
+            }
+        }
+        if (!deviceFound) {
+            BRISK_CORE_ERROR("Failed to find a suitable GPU!");
+        }
+
+        s_Surface = SurfaceFactoryVulkan::CreateNativeSurface(s_Instance);
+        s_GPUDevice->CreateLogicalDevice(req);
+
 
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
@@ -99,29 +220,29 @@ namespace Brisk {
         fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
         fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
 
-        if (vkCreateSemaphore(GpuContextVulkan::s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore) != VK_SUCCESS ||
-            vkCreateSemaphore(GpuContextVulkan::s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_RenderToTextureFinished) != VK_SUCCESS ||
-            vkCreateSemaphore(GpuContextVulkan::s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_RenderToSwapchainFinished) != VK_SUCCESS ||
-            vkCreateFence(GpuContextVulkan::s_GPUDevice->GetDevice(), &fenceInfo, nullptr, &m_InFlightFence) != VK_SUCCESS) {
+        if (vkCreateSemaphore(s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_ImageAvailableSemaphore) != VK_SUCCESS ||
+            vkCreateSemaphore(s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_RenderToTextureFinished) != VK_SUCCESS ||
+            vkCreateSemaphore(s_GPUDevice->GetDevice(), &semaphoreInfo, nullptr, &m_RenderToSwapchainFinished) != VK_SUCCESS ||
+            vkCreateFence(s_GPUDevice->GetDevice(), &fenceInfo, nullptr, &m_InFlightFence) != VK_SUCCESS) {
             throw std::runtime_error("failed to create synchronization objects for a frame!");
         }
 
         VkCommandPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        poolInfo.queueFamilyIndex = GpuContextVulkan::s_GPUDevice->GetGraphicsQueue().FamilyIndex;
+        poolInfo.queueFamilyIndex = s_GPUDevice->GetGraphicsQueue().FamilyIndex;
 
-        if (vkCreateCommandPool(GpuContextVulkan::s_GPUDevice->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
+        if (vkCreateCommandPool(s_GPUDevice->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create command pool!");
         }
     }
 
     void RendererVulkan::SetupImGuiData(ImGui_ImplVulkan_InitInfo& data) {
-        data.Instance = m_GpuContext->s_Instance;
-        data.PhysicalDevice = m_GpuContext->s_GPUDevice->GetPhysicalDevice();
-        data.Device = m_GpuContext->s_GPUDevice->GetDevice();
+        data.Instance = s_Instance;
+        data.PhysicalDevice = s_GPUDevice->GetPhysicalDevice();
+        data.Device = s_GPUDevice->GetDevice();
         data.QueueFamily = 0;
-        data.Queue = m_GpuContext->s_GPUDevice->GetGraphicsQueue().Handle;
+        data.Queue = s_GPUDevice->GetGraphicsQueue().Handle;
         data.DescriptorPool = m_DescriptorPool;
         data.RenderPass = m_RenderPass->GetRenderPass();
         data.ImageCount = 2;
@@ -130,7 +251,7 @@ namespace Brisk {
     }
 
     void RendererVulkan::CreateOffscreenResources() {
-        m_Viewport.pSceneTexture = static_cast<TextureVulkan*>(m_RenderTarget.pTexture);
+        //m_Viewport.pSceneTexture = static_cast<TextureVulkan*>(m_RenderTarget.pTexture);
 
         // Creating renderpass
         {
@@ -202,8 +323,8 @@ namespace Brisk {
         {
             m_Viewport.pPipeline = new GraphicsPipelineVulkan();
 
-            VkShaderModule vertexModule = VulkanUtilities::CreateShaderModule(GpuContextVulkan::s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleVS.spv");
-            VkShaderModule fragmentModule = VulkanUtilities::CreateShaderModule(GpuContextVulkan::s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleFS.spv");
+            VkShaderModule vertexModule = VulkanUtilities::CreateShaderModule(s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleVS.spv");
+            VkShaderModule fragmentModule = VulkanUtilities::CreateShaderModule(s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleFS.spv");
             m_Viewport.pPipeline->CreateShaderStage(vertexModule, VK_SHADER_STAGE_VERTEX_BIT);
             m_Viewport.pPipeline->CreateShaderStage(fragmentModule, VK_SHADER_STAGE_FRAGMENT_BIT);
 
@@ -338,9 +459,9 @@ namespace Brisk {
         }
 
         m_VertexBuffer = new BufferVulkan();
-        m_VertexBuffer->Create(sizeof(Vertices[0]) * Vertices.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+        //m_VertexBuffer->Create(sizeof(Vertices[0]) * Vertices.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
         m_VertexBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        m_VertexBuffer->MapMemory(Vertices);
+        //m_VertexBuffer->MapMemory(Vertices);
         m_VertexBuffer->UnMapMemory();
 
         m_UniformBuffer = new BufferVulkan();
@@ -366,7 +487,7 @@ namespace Brisk {
         poolInfo.pPoolSizes = poolSizes.data();
         poolInfo.maxSets = 11;
 
-        if (vkCreateDescriptorPool(m_GpuContext->s_GPUDevice->GetDevice(), &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS) {
+        if (vkCreateDescriptorPool(s_GPUDevice->GetDevice(), &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor pool!");
         }
 
@@ -397,8 +518,8 @@ namespace Brisk {
     void RendererVulkan::CreateGraphicsPipeline() {
         m_Pipeline = new GraphicsPipelineVulkan();
 
-        VkShaderModule vertexModule = VulkanUtilities::CreateShaderModule(GpuContextVulkan::s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleVS.spv");
-        VkShaderModule fragmentModule = VulkanUtilities::CreateShaderModule(GpuContextVulkan::s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleFS.spv");
+        VkShaderModule vertexModule = VulkanUtilities::CreateShaderModule(s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleVS.spv");
+        VkShaderModule fragmentModule = VulkanUtilities::CreateShaderModule(s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleFS.spv");
         m_Pipeline->CreateShaderStage(vertexModule, VK_SHADER_STAGE_VERTEX_BIT);
         m_Pipeline->CreateShaderStage(fragmentModule, VK_SHADER_STAGE_FRAGMENT_BIT);
 
@@ -493,7 +614,7 @@ namespace Brisk {
         layoutInfo.pBindings = &uboLayoutBinding;
 
         m_DescriptorSetLayouts.resize(1);
-        if (vkCreateDescriptorSetLayout(m_GpuContext->s_GPUDevice->GetDevice(), &layoutInfo, nullptr, &m_DescriptorSetLayouts[0]) != VK_SUCCESS) {
+        if (vkCreateDescriptorSetLayout(s_GPUDevice->GetDevice(), &layoutInfo, nullptr, &m_DescriptorSetLayouts[0]) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor set layout!");
         }
 
@@ -503,7 +624,7 @@ namespace Brisk {
         allocInfo.descriptorSetCount = static_cast<uint32_t>(m_DescriptorSetLayouts.size());
         allocInfo.pSetLayouts = &m_DescriptorSetLayouts[0];
 
-        if (vkAllocateDescriptorSets(m_GpuContext->s_GPUDevice->GetDevice(), &allocInfo, &m_DescriptorSet) != VK_SUCCESS) {
+        if (vkAllocateDescriptorSets(s_GPUDevice->GetDevice(), &allocInfo, &m_DescriptorSet) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate descriptor sets!");
         }
 
@@ -521,7 +642,7 @@ namespace Brisk {
         descriptorWrite.descriptorCount = 1;
         descriptorWrite.pBufferInfo = &bufferInfo;
 
-        vkUpdateDescriptorSets(m_GpuContext->s_GPUDevice->GetDevice(), 1, &descriptorWrite, 0, nullptr);
+        vkUpdateDescriptorSets(s_GPUDevice->GetDevice(), 1, &descriptorWrite, 0, nullptr);
     }
 
     void RendererVulkan::Release() {
@@ -533,7 +654,7 @@ namespace Brisk {
     }
 
     void RendererVulkan::Render() {
-        vkWaitForFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
+        vkWaitForFences(s_GPUDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
 
         VkResult result = m_Swapchain->AquireNextImage(UINT64_MAX, m_ImageAvailableSemaphore, VK_NULL_HANDLE, &m_ImageIndex);
 
@@ -559,7 +680,7 @@ namespace Brisk {
             throw std::runtime_error("Failed to acquire swapchain image");
         }
 
-        vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
+        vkResetFences(s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
         UpdateUniformBuffer(m_ImageIndex);
 
         vkResetCommandBuffer(m_CommandBuffer->Get(), /*VkCommandBufferResetFlagBits*/ 0);
@@ -627,7 +748,7 @@ namespace Brisk {
 
             m_CommandBuffer->End();
 
-            vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
+            vkResetFences(s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
 
             VkSubmitInfo submitInfo{};
             submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
@@ -640,14 +761,14 @@ namespace Brisk {
             submitInfo.signalSemaphoreCount = 1;
             submitInfo.pSignalSemaphores = signalSemaphores;
 
-            if (vkQueueSubmit(m_GpuContext->s_GPUDevice->GetGraphicsQueue().Handle, 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
+            if (vkQueueSubmit(s_GPUDevice->GetGraphicsQueue().Handle, 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
                 throw std::runtime_error("failed to submit draw command buffer!");
             }
 
-            vkDeviceWaitIdle(m_GpuContext->s_GPUDevice->GetDevice());
+            vkDeviceWaitIdle(s_GPUDevice->GetDevice());
 
-            vkWaitForFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
-            vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
+            vkWaitForFences(s_GPUDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
+            vkResetFences(s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
 
             m_RenderPass->BeginRenderPass(m_ImGuiCommandBuffer, m_ImageIndex);
             Engine::s_Editor->Update();
@@ -659,7 +780,7 @@ namespace Brisk {
             VkFence fence;
             VkFenceCreateInfo CI{};
             CI.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-            vkCreateFence(m_GpuContext->s_GPUDevice->GetDevice(), &CI, nullptr, &fence);
+            vkCreateFence(s_GPUDevice->GetDevice(), &CI, nullptr, &fence);
             VkSubmitInfo submitInfo{};
             submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -677,11 +798,11 @@ namespace Brisk {
             submitInfo.signalSemaphoreCount = 1;
             submitInfo.pSignalSemaphores = signalSemaphores;
 
-            if (vkQueueSubmit(m_GpuContext->s_GPUDevice->GetGraphicsQueue().Handle, 1, &submitInfo, fence) != VK_SUCCESS) {
+            if (vkQueueSubmit(s_GPUDevice->GetGraphicsQueue().Handle, 1, &submitInfo, fence) != VK_SUCCESS) {
                 throw std::runtime_error("failed to submit draw command buffer!");
             }
-            vkWaitForFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
-            vkResetFences(m_GpuContext->s_GPUDevice->GetDevice(), 1, &fence);
+            vkWaitForFences(s_GPUDevice->GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
+            vkResetFences(s_GPUDevice->GetDevice(), 1, &fence);
 
             VkPresentInfoKHR presentInfo{};
             presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
@@ -695,7 +816,7 @@ namespace Brisk {
 
             presentInfo.pImageIndices = &m_ImageIndex;
 
-            vkQueuePresentKHR(m_GpuContext->s_GPUDevice->GetGraphicsQueue().Handle, &presentInfo);
+            vkQueuePresentKHR(s_GPUDevice->GetGraphicsQueue().Handle, &presentInfo);
         }
     }
 
@@ -704,6 +825,6 @@ namespace Brisk {
     }
 
     void RendererVulkan::WaitDeviceIdle() {
-        vkDeviceWaitIdle(m_GpuContext->s_GPUDevice->GetDevice());
+        vkDeviceWaitIdle(s_GPUDevice->GetDevice());
     }
 }

@@ -85,7 +85,7 @@ int WINAPI WinMain(HINSTANCE, HINSTANCE, LPSTR, int nCmdShow)
 #else
 
 int main(int args, char** argv) {
-	Brisk::Engine::Init();
+	Brisk::Engine::InitSystems();
 	Brisk::Engine::Update();
 	Brisk::Engine::Terminate();
 

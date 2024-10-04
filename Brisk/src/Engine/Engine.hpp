@@ -1,21 +1,22 @@
 #pragma once
 
-#include "EngineGlobal.hpp"
-#include "WindowBase.hpp"
-#include "Graphics/Swapchain.hpp"
 #include "Renderer/Renderer.hpp"
+#include "Window.hpp"
+#include "Editor/Editor.hpp"
+
+#include "EngineGlobal.hpp"
+#include "Graphics/Swapchain.hpp"
 #include "Camera.hpp"
+#include "Application.hpp"
 
 #include <glm/glm.hpp>
 
+#include <memory>
 #include <string>
 #include "Scene.hpp"
 
 namespace Brisk 
 {
-	class Renderer;
-	class Editor;
-
 	struct Point {
 		glm::vec3 Position;
 		glm::vec3 Color;
@@ -30,13 +31,12 @@ namespace Brisk
 	/// <summary>
 	/// Main Engine class holding all major systems of the engine
 	/// </summary>
-	class Engine 
-	{
+	class Engine {
 	public:
 		/// <summary>
 		/// Initialize all engine systems
 		/// </summary>
-		static void Init();
+		static void InitSystems();
 		/// <summary>
 		/// Engine wide update
 		/// </summary>
@@ -45,19 +45,12 @@ namespace Brisk
 		/// Ends all Engine systems
 		/// </summary>
 		static void Terminate();
-
-		/// <summary>
-		/// UI Binding functions
-		/// </summary>
-		static void AddEmptyElement();
-		static void AddModule();
-	private:
-		Engine() {};
 	public:
 		/// <summary>
-		/// Main window of the engine aka the Editor window
+		/// Main window of the engine
 		/// </summary>
-		static WindowBase* s_MainWindow;
+		static std::shared_ptr<Window> s_MainWindow;
+		static std::unique_ptr<Application> s_Application;
 		/// <summary>
 		/// Stores basic information about the engine
 		/// </summary>
@@ -66,7 +59,7 @@ namespace Brisk
 		/// <summary>
 		/// Editor handle
 		/// </summary>
-		static Editor* s_Editor;
+		static std::unique_ptr<Editor> s_Editor;
 
 		/// <summary>
 		/// Camera handle

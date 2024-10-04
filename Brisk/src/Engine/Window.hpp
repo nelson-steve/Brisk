@@ -1,20 +1,13 @@
 #pragma once
 #include <iostream>
+#include <memory>
 
 namespace Brisk 
 {
 	/// <summary>
 	/// Base Window class
 	/// </summary>
-	class WindowBase {
-	private:
-		/// <summary>
-		/// Static function to create and retrieve the newly created window
-		/// </summary>
-		/// <param name="width"></param>
-		/// <param name="height"></param>
-		/// <returns></returns>
-		static WindowBase* Create(int width, int height);		
+	class Window {
 	public:
 		virtual void* GetWindowHandle() = 0;
 		/// <summary>
@@ -68,28 +61,18 @@ namespace Brisk
 		/// </summary>
 		/// <param name="resized"></param>
 		virtual inline void WindowResized(bool resized) = 0;
-	protected:
-		uint32_t m_Width = 1280;
-		uint32_t m_Height = 720;
-		bool m_HasWindowResized = false;
 
-		friend class WindowCreator;
-	};
-
-	/// <summary>
-	/// Class to create windows for different platforms
-	/// </summary>
-	class WindowCreator {
 	public:
 		/// <summary>
-		/// Create window for Windows
+		/// Static function to create and retrieve the newly created window
 		/// </summary>
 		/// <param name="width"></param>
 		/// <param name="height"></param>
 		/// <returns></returns>
-		[[nodiscard]] static WindowBase* CreateNativeWindow(int width, int height) {
-			WindowBase* window = WindowBase::Create(width, height);
-			return window;
-		}
+		static std::unique_ptr<Window> Create(uint32_t width, uint32_t height);
+	protected:
+		uint32_t m_Width = 1280;
+		uint32_t m_Height = 720;
+		bool m_HasWindowResized = false;
 	};
 }

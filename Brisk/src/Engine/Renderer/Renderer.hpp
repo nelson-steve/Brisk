@@ -1,12 +1,14 @@
 #pragma once
 
+#include <memory>
+
 namespace Brisk 
 {
-	template<typename RendererClass>
 	class Renderer {
 	public:
 		void Init() {
-			RendererClass::Init();
 		}
+
+		static std::unique_ptr<Renderer> Create();
 	};
 }

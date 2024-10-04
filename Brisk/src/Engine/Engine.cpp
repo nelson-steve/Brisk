@@ -8,18 +8,14 @@
 
 #include "Model.hpp"
 
+#include "Engine/Application.hpp"
+
 namespace Brisk
 {
 	EngineInfo Engine::s_EngineInfo;
-	WindowBase* Engine::s_MainWindow;
+	std::unique_ptr<Editor> Engine::s_Editor;
 
-	Swapchain* Engine::s_Swapchain;
-	Renderer* Engine::s_Renderer;
-	Camera* Engine::s_Camera;
-	Editor* Engine::s_Editor;
-
-	BriskScene* Engine::m_ActiveScene;
-
+	/*
 	float lastX = 0.0f;
 	float lastY = 0.0f;
 	bool firstMouse = true;
@@ -49,23 +45,18 @@ namespace Brisk
 	{
 		Engine::s_Camera->OnMouseScroll(yoffset);
 	}
+	*/
 
-	void Engine::Init() {
+	void Engine::InitSystems() {
 		Log::Init();
-		s_MainWindow = WindowCreator::CreateNativeWindow(1920, 1080);
-		glfwSetCursorPosCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), mouseCallback);
-		glfwSetScrollCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), scrollCallback);
+		s_Application = std::make_unique<Application>();
+		s_Application->CreateApplication();
 
-		s_Renderer = RendererFactory::CreateRenderer();
-		s_Renderer->Create();
-
-		s_Swapchain = SwapchainFactory::CreateSwapchain(s_MainWindow);
-		s_Swapchain->Create(Swapchain::Mode::TRIPLE_BUFFERING);
-
-		s_Renderer->SetupRenderingPipeline(s_Swapchain);
-
-		s_Editor = new Editor();
+		s_Editor = std::make_unique<Editor>();
 		s_Editor->Create();
+
+		//glfwSetCursorPosCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), mouseCallback); 
+		//glfwSetScrollCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), scrollCallback);
 
 		m_ActiveScene = new BriskScene();
 		m_ActiveScene->CreateElement("test 1");
@@ -80,31 +71,18 @@ namespace Brisk
 
 	void Engine::Update() {
 		auto currentTime = std::chrono::high_resolution_clock::now();
-		while (!s_MainWindow->WindowShouldClose()) {
+		while (!s_Application->ShouldClose()) {
 			auto newTime = std::chrono::high_resolution_clock::now();
 			float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
 			currentTime = newTime;
-			s_Renderer->Render();
-			s_Camera->SetViewportSize(s_Swapchain->GetExtentWidth(), s_Swapchain->GetExtentHeight());
-			s_Camera->OnUpdate(frameTime, (GLFWwindow*)s_MainWindow->GetWindowHandle());
+			s_Application->Update(frameTime);
+
 			s_MainWindow->ProcessEvents();
 		}
-
-		s_Renderer->WaitDeviceIdle();
 	}
 
 	void Engine::Terminate() {
-		s_Swapchain->Release();
+		s_Application->Close();
 		s_Editor->Release();
-		s_Renderer->Release();
-		s_MainWindow->DestroyWindow();
-	}
-
-	// UI Bindings
-	void Engine::AddEmptyElement() {
-		m_ActiveScene->CreateElement("Empty");
-	}
-	void Engine::AddModule() {
-
 	}
 }

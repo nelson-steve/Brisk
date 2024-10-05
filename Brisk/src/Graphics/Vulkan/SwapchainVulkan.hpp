@@ -22,7 +22,7 @@ namespace Brisk
 		VkExtent2D GetExtent() const { return m_extent; }
 		VkPresentModeKHR GetPresentMode() const { return m_present_mode; }
 	private:
-		SwapchainVulkan(WindowBase* window);
+		SwapchainVulkan(std::shared_ptr<Window> window);
 	private:
 		VkSwapchainKHR m_Swapchain = VK_NULL_HANDLE;
 		std::vector<VkSemaphore> m_render_complete_semaphores;

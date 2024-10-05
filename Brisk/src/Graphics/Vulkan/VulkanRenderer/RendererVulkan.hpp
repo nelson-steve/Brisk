@@ -1,7 +1,6 @@
 #pragma once
 
 #include "Engine/Renderer/Renderer.hpp"
-#include "../GpuContextVulkan.hpp"
 #include "../BufferVulkan.hpp"
 #include "../SwapchainVulkan.hpp"
 #include "../TextureVulkan.hpp"
@@ -9,6 +8,8 @@
 #include "ImGuiBackends/imgui_impl_vulkan.h"
 
 #include <vector>
+#include <Graphics/Vulkan/SurfaceFactoryVulkan.hpp>
+#include <Graphics/Vulkan/CommandBufferVulkan.hpp>
 
 namespace Brisk {
 	class RendererVulkan{
@@ -18,7 +19,6 @@ namespace Brisk {
 
 		//void AddRenderTarget(RenderTarget renderTarget);
 		void SetupRenderingPipeline(Swapchain* swapchain);
-		void CreateTexture();
 		void CreateOffscreenResources();
 		void SetupImGuiData(ImGui_ImplVulkan_InitInfo& data);
 		VkDescriptorPool GetUIDescriptorPool() { return m_DescriptorPool; }
@@ -73,11 +73,6 @@ namespace Brisk {
 		uint32_t m_ImageIndex;
 
 		/// <summary>
-		/// Vulkan handles
-		/// </summary>
-		static VkInstance s_Instance;
-
-		/// <summary>
 		/// Vulkan helper variables
 		/// </summary>
 		static std::vector<const char*> s_Extensions;
@@ -88,20 +83,21 @@ namespace Brisk {
 		static VkDebugUtilsMessengerEXT s_DebugMessenger;
 		static bool m_ValidationLayersFound;
 
+		/// <summary>
+		/// Vulkan handles
+		/// </summary>
+		static VkInstance s_Instance;
+
 		GpuDeviceVulkan* s_GPUDevice;
 		SurfaceVulkan* s_Surface;
 
 		// API specific handle for Swapchain - does not need to be released here(it will get released by the main Engine class)
 		SwapchainVulkan* m_Swapchain;
 
-		GpuContextVulkan* m_GpuContext;
-		RenderPassVulkan* m_RenderPass;
 		GraphicsPipelineVulkan* m_Pipeline;
 		BufferVulkan* m_VertexBuffer;
 		BufferVulkan* m_UniformBuffer;
 		void* m_UniformBufferData;
-
-		//RenderTarget m_RenderTarget;
 
 		CommandBufferVulkan* m_CommandBuffer;
 		CommandBufferVulkan* m_ImGuiCommandBuffer;

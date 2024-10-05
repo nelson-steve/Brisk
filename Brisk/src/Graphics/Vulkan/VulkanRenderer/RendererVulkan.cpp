@@ -212,7 +212,6 @@ namespace Brisk {
         s_Surface = SurfaceFactoryVulkan::CreateNativeSurface(s_Instance);
         s_GPUDevice->CreateLogicalDevice(req);
 
-
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
@@ -237,18 +236,18 @@ namespace Brisk {
         }
     }
 
-    void RendererVulkan::SetupImGuiData(ImGui_ImplVulkan_InitInfo& data) {
-        data.Instance = s_Instance;
-        data.PhysicalDevice = s_GPUDevice->GetPhysicalDevice();
-        data.Device = s_GPUDevice->GetDevice();
-        data.QueueFamily = 0;
-        data.Queue = s_GPUDevice->GetGraphicsQueue().Handle;
-        data.DescriptorPool = m_DescriptorPool;
-        data.RenderPass = m_RenderPass->GetRenderPass();
-        data.ImageCount = 2;
-        data.MinImageCount = 2;
-        data.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
-    }
+    //void RendererVulkan::SetupImGuiData(ImGui_ImplVulkan_InitInfo& data) {
+    //    data.Instance = s_Instance;
+    //    data.PhysicalDevice = s_GPUDevice->GetPhysicalDevice();
+    //    data.Device = s_GPUDevice->GetDevice();
+    //    data.QueueFamily = 0;
+    //    data.Queue = s_GPUDevice->GetGraphicsQueue().Handle;
+    //    data.DescriptorPool = m_DescriptorPool;
+    //    data.RenderPass = m_RenderPass->GetRenderPass();
+    //    data.ImageCount = 2;
+    //    data.MinImageCount = 2;
+    //    data.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+    //}
 
     void RendererVulkan::CreateOffscreenResources() {
         //m_Viewport.pSceneTexture = static_cast<TextureVulkan*>(m_RenderTarget.pTexture);
@@ -664,7 +663,7 @@ namespace Brisk {
             Engine::s_Swapchain->Release();
             m_RenderPass->ReleaseFramebuffers();
             delete Engine::s_Swapchain;
-            Engine::s_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_MainWindow);
+            Engine::s_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
             Engine::s_Swapchain->Create(Swapchain::Mode::TRIPLE_BUFFERING);
             m_Swapchain = static_cast<SwapchainVulkan*>(Engine::s_Swapchain);
             for (int i = 0; i < m_Swapchain->GetImageCount(); i++) {
@@ -777,10 +776,9 @@ namespace Brisk {
         }
 
         {
-            VkFence fence;
             VkFenceCreateInfo CI{};
             CI.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-            vkCreateFence(s_GPUDevice->GetDevice(), &CI, nullptr, &fence);
+            vkCreateFence(s_GPUDevice->GetDevice(), &CI, nullptr, &m_InFlightFence);
             VkSubmitInfo submitInfo{};
             submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 
@@ -798,11 +796,11 @@ namespace Brisk {
             submitInfo.signalSemaphoreCount = 1;
             submitInfo.pSignalSemaphores = signalSemaphores;
 
-            if (vkQueueSubmit(s_GPUDevice->GetGraphicsQueue().Handle, 1, &submitInfo, fence) != VK_SUCCESS) {
+            if (vkQueueSubmit(s_GPUDevice->GetGraphicsQueue().Handle, 1, &submitInfo, m_InFlightFence) != VK_SUCCESS) {
                 throw std::runtime_error("failed to submit draw command buffer!");
             }
-            vkWaitForFences(s_GPUDevice->GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
-            vkResetFences(s_GPUDevice->GetDevice(), 1, &fence);
+            vkWaitForFences(s_GPUDevice->GetDevice(), 1, &m_InFlightFence, VK_TRUE, UINT64_MAX);
+            vkResetFences(s_GPUDevice->GetDevice(), 1, &m_InFlightFence);
 
             VkPresentInfoKHR presentInfo{};
             presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

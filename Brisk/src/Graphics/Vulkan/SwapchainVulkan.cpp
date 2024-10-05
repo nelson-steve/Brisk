@@ -2,16 +2,15 @@
 #include "Defines.h"
 #include "Engine/Engine.hpp"
 #include "VulkanUtilities.hpp"
-#include "GpuContextVulkan.hpp"
 
 namespace Brisk 
 {
-	SwapchainVulkan::SwapchainVulkan(WindowBase* window)
+	SwapchainVulkan::SwapchainVulkan(std::shared_ptr<Window> window)
 		: Swapchain(window, window->GetWidth(), window->GetHeight()) {}
 
 	void SwapchainVulkan::Release() {
 		for (auto imageView : m_SwapchainImageViews) {
-			vkDestroyImageView(GpuContextVulkan::s_GPUDevice->GetDevice(), imageView, nullptr);
+			vkDestroyImageView(GpuContextVulkan::GetDevice(), imageView, nullptr);
 		}
 		vkDestroySwapchainKHR(GpuContextVulkan::s_GPUDevice->GetDevice(), m_Swapchain, nullptr);
 	}

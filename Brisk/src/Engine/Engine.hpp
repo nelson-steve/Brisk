@@ -49,7 +49,6 @@ namespace Brisk
 		/// <summary>
 		/// Main window of the engine
 		/// </summary>
-		static std::shared_ptr<Window> s_MainWindow;
 		static std::unique_ptr<Application> s_Application;
 		/// <summary>
 		/// Stores basic information about the engine

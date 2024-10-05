@@ -11,8 +11,9 @@ namespace Brisk
 		void Close();
 
 		inline bool ShouldClose() const { return m_Window->WindowShouldClose(); }
+		const std::shared_ptr<Window> GetWindow() const { return m_Window; }
 	private:
 		std::unique_ptr<Renderer> m_Renderer;
-		std::unique_ptr<Window> m_Window;
+		std::shared_ptr<Window> m_Window;
 	};
 }

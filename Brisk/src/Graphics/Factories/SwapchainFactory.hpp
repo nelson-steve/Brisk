@@ -7,9 +7,9 @@
 namespace Brisk {
 	class SwapchainFactory {
 	public:
-		[[nodiscard]] static Swapchain* CreateSwapchain(WindowBase* win) {
+		[[nodiscard]] static Swapchain* CreateSwapchain(std::shared_ptr<Window> window) {
 			if (Engine::s_EngineInfo.API == EngineInfo::GraphicsAPI::Vulkan) {
-				return new SwapchainVulkan(win);
+				return new SwapchainVulkan(window);
 			}
 			else {
 				BRISK_CORE_ERROR("Only Vulkan supported");

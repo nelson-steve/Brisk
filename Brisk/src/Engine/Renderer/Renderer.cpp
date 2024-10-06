@@ -8,33 +8,46 @@ namespace Brisk {
 
 	void Renderer::Init() {
 		Attachment color = {
-			format,
+			Format::FORMAT_B8G8R8A8_SRGB,
 			SAMPLE_COUNT_1_BIT,
-			LOAD_OP_CLEAR,
-			STORE_OP_STORE,
-			 LOAD_OP_DONT_CARE,
-			STORE_OP_DONT_CARE,
-			IMAGE_LAYOUT_UNDEFINED,
-			IMAGE_LAYOUT_PRESENT_SRC_KHR,
+			LoadOp::LOAD_OP_CLEAR,
+            StoreOp::STORE_OP_STORE,
+            LoadOp::LOAD_OP_DONT_CARE,
+            StoreOp::STORE_OP_DONT_CARE,
+			ImageLayout::IMAGE_LAYOUT_UNDEFINED,
+            ImageLayout::IMAGE_LAYOUT_PRESENT_SRC_KHR,
 		};
 		Attachment depth = {
-			format,
-			SAMPLE_COUNT_1_BIT,
-			LOAD_OP_CLEAR,
-			STORE_OP_STORE,
-			 LOAD_OP_DONT_CARE,
-			STORE_OP_DONT_CARE,
-			IMAGE_LAYOUT_UNDEFINED,
-			IMAGE_LAYOUT_PRESENT_SRC_KHR,
+			Format::FORMAT_D32_SFLOAT,
+			SampleCount::SAMPLE_COUNT_1_BIT,
+			LoadOp::LOAD_OP_CLEAR,
+			StoreOp::STORE_OP_STORE,
+            LoadOp::LOAD_OP_DONT_CARE,
+            StoreOp::STORE_OP_DONT_CARE,
+			ImageLayout::IMAGE_LAYOUT_UNDEFINED,
+            ImageLayout::IMAGE_LAYOUT_PRESENT_SRC_KHR,
 		};
-		pass1->addAttachment({ color, 0 }, { depth, 1 });
-		Subpass subpass{
-			{color1, color2},
-			{depth},
-		};
-		subpass->AddSubpass(subpass);
 
-		subpass->addDependency();
+        Subpass subpass{
+            0u,
+            {{0u, color}},
+            {0u, depth}
+        };
+
+        SubpassDependency dependency{
+            VK_SUBPASS_EXTERNAL,
+            0,
+            PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+            0,
+            PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+            ACCESS_COLOR_ATTACHMENT_WRITE_BIT | ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+        };
+        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency.dstSubpass = 0;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency.srcAccessMask = 0;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
 		RenderPass pass1 = {
 			attachments,
@@ -45,17 +58,11 @@ namespace Brisk {
 
 		m_Renderer->AddRenderingPipeline({
 			pass1,
+            pipeline,
 
 			});
 
 		/////////////////////////////
-	
-        m_Pipeline = new GraphicsPipelineVulkan();
-
-        VkShaderModule vertexModule = VulkanUtilities::CreateShaderModule(s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleVS.spv");
-        VkShaderModule fragmentModule = VulkanUtilities::CreateShaderModule(s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleFS.spv");
-        m_Pipeline->CreateShaderStage(vertexModule, VK_SHADER_STAGE_VERTEX_BIT);
-        m_Pipeline->CreateShaderStage(fragmentModule, VK_SHADER_STAGE_FRAGMENT_BIT);
 
         PipelineSpecs specs{};
         specs.AddModules(

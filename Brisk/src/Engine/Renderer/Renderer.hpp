@@ -197,6 +197,83 @@ namespace Brisk
             FORMAT_ASTC_12x12_UNORM_BLOCK = 183,
             FORMAT_ASTC_12x12_SRGB_BLOCK = 184,
 		};
+        enum SampleCount {
+            SAMPLE_COUNT_1_BIT,
+            SAMPLE_COUNT_2_BIT,
+            SAMPLE_COUNT_4_BIT,
+            SAMPLE_COUNT_8_BIT,
+            SAMPLE_COUNT_16_BIT,
+            SAMPLE_COUNT_32_BIT,
+            SAMPLE_COUNT_64_BIT,
+        };
+
+        enum LoadOp {
+            LOAD_OP_LOAD = 0,
+            LOAD_OP_CLEAR = 1,
+            LOAD_OP_DONT_CARE = 2,
+            LOAD_OP_NONE = 3,
+        };
+
+        enum StoreOp {
+            STORE_OP_STORE = 0,
+            STORE_OP_DONT_CARE = 1,
+            STORE_OP_NONE = 2,
+        };
+
+        enum ImageLayout {
+            IMAGE_LAYOUT_UNDEFINED,
+            IMAGE_LAYOUT_GENERAL,
+            IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL,
+            IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL,
+            IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL,
+            IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL,
+            IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+            IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+            IMAGE_LAYOUT_PREINITIALIZED,
+            IMAGE_LAYOUT_DEPTH_READ_ONLY_STENCIL_ATTACHMENT_OPTIMAL,
+            IMAGE_LAYOUT_DEPTH_ATTACHMENT_STENCIL_READ_ONLY_OPTIMAL,
+            IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL,
+            IMAGE_LAYOUT_DEPTH_READ_ONLY_OPTIMAL,
+            IMAGE_LAYOUT_STENCIL_ATTACHMENT_OPTIMAL,
+            IMAGE_LAYOUT_STENCIL_READ_ONLY_OPTIMAL,
+            IMAGE_LAYOUT_READ_ONLY_OPTIMAL,
+            IMAGE_LAYOUT_ATTACHMENT_OPTIMAL,
+            IMAGE_LAYOUT_PRESENT_SRC_KHR,
+            IMAGE_LAYOUT_VIDEO_DECODE_DST_KHR,
+            IMAGE_LAYOUT_VIDEO_DECODE_SRC_KHR,
+            IMAGE_LAYOUT_VIDEO_DECODE_DPB_KHR,
+            IMAGE_LAYOUT_SHARED_PRESENT_KHR,
+            IMAGE_LAYOUT_FRAGMENT_DENSITY_MAP_OPTIMAL_EXT,
+            IMAGE_LAYOUT_FRAGMENT_SHADING_RATE_ATTACHMENT_OPTIMAL_KHR,
+            IMAGE_LAYOUT_RENDERING_LOCAL_READ_KHR,
+            IMAGE_LAYOUT_VIDEO_ENCODE_DST_KHR,
+            IMAGE_LAYOUT_VIDEO_ENCODE_SRC_KHR,
+            IMAGE_LAYOUT_VIDEO_ENCODE_DPB_KHR,
+            IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT,
+        };
+
+        struct Attachment {
+            Format pFormat;
+            SampleCount pSamples;
+            LoadOp pLoadOp;
+            StoreOp pStoreOp;
+            LoadOp pStencilLoadOp;
+            StoreOp pStencilStoreOp;
+            ImageLayout pInitialLayout;
+            ImageLayout pFinalLayout;
+        };
+
+        struct AttachmentRef {
+            uint32_t pIndex;
+            Attachment pAttachment;
+        };
+
+        struct Subpass {
+            uint32_t pIndex;
+            std::vector<AttachmentRef> pColorAttachments;
+            AttachmentRef pDepthAttachment;
+        };
+
 	public:
 		virtual void Init();
 		virtual void Destroy() = 0;

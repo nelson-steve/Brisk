@@ -3,7 +3,7 @@
 
 namespace Brisk {
 	std::unique_ptr<Renderer> Renderer::Create() {
-		return std::make_unique<RendererVulkan>();
+		//return std::make_unique<RendererVulkan>();
 	}
 
 	void Renderer::Init() {
@@ -35,26 +35,23 @@ namespace Brisk {
         };
 
         SubpassDependency dependency{
-            VK_SUBPASS_EXTERNAL,
+            true,
+            false,
             0,
-            PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
             0,
-            PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
-            ACCESS_COLOR_ATTACHMENT_WRITE_BIT | ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+            {StageMask::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT},
+            {0},
+            {PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT, PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT},
+            {ACCESS_COLOR_ATTACHMENT_WRITE_BIT, ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT},
         };
-        dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-        dependency.dstSubpass = 0;
-        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        dependency.srcAccessMask = 0;
-        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
 		RenderPass pass1 = {
-			attachments,
-			subpass,
-			dependency,
+            {color, depth},
+            {subpass},
+            {dependency},
 		};
-		pass1->createframebuffer(width, height);
+
+
 
 		m_Renderer->AddRenderingPipeline({
 			pass1,

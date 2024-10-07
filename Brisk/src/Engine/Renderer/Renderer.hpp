@@ -268,10 +268,90 @@ namespace Brisk
             Attachment pAttachment;
         };
 
+        enum AccessMask {
+            ACCESS_INDIRECT_COMMAND_READ_BIT,
+            ACCESS_INDEX_READ_BIT,
+            ACCESS_VERTEX_ATTRIBUTE_READ_BIT,
+            ACCESS_UNIFORM_READ_BIT,
+            ACCESS_INPUT_ATTACHMENT_READ_BIT,
+            ACCESS_SHADER_READ_BIT,
+            ACCESS_SHADER_WRITE_BIT,
+            ACCESS_COLOR_ATTACHMENT_READ_BIT,
+            ACCESS_COLOR_ATTACHMENT_WRITE_BIT,
+            ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT,
+            ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT,
+            ACCESS_TRANSFER_READ_BIT,
+            ACCESS_TRANSFER_WRITE_BIT,
+            ACCESS_HOST_READ_BIT,
+            ACCESS_HOST_WRITE_BIT,
+            ACCESS_MEMORY_READ_BIT,
+            ACCESS_MEMORY_WRITE_BIT,
+            ACCESS_NONE,
+            ACCESS_TRANSFORM_FEEDBACK_WRITE_BIT_EXT,
+            ACCESS_TRANSFORM_FEEDBACK_COUNTER_READ_BIT_EXT,
+            ACCESS_TRANSFORM_FEEDBACK_COUNTER_WRITE_BIT_EXT,
+            ACCESS_CONDITIONAL_RENDERING_READ_BIT_EXT,
+            ACCESS_COLOR_ATTACHMENT_READ_NONCOHERENT_BIT_EXT,
+            ACCESS_ACCELERATION_STRUCTURE_READ_BIT_KHR,
+            ACCESS_ACCELERATION_STRUCTURE_WRITE_BIT_KHR,
+            ACCESS_FRAGMENT_DENSITY_MAP_READ_BIT_EXT,
+            ACCESS_FRAGMENT_SHADING_RATE_ATTACHMENT_READ_BIT_KHR,
+            ACCESS_COMMAND_PREPROCESS_READ_BIT_NV,
+            ACCESS_COMMAND_PREPROCESS_WRITE_BIT_NV
+        };
+
+        enum StageMask {
+            PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            PIPELINE_STAGE_DRAW_INDIRECT_BIT,
+            PIPELINE_STAGE_VERTEX_INPUT_BIT,
+            PIPELINE_STAGE_VERTEX_SHADER_BIT,
+            PIPELINE_STAGE_TESSELLATION_CONTROL_SHADER_BIT,
+            PIPELINE_STAGE_TESSELLATION_EVALUATION_SHADER_BIT,
+            PIPELINE_STAGE_GEOMETRY_SHADER_BIT,
+            PIPELINE_STAGE_FRAGMENT_SHADER_BIT,
+            PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT,
+            PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT,
+            PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            PIPELINE_STAGE_COMPUTE_SHADER_BIT,
+            PIPELINE_STAGE_TRANSFER_BIT,
+            PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+            PIPELINE_STAGE_HOST_BIT,
+            PIPELINE_STAGE_ALL_GRAPHICS_BIT,
+            PIPELINE_STAGE_ALL_COMMANDS_BIT,
+            PIPELINE_STAGE_NONE,
+            PIPELINE_STAGE_TRANSFORM_FEEDBACK_BIT_EXT,
+            PIPELINE_STAGE_CONDITIONAL_RENDERING_BIT_EXT,
+            PIPELINE_STAGE_ACCELERATION_STRUCTURE_BUILD_BIT_KHR,
+            PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR,
+            PIPELINE_STAGE_FRAGMENT_DENSITY_PROCESS_BIT_EXT,
+            PIPELINE_STAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR,
+            PIPELINE_STAGE_COMMAND_PREPROCESS_BIT_NV,
+            PIPELINE_STAGE_TASK_SHADER_BIT_EXT,
+            PIPELINE_STAGE_MESH_SHADER_BIT_EXT,
+        };
+
+
+        struct SubpassDependency {
+            bool pIsSrcExternal = false;
+            bool pIsDstExternal = false;
+            uint32_t pSrcSubpassIndex;
+            uint32_t pDstSubpassIndex;
+            std::vector<StageMask> pSrcStageMasks;
+            std::vector<AccessMask> pSrcAccessMasks;
+            std::vector<StageMask> pDstStageMasks;
+            std::vector<AccessMask> pDstAccessMask;
+        };
+
         struct Subpass {
             uint32_t pIndex;
             std::vector<AttachmentRef> pColorAttachments;
             AttachmentRef pDepthAttachment;
+        };
+
+        struct RenderPass {
+            std::vector<Attachment> pAttachments;
+            std::vector<Subpass> pSubpasses;
+            std::vector<SubpassDependency> pDependencies;
         };
 
 	public:

@@ -39,6 +39,8 @@ namespace Brisk
         void SelectElement(int32_t i) {
             SelectedElement = i;
         }
+
+        void Update();
     };
 
 }

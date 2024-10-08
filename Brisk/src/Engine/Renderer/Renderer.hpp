@@ -355,8 +355,13 @@ namespace Brisk
         };
 
 	public:
-		virtual void Init();
-		virtual void Destroy() = 0;
+		void Init();
+		void Destroy();
+        void BeginScene();
+        void EndScene();
+
+
+        void Present();
 
 		static std::unique_ptr<Renderer> Create();
 	};

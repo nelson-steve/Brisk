@@ -68,5 +68,5 @@ namespace Brisk
         virtual void UnBind() = 0;
 
         virtual void Destroy() = 0;
-    }
+    };
 }

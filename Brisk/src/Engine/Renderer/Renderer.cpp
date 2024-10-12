@@ -17,6 +17,8 @@ namespace Brisk
         specs.pRenderPass = RenderPass::Create(renderPassSpecs);
         specs.pShaders.push_back(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
         specs.pShaders.push_back(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
+
+        std::shared_ptr<Pipeline> pipeline = Pipeline::Create(specs);
 	}
 
     //void Renderer::Update() {

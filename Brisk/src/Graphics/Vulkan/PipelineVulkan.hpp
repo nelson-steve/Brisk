@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Engine/Renderer/Pipeline.hpp"
+
 #include <Volk/volk.h>
 
 #include <string>
@@ -7,9 +9,14 @@
 
 namespace Brisk
 {
-	class GraphicsPipelineVulkan {
+	class PipelineVulkan : public Pipeline{
 	public:
-		GraphicsPipelineVulkan();
+		virtual void Init(const PipelineSpecs& specs) override;
+
+		virtual void Bind() override;
+		virtual void UnBind() override;
+
+		PipelineVulkan();
 		void CreatePipeline(VkRenderPass renderpass);
 		void Destroy();
 

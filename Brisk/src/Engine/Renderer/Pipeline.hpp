@@ -65,7 +65,9 @@ namespace Brisk
             std::vector<std::pair<std::string, ShaderStage>> pShaders;
         };
     public:
-        std::shared_ptr<Pipeline> Create(const PipelineSpecs& specs);
+        static std::shared_ptr<Pipeline> Create(const PipelineSpecs& specs);
+
+        virtual void Init(const PipelineSpecs& specs) = 0;
 
         virtual void Bind() = 0;
         virtual void UnBind() = 0;

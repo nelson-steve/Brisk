@@ -1,6 +1,6 @@
-#include "VulkanUtilities.hpp"
+#include "UtilitiesVulkan.hpp"
 #include "GpuDeviceVulkan.hpp"
-#include "Engine/WindowBase.hpp"
+#include "Engine/Window.hpp"
 #include "Core/Log.hpp"
 
 #include <glfw3.h>
@@ -12,7 +12,7 @@
 
 namespace Brisk 
 {
-	bool VulkanUtilities::CheckValidationLayerSupport(const std::vector<const char*> validationLayers) {
+	bool UtilitiesVulkan::CheckValidationLayerSupport(const std::vector<const char*> validationLayers) {
 		uint32_t layer_count;
 		vkEnumerateInstanceLayerProperties(&layer_count, nullptr);
 
@@ -33,7 +33,7 @@ namespace Brisk
 		return true;
 	}
 
-	std::vector<const char*> VulkanUtilities::GetRequiredExtensions() {
+	std::vector<const char*> UtilitiesVulkan::GetRequiredExtensions() {
 		uint32_t glfwExtensionCount = 0;
 		const char** glfwExtensions;
 		glfwExtensions = glfwGetRequiredInstanceExtensions(&glfwExtensionCount);
@@ -50,7 +50,7 @@ namespace Brisk
 		return VK_FALSE;
 	}
 
-	void VulkanUtilities::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& debugCreateInfo) {
+	void UtilitiesVulkan::PopulateDebugMessengerCreateInfo(VkDebugUtilsMessengerCreateInfoEXT& debugCreateInfo) {
 		debugCreateInfo = {};
 		debugCreateInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_MESSENGER_CREATE_INFO_EXT;
 		debugCreateInfo.messageSeverity = VK_DEBUG_UTILS_MESSAGE_SEVERITY_VERBOSE_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_WARNING_BIT_EXT | VK_DEBUG_UTILS_MESSAGE_SEVERITY_ERROR_BIT_EXT;
@@ -58,7 +58,7 @@ namespace Brisk
 		debugCreateInfo.pfnUserCallback = DebugCallback;
 	}
 
-	VkResult VulkanUtilities::CreateDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo, VkDebugUtilsMessengerEXT debugMessenger) {
+	VkResult UtilitiesVulkan::CreateDebugUtilsMessengerEXT(VkInstance instance, VkDebugUtilsMessengerCreateInfoEXT debugCreateInfo, VkDebugUtilsMessengerEXT debugMessenger) {
 		auto func = (PFN_vkCreateDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkCreateDebugUtilsMessengerEXT");
 		if (func != nullptr) {
 			return func(instance, &debugCreateInfo, nullptr, &debugMessenger);
@@ -69,7 +69,7 @@ namespace Brisk
 		}
 	}
 
-	uint32_t VulkanUtilities::FindMemoryType(VkPhysicalDevice device, uint32_t typeFilter, VkMemoryPropertyFlags properties) {
+	uint32_t UtilitiesVulkan::FindMemoryType(VkPhysicalDevice device, uint32_t typeFilter, VkMemoryPropertyFlags properties) {
 		VkPhysicalDeviceMemoryProperties memProperties;
 		vkGetPhysicalDeviceMemoryProperties(device, &memProperties);
 
@@ -82,7 +82,7 @@ namespace Brisk
 		throw std::runtime_error("failed to find suitable memory type!");
 	}
 
-	void VulkanUtilities::InsertImageMemoryBarrier(VkCommandBuffer cmdbuffer, VkImage image, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask,
+	void UtilitiesVulkan::InsertImageMemoryBarrier(VkCommandBuffer cmdbuffer, VkImage image, VkAccessFlags srcAccessMask, VkAccessFlags dstAccessMask,
 		VkImageLayout oldImageLayout, VkImageLayout newImageLayout, VkPipelineStageFlags srcStageMask, VkPipelineStageFlags dstStageMask,
 		VkImageSubresourceRange subresourceRange)
 	{
@@ -107,7 +107,7 @@ namespace Brisk
 			1, &imageMemoryBarrier);
 	}
 
-	std::vector<char>* VulkanUtilities::ReadShaderFile(const std::string& fileName) {
+	std::vector<char>* UtilitiesVulkan::ReadShaderFile(const std::string& fileName) {
 		std::vector<char>* shaderFileBuffer;
 		std::ifstream file(fileName, std::ios::ate | std::ios::binary);
 
@@ -126,7 +126,7 @@ namespace Brisk
 		return shaderFileBuffer;
 	}
 
-	const VkShaderModule VulkanUtilities::CreateShaderModule(VkDevice device, const std::string& path) {
+	const VkShaderModule UtilitiesVulkan::CreateShaderModule(VkDevice device, const std::string& path) {
 		const std::vector<char>* shaderCode = ReadShaderFile(path);
 
 		VkShaderModuleCreateInfo createInfo{};

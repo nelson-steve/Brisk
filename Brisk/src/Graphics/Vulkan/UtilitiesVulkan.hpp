@@ -8,7 +8,7 @@
 
 namespace Brisk 
 {
-	class VulkanUtilities {
+	class UtilitiesVulkan {
 	public:
 		static std::vector<const char*> GetRequiredExtensions();
 		static bool CheckValidationLayerSupport(const std::vector<const char*> validationLayers);

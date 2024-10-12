@@ -1,4 +1,4 @@
-#include "GraphicsPipelineVulkan.hpp"
+#include "PipelineVulkan.hpp"
 #include "Core/Log.hpp"
 #include "Engine/Engine.hpp"
 #include "SwapchainVulkan.hpp"
@@ -6,7 +6,7 @@
 
 namespace Brisk
 {
-    GraphicsPipelineVulkan::GraphicsPipelineVulkan(const PipelineSpecs& specs) {
+    void PipelineVulkan::Init(const Pipeline::PipelineSpecs& specs) {
         VkPipelineVertexInputStateCreateInfo m_VertexInputInfo{};
         m_VertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         VkVertexInputBindingDescription bindingDescription{};
@@ -16,10 +16,10 @@ namespace Brisk
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
         for (int i = 0; i < specs.Layout.pAttributes.size(); i++) {
             VkVertexInputAttributeDescription attributeDescription;
-            attributeDescription.binding = specs.Layout.pAttributes.pBinding;
-            attributeDescription.location = specs.Layout.pAttributes.pLocation;
-            attributeDescription.format = specs.Layout.pAttributes.pFormat;
-            attributeDescription.offset = specs.Layout.pAttributes.pOffset;
+            attributeDescription.binding = specs.Layout.pAttributes[i].pBinding;
+            attributeDescription.location = specs.Layout.pAttributes[i].pLocation;
+            attributeDescription.format = specs.Layout.pAttributes[i].pFormat; // convert to vk format
+            attributeDescription.offset = specs.Layout.pAttributes[i].pOffset;
             attributeDescriptions.push_back(attributeDescription);
         }
         m_VertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();

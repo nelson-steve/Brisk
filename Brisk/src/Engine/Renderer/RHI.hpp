@@ -1,7 +1,7 @@
 #pragma once
 
 namespace Brisk {
-	namespace RHI {
+	namespace Core {
         enum Format {
             FORMAT_UNDEFINED = 0,
             FORMAT_R4G4_UNORM_PACK8 = 1,

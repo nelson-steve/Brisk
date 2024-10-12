@@ -1,5 +1,7 @@
 #pragma once
 
+#include "RenderPass.hpp"
+
 #include <cstdint>
 #include <vector>
 #include <string>
@@ -12,7 +14,7 @@ namespace Brisk
         struct Attribute {
             uint32_t pBinding;
             uint32_t pLocation;
-            //Core::Format pFormat;
+            Core::Format pFormat;
             uint32_t pOffset;
         };
 
@@ -59,6 +61,7 @@ namespace Brisk
             CompareOp pCompareOp;
             bool pDepthBoundsTestEnable;
             bool pStencilTestEnable;
+            std::shared_ptr<RenderPass> pRenderPass;
             std::vector<std::pair<std::string, ShaderStage>> pShaders;
         };
     public:

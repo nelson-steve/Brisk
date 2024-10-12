@@ -173,6 +173,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Engine\EngineGlobal.hpp" />
     <ClInclude Include="src\Engine\Model.hpp" />
     <ClInclude Include="src\Engine\Module.hpp" />
+    <ClInclude Include="src\Engine\Renderer\RHI.hpp" />
     <ClInclude Include="src\Engine\Renderer\GraphicsPipeline.hpp" />
     <ClInclude Include="src\Engine\Renderer\Pipeline.hpp" />
     <ClInclude Include="src\Engine\Renderer\RenderingPipeline.hpp" />

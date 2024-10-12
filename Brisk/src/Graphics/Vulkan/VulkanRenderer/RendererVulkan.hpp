@@ -125,7 +125,7 @@ namespace Brisk {
 			TextureVulkan* pSceneTexture;
 
 			GraphicsPipelineVulkan* pPipeline;
-			RenderPassVulkan* pRenderpass;
+			//RenderPassVulkan* pRenderpass;
 		} m_Viewport;
 
 		friend class RendererFactory;

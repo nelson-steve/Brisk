@@ -1,18 +1,29 @@
 #include "Renderer.hpp"
-#include "Graphics/Vulkan/RenderPassVulkan.hpp"
+#include "Pipeline.hpp"
+#include "RHI.hpp"
+#include "RenderPass.hpp"
 
-namespace Brisk {
+namespace Brisk 
+{
 	std::unique_ptr<Renderer> Renderer::Create() {
 		//return std::make_unique<RendererVulkan>();
 	}
 
 	void Renderer::Init() {
         Pipeline::PipelineSpecs specs{};
-        Renderpass renderpass;
-        renderpass->AddAttachment(Format::rgba, true, AttachmentType::Swapchain);
-        renderpass->AddAttachment(Format::depth, true, AttachmentType::Depth);
-        specs.renderpass = renderpass;
-        specs.shader.add("Shaders/Vulkan/Compiled/TriangleVS.spv", VERTEX_STAGE);
-        specs.shader.add("Shaders/Vulkan/Compiled/TriangleFS.spv", FRAGMENT_STAGE);
+        RenderPass::RenderPassSpecs renderPassSpecs;
+        renderPassSpecs.pAttachments.push_back({ Core::Format::FORMAT_R8G8B8A8_SRGB, true, RenderPass::AttachmentType::Swapchain });
+        renderPassSpecs.pAttachments.push_back({ Core::Format::FORMAT_D32_SFLOAT, true, RenderPass::AttachmentType::Depth });
+        specs.pRenderPass = RenderPass::Create(renderPassSpecs);
+        specs.pShaders.push_back(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
+        specs.pShaders.push_back(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
 	}
+
+    void Renderer::Update() {
+
+    }
+
+    void Renderer::Destroy() {
+
+    }
 }

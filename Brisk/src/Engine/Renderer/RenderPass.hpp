@@ -19,6 +19,7 @@ namespace Brisk
             Core::Format pFormat;
             bool pClear;
             AttachmentType pType;
+            bool pIsDepth;
         };
 
         struct RenderPassSpecs {

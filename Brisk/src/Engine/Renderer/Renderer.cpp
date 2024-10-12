@@ -12,18 +12,18 @@ namespace Brisk
 	void Renderer::Init() {
         Pipeline::PipelineSpecs specs{};
         RenderPass::RenderPassSpecs renderPassSpecs;
-        renderPassSpecs.pAttachments.push_back({ Core::Format::FORMAT_R8G8B8A8_SRGB, true, RenderPass::AttachmentType::Swapchain });
-        renderPassSpecs.pAttachments.push_back({ Core::Format::FORMAT_D32_SFLOAT, true, RenderPass::AttachmentType::Depth });
+        renderPassSpecs.pAttachments.push_back({ Core::Format::FORMAT_R8G8B8A8_SRGB, true, RenderPass::AttachmentType::Swapchain, false});
+        renderPassSpecs.pAttachments.push_back({ Core::Format::FORMAT_D32_SFLOAT, true, RenderPass::AttachmentType::Depth, true });
         specs.pRenderPass = RenderPass::Create(renderPassSpecs);
         specs.pShaders.push_back(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
         specs.pShaders.push_back(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
 	}
 
-    void Renderer::Update() {
+    //void Renderer::Update() {
 
-    }
+    //}
 
-    void Renderer::Destroy() {
+    //void Renderer::Destroy() {
 
-    }
+    //}
 }

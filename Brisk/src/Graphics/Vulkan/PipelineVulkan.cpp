@@ -3,6 +3,7 @@
 #include "Engine/Engine.hpp"
 #include "SwapchainVulkan.hpp"
 #include "Engine/Renderer/Renderer.hpp"
+#include "UtilitiesVulkan.hpp"
 
 namespace Brisk
 {
@@ -18,7 +19,7 @@ namespace Brisk
             VkVertexInputAttributeDescription attributeDescription;
             attributeDescription.binding = specs.Layout.pAttributes[i].pBinding;
             attributeDescription.location = specs.Layout.pAttributes[i].pLocation;
-            attributeDescription.format = specs.Layout.pAttributes[i].pFormat; // convert to vk format
+            attributeDescription.format = UtilitiesVulkan::FormatToVulkanType(specs.Layout.pAttributes[i].pFormat);
             attributeDescription.offset = specs.Layout.pAttributes[i].pOffset;
             attributeDescriptions.push_back(attributeDescription);
         }
@@ -38,10 +39,10 @@ namespace Brisk
         VkPipelineRasterizationStateCreateInfo m_Rasterizer{ VK_STRUCTURE_TYPE_PIPELINE_RASTERIZATION_STATE_CREATE_INFO };
         m_Rasterizer.depthClampEnable = specs.pDepthClampEnable;
         m_Rasterizer.rasterizerDiscardEnable = specs.pRasterizationDiscardEnable;
-        m_Rasterizer.polygonMode = specs.pPolygoneMode;
+        m_Rasterizer.polygonMode = UtilitiesVulkan::PolygonToVulkanType(specs.pPolygoneMode);
         m_Rasterizer.lineWidth = specs.pLineWidth;
         m_Rasterizer.cullMode = specs.pCullMode;
-        m_Rasterizer.frontFace = specs.pFrontFace;
+        m_Rasterizer.frontFace = UtilitiesVulkan::FrontFaceToVulkanType(specs.pFrontFace);
         m_Rasterizer.depthBiasEnable = specs.pDepthBiasEnable;
 
         VkPipelineMultisampleStateCreateInfo m_Multisampling{ VK_STRUCTURE_TYPE_PIPELINE_MULTISAMPLE_STATE_CREATE_INFO };
@@ -51,7 +52,7 @@ namespace Brisk
         VkPipelineDepthStencilStateCreateInfo m_DepthStencil{ VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
         m_DepthStencil.depthTestEnable = specs.pDepthTestEnable;
         m_DepthStencil.depthWriteEnable = specs.pDepthWriteEnable;
-        m_DepthStencil.depthCompareOp = specs.pCompareOp;
+        m_DepthStencil.depthCompareOp = UtilitiesVulkan::CompareOpToVulkanType(specs.pCompareOp);
         m_DepthStencil.depthBoundsTestEnable = specs.pDepthBoundsTestEnable;
         m_DepthStencil.stencilTestEnable = specs.pStencilTestEnable;
 

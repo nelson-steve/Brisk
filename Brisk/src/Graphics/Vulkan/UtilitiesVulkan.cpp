@@ -143,4 +143,94 @@ namespace Brisk
 		delete shaderCode;
 		return module;
 	}
+
+	VkFormat UtilitiesVulkan::FormatToVulkanType(Core::Format format) {
+		switch (format) {
+			case Core::Format::FORMAT_UNDEFINED: return VK_FORMAT_UNDEFINED;
+			case Core::Format::FORMAT_R4G4_UNORM_PACK8: return VK_FORMAT_R4G4_UNORM_PACK8;
+			case Core::Format::FORMAT_R4G4B4A4_UNORM_PACK16: return VK_FORMAT_R4G4B4A4_UNORM_PACK16;
+			case Core::Format::FORMAT_B4G4R4A4_UNORM_PACK16: return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
+			case Core::Format::FORMAT_R5G6B5_UNORM_PACK16: return VK_FORMAT_R5G6B5_UNORM_PACK16;
+			case Core::Format::FORMAT_B5G6R5_UNORM_PACK16: return VK_FORMAT_B5G6R5_UNORM_PACK16;
+			case Core::Format::FORMAT_R5G5B5A1_UNORM_PACK16: return VK_FORMAT_R5G5B5A1_UNORM_PACK16;
+			case Core::Format::FORMAT_B5G5R5A1_UNORM_PACK16: return VK_FORMAT_B5G5R5A1_UNORM_PACK16;
+			case Core::Format::FORMAT_A1R5G5B5_UNORM_PACK16: return VK_FORMAT_A1R5G5B5_UNORM_PACK16;
+			case Core::Format::FORMAT_R8_UNORM: return VK_FORMAT_R8_UNORM;
+			case Core::Format::FORMAT_R8_SNORM: return VK_FORMAT_R8_SNORM;
+			case Core::Format::FORMAT_R8_USCALED: return VK_FORMAT_R8_USCALED;
+			case Core::Format::FORMAT_R8_SSCALED: return VK_FORMAT_R8_SSCALED;
+			case Core::Format::FORMAT_R8_UINT: return VK_FORMAT_R8_UINT;
+			case Core::Format::FORMAT_R8_SINT: return VK_FORMAT_R8_SINT;
+			case Core::Format::FORMAT_R8_SRGB: return VK_FORMAT_R8_SRGB;
+			case Core::Format::FORMAT_R8G8_UNORM: return VK_FORMAT_R8G8_UNORM;
+			case Core::Format::FORMAT_R8G8_SNORM: return VK_FORMAT_R8G8_SNORM;
+			case Core::Format::FORMAT_R8G8_USCALED: return VK_FORMAT_R8G8_USCALED;
+			case Core::Format::FORMAT_R8G8_SSCALED: return VK_FORMAT_R8G8_SSCALED;
+			case Core::Format::FORMAT_R8G8_UINT: return VK_FORMAT_R8G8_UINT;
+			case Core::Format::FORMAT_R8G8_SINT: return VK_FORMAT_R8G8_SINT;
+			case Core::Format::FORMAT_R8G8_SRGB: return VK_FORMAT_R8G8_SRGB;
+			case Core::Format::FORMAT_R8G8B8_UNORM: return VK_FORMAT_R8G8B8_UNORM;
+			case Core::Format::FORMAT_R8G8B8_SNORM: return VK_FORMAT_R8G8B8_SNORM;
+			case Core::Format::FORMAT_R8G8B8_USCALED: return VK_FORMAT_R8G8B8_USCALED;
+			case Core::Format::FORMAT_R8G8B8_SSCALED: return VK_FORMAT_R8G8B8_SSCALED;
+			case Core::Format::FORMAT_R8G8B8_UINT: return VK_FORMAT_R8G8B8_UINT;
+			case Core::Format::FORMAT_R8G8B8_SINT: return VK_FORMAT_R8G8B8_SINT;
+			case Core::Format::FORMAT_R8G8B8_SRGB: return VK_FORMAT_R8G8B8_SRGB;
+			case Core::Format::FORMAT_B8G8R8_UNORM: return VK_FORMAT_B8G8R8_UNORM;
+			case Core::Format::FORMAT_B8G8R8_SNORM: return VK_FORMAT_B8G8R8_SNORM;
+			case Core::Format::FORMAT_B8G8R8_USCALED: return VK_FORMAT_B8G8R8_USCALED;
+			case Core::Format::FORMAT_B8G8R8_SSCALED: return VK_FORMAT_B8G8R8_SSCALED;
+			case Core::Format::FORMAT_B8G8R8_UINT: return VK_FORMAT_B8G8R8_UINT;
+			case Core::Format::FORMAT_B8G8R8_SINT: return VK_FORMAT_B8G8R8_SINT;
+			case Core::Format::FORMAT_B8G8R8_SRGB: return VK_FORMAT_B8G8R8_SRGB;
+			case Core::Format::FORMAT_R8G8B8A8_UNORM: return VK_FORMAT_R8G8B8A8_UNORM;
+			case Core::Format::FORMAT_R8G8B8A8_SNORM: return VK_FORMAT_R8G8B8A8_SNORM;
+			case Core::Format::FORMAT_R8G8B8A8_USCALED: return VK_FORMAT_R8G8B8A8_USCALED;
+			case Core::Format::FORMAT_R8G8B8A8_SSCALED: return VK_FORMAT_R8G8B8A8_SSCALED;
+			case Core::Format::FORMAT_R8G8B8A8_UINT: return VK_FORMAT_R8G8B8A8_UINT;
+			case Core::Format::FORMAT_R8G8B8A8_SINT: return VK_FORMAT_R8G8B8A8_SINT;
+			case Core::Format::FORMAT_R8G8B8A8_SRGB: return VK_FORMAT_R8G8B8A8_SRGB;
+			case Core::Format::FORMAT_B8G8R8A8_UNORM: return VK_FORMAT_B8G8R8A8_UNORM;
+			case Core::Format::FORMAT_B8G8R8A8_SNORM: return VK_FORMAT_B8G8R8A8_SNORM;
+			case Core::Format::FORMAT_B8G8R8A8_USCALED: return VK_FORMAT_B8G8R8A8_USCALED;
+			case Core::Format::FORMAT_B8G8R8A8_SSCALED: return VK_FORMAT_B8G8R8A8_SSCALED;
+			case Core::Format::FORMAT_B8G8R8A8_UINT: return VK_FORMAT_B8G8R8A8_UINT;
+			case Core::Format::FORMAT_B8G8R8A8_SINT: return VK_FORMAT_B8G8R8A8_SINT;
+			case Core::Format::FORMAT_B8G8R8A8_SRGB: return VK_FORMAT_B8G8R8A8_SRGB;
+				// Add more cases as needed for all the remaining formats...
+			default: return VK_FORMAT_UNDEFINED;
+		}
+	}
+
+	VkPolygonMode UtilitiesVulkan::PolygonToVulkanType(Pipeline::PolygonMode polygonMode) {
+		switch (polygonMode)
+		{
+			case Pipeline::PolygonMode::POLYGON_MODE_FILL: return VK_POLYGON_MODE_FILL;
+			case Pipeline::PolygonMode::POLYGON_MODE_LINE: return VK_POLYGON_MODE_LINE;
+			case Pipeline::PolygonMode::POLYGON_MODE_POINT: return VK_POLYGON_MODE_POINT;
+			default: return VK_POLYGON_MODE_FILL;
+		}
+	}
+
+	VkFrontFace UtilitiesVulkan::FrontFaceToVulkanType(Pipeline::FrontFace frontFace) {
+		switch (frontFace) {
+			case Pipeline::FrontFace::COUTNER_CLOCKWISE: return VK_FRONT_FACE_COUNTER_CLOCKWISE;
+			case Pipeline::FrontFace::CLOCKWISE: return VK_FRONT_FACE_CLOCKWISE;
+			default: return VK_FRONT_FACE_COUNTER_CLOCKWISE;  // Default to counter-clockwise
+		}
+	}
+
+	VkCompareOp UtilitiesVulkan::CompareOpToVulkanType(Pipeline::CompareOp compareOp) {
+		switch (compareOp) {
+			case Pipeline::CompareOp::COMPARE_OP_NEVER: return VK_COMPARE_OP_NEVER;
+			case Pipeline::CompareOp::COMPARE_OP_LESS: return VK_COMPARE_OP_LESS;
+			case Pipeline::CompareOp::COMPARE_OP_EQUAL: return VK_COMPARE_OP_EQUAL;
+			case Pipeline::CompareOp::COMPARE_OP_LESS_OR_EQUAL: return VK_COMPARE_OP_LESS_OR_EQUAL;
+			case Pipeline::CompareOp::COMPARE_OP_GREATER: return VK_COMPARE_OP_GREATER;
+			case Pipeline::CompareOp::COMPARE_OP_NOT_EQUAL: return VK_COMPARE_OP_NOT_EQUAL;
+			case Pipeline::CompareOp::COMPARE_OP_GREATER_OR_EQUAL: return VK_COMPARE_OP_GREATER_OR_EQUAL;
+			case Pipeline::CompareOp::COMPARE_OP_ALWAYS: return VK_COMPARE_OP_ALWAYS;
+			default: return VK_COMPARE_OP_NEVER;  // Fallback to a safe default value
+		}
+	}
 }

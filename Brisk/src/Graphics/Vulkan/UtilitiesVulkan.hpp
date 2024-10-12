@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Engine/Renderer/RHI.hpp"
+#include "Engine/Renderer/Pipeline.hpp"
+
 #include <Volk/volk.h>
 #define GLFW_INCLUDE_VULKAN
 
@@ -21,5 +24,10 @@ namespace Brisk
 
 		static const VkShaderModule CreateShaderModule(VkDevice device, const std::string& path);
 		static std::vector<char>* ReadShaderFile(const std::string& fileName);
+
+		static VkFormat FormatToVulkanType(Core::Format format);
+		static VkPolygonMode PolygonToVulkanType(Pipeline::PolygonMode polygonMode);
+		static VkFrontFace FrontFaceToVulkanType(Pipeline::FrontFace frontFace);
+		static VkCompareOp CompareOpToVulkanType(Pipeline::CompareOp compareOp);
 	};
 }

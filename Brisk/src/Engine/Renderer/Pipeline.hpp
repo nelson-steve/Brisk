@@ -35,11 +35,20 @@ namespace Brisk
         };
 
         enum PolygonMode {
-
+            POLYGON_MODE_FILL = 0,
+            POLYGON_MODE_LINE = 1,
+            POLYGON_MODE_POINT = 2,
         };
 
         enum CompareOp {
-
+            COMPARE_OP_NEVER = 0,
+            COMPARE_OP_LESS = 1,
+            COMPARE_OP_EQUAL = 2,
+            COMPARE_OP_LESS_OR_EQUAL = 3,
+            COMPARE_OP_GREATER = 4,
+            COMPARE_OP_NOT_EQUAL = 5,
+            COMPARE_OP_GREATER_OR_EQUAL = 6,
+            COMPARE_OP_ALWAYS = 7,
         };
 
         enum ShaderStage {

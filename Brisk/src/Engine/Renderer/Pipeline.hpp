@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RenderPass.hpp"
+#include "Shader.hpp"
 
 #include <cstdint>
 #include <vector>

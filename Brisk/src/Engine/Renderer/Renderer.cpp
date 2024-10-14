@@ -16,6 +16,7 @@ namespace Brisk
         renderPassSpecs.pAttachments.push_back({ Core::Format::FORMAT_R8G8B8A8_SRGB, true, RenderPass::AttachmentType::Swapchain, false});
         renderPassSpecs.pAttachments.push_back({ Core::Format::FORMAT_D32_SFLOAT, true, RenderPass::AttachmentType::Depth, true });
         pipelineSpecs.pRenderPass = RenderPass::Create();
+        pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 
         std::shared_ptr<Shader> vertexShader = Shader::Create();
         vertexShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));

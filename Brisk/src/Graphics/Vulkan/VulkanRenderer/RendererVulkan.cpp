@@ -1,9 +1,8 @@
 ﻿#include "RendererVulkan.hpp"
 #include "../SwapchainVulkan.hpp"
 #include "../RenderPassVulkan.hpp"
-#include "../VulkanUtilities.hpp"
+#include "../UtilitiesVulkan.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
-#include "Editor/Editor.hpp"
 
 #define GLM_FORCE_RADIANS
 #include <glm/glm.hpp>
@@ -142,76 +141,6 @@ namespace Brisk {
     //}
 
     void RendererVulkan::Init() {
-        volkInitialize();
-
-        s_ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
-
-        VkApplicationInfo appInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
-        appInfo.pApplicationName = "Demo";
-        appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-        appInfo.pEngineName = Engine::s_EngineInfo.EngineName.c_str();
-        appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-        appInfo.apiVersion = VK_API_VERSION_1_0;
-
-        s_Extensions = VulkanUtilities::GetRequiredExtensions();
-        m_ValidationLayersFound = false;
-#if _DEBUG
-        m_ValidationLayersFound = VulkanUtilities::CheckValidationLayerSupport(s_ValidationLayers);
-        if (!m_ValidationLayersFound) {
-            BRISK_APP_ERROR("Validation layers not found");
-        }
-#endif
-        VkInstanceCreateInfo createInfo{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
-        createInfo.pApplicationInfo = &appInfo;
-        createInfo.enabledExtensionCount = static_cast<uint32_t>(s_Extensions.size());
-        createInfo.ppEnabledExtensionNames = s_Extensions.data();
-#if _DEBUG
-        createInfo.enabledLayerCount =
-            m_ValidationLayersFound ? static_cast<uint32_t>(s_ValidationLayers.size()) : 0;
-        createInfo.ppEnabledLayerNames =
-            m_ValidationLayersFound ? s_ValidationLayers.data() : nullptr;
-
-        VulkanUtilities::PopulateDebugMessengerCreateInfo(s_DebugCreateInfo);
-        createInfo.pNext = &s_DebugCreateInfo;
-#endif
-        VK_LOG(vkCreateInstance(&createInfo, nullptr, &s_Instance),
-            "Failed to create Vulkan instance");
-
-        volkLoadInstance(s_Instance);
-
-#if _DEBUG
-        VkResult result = VulkanUtilities::CreateDebugUtilsMessengerEXT(s_Instance, s_DebugCreateInfo, s_DebugMessenger);
-        if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
-            BRISK_APP_ERROR("Debug Utils extension not present");
-        }
-        else if (result != VK_SUCCESS) {
-            BRISK_APP_ERROR("Failed to create debug messenger");
-        }
-#endif
-
-        s_RequiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-
-        std::vector<GpuDeviceVulkan::QueueType> queueTypes;
-        std::vector<GpuDeviceVulkan::DeviceFeatures> features;
-        GpuDeviceVulkan::GpuRequirements req{};
-
-        s_GPUDevice = new GpuDeviceVulkan();
-        std::vector<VkPhysicalDevice> availableDevices = s_GPUDevice->RetrieveAvailableDevice();
-        bool deviceFound = false;
-        for (const auto& device : availableDevices) {
-            if (s_GPUDevice->IsDeviceSuitable(device, req)) {
-                s_GPUDevice->SetPhysicalDevice(device);
-                deviceFound = true;
-                break;
-            }
-        }
-        if (!deviceFound) {
-            BRISK_CORE_ERROR("Failed to find a suitable GPU!");
-        }
-
-        s_Surface = SurfaceFactoryVulkan::CreateNativeSurface(s_Instance);
-        s_GPUDevice->CreateLogicalDevice(req);
-
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
@@ -322,8 +251,8 @@ namespace Brisk {
         {
             m_Viewport.pPipeline = new GraphicsPipelineVulkan();
 
-            VkShaderModule vertexModule = VulkanUtilities::CreateShaderModule(s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleVS.spv");
-            VkShaderModule fragmentModule = VulkanUtilities::CreateShaderModule(s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleFS.spv");
+            VkShaderModule vertexModule = UtilitiesVulkan::CreateShaderModule(s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleVS.spv");
+            VkShaderModule fragmentModule = UtilitiesVulkan::CreateShaderModule(s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleFS.spv");
             m_Viewport.pPipeline->CreateShaderStage(vertexModule, VK_SHADER_STAGE_VERTEX_BIT);
             m_Viewport.pPipeline->CreateShaderStage(fragmentModule, VK_SHADER_STAGE_FRAGMENT_BIT);
 
@@ -517,8 +446,8 @@ namespace Brisk {
     void RendererVulkan::CreateGraphicsPipeline() {
         m_Pipeline = new GraphicsPipelineVulkan();
 
-        VkShaderModule vertexModule = VulkanUtilities::CreateShaderModule(s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleVS.spv");
-        VkShaderModule fragmentModule = VulkanUtilities::CreateShaderModule(s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleFS.spv");
+        VkShaderModule vertexModule = UtilitiesVulkan::CreateShaderModule(s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleVS.spv");
+        VkShaderModule fragmentModule = UtilitiesVulkan::CreateShaderModule(s_GPUDevice->GetDevice(), "Shaders/Vulkan/Compiled/TriangleFS.spv");
         m_Pipeline->CreateShaderStage(vertexModule, VK_SHADER_STAGE_VERTEX_BIT);
         m_Pipeline->CreateShaderStage(fragmentModule, VK_SHADER_STAGE_FRAGMENT_BIT);
 

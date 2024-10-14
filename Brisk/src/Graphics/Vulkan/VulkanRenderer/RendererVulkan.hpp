@@ -72,21 +72,6 @@ namespace Brisk {
 	private:
 		uint32_t m_ImageIndex;
 
-		/// <summary>
-		/// Vulkan helper variables
-		/// </summary>
-		static std::vector<const char*> s_Extensions;
-		static std::vector<const char*> s_Layers;
-		static std::vector<const char*> s_RequiredExtensions;
-		static std::vector<const char*> s_ValidationLayers;
-		static VkDebugUtilsMessengerCreateInfoEXT s_DebugCreateInfo;
-		static VkDebugUtilsMessengerEXT s_DebugMessenger;
-		static bool m_ValidationLayersFound;
-
-		/// <summary>
-		/// Vulkan handles
-		/// </summary>
-		static VkInstance s_Instance;
 
 		GpuDeviceVulkan* s_GPUDevice;
 		SurfaceVulkan* s_Surface;

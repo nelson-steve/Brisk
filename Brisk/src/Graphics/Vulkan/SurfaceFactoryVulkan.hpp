@@ -35,8 +35,8 @@ namespace Brisk {
 
     class SurfaceFactoryVulkan {
     public:
-        [[nodiscard]] static SurfaceVulkan* CreateNativeSurface(VkInstance instance) {
-            SurfaceVulkan* surface = new SurfaceVulkan();
+        [[nodiscard]] static std::shared_ptr<SurfaceVulkan> CreateNativeSurface(VkInstance instance) {
+            std::shared_ptr<SurfaceVulkan> surface = std::make_shared<SurfaceVulkan>();
             VkResult err;
 #if defined(VK_USE_PLATFORM_WIN32_KHR)
             VkWin32SurfaceCreateInfoKHR surfaceCreateInfo = {};
@@ -132,7 +132,7 @@ namespace Brisk {
 #elif defined(VK_USE_PLATFORM_VI_NN)
             err = vkCreateViSurfaceNN()
 #else
-            if (glfwCreateWindowSurface(instance, (GLFWwindow*)Engine::s_MainWindow->GetWindowHandle(), nullptr, &surface->m_Surface) != VK_SUCCESS) {
+            if (glfwCreateWindowSurface(instance, (GLFWwindow*)Engine::s_Application->GetWindow()->GetWindowHandle(), nullptr, &surface->m_Surface) != VK_SUCCESS) {
                 BRISK_CORE_ERROR("Failed to create window surface!");
 #endif
             }

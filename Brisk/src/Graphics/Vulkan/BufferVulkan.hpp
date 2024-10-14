@@ -1,6 +1,6 @@
 #pragma once
 
-#include "GraphicsPipelineVulkan.hpp"
+#include "PipelineVulkan.hpp"
 #include "Engine/Engine.hpp"
 
 #include <Volk/volk.h>

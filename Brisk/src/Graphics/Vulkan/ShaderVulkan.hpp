@@ -13,6 +13,8 @@ namespace Brisk
 	public:
 		void Init(std::pair<std::string, Pipeline::ShaderStage>);
 		void AddDescriptor(const std::shared_ptr<Descriptor> descriptor);
+
+		const VkPipelineShaderStageCreateInfo GetShaderStage() const { return m_ShaderStage; }
 	private:
 		VkShaderModule m_Module;
 		VkPipelineShaderStageCreateInfo m_ShaderStage;

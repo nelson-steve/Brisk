@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Engine/Renderer/GpuAdapter.hpp"
+
 #include <Volk/volk.h>
 
 #include <vector>
@@ -9,7 +11,7 @@ namespace Brisk
 {
 	struct Queue;
 
-	class GpuDeviceVulkan {
+	class GpuAdapterVulkan : public GpuAdapter {
 	public:
 		enum QueueType {
 			QUEUE_GRAPHICS_BIT,
@@ -32,7 +34,7 @@ namespace Brisk
 		struct QueueFamily {
 			uint32_t Index;
 			uint32_t QueueCount;
-			std::vector<GpuDeviceVulkan::QueueType> SupportedTypes;
+			std::vector<QueueType> SupportedTypes;
 			bool PresentSupport;
 			bool IsExplicitTransferQueue;
 			bool IsExplicitComputeQueue;
@@ -102,7 +104,8 @@ namespace Brisk
 		};
 
 	public:
-		std::vector<VkPhysicalDevice> RetrieveAvailableDevice();
+		void Init();
+		std::vector<VkPhysicalDevice> RetrieveAvailableDevice(VkInstance instance);
 		bool IsDeviceSuitable(VkPhysicalDevice device, const GpuRequirements& requirements);
 		inline void SetPhysicalDevice(VkPhysicalDevice physicalDevice) { m_PhysicalDevice = physicalDevice; }
 		void CreateLogicalDevice(const GpuRequirements& requirements);
@@ -118,5 +121,24 @@ namespace Brisk
 		Queue m_ComputeQueue;
 		Queue m_GraphicsQueue;
 		std::vector<std::vector<float>> m_QueueFamiliesPriorities;
+
+		///
+		/// <summary>
+		/// Vulkan helper variables
+		/// </summary>
+		std::vector<const char*> m_Extensions;
+		std::vector<const char*> m_Layers;
+		std::vector<const char*> m_RequiredExtensions;
+		std::vector<const char*> m_ValidationLayers;
+		VkDebugUtilsMessengerCreateInfoEXT s_DebugCreateInfo;
+		VkDebugUtilsMessengerEXT s_DebugMessenger;
+		bool m_ValidationLayersFound;
+
+		std::shared_ptr<SurfaceVulkan> m_Surface;
+
+		/// <summary>
+		/// Vulkan handles
+		/// </summary>
+		VkInstance m_Instance;
 	};
 }

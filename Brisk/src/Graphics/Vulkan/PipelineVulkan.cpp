@@ -4,10 +4,16 @@
 #include "SwapchainVulkan.hpp"
 #include "Engine/Renderer/Renderer.hpp"
 #include "UtilitiesVulkan.hpp"
+#include "ShaderVulkan.hpp"
+#include "RenderPassVulkan.hpp"
 
 namespace Brisk
 {
     void PipelineVulkan::Init(const Pipeline::PipelineSpecs& specs) {
+        for (int i = 0; i < specs.pShaders[0]->GetDescriptors().size(); i++) {
+            specs.pShaders[i]->GetDescriptors()[i]->Allocate();
+        }
+
         VkPipelineVertexInputStateCreateInfo m_VertexInputInfo{};
         m_VertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         VkVertexInputBindingDescription bindingDescription{};
@@ -85,17 +91,14 @@ namespace Brisk
             throw std::runtime_error("failed to create pipeline layout!");
         }
 
-        VkPipelineShaderStageCreateInfo shaderStageInfo{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
-        shaderStageInfo.stage = stage;
-        shaderStageInfo.module = module;
-        shaderStageInfo.pName = "main";
-
-        m_Modules.push_back(module);
-        m_ShaderStages.push_back(shaderStageInfo);
+        std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
+        for (int i = 0; i < specs.pShaders[0]->GetDescriptors().size(); i++) {
+            shaderStages.push_back(std::static_pointer_cast<ShaderVulkan>(specs.pShaders[i])->GetShaderStage());
+        }
 
         VkGraphicsPipelineCreateInfo pipelineInfo{ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
-        pipelineInfo.stageCount = static_cast<uint32_t>(m_ShaderStages.size());
-        pipelineInfo.pStages = m_ShaderStages.data();
+        pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
+        pipelineInfo.pStages = shaderStages.data();
         pipelineInfo.pVertexInputState = &m_VertexInputInfo;
         pipelineInfo.pInputAssemblyState = &m_InputAssembly;
         pipelineInfo.pViewportState = &m_ViewportState;
@@ -105,20 +108,20 @@ namespace Brisk
         pipelineInfo.pDepthStencilState = &m_DepthStencil;
         pipelineInfo.pDynamicState = &m_DynamicState;
         pipelineInfo.layout = m_PipelineLayout;
-        pipelineInfo.renderPass = renderpass;
+        pipelineInfo.renderPass = std::static_pointer_cast<RenderPassVulkan>(specs.pRenderPass)->GetRenderPass();
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-        if (vkCreateGraphicsPipelines(GpuContextVulkan::s_GPUDevice->GetDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_GraphicsPipeline) != VK_SUCCESS) {
+        if (vkCreateGraphicsPipelines(GpuContextVulkan::s_GPUDevice->GetDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_Pipeline) != VK_SUCCESS) {
             throw std::runtime_error("failed to create graphics pipeline!");
         }
     }
 
-    void GraphicsPipelineVulkan::Destroy() {
-        for (VkShaderModule module : m_Modules) {
-            vkDestroyShaderModule(GpuContextVulkan::s_GPUDevice->GetDevice(), module, nullptr);
-        }
-        vkDestroyPipelineLayout(GpuContextVulkan::s_GPUDevice->GetDevice(), m_PipelineLayout, nullptr);
-        vkDestroyPipeline(GpuContextVulkan::s_GPUDevice->GetDevice(), m_GraphicsPipeline, nullptr);
+    void PipelineVulkan::Destroy() {
+        //for (VkShaderModule module : m_Modules) {
+        //    vkDestroyShaderModule(GpuContextVulkan::s_GPUDevice->GetDevice(), module, nullptr);
+        //}
+        //vkDestroyPipelineLayout(GpuContextVulkan::s_GPUDevice->GetDevice(), m_PipelineLayout, nullptr);
+        //vkDestroyPipeline(GpuContextVulkan::s_GPUDevice->GetDevice(), m_GraphicsPipeline, nullptr);
     }
 }

@@ -1,27 +1,101 @@
-#include "GpuDeviceVulkan.hpp"
+#include "GpuAdapterVulkan.hpp"
 #include "Core/Log.hpp"
 #include "Engine/Engine.hpp"
-#include "GpuContextVulkan.hpp"
+#include "Graphics/Vulkan/UtilitiesVulkan.hpp"
+#include "SurfaceFactoryVulkan.hpp"
 
 #include <set>
 
 namespace Brisk 
 {
-	std::vector<VkPhysicalDevice> GpuDeviceVulkan::RetrieveAvailableDevice() {
+	std::vector<VkPhysicalDevice> GpuAdapterVulkan::RetrieveAvailableDevice(VkInstance instance) {
 		uint32_t device_count = 0;
-		vkEnumeratePhysicalDevices(GpuContextVulkan::s_Instance, &device_count, nullptr);
+		vkEnumeratePhysicalDevices(instance, &device_count, nullptr);
 		std::vector<VkPhysicalDevice> devices;
 		if (device_count == 0) {
 			BRISK_CORE_ERROR("Failed to find GPUs with Vulkan support!");
 			return devices;
 		}
 		devices.resize(device_count);
-		vkEnumeratePhysicalDevices(GpuContextVulkan::s_Instance, &device_count, devices.data());
+		vkEnumeratePhysicalDevices(instance, &device_count, devices.data());
 
 		return devices;
 	}
 
-	void GpuDeviceVulkan::CreateLogicalDevice(const GpuRequirements& requirements) {
+	void GpuAdapterVulkan::Init() {
+		volkInitialize();
+
+		m_ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
+
+		VkApplicationInfo appInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
+		appInfo.pApplicationName = "Demo";
+		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
+		appInfo.pEngineName = Engine::s_EngineInfo.EngineName.c_str();
+		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
+		appInfo.apiVersion = VK_API_VERSION_1_0;
+
+		m_Extensions = UtilitiesVulkan::GetRequiredExtensions();
+		m_ValidationLayersFound = false;
+#if _DEBUG
+		m_ValidationLayersFound = UtilitiesVulkan::CheckValidationLayerSupport(m_ValidationLayers);
+		if (!m_ValidationLayersFound) {
+			BRISK_APP_ERROR("Validation layers not found");
+		}
+#endif
+		VkInstanceCreateInfo createInfo{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
+		createInfo.pApplicationInfo = &appInfo;
+		createInfo.enabledExtensionCount = static_cast<uint32_t>(m_Extensions.size());
+		createInfo.ppEnabledExtensionNames = m_Extensions.data();
+#if _DEBUG
+		createInfo.enabledLayerCount =
+			m_ValidationLayersFound ? static_cast<uint32_t>(m_ValidationLayers.size()) : 0;
+		createInfo.ppEnabledLayerNames =
+			m_ValidationLayersFound ? m_ValidationLayers.data() : nullptr;
+
+		UtilitiesVulkan::PopulateDebugMessengerCreateInfo(s_DebugCreateInfo);
+		createInfo.pNext = &s_DebugCreateInfo;
+#endif
+		if ((vkCreateInstance(&createInfo, nullptr, &m_Instance) != VK_SUCCESS)) {
+			std::cout << "Failed to create Vulkan instance";
+		}
+
+		volkLoadInstance(m_Instance);
+
+#if _DEBUG
+		VkResult result = UtilitiesVulkan::CreateDebugUtilsMessengerEXT(m_Instance, s_DebugCreateInfo, s_DebugMessenger);
+		if (result == VK_ERROR_EXTENSION_NOT_PRESENT) {
+			BRISK_APP_ERROR("Debug Utils extension not present");
+		}
+		else if (result != VK_SUCCESS) {
+			BRISK_APP_ERROR("Failed to create debug messenger");
+		}
+#endif
+
+		m_RequiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+
+		std::vector<QueueType> queueTypes;
+		std::vector<DeviceFeatures> features;
+		GpuAdapterVulkan::GpuRequirements req{};
+
+		std::vector<VkPhysicalDevice> availableDevices = RetrieveAvailableDevice(m_Instance);
+		bool deviceFound = false;
+		for (const auto& device : availableDevices) {
+			if (IsDeviceSuitable(device, req)) {
+				SetPhysicalDevice(device);
+				deviceFound = true;
+				break;
+			}
+		}
+		if (!deviceFound) {
+			BRISK_CORE_ERROR("Failed to find a suitable GPU!");
+		}
+
+		m_Surface = SurfaceFactoryVulkan::CreateNativeSurface(m_Instance);
+
+		CreateLogicalDevice(req);
+	}
+
+	void GpuAdapterVulkan::CreateLogicalDevice(const GpuRequirements& requirements) {
 		uint32_t queueFamilyCount = 0;
 		vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &queueFamilyCount, nullptr);
 
@@ -41,35 +115,35 @@ namespace Brisk
 			queueFamily.QueueCount = queueFamilies[i].queueCount;
 
 			VkBool32 presentSupport;
-			vkGetPhysicalDeviceSurfaceSupportKHR(m_PhysicalDevice, i, GpuContextVulkan::s_Surface->GetSurface(), &presentSupport);
+			vkGetPhysicalDeviceSurfaceSupportKHR(m_PhysicalDevice, i, m_Surface->GetSurface(), &presentSupport);
 			queueFamily.PresentSupport = presentSupport;
 
 			if (queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
 				isGraphics = true;
-				queueFamily.SupportedTypes.push_back(GpuDeviceVulkan::QueueType::QUEUE_GRAPHICS_BIT);
+				queueFamily.SupportedTypes.push_back(GpuAdapterVulkan::QueueType::QUEUE_GRAPHICS_BIT);
 			}
 			if (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT) {
 				isCompute = true;
-				queueFamily.SupportedTypes.push_back(GpuDeviceVulkan::QueueType::QUEUE_COMPUTE_BIT);
+				queueFamily.SupportedTypes.push_back(GpuAdapterVulkan::QueueType::QUEUE_COMPUTE_BIT);
 			}
 			if (queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT) {
 				isTransfer = true;
-				queueFamily.SupportedTypes.push_back(GpuDeviceVulkan::QueueType::QUEUE_TRANSFER_BIT);
+				queueFamily.SupportedTypes.push_back(GpuAdapterVulkan::QueueType::QUEUE_TRANSFER_BIT);
 			}
 			if (queueFamilies[i].queueFlags & VK_QUEUE_SPARSE_BINDING_BIT) {
-				queueFamily.SupportedTypes.push_back(GpuDeviceVulkan::QueueType::QUEUE_SPARSE_BINDING_BIT);
+				queueFamily.SupportedTypes.push_back(GpuAdapterVulkan::QueueType::QUEUE_SPARSE_BINDING_BIT);
 			}
 			if (queueFamilies[i].queueFlags & VK_QUEUE_PROTECTED_BIT) {
-				queueFamily.SupportedTypes.push_back(GpuDeviceVulkan::QueueType::QUEUE_PROTECTED_BIT);
+				queueFamily.SupportedTypes.push_back(GpuAdapterVulkan::QueueType::QUEUE_PROTECTED_BIT);
 			}
 			if (queueFamilies[i].queueFlags & VK_QUEUE_VIDEO_DECODE_BIT_KHR) {
-				queueFamily.SupportedTypes.push_back(GpuDeviceVulkan::QueueType::QUEUE_VIDEO_DECODE_BIT_KHR);
+				queueFamily.SupportedTypes.push_back(GpuAdapterVulkan::QueueType::QUEUE_VIDEO_DECODE_BIT_KHR);
 			}
 			if (queueFamilies[i].queueFlags & VK_QUEUE_VIDEO_ENCODE_BIT_KHR) {
-				queueFamily.SupportedTypes.push_back(GpuDeviceVulkan::QueueType::QUEUE_VIDEO_ENCODE_BIT_KHR);
+				queueFamily.SupportedTypes.push_back(GpuAdapterVulkan::QueueType::QUEUE_VIDEO_ENCODE_BIT_KHR);
 			}
 			if (queueFamilies[i].queueFlags & VK_QUEUE_OPTICAL_FLOW_BIT_NV) {
-				queueFamily.SupportedTypes.push_back(GpuDeviceVulkan::QueueType::QUEUE_OPTICAL_FLOW_BIT_NV);
+				queueFamily.SupportedTypes.push_back(GpuAdapterVulkan::QueueType::QUEUE_OPTICAL_FLOW_BIT_NV);
 			}
 
 			if (isTransfer && !isGraphics && !isCompute)
@@ -186,12 +260,12 @@ namespace Brisk
 		}
 	}
 
-	void GpuDeviceVulkan::Release() {
+	void GpuAdapterVulkan::Release() {
 		vkDestroyDevice(m_Device, nullptr);
 	}
 
-	bool GpuDeviceVulkan::IsDeviceSuitable(VkPhysicalDevice device, const GpuRequirements& requirements) {
-		std::vector<const char*>& extensions = GpuContextVulkan::s_RequiredExtensions;
+	bool GpuAdapterVulkan::IsDeviceSuitable(VkPhysicalDevice device, const GpuRequirements& requirements) {
+		std::vector<const char*>& extensions = m_RequiredExtensions;
 		bool extensionsSupported = false;
 		uint32_t extensionCount;
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);

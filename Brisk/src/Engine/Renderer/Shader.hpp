@@ -34,7 +34,7 @@ namespace Brisk
 			DescriptorLayout p_DescriptorLayout;
 		};
 
-		void Init(std::pair < std::string, Pipeline::ShaderStage);
+		void Init(std::pair<std::string, Pipeline::ShaderStage>);
 		void AddDescriptor(const std::shared_ptr<Descriptor> descriptor);
 
 		static std::shared_ptr<Shader> Create();

@@ -71,10 +71,10 @@ namespace Brisk
             bool pDepthBoundsTestEnable;
             bool pStencilTestEnable;
             std::shared_ptr<RenderPass> pRenderPass;
-            std::vector<std::pair<std::string, ShaderStage>> pShaders;
+            std::vector<std::shared_ptr<Shader>> pShaders;
         };
     public:
-        static std::shared_ptr<Pipeline> Create(const PipelineSpecs& specs);
+        static std::shared_ptr<Pipeline> Create();
 
         virtual void Init(const PipelineSpecs& specs) = 0;
 

@@ -1,4 +1,9 @@
 #pragma once
+
+#include "Descriptor.hpp"
+#include "Pipeline.hpp"
+
+#include <vector>
 #include <cstdint>
 
 namespace Brisk 
@@ -28,7 +33,12 @@ namespace Brisk
 			ShaderType p_ShaderType;
 			DescriptorLayout p_DescriptorLayout;
 		};
+
+		void Init(std::pair < std::string, Pipeline::ShaderStage);
+		void AddDescriptor(const std::shared_ptr<Descriptor> descriptor);
+
+		static std::shared_ptr<Shader> Create();
 	public:
-		std::vector<Binding> 
+		std::vector<std::shared_ptr<Descriptor>> m_Descriptors;
 	};
 }

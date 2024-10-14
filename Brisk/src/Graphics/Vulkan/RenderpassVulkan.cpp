@@ -2,7 +2,7 @@
 
 #include "Engine/Engine.hpp"
 #include "SwapchainVulkan.hpp"
-#include "GraphicsPipelineVulkan.hpp"
+#include "PipelineVulkan.hpp"
 
 namespace Brisk 
 {

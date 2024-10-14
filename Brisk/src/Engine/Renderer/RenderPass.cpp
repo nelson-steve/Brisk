@@ -3,7 +3,7 @@
 
 namespace Brisk 
 {
-	std::shared_ptr<RenderPass> RenderPass::Create(const RenderPassSpecs& specs) {
+	std::shared_ptr<RenderPass> RenderPass::Create() {
 		return std::make_shared<RenderPassVulkan>();
 	}
 }

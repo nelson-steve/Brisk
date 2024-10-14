@@ -3,7 +3,7 @@
 
 namespace Brisk 
 {
-    std::shared_ptr<Pipeline> Pipeline::Create(const PipelineSpecs& specs) {
-        return std::make_shared<PipelineVulkan>(specs);
+    std::shared_ptr<Pipeline> Pipeline::Create() {
+        return std::make_shared<PipelineVulkan>();
     }
 }

@@ -2,6 +2,7 @@
 
 #include <cstdint>
 #include <memory>
+#include <vector>
 
 namespace Brisk
 {
@@ -23,6 +24,10 @@ namespace Brisk
 		virtual void Allocate() = 0;
 		virtual void Update() = 0;
 
+		void AddBindingLayout(uint32_t, uint32_t, Descriptor::DescriptorType);
+
 		static std::shared_ptr<Descriptor> Create();
+	protected:
+		std::vector<Layout> m_Layouts;
 	};
 }

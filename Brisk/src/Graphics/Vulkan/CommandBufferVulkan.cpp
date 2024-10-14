@@ -1,6 +1,6 @@
 #include "CommandBufferVulkan.hpp"
 #include "Engine/Engine.hpp"
-#include "GpuContextVulkan.hpp"
+#include "GpuAdapterVulkan.hpp"
 
 namespace Brisk {
 	void CommandBufferVulkan::Allocate(VkCommandPool pool) {
@@ -11,7 +11,7 @@ namespace Brisk {
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		allocInfo.commandBufferCount = 1;
 
-		if (vkAllocateCommandBuffers(GpuContextVulkan::s_GPUDevice->GetDevice(), &allocInfo, &m_CommandBuffer) != VK_SUCCESS) {
+		if (vkAllocateCommandBuffers(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfo, &m_CommandBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate command buffers!");
 		}
 	}

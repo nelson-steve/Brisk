@@ -1,7 +1,7 @@
 #pragma once
 
 #include "RenderPass.hpp"
-#include "Texture.hpp"
+//#include "Texture.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -16,7 +16,7 @@ namespace Brisk
             uint32_t pHeight;
             uint32_t pLayers;
             std::shared_ptr<RenderPass> pRenderPass;
-            std::vector<Texture> pAttachments;
+            //std::vector<Texture> pAttachments;
         };
 
     public:

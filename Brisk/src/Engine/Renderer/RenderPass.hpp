@@ -42,7 +42,7 @@ namespace Brisk
     public:
         virtual ~RenderPass() = default;
 
-        virtual void Init(const RenderPassSpecs& specs);
+        virtual void Init(const RenderPassSpecs& specs) = 0;
         virtual void Begin() = 0;
         virtual void End() = 0;
 

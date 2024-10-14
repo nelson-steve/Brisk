@@ -20,11 +20,15 @@ namespace Brisk
 		};
 
 	public:
-		virtual void AddLayout() = 0;
 		virtual void Allocate() = 0;
 		virtual void Update() = 0;
 
-		void AddBindingLayout(uint32_t, uint32_t, Descriptor::DescriptorType);
+		void AddBindingLayout(uint32_t binding, uint32_t count, Descriptor::DescriptorType type) {
+			Layout layout{};
+			layout.p_Binding = binding;
+			layout.p_DescriptorCount = count;
+			layout.p_Type = type;
+		}
 
 		static std::shared_ptr<Descriptor> Create();
 	protected:

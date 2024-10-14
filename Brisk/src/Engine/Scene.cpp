@@ -3,7 +3,7 @@
 namespace Brisk {
 
 	void BriskScene::Update() {
-		SceneRenderer::Begin(this);
-		SceneRenderer::End();
+		//SceneRenderer::Begin(this);
+		//SceneRenderer::End();
 	}
 }

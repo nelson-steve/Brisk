@@ -1,4 +1,7 @@
 #include "DescriptorVulkan.hpp"
+#include "Engine/Engine.hpp"
+#include "Engine/Application.hpp"
+#include "Graphics/Vulkan/GpuAdapterVulkan.hpp"
 
 namespace Brisk 
 {
@@ -21,8 +24,8 @@ namespace Brisk
         layoutInfo.pBindings = layoutBindings.data();
 
         m_DescriptorLayouts.resize(1);
-        if (vkCreateDescriptorSetLayout(s_GPUDevice->GetDevice(), &layoutInfo, nullptr, &m_DescriptorLayouts[0]) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create descriptor set layout!");
+        if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, &m_DescriptorLayouts[0]) != VK_SUCCESS) {
+            //throw std::runtime_error("failed to create descriptor set layout!");
         }
 	}
 
@@ -33,15 +36,15 @@ namespace Brisk
         allocInfo.descriptorSetCount = static_cast<uint32_t>(m_DescriptorLayouts.size());
         allocInfo.pSetLayouts = m_DescriptorLayouts.data();
 
-        if (vkAllocateDescriptorSets(s_GPUDevice->GetDevice(), &allocInfo, &m_Set) != VK_SUCCESS) {
-            throw std::runtime_error("failed to allocate descriptor sets!");
+        if (vkAllocateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfo, &m_Set) != VK_SUCCESS) {
+            //throw std::runtime_error("failed to allocate descriptor sets!");
         }
 	}
 
 	void DescriptorVulkan::Update() {
 	//void DescriptorVulkan::Update(uint32_t destination, uint32_t destinationElement) {
         VkDescriptorBufferInfo bufferInfo{};
-        bufferInfo.buffer = m_UniformBuffer->Get();
+        //bufferInfo.buffer = m_UniformBuffer->Get();
         bufferInfo.offset = 0;
         bufferInfo.range = sizeof(MVPBuffer);
 
@@ -54,6 +57,6 @@ namespace Brisk
         descriptorWrite.descriptorCount = 1;
         descriptorWrite.pBufferInfo = &bufferInfo;
 
-        vkUpdateDescriptorSets(s_GPUDevice->GetDevice(), 1, &descriptorWrite, 0, nullptr);
+        vkUpdateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &descriptorWrite, 0, nullptr);
 	}
 }

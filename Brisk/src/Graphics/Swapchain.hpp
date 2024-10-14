@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engine/WindowBase.hpp"
+#include "Engine/Window.hpp"
 
 namespace Brisk 
 {
@@ -16,7 +16,7 @@ namespace Brisk
 			TRIPLE_BUFFERING = 3U,
 		};
 	public:
-		Swapchain(WindowBase* window, uint32_t width, uint32_t height);
+		Swapchain(std::shared_ptr<Window> window, uint32_t width, uint32_t height);
 
 		virtual void Create(Mode mode = Mode::DOUBLE_BUFFERING) = 0;
 		virtual void Release() = 0;
@@ -33,7 +33,7 @@ namespace Brisk
 		virtual uint32_t GetExtentWidth() const = 0;
 		virtual uint32_t GetExtentHeight() const = 0;
 	protected:
-		WindowBase* m_Window;
+		std::shared_ptr<Window> m_Window;
 		uint32_t m_ImageCount;
 	private:
 		Mode m_SwapchainMode;

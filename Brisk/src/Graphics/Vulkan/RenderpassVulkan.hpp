@@ -10,14 +10,16 @@
 namespace Brisk {
     class RenderPassVulkan : public RenderPass {
     public:
-        void Init(const RenderPassSpecs& specs);
+        virtual void Init(const RenderPassSpecs& specs) override;
+        virtual void Begin() override {}
+        virtual void End() override {}
 
-        void ReleaseFramebuffers();
-        void CreateNAddFramebuffer(std::vector<VkImageView> attachments, uint32_t width, uint32_t height);
+        void ReleaseFramebuffers() {};
+        void CreateNAddFramebuffer(std::vector<VkImageView> attachments, uint32_t width, uint32_t height) {}
 
         //void BindPipeline(void* pipeline);
-        void BeginRenderPass(CommandBufferVulkan* commandBuffer, int imageIndex);
-        void EndRenderPass(CommandBufferVulkan* commandBuffer, bool endCmdBuffer = true);
+        void BeginRenderPass(CommandBufferVulkan* commandBuffer, int imageIndex) {}
+        void EndRenderPass(CommandBufferVulkan* commandBuffer, bool endCmdBuffer = true) {}
 
         VkRenderPass GetRenderPass() const { return m_RenderPass; }
         const std::vector<VkFramebuffer> GetFramebuffers() const { return m_Framebuffers; }

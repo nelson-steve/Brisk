@@ -1,5 +1,5 @@
 #include "UtilitiesVulkan.hpp"
-#include "GpuDeviceVulkan.hpp"
+#include "GpuAdapterVulkan.hpp"
 #include "Engine/Window.hpp"
 #include "Core/Log.hpp"
 

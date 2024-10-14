@@ -1,6 +1,6 @@
 #include "TextureVulkan.hpp"
-#include "GpuContextVulkan.hpp"
-#include "VulkanUtilities.hpp"
+#include "UtilitiesVulkan.hpp"
+#include "GpuAdapterVulkan.hpp"
 
 namespace Brisk 
 {
@@ -20,23 +20,23 @@ namespace Brisk
         imageinfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
         imageinfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         imageinfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        if (vkCreateImage(GpuContextVulkan::s_GPUDevice->GetDevice(), &imageinfo, nullptr, &m_Image) != VK_SUCCESS) {
+        if (vkCreateImage(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &imageinfo, nullptr, &m_Image) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create image");
         }
 
         VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(GpuContextVulkan::s_GPUDevice->GetDevice(), m_Image, &memRequirements);
+        vkGetImageMemoryRequirements(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Image, &memRequirements);
 
         VkMemoryAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = VulkanUtilities::FindMemoryType(GpuContextVulkan::s_GPUDevice->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        allocInfo.memoryTypeIndex = UtilitiesVulkan::FindMemoryType(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-        if (vkAllocateMemory(GpuContextVulkan::s_GPUDevice->GetDevice(), &allocInfo, nullptr, &m_Memory) != VK_SUCCESS) {
+        if (vkAllocateMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfo, nullptr, &m_Memory) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate image memory!");
         }
 
-        vkBindImageMemory(GpuContextVulkan::s_GPUDevice->GetDevice(), m_Image, m_Memory, 0);
+        vkBindImageMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Image, m_Memory, 0);
 
         // Image view
         VkImageViewCreateInfo imageView{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
@@ -51,7 +51,7 @@ namespace Brisk
         imageView.subresourceRange.baseArrayLayer = 0;
         imageView.subresourceRange.layerCount = 1;
 
-        if (vkCreateImageView(GpuContextVulkan::s_GPUDevice->GetDevice(), &imageView, nullptr, &m_ImageView) != VK_SUCCESS) {
+        if (vkCreateImageView(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &imageView, nullptr, &m_ImageView) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor pool!");
         }
 
@@ -66,7 +66,7 @@ namespace Brisk
         samplerInfo.minLod = -1000;
         samplerInfo.maxLod = 1000;
         samplerInfo.maxAnisotropy = 1.0f;
-        if (vkCreateSampler(GpuContextVulkan::s_GPUDevice->GetDevice(), &samplerInfo, nullptr, &m_Sampler) != VK_SUCCESS) {
+        if (vkCreateSampler(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &samplerInfo, nullptr, &m_Sampler) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor pool!");
         }
     }
@@ -87,23 +87,23 @@ namespace Brisk
         imageinfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
         imageinfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         imageinfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        if (vkCreateImage(GpuContextVulkan::s_GPUDevice->GetDevice(), &imageinfo, nullptr, &m_Image) != VK_SUCCESS) {
+        if (vkCreateImage(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &imageinfo, nullptr, &m_Image) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create image");
         }
 
         VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(GpuContextVulkan::s_GPUDevice->GetDevice(), m_Image, &memRequirements);
+        vkGetImageMemoryRequirements(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Image, &memRequirements);
 
         VkMemoryAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = VulkanUtilities::FindMemoryType(GpuContextVulkan::s_GPUDevice->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        allocInfo.memoryTypeIndex = UtilitiesVulkan::FindMemoryType(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-        if (vkAllocateMemory(GpuContextVulkan::s_GPUDevice->GetDevice(), &allocInfo, nullptr, &m_Memory) != VK_SUCCESS) {
+        if (vkAllocateMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfo, nullptr, &m_Memory) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate image memory!");
         }
 
-        vkBindImageMemory(GpuContextVulkan::s_GPUDevice->GetDevice(), m_Image, m_Memory, 0);
+        vkBindImageMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Image, m_Memory, 0);
 
         // Image view
         VkImageViewCreateInfo imageView{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
@@ -118,7 +118,7 @@ namespace Brisk
         imageView.subresourceRange.baseArrayLayer = 0;
         imageView.subresourceRange.layerCount = 1;
 
-        if (vkCreateImageView(GpuContextVulkan::s_GPUDevice->GetDevice(), &imageView, nullptr, &m_ImageView) != VK_SUCCESS) {
+        if (vkCreateImageView(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &imageView, nullptr, &m_ImageView) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor pool!");
         }
 
@@ -135,7 +135,7 @@ namespace Brisk
             samplerInfo.minLod = -1000;
             samplerInfo.maxLod = 1000;
             samplerInfo.maxAnisotropy = 1.0f;
-            if (vkCreateSampler(GpuContextVulkan::s_GPUDevice->GetDevice(), &samplerInfo, nullptr, &m_Sampler) != VK_SUCCESS) {
+            if (vkCreateSampler(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &samplerInfo, nullptr, &m_Sampler) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create descriptor pool!");
             }
         }
@@ -157,16 +157,16 @@ namespace Brisk
         stagingBuffer.Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
         void* data;
-        vkMapMemory(GpuContextVulkan::s_GPUDevice->GetDevice(), stagingBuffer.GetMemory(), 0, imageSize, 0, &data);
+        vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), stagingBuffer.GetMemory(), 0, imageSize, 0, &data);
         memcpy(data, pixels, static_cast<size_t>(imageSize));
         VkMappedMemoryRange range[1] = {};
         range[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
         range[0].memory = stagingBuffer.GetMemory();
         range[0].size = imageSize;
-        if (vkFlushMappedMemoryRanges(GpuContextVulkan::s_GPUDevice->GetDevice(), 1, range) != VK_SUCCESS) {
+        if (vkFlushMappedMemoryRanges(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, range) != VK_SUCCESS) {
             throw std::runtime_error("error");
         }
-        vkUnmapMemory(GpuContextVulkan::s_GPUDevice->GetDevice(), stagingBuffer.GetMemory());
+        vkUnmapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), stagingBuffer.GetMemory());
 
         stbi_image_free(pixels);
 
@@ -185,23 +185,23 @@ namespace Brisk
         imageinfo.usage = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL | VK_IMAGE_USAGE_SAMPLED_BIT;
         imageinfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         imageinfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        if (vkCreateImage(GpuContextVulkan::s_GPUDevice->GetDevice(), &imageinfo, nullptr, &m_Image) != VK_SUCCESS) {
+        if (vkCreateImage(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &imageinfo, nullptr, &m_Image) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create image");
         }
 
         VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(GpuContextVulkan::s_GPUDevice->GetDevice(), m_Image, &memRequirements);
+        vkGetImageMemoryRequirements(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Image, &memRequirements);
 
         VkMemoryAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
         allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = VulkanUtilities::FindMemoryType(GpuContextVulkan::s_GPUDevice->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        allocInfo.memoryTypeIndex = UtilitiesVulkan::FindMemoryType(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-        if (vkAllocateMemory(GpuContextVulkan::s_GPUDevice->GetDevice(), &allocInfo, nullptr, &m_Memory) != VK_SUCCESS) {
+        if (vkAllocateMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfo, nullptr, &m_Memory) != VK_SUCCESS) {
             throw std::runtime_error("failed to allocate image memory!");
         }
 
-        vkBindImageMemory(GpuContextVulkan::s_GPUDevice->GetDevice(), m_Image, m_Memory, 0);
+        vkBindImageMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Image, m_Memory, 0);
 
         // Image view
         VkImageViewCreateInfo imageView{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
@@ -216,7 +216,7 @@ namespace Brisk
         imageView.subresourceRange.baseArrayLayer = 0;
         imageView.subresourceRange.layerCount = 1;
 
-        if (vkCreateImageView(GpuContextVulkan::s_GPUDevice->GetDevice(), &imageView, nullptr, &m_ImageView) != VK_SUCCESS) {
+        if (vkCreateImageView(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &imageView, nullptr, &m_ImageView) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor pool!");
         }
 
@@ -233,7 +233,7 @@ namespace Brisk
             samplerInfo.minLod = -1000;
             samplerInfo.maxLod = 1000;
             samplerInfo.maxAnisotropy = 1.0f;
-            if (vkCreateSampler(GpuContextVulkan::s_GPUDevice->GetDevice(), &samplerInfo, nullptr, &m_Sampler) != VK_SUCCESS) {
+            if (vkCreateSampler(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &samplerInfo, nullptr, &m_Sampler) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create descriptor pool!");
             }
         }
@@ -242,9 +242,9 @@ namespace Brisk
         VkCommandPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
         poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        poolInfo.queueFamilyIndex = GpuContextVulkan::s_GPUDevice->GetGraphicsQueue().FamilyIndex;
+        poolInfo.queueFamilyIndex = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().FamilyIndex;
 
-        if (vkCreateCommandPool(GpuContextVulkan::s_GPUDevice->GetDevice(), &poolInfo, nullptr, &pool) != VK_SUCCESS) {
+        if (vkCreateCommandPool(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &poolInfo, nullptr, &pool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create command pool!");
         }
 
@@ -253,7 +253,7 @@ namespace Brisk
             allocInfo.commandBufferCount = 1;
             allocInfo.commandPool = pool;
             VkCommandBuffer cmd;
-            if (vkAllocateCommandBuffers(GpuContextVulkan::s_GPUDevice->GetDevice(), &allocInfo, &cmd) != VK_SUCCESS) {
+            if (vkAllocateCommandBuffers(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfo, &cmd) != VK_SUCCESS) {
                 throw std::runtime_error("Failed to allocate command buffer");
             }
 
@@ -325,10 +325,10 @@ namespace Brisk
             submit.commandBufferCount = 1;
             submit.pCommandBuffers = &cmd;
 
-            vkQueueSubmit(GpuContextVulkan::s_GPUDevice->GetGraphicsQueue().Handle, 1, &submit, VK_NULL_HANDLE);
-            vkQueueWaitIdle(GpuContextVulkan::s_GPUDevice->GetGraphicsQueue().Handle);
+            vkQueueSubmit(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle, 1, &submit, VK_NULL_HANDLE);
+            vkQueueWaitIdle(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle);
 
-            vkFreeCommandBuffers(GpuContextVulkan::s_GPUDevice->GetDevice(), pool, 1, &cmd);
+            vkFreeCommandBuffers(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), pool, 1, &cmd);
         }
 
         stagingBuffer.Release();

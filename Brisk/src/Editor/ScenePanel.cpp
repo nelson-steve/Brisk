@@ -6,10 +6,10 @@
 namespace Brisk 
 {
     void ScenePanel::OnCreate() {
-        m_SceneTexture = BriskTexture::Create(Engine::s_Swapchain->GetExtentWidth(), Engine::s_Swapchain->GetExtentHeight(), BriskTexture::BGR, BriskTexture::TEXTURE2D);
-        m_SceneDescriptorSet = Editor::AddTexToUI(m_SceneTexture);
+        //m_SceneTexture = BriskTexture::Create(Engine::s_Swapchain->GetExtentWidth(), Engine::s_Swapchain->GetExtentHeight(), BriskTexture::BGR, BriskTexture::TEXTURE2D);
+        //m_SceneDescriptorSet = Editor::AddTexToUI(m_SceneTexture);
 
-        Engine::s_Renderer->AddRenderTarget({ m_SceneTexture });
+        //Engine::s_Renderer->AddRenderTarget({ m_SceneTexture });
     }
 
     void ScenePanel::OnUpdate() {

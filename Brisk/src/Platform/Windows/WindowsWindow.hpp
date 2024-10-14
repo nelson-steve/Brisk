@@ -1,12 +1,12 @@
 #pragma once
 
-#include "Engine/WindowBase.hpp"
+#include "Engine/Window.hpp"
 
 struct GLFWwindow;
 
 namespace Brisk {
 
-	class WindowsWindow : public WindowBase {
+	class WindowsWindow : public Window {
 	public:
 		WindowsWindow(int width, int height);
 		virtual void* GetWindowHandle() override { return m_Window; }

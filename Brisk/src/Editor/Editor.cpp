@@ -259,21 +259,21 @@ namespace Brisk
         //PinkTheme();
         //PinkTheme2();
         
-        ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Engine::s_MainWindow->GetWindowHandle(), true);
+        //ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Engine::s_MainWindow->GetWindowHandle(), true);
 
-        ImGui_ImplVulkan_InitInfo info{};
-        info.Instance = GpuContextVulkan::s_Instance;
-        info.PhysicalDevice = GpuContextVulkan::s_GPUDevice->GetPhysicalDevice();
-        info.Device = GpuContextVulkan::s_GPUDevice->GetDevice();
-        info.QueueFamily = 0;
-        info.Queue = GpuContextVulkan::s_GPUDevice->GetGraphicsQueue().Handle;
-        info.DescriptorPool = static_cast<RendererVulkan*>(Engine::s_Renderer)->GetUIDescriptorPool();
-        info.RenderPass = static_cast<RendererVulkan*>(Engine::s_Renderer)->GetUIRenderpass();
-        info.ImageCount = 2;
-        info.MinImageCount = 2;
-        info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+        //ImGui_ImplVulkan_InitInfo info{};
+        //info.Instance = GpuContextVulkan::s_Instance;
+        //info.PhysicalDevice = GpuContextVulkan::s_GPUDevice->GetPhysicalDevice();
+        //info.Device = GpuContextVulkan::s_GPUDevice->GetDevice();
+        //info.QueueFamily = 0;
+        //info.Queue = GpuContextVulkan::s_GPUDevice->GetGraphicsQueue().Handle;
+        //info.DescriptorPool = static_cast<RendererVulkan*>(Engine::s_Renderer)->GetUIDescriptorPool();
+        //info.RenderPass = static_cast<RendererVulkan*>(Engine::s_Renderer)->GetUIRenderpass();
+        //info.ImageCount = 2;
+        //info.MinImageCount = 2;
+        //info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
-        ImGui_ImplVulkan_Init(&info);
+        //ImGui_ImplVulkan_Init(&info);
 
         ScenePanel* scenePanel = new ScenePanel();
         m_Panels.insert({ "Scene" , scenePanel });
@@ -300,7 +300,7 @@ namespace Brisk
             panel.second->OnCreate();
         }
 
-        static_cast<RendererVulkan*>(Engine::s_Renderer)->CreateOffscreenResources();
+        //static_cast<RendererVulkan*>(Engine::s_Renderer)->CreateOffscreenResources();
 
         //textureSet = ImGui_ImplVulkan_AddTexture(m_Texture->GetSampler(), m_Texture->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}

@@ -3,6 +3,7 @@
 
 #include <Volk/volk.h>
 #include <cassert>
+#include "GpuAdapterVulkan.hpp"
 
 namespace Brisk 
 {
@@ -10,19 +11,19 @@ namespace Brisk
         assert(specs.pWidth > 0);
         assert(specs.pHeight > 0);
         assert(specs.pLayers > 0);
-        assert(specs.pAttachments.size() > 0);
+        //assert(specs.pAttachments.size() > 0);
 
         VkFramebufferCreateInfo framebufferInfo{};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
         framebufferInfo.renderPass = std::static_pointer_cast<RenderPassVulkan>(specs.pRenderPass)->GetRenderPass();
-        framebufferInfo.attachmentCount = static_cast<uint32_t>(specs.pAttachments.size());
-        framebufferInfo.pAttachments = specs.pAttachments.data();
+        //framebufferInfo.attachmentCount = static_cast<uint32_t>(specs.pAttachments.size());
+        //framebufferInfo.pAttachments = specs.pAttachments.data();
         framebufferInfo.width = specs.pWidth;
         framebufferInfo.height = specs.pHeight;
         framebufferInfo.layers = specs.pLayers;
 
-        if (vkCreateFramebuffer(GpuContextVulkan::s_GPUDevice->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffer) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create framebuffer!");
+        if (vkCreateFramebuffer(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffer) != VK_SUCCESS) {
+            //throw std::runtime_error("failed to create framebuffer!");
         }
     }
 

@@ -2,9 +2,9 @@
 #include "Core/Log.hpp"
 #include "Engine/Engine.hpp"
 #include "Graphics/Vulkan/UtilitiesVulkan.hpp"
-#include "SurfaceFactoryVulkan.hpp"
 
 #include <set>
+#include <iostream>
 
 namespace Brisk 
 {
@@ -56,7 +56,7 @@ namespace Brisk
 		createInfo.pNext = &s_DebugCreateInfo;
 #endif
 		if ((vkCreateInstance(&createInfo, nullptr, &m_Instance) != VK_SUCCESS)) {
-			std::cout << "Failed to create Vulkan instance";
+			std::cout<<"Failed to create Vulkan instance";
 		}
 
 		volkLoadInstance(m_Instance);

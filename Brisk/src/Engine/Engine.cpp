@@ -1,19 +1,11 @@
 #include "Engine/Engine.hpp"
 #include "Core/Log.hpp"
-#include "Graphics/Factories/SwapchainFactory.hpp"
-#include "Renderer/Renderer.hpp"
-#include "Renderer/RendererFactory.hpp"
-#include "Editor/Editor.hpp"
-#include "Scene.hpp"
-
-#include "Model.hpp"
-
-#include "Engine/Application.hpp"
 
 namespace Brisk
 {
 	EngineInfo Engine::s_EngineInfo;
 	std::unique_ptr<Editor> Engine::s_Editor;
+	std::shared_ptr<Application> Engine::s_Application;
 
 	/*
 	float lastX = 0.0f;
@@ -49,7 +41,7 @@ namespace Brisk
 
 	void Engine::InitSystems() {
 		Log::Init();
-		s_Application = std::make_unique<Application>();
+		s_Application = std::make_shared<Application>();
 		s_Application->CreateApplication();
 
 		s_Editor = std::make_unique<Editor>();
@@ -57,16 +49,6 @@ namespace Brisk
 
 		//glfwSetCursorPosCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), mouseCallback); 
 		//glfwSetScrollCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), scrollCallback);
-
-		m_ActiveScene = new BriskScene();
-		m_ActiveScene->CreateElement("test 1");
-		m_ActiveScene->CreateElement("test 2");
-		int32_t parent = m_ActiveScene->CreateElement("test 3");
-		parent = m_ActiveScene->AddChildElement(parent);
-		parent = m_ActiveScene->AddChildElement(parent);
-		m_ActiveScene->AddChildElement(parent);
-
-		s_Camera = new Camera(70.0f, s_MainWindow->GetWidth() / s_MainWindow->GetHeight(), 0.01, 1000.0f, (GLFWwindow*)s_MainWindow->GetWindowHandle());
 	}
 
 	void Engine::Update() {
@@ -77,7 +59,7 @@ namespace Brisk
 			currentTime = newTime;
 			s_Application->Update(frameTime);
 
-			s_MainWindow->ProcessEvents();
+			//s_MainWindow->ProcessEvents();
 		}
 	}
 

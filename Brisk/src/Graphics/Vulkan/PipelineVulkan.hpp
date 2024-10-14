@@ -9,15 +9,13 @@
 
 namespace Brisk
 {
-	class PipelineVulkan : public Pipeline{
+	class PipelineVulkan : public Pipeline {
 	public:
 		virtual void Init(const PipelineSpecs& specs) override;
 
-		virtual void Bind() override;
-		virtual void UnBind() override;
+		virtual void Bind() override {};
+		virtual void UnBind() override {};
 
-		PipelineVulkan();
-		void CreatePipeline(VkRenderPass renderpass);
 		void Destroy();
 
 		const VkPipeline GetPipeline() const { return m_Pipeline; }

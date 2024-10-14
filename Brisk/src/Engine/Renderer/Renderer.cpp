@@ -6,10 +6,6 @@
 
 namespace Brisk 
 {
-	std::unique_ptr<Renderer> Renderer::Create() {
-		//return std::make_unique<RendererVulkan>();
-	}
-
 	void Renderer::Init() {
         Pipeline::PipelineSpecs pipelineSpecs{};
         RenderPass::RenderPassSpecs renderPassSpecs;

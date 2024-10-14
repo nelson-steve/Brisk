@@ -1,19 +1,13 @@
 #pragma once
 
-#include "Renderer/Renderer.hpp"
-#include "Window.hpp"
-#include "Editor/Editor.hpp"
-
-#include "EngineGlobal.hpp"
-#include "Graphics/Swapchain.hpp"
-#include "Camera.hpp"
 #include "Application.hpp"
+#include "Editor/Editor.hpp"
+#include "EngineGlobal.hpp"
 
 #include <glm/glm.hpp>
 
 #include <memory>
 #include <string>
-#include "Scene.hpp"
 
 namespace Brisk 
 {
@@ -49,7 +43,7 @@ namespace Brisk
 		/// <summary>
 		/// Main window of the engine
 		/// </summary>
-		static std::unique_ptr<Application> s_Application;
+		static std::shared_ptr<Application> s_Application;
 		/// <summary>
 		/// Stores basic information about the engine
 		/// </summary>
@@ -59,22 +53,5 @@ namespace Brisk
 		/// Editor handle
 		/// </summary>
 		static std::unique_ptr<Editor> s_Editor;
-
-		/// <summary>
-		/// Camera handle
-		/// </summary>
-		static Camera* s_Camera;
-
-		/// <summary>
-		/// Renderer handle
-		/// </summary>
-		static Renderer* s_Renderer;
-
-		/// <summary>
-		/// Swapchain handle
-		/// </summary>
-		static Swapchain* s_Swapchain;
-
-		static BriskScene* m_ActiveScene;
 	};
 }

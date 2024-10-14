@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Engine/Renderer/GpuAdapter.hpp"
+#include "SurfaceFactoryVulkan.hpp"
+#include "Engine/Application.hpp"
 
 #include <Volk/volk.h>
 
@@ -114,6 +116,8 @@ namespace Brisk
 		VkDevice GetDevice() { return m_Device; }
 		const Queue GetGraphicsQueue() const { return m_GraphicsQueue; }
 		const Queue GetTransferQueue() const { return m_TransferQueue; }
+
+		std::shared_ptr<SurfaceVulkan> GetSurface() { return m_Surface; }
 	private:
 		VkPhysicalDevice m_PhysicalDevice;
 		VkDevice m_Device;

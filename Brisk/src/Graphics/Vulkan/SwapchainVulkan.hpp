@@ -1,7 +1,7 @@
 #pragma once
 
 #include "Graphics/Swapchain.hpp"
-#include "Graphics/Vulkan/GpuDeviceVulkan.hpp"
+#include "Graphics/Vulkan/GpuAdapterVulkan.hpp"
 
 namespace Brisk 
 {

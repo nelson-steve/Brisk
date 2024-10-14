@@ -34,10 +34,10 @@ namespace Brisk
 			DescriptorLayout p_DescriptorLayout;
 		};
 
-		void Init(std::pair<std::string, Pipeline::ShaderStage>);
-		void AddDescriptor(const std::shared_ptr<Descriptor> descriptor);
+		virtual void Init(std::pair<std::string, Pipeline::ShaderStage>) = 0;
+		virtual void AddDescriptor(const std::shared_ptr<Descriptor> descriptor) = 0;
 
-		const std::vector<std::shared_ptr<Descriptor>> GetDescriptors();
+		const std::vector<std::shared_ptr<Descriptor>> GetDescriptors() const { return m_Descriptors; }
 
 		static std::shared_ptr<Shader> Create();
 	public:

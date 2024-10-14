@@ -2,6 +2,7 @@
 
 #include "Core/Log.hpp"
 #include "Engine/Engine.hpp"
+#include "Engine/Application.hpp"
 
 #include <Volk/volk.h>
 #include <vulkan/vulkan_win32.h>
@@ -25,8 +26,8 @@ namespace Brisk {
     public:
         inline const VkSurfaceKHR GetSurface() const { return m_Surface; }
         inline VkSurfaceKHR& GetRef() { return m_Surface; }
-    private:
-        SurfaceVulkan() = default;
+    //private:
+    //    SurfaceVulkan() = default;
     private:
         VkSurfaceKHR m_Surface;
 
@@ -132,7 +133,7 @@ namespace Brisk {
 #elif defined(VK_USE_PLATFORM_VI_NN)
             err = vkCreateViSurfaceNN()
 #else
-            if (glfwCreateWindowSurface(instance, (GLFWwindow*)Engine::s_Application->GetWindow()->GetWindowHandle(), nullptr, &surface->m_Surface) != VK_SUCCESS) {
+            if (glfwCreateWindowSurface(instance, (GLFWwindow*)(Engine::s_Application->GetWindow()->GetWindowHandle()), nullptr, &surface->GetRef()) != VK_SUCCESS) {
                 BRISK_CORE_ERROR("Failed to create window surface!");
 #endif
             }

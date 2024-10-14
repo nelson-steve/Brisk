@@ -2,6 +2,7 @@
 
 #include "BufferVulkan.hpp"
 #include "Graphics/BriskTexture.hpp"
+#include "Engine/Application.hpp"
 
 #include <stb_image.h>
 #include <Volk/volk.h>

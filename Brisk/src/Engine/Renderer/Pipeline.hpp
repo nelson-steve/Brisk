@@ -1,7 +1,6 @@
 #pragma once
 
 #include "RenderPass.hpp"
-#include "Shader.hpp"
 
 #include <cstdint>
 #include <vector>
@@ -10,6 +9,8 @@
 
 namespace Brisk
 {
+    class Shader;
+
     class Pipeline {
     public:
         struct Attribute {

@@ -5,7 +5,7 @@ namespace Brisk
 {
 	class GpuAdapter {
 	public:
-		void Init();
+		virtual void Init() = 0;
 
 		static std::shared_ptr<GpuAdapter> Create();
 	};

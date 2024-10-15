@@ -44,8 +44,8 @@ namespace Brisk
 		s_Application = std::make_shared<Application>();
 		s_Application->CreateApplication();
 
-		s_Editor = std::make_unique<Editor>();
-		s_Editor->Create();
+		//s_Editor = std::make_unique<Editor>();
+		//s_Editor->Create();
 
 		//glfwSetCursorPosCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), mouseCallback); 
 		//glfwSetScrollCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), scrollCallback);

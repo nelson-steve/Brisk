@@ -6,15 +6,27 @@
 #include "UtilitiesVulkan.hpp"
 #include "ShaderVulkan.hpp"
 #include "RenderPassVulkan.hpp"
+#include "DescriptorVulkan.hpp"
 
 namespace Brisk
 {
     void PipelineVulkan::Init(const Pipeline::PipelineSpecs& specs) {
+        std::vector<VkDescriptorSetLayout> descriptorLayouts;
         for (int i = 0; i < specs.pShaders.size(); i++) {
             for (int j = 0; j < specs.pShaders[i]->GetDescriptors().size(); j++) {
                 specs.pShaders[i]->GetDescriptors()[j]->Allocate();
             }
         }
+
+        for (int i = 0; i < specs.pShaders.size(); i++) {
+            for (int j = 0; j < specs.pShaders[i]->GetDescriptors().size(); j++) {
+                for (int k = 0; k < std::static_pointer_cast<DescriptorVulkan>(specs.pShaders[i]->GetDescriptors()[j])->GetLayouts().size(); k++) {
+                    descriptorLayouts.push_back(std::static_pointer_cast<DescriptorVulkan>(specs.pShaders[i]->GetDescriptors()[j])->GetLayouts()[k]);
+                }
+            }
+        }
+
+
 
         VkPipelineVertexInputStateCreateInfo m_VertexInputInfo{};
         m_VertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -88,6 +100,8 @@ namespace Brisk
         VkPipelineLayoutCreateInfo m_PipelineLayoutInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
         m_PipelineLayoutInfo.setLayoutCount = 0;
         m_PipelineLayoutInfo.pushConstantRangeCount = 0;
+        m_PipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorLayouts.size());
+        m_PipelineLayoutInfo.pSetLayouts = descriptorLayouts.data();
 
         if (vkCreatePipelineLayout(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &m_PipelineLayoutInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");

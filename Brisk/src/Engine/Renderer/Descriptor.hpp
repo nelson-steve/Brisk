@@ -20,6 +20,7 @@ namespace Brisk
 		};
 
 	public:
+		virtual void Init() = 0;
 		virtual void Allocate() = 0;
 		virtual void Update() = 0;
 
@@ -28,6 +29,7 @@ namespace Brisk
 			layout.p_Binding = binding;
 			layout.p_DescriptorCount = count;
 			layout.p_Type = type;
+			m_Layouts.push_back(layout);
 		}
 
 		static std::shared_ptr<Descriptor> Create();

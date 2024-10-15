@@ -5,7 +5,7 @@
 
 namespace Brisk 
 {
-	DescriptorVulkan::DescriptorVulkan() {
+	void DescriptorVulkan::Init() {
         std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
         for (int i = 0; i < m_Layouts.size(); i++) {
             VkDescriptorSetLayoutBinding layoutBinding{};
@@ -23,21 +23,21 @@ namespace Brisk
         layoutInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());
         layoutInfo.pBindings = layoutBindings.data();
 
-        m_DescriptorLayouts.resize(1);
-        if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, &m_DescriptorLayouts[0]) != VK_SUCCESS) {
-            //throw std::runtime_error("failed to create descriptor set layout!");
+        m_DescriptorLayouts.resize(m_Layouts.size());
+        if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, m_DescriptorLayouts.data()) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create descriptor set layout!");
         }
 	}
 
 	void DescriptorVulkan::Allocate() {
         VkDescriptorSetAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-        //allocInfo.descriptorPool = m_DescriptorPool;
+        allocInfo.descriptorPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDescriptorPool();
         allocInfo.descriptorSetCount = static_cast<uint32_t>(m_DescriptorLayouts.size());
         allocInfo.pSetLayouts = m_DescriptorLayouts.data();
 
         if (vkAllocateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfo, &m_Set) != VK_SUCCESS) {
-            //throw std::runtime_error("failed to allocate descriptor sets!");
+            throw std::runtime_error("failed to allocate descriptor sets!");
         }
 	}
 

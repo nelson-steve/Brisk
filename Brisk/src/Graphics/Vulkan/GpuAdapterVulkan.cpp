@@ -93,6 +93,30 @@ namespace Brisk
 		m_Surface = SurfaceFactoryVulkan::CreateNativeSurface(m_Instance);
 
 		CreateLogicalDevice(req);
+
+		AllocatePools();
+	}
+
+	void GpuAdapterVulkan::AllocatePools() {
+
+		std::vector<VkDescriptorPoolSize> poolSizes {
+            { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 100 },
+            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,		 100 },
+            { VK_DESCRIPTOR_TYPE_SAMPLER,				 100 },
+            { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,		 100 },
+            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,		 100 },
+        };
+
+		VkDescriptorPoolCreateInfo poolInfo{};
+        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+        poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+        poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+        poolInfo.pPoolSizes = poolSizes.data();
+		poolInfo.maxSets = 100;
+
+        if (vkCreateDescriptorPool(m_Device, &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create descriptor pool!");
+        }
 	}
 
 	void GpuAdapterVulkan::CreateLogicalDevice(const GpuRequirements& requirements) {

@@ -107,6 +107,7 @@ namespace Brisk
 
 	public:
 		void Init();
+		void AllocatePools();
 		std::vector<VkPhysicalDevice> RetrieveAvailableDevice(VkInstance instance);
 		bool IsDeviceSuitable(VkPhysicalDevice device, const GpuRequirements& requirements);
 		inline void SetPhysicalDevice(VkPhysicalDevice physicalDevice) { m_PhysicalDevice = physicalDevice; }
@@ -116,9 +117,13 @@ namespace Brisk
 		VkDevice GetDevice() { return m_Device; }
 		const Queue GetGraphicsQueue() const { return m_GraphicsQueue; }
 		const Queue GetTransferQueue() const { return m_TransferQueue; }
+		const VkDescriptorPool GetDescriptorPool() const { return m_DescriptorPool; }
 
 		std::shared_ptr<SurfaceVulkan> GetSurface() { return m_Surface; }
 	private:
+		// Pools
+		VkDescriptorPool m_DescriptorPool;
+
 		VkPhysicalDevice m_PhysicalDevice;
 		VkDevice m_Device;
 		Queue m_TransferQueue;

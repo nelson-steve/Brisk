@@ -17,13 +17,13 @@ namespace Brisk
         vertexLayout.pBinding = 0;
         vertexLayout.pStride = sizeof(Vertex);
         vertexLayout.pAttributes = {
-            {0, 0,Core::Format::FORMAT_R32G32B32_SFLOAT,  offsetof(Vertex, Vertex::pos)},
-            {0, 1,Core::Format::FORMAT_R32G32B32_SFLOAT,  offsetof(Vertex, Vertex::normal)},
-            {0, 2,Core::Format::FORMAT_R32G32_SFLOAT,  offsetof(Vertex, Vertex::uv0)},
-            {0, 3,Core::Format::FORMAT_R32G32_SFLOAT,  offsetof(Vertex, Vertex::uv1)},
-            {0, 4,Core::Format::FORMAT_A1R5G5B5_UNORM_PACK16,  offsetof(Vertex, Vertex::color)},
+            {0, 0,Core::Format::FORMAT_R32G32B32_SFLOAT,     offsetof(Vertex, Vertex::pos)},
+            {0, 1,Core::Format::FORMAT_R32G32B32_SFLOAT,     offsetof(Vertex, Vertex::normal)},
+            {0, 2,Core::Format::FORMAT_R32G32_SFLOAT,        offsetof(Vertex, Vertex::uv0)},
+            {0, 3,Core::Format::FORMAT_R32G32_SFLOAT,        offsetof(Vertex, Vertex::uv1)},
+            {0, 4,Core::Format::FORMAT_R32G32B32_SFLOAT,  offsetof(Vertex, Vertex::color)},
         };
-
+        pipelineSpecs.Layout = vertexLayout;
         //renderPassSpecs.pAttachments =
         //{
         //    { 0, Core::Format::FORMAT_R8G8B8A8_SRGB, true, RenderPass::AttachmentType::Swapchain },
@@ -37,13 +37,16 @@ namespace Brisk
         vertexShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
         std::shared_ptr<Descriptor> descriptor = Descriptor::Create();
         descriptor->AddBindingLayout(0, 1, Descriptor::DescriptorType::UNIFORM);
+        descriptor->Init();
         vertexShader->AddDescriptor(descriptor);
 
         std::shared_ptr<Shader> fragmentShader = Shader::Create();
         fragmentShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
 
+        pipelineSpecs.pShaders.push_back(vertexShader);
         pipelineSpecs.pShaders.push_back(fragmentShader);
 
+        pipelineSpecs.pLineWidth = 1.0f;
         std::shared_ptr<Pipeline> pipeline = Pipeline::Create();
         pipeline->Init(pipelineSpecs);
 	}

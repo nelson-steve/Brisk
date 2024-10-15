@@ -3,6 +3,7 @@
 #include "Engine/Engine.hpp"
 #include "SwapchainVulkan.hpp"
 #include "PipelineVulkan.hpp"
+#include "UtilitiesVulkan.hpp"
 
 namespace Brisk 
 {
@@ -10,37 +11,48 @@ namespace Brisk
         std::vector<VkAttachmentDescription> attachments;
         std::vector<VkAttachmentReference> colorAttachmentsRefs;
         VkAttachmentReference depthAttachmentRef;
-        for (int i = 0; i < m_Attachments.size(); i++) {
-            attachments.reserve(5);
+
+        for (int i = 0; i < specs.pAttachments.size(); i++) {
             VkAttachmentDescription attachment{};
-            attachment.format = m_Attachments[0].format;
+            VkAttachmentReference attachmentRef{};
+            attachment.format = UtilitiesVulkan::FormatToVkFormat(specs.pAttachments[i].pFormat);
             attachment.samples = VK_SAMPLE_COUNT_1_BIT;
+            
             if (specs.pAttachments[i].pClear) {
                 attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
                 attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
                 attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
             }
             else {
-                attachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+                attachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
                 attachment.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-                attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                attachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED; // add initial layout if not clear
             }
+
             attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-            if (specs.pAttachments[i].pIsDepth) {
-                VkAttachmentReference depthAttachmentRef{};
-                depthAttachmentRef.attachment = 0;
-                depthAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-                colorAttachmentsRefs.push_back(depthAttachmentRef);
+            if (specs.pAttachments[i].pType == AttachmentType::Swapchain) {
+                attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+                attachmentRef.attachment = specs.pAttachments[i].pAttachmentIndex;
+                attachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                colorAttachmentsRefs.push_back(attachmentRef);
+            }
+            else if (specs.pAttachments[i].pType == AttachmentType::Depth) {
+                attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+                attachmentRef.attachment = specs.pAttachments[i].pAttachmentIndex;
+                attachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                depthAttachmentRef = attachmentRef;
             }
             else {
-                VkAttachmentReference colorAttachmentRef{};
-                colorAttachmentRef.attachment = 0;
-                colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-                colorAttachmentsRefs.push_back(colorAttachmentRef);
+                attachmentRef.attachment = specs.pAttachments[i].pAttachmentIndex;
+                attachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                colorAttachmentsRefs.push_back(attachmentRef);
             }
+
+            attachments.push_back(attachment);
         }
 
         std::vector<VkSubpassDescription> subpasses;

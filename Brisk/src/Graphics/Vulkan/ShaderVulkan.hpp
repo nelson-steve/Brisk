@@ -12,13 +12,10 @@ namespace Brisk
 	class ShaderVulkan : public Shader {
 	public:
 		void Init(std::pair<std::string, Pipeline::ShaderStage>);
-		void AddDescriptor(const std::shared_ptr<Descriptor> descriptor);
 
 		const VkPipelineShaderStageCreateInfo GetShaderStage() const { return m_ShaderStage; }
 	private:
 		VkShaderModule m_Module;
 		VkPipelineShaderStageCreateInfo m_ShaderStage;
-
-		std::vector<std::shared_ptr<Descriptor>> m_Descriptors;
 	};
 }

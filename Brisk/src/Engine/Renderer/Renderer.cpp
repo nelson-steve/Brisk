@@ -3,14 +3,33 @@
 #include "RHI.hpp"
 #include "RenderPass.hpp"
 #include "Shader.hpp"
+#include "Engine/Model.hpp"
 
 namespace Brisk 
 {
 	void Renderer::Init() {
         Pipeline::PipelineSpecs pipelineSpecs{};
         RenderPass::RenderPassSpecs renderPassSpecs;
-        renderPassSpecs.pAttachments.push_back({ Core::Format::FORMAT_R8G8B8A8_SRGB, true, RenderPass::AttachmentType::Swapchain, false});
-        renderPassSpecs.pAttachments.push_back({ Core::Format::FORMAT_D32_SFLOAT, true, RenderPass::AttachmentType::Depth, true });
+        renderPassSpecs.pAttachments.push_back({ 0, Core::Format::FORMAT_R8G8B8A8_SRGB, true, RenderPass::AttachmentType::Swapchain });
+        renderPassSpecs.pAttachments.push_back({ 1, Core::Format::FORMAT_D32_SFLOAT, true, RenderPass::AttachmentType::Depth });
+
+        Pipeline::VertexDataLayout vertexLayout;
+        vertexLayout.pBinding = 0;
+        vertexLayout.pStride = sizeof(Vertex);
+        vertexLayout.pAttributes = {
+            {0, 0,Core::Format::FORMAT_R32G32B32_SFLOAT,  offsetof(Vertex, Vertex::pos)},
+            {0, 1,Core::Format::FORMAT_R32G32B32_SFLOAT,  offsetof(Vertex, Vertex::normal)},
+            {0, 2,Core::Format::FORMAT_R32G32_SFLOAT,  offsetof(Vertex, Vertex::uv0)},
+            {0, 3,Core::Format::FORMAT_R32G32_SFLOAT,  offsetof(Vertex, Vertex::uv1)},
+            {0, 4,Core::Format::FORMAT_A1R5G5B5_UNORM_PACK16,  offsetof(Vertex, Vertex::color)},
+        };
+
+        //renderPassSpecs.pAttachments =
+        //{
+        //    { 0, Core::Format::FORMAT_R8G8B8A8_SRGB, true, RenderPass::AttachmentType::Swapchain },
+        //    { 1, Core::Format::FORMAT_D32_SFLOAT, true, RenderPass::AttachmentType::Depth }
+        //};
+
         pipelineSpecs.pRenderPass = RenderPass::Create();
         pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 

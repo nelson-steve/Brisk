@@ -12,14 +12,14 @@ namespace Brisk
     public:
         enum AttachmentType {
             Swapchain,
-            Depth
+            Depth,
         };
 
         struct Attachment {
+            uint32_t pAttachmentIndex;
             Core::Format pFormat;
             bool pClear;
             AttachmentType pType;
-            bool pIsDepth;
         };
 
         struct RenderPassSpecs {

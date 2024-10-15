@@ -35,7 +35,7 @@ namespace Brisk
 		};
 
 		virtual void Init(std::pair<std::string, Pipeline::ShaderStage>) = 0;
-		virtual void AddDescriptor(const std::shared_ptr<Descriptor> descriptor) = 0;
+		virtual inline void AddDescriptor(const std::shared_ptr<Descriptor> descriptor) { m_Descriptors.push_back(descriptor); }
 
 		const std::vector<std::shared_ptr<Descriptor>> GetDescriptors() const { return m_Descriptors; }
 

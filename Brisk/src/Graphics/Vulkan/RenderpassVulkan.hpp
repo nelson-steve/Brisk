@@ -28,9 +28,9 @@ namespace Brisk {
         VkRenderPass m_RenderPass;
         std::vector<VkFramebuffer> m_Framebuffers;
 
-        std::vector<VkAttachmentDescription> m_Attachments;
-        std::vector<VkSubpassDescription> m_Subpasses;
-        std::vector<VkSubpassDependency> m_Dependencies;
+        //std::vector<VkAttachmentDescription> m_Attachments;
+        //std::vector<VkSubpassDescription> m_Subpasses;
+        //std::vector<VkSubpassDependency> m_Dependencies;
 
     };
 }

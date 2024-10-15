@@ -12,8 +12,4 @@ namespace Brisk
 		m_ShaderStage.module = m_Module;
 		m_ShaderStage.pName = "main";
 	}
-
-	void ShaderVulkan::AddDescriptor(const std::shared_ptr<Descriptor> descriptor) {
-		m_Descriptors.push_back(descriptor);
-	}
 }

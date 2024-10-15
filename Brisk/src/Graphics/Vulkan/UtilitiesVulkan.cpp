@@ -144,64 +144,6 @@ namespace Brisk
 		return module;
 	}
 
-	VkFormat UtilitiesVulkan::FormatToVulkanType(Core::Format format) {
-		switch (format) {
-			case Core::Format::FORMAT_UNDEFINED: return VK_FORMAT_UNDEFINED;
-			case Core::Format::FORMAT_R4G4_UNORM_PACK8: return VK_FORMAT_R4G4_UNORM_PACK8;
-			case Core::Format::FORMAT_R4G4B4A4_UNORM_PACK16: return VK_FORMAT_R4G4B4A4_UNORM_PACK16;
-			case Core::Format::FORMAT_B4G4R4A4_UNORM_PACK16: return VK_FORMAT_B4G4R4A4_UNORM_PACK16;
-			case Core::Format::FORMAT_R5G6B5_UNORM_PACK16: return VK_FORMAT_R5G6B5_UNORM_PACK16;
-			case Core::Format::FORMAT_B5G6R5_UNORM_PACK16: return VK_FORMAT_B5G6R5_UNORM_PACK16;
-			case Core::Format::FORMAT_R5G5B5A1_UNORM_PACK16: return VK_FORMAT_R5G5B5A1_UNORM_PACK16;
-			case Core::Format::FORMAT_B5G5R5A1_UNORM_PACK16: return VK_FORMAT_B5G5R5A1_UNORM_PACK16;
-			case Core::Format::FORMAT_A1R5G5B5_UNORM_PACK16: return VK_FORMAT_A1R5G5B5_UNORM_PACK16;
-			case Core::Format::FORMAT_R8_UNORM: return VK_FORMAT_R8_UNORM;
-			case Core::Format::FORMAT_R8_SNORM: return VK_FORMAT_R8_SNORM;
-			case Core::Format::FORMAT_R8_USCALED: return VK_FORMAT_R8_USCALED;
-			case Core::Format::FORMAT_R8_SSCALED: return VK_FORMAT_R8_SSCALED;
-			case Core::Format::FORMAT_R8_UINT: return VK_FORMAT_R8_UINT;
-			case Core::Format::FORMAT_R8_SINT: return VK_FORMAT_R8_SINT;
-			case Core::Format::FORMAT_R8_SRGB: return VK_FORMAT_R8_SRGB;
-			case Core::Format::FORMAT_R8G8_UNORM: return VK_FORMAT_R8G8_UNORM;
-			case Core::Format::FORMAT_R8G8_SNORM: return VK_FORMAT_R8G8_SNORM;
-			case Core::Format::FORMAT_R8G8_USCALED: return VK_FORMAT_R8G8_USCALED;
-			case Core::Format::FORMAT_R8G8_SSCALED: return VK_FORMAT_R8G8_SSCALED;
-			case Core::Format::FORMAT_R8G8_UINT: return VK_FORMAT_R8G8_UINT;
-			case Core::Format::FORMAT_R8G8_SINT: return VK_FORMAT_R8G8_SINT;
-			case Core::Format::FORMAT_R8G8_SRGB: return VK_FORMAT_R8G8_SRGB;
-			case Core::Format::FORMAT_R8G8B8_UNORM: return VK_FORMAT_R8G8B8_UNORM;
-			case Core::Format::FORMAT_R8G8B8_SNORM: return VK_FORMAT_R8G8B8_SNORM;
-			case Core::Format::FORMAT_R8G8B8_USCALED: return VK_FORMAT_R8G8B8_USCALED;
-			case Core::Format::FORMAT_R8G8B8_SSCALED: return VK_FORMAT_R8G8B8_SSCALED;
-			case Core::Format::FORMAT_R8G8B8_UINT: return VK_FORMAT_R8G8B8_UINT;
-			case Core::Format::FORMAT_R8G8B8_SINT: return VK_FORMAT_R8G8B8_SINT;
-			case Core::Format::FORMAT_R8G8B8_SRGB: return VK_FORMAT_R8G8B8_SRGB;
-			case Core::Format::FORMAT_B8G8R8_UNORM: return VK_FORMAT_B8G8R8_UNORM;
-			case Core::Format::FORMAT_B8G8R8_SNORM: return VK_FORMAT_B8G8R8_SNORM;
-			case Core::Format::FORMAT_B8G8R8_USCALED: return VK_FORMAT_B8G8R8_USCALED;
-			case Core::Format::FORMAT_B8G8R8_SSCALED: return VK_FORMAT_B8G8R8_SSCALED;
-			case Core::Format::FORMAT_B8G8R8_UINT: return VK_FORMAT_B8G8R8_UINT;
-			case Core::Format::FORMAT_B8G8R8_SINT: return VK_FORMAT_B8G8R8_SINT;
-			case Core::Format::FORMAT_B8G8R8_SRGB: return VK_FORMAT_B8G8R8_SRGB;
-			case Core::Format::FORMAT_R8G8B8A8_UNORM: return VK_FORMAT_R8G8B8A8_UNORM;
-			case Core::Format::FORMAT_R8G8B8A8_SNORM: return VK_FORMAT_R8G8B8A8_SNORM;
-			case Core::Format::FORMAT_R8G8B8A8_USCALED: return VK_FORMAT_R8G8B8A8_USCALED;
-			case Core::Format::FORMAT_R8G8B8A8_SSCALED: return VK_FORMAT_R8G8B8A8_SSCALED;
-			case Core::Format::FORMAT_R8G8B8A8_UINT: return VK_FORMAT_R8G8B8A8_UINT;
-			case Core::Format::FORMAT_R8G8B8A8_SINT: return VK_FORMAT_R8G8B8A8_SINT;
-			case Core::Format::FORMAT_R8G8B8A8_SRGB: return VK_FORMAT_R8G8B8A8_SRGB;
-			case Core::Format::FORMAT_B8G8R8A8_UNORM: return VK_FORMAT_B8G8R8A8_UNORM;
-			case Core::Format::FORMAT_B8G8R8A8_SNORM: return VK_FORMAT_B8G8R8A8_SNORM;
-			case Core::Format::FORMAT_B8G8R8A8_USCALED: return VK_FORMAT_B8G8R8A8_USCALED;
-			case Core::Format::FORMAT_B8G8R8A8_SSCALED: return VK_FORMAT_B8G8R8A8_SSCALED;
-			case Core::Format::FORMAT_B8G8R8A8_UINT: return VK_FORMAT_B8G8R8A8_UINT;
-			case Core::Format::FORMAT_B8G8R8A8_SINT: return VK_FORMAT_B8G8R8A8_SINT;
-			case Core::Format::FORMAT_B8G8R8A8_SRGB: return VK_FORMAT_B8G8R8A8_SRGB;
-				// Add more cases as needed for all the remaining formats...
-			default: return VK_FORMAT_UNDEFINED;
-		}
-	}
-
 	VkPolygonMode UtilitiesVulkan::PolygonToVulkanType(Pipeline::PolygonMode polygonMode) {
 		switch (polygonMode)
 		{

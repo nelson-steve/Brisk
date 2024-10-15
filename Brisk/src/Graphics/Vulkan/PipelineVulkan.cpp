@@ -10,8 +10,10 @@
 namespace Brisk
 {
     void PipelineVulkan::Init(const Pipeline::PipelineSpecs& specs) {
-        for (int i = 0; i < specs.pShaders[0]->GetDescriptors().size(); i++) {
-            specs.pShaders[i]->GetDescriptors()[i]->Allocate();
+        for (int i = 0; i < specs.pShaders.size(); i++) {
+            for (int j = 0; j < specs.pShaders[i]->GetDescriptors().size(); j++) {
+                specs.pShaders[i]->GetDescriptors()[j]->Allocate();
+            }
         }
 
         VkPipelineVertexInputStateCreateInfo m_VertexInputInfo{};
@@ -25,7 +27,7 @@ namespace Brisk
             VkVertexInputAttributeDescription attributeDescription;
             attributeDescription.binding = specs.Layout.pAttributes[i].pBinding;
             attributeDescription.location = specs.Layout.pAttributes[i].pLocation;
-            attributeDescription.format = UtilitiesVulkan::FormatToVulkanType(specs.Layout.pAttributes[i].pFormat);
+            attributeDescription.format = UtilitiesVulkan::FormatToVkFormat(specs.Layout.pAttributes[i].pFormat);
             attributeDescription.offset = specs.Layout.pAttributes[i].pOffset;
             attributeDescriptions.push_back(attributeDescription);
         }
@@ -92,7 +94,7 @@ namespace Brisk
         }
 
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
-        for (int i = 0; i < specs.pShaders[0]->GetDescriptors().size(); i++) {
+        for (int i = 0; i < specs.pShaders.size(); i++) {
             shaderStages.push_back(std::static_pointer_cast<ShaderVulkan>(specs.pShaders[i])->GetShaderStage());
         }
 

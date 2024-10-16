@@ -58,8 +58,6 @@ namespace Brisk
 			float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
 			currentTime = newTime;
 			s_Application->Update(frameTime);
-
-			//s_MainWindow->ProcessEvents();
 		}
 	}
 

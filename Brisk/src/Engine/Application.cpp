@@ -17,7 +17,7 @@ namespace Brisk
 	}
 
 	void Application::Update(float deltaTime) {
-
+		m_Window->ProcessEvents();
 	}
 
 	void Application::Close() {

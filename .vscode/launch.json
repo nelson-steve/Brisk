@@ -1,0 +1,68 @@
+{
+    "version": "0.2.0",
+    "configurations": [
+        {
+            "name": "(gdb) Launch",
+            "type": "cppdbg",
+            "request": "launch",
+            "program": "${workspaceFolder}/build/Brisk.exe",
+            "args": [],
+            "stopAtEntry": false,
+            "cwd": "${workspaceFolder}",
+            "environment": [],
+            "externalConsole": true,
+            "MIMode": "gdb",
+            "setupCommands": [
+                {
+                    "description": "Enable pretty-printing for gdb",
+                    "text": "-enable-pretty-printing",
+                    "ignoreFailures": true
+                },
+                {
+                    "description": "Catch C++ exceptions",
+                    "text": "catch throw",  // Tells GDB/LLDB to stop when a C++ exception is thrown
+                    "ignoreFailures": true
+                }
+            ],
+            "preLaunchTask": "build",
+            "miDebuggerPath": "C:/msys64/ucrt64/bin/gdb.exe",
+            "logging": {
+            "moduleLoad": true,
+            "trace": true,
+            "engineLogging": true,
+            "programOutput": true,
+            "exceptions": true
+            },
+            "preLaunchTask": "build",
+            "miDebuggerArgs": "",
+            "targetArchitecture": "x64",
+            "internalConsoleOptions": "openOnSessionStart",
+        },
+        // {
+        //     "name": "C/C++: g++.exe build and debug active file",
+        //     "type": "cppdbg",
+        //     "request": "launch",
+        //     "program": "${fileDirname}\\${fileBasenameNoExtension}.exe",
+        //     "args": [],
+        //     "stopAtEntry": false,
+        //     "cwd": "${fileDirname}",
+        //     "environment": [],
+        //     "externalConsole": false,
+        //     "MIMode": "gdb",
+        //     "miDebuggerPath": "C:\\msys64\\ucrt64\\bin\\gdb.exe",
+        //     "setupCommands": [
+        //         {
+        //             "description": "Enable pretty-printing for gdb",
+        //             "text": "-enable-pretty-printing",
+        //             "ignoreFailures": true
+        //         },
+        //         {
+        //             "description": "Set Disassembly Flavor to Intel",
+        //             "text": "-gdb-set disassembly-flavor intel",
+        //             "ignoreFailures": true
+        //         }
+        //     ],
+        //     "preLaunchTask": "C/C++: g++.exe build active file",
+        // }
+    ]
+}

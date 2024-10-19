@@ -7,38 +7,6 @@ namespace Brisk
 	std::unique_ptr<Editor> Engine::s_Editor;
 	std::shared_ptr<Application> Engine::s_Application;
 
-	/*
-	float lastX = 0.0f;
-	float lastY = 0.0f;
-	bool firstMouse = true;
-	void mouseCallback(GLFWwindow* window, double xposIn, double yposIn)
-	{
-		float xpos = static_cast<float>(xposIn);
-		float ypos = static_cast<float>(yposIn);
-
-		if (firstMouse)
-		{
-			lastX = xpos;
-			lastY = ypos;
-			firstMouse = false;
-		}
-
-		float xoffset = xpos - lastX;
-		float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-		lastX = xpos;
-		lastY = ypos;
-
-		Engine::s_Camera->SetMouseOffset(xoffset, yoffset);
-		Engine::s_Camera->MouseMoved();
-	}
-
-	void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
-	{
-		Engine::s_Camera->OnMouseScroll(yoffset);
-	}
-	*/
-
 	void Engine::InitSystems() {
 		Log::Init();
 		s_Application = std::make_shared<Application>();

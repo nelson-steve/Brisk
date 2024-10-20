@@ -1,5 +1,6 @@
 #pragma once
 
+#include "CommandBuffer.hpp"
 #include "RHI.hpp"
 
 #include <cstdint>
@@ -43,8 +44,8 @@ namespace Brisk
         virtual ~RenderPass() = default;
 
         virtual void Init(const RenderPassSpecs& specs) = 0;
-        virtual void Begin() = 0;
-        virtual void End() = 0;
+        virtual void Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t imageIndex) = 0;
+        virtual void End(std::shared_ptr<CommandBuffer> cmd) = 0;
 
         static std::shared_ptr<RenderPass> Create();
     };

@@ -13,8 +13,7 @@ namespace Brisk
 	public:
 		virtual void Init(const PipelineSpecs& specs) override;
 
-		virtual void Bind() override {};
-		virtual void UnBind() override {};
+		virtual void Bind(std::shared_ptr<CommandBuffer> cmd) override;
 
 		void Destroy();
 

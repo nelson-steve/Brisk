@@ -1,5 +1,9 @@
 #pragma once
 
+#include "Pipeline.hpp"
+#include "CommandBuffer.hpp"
+#include "Graphics/Swapchain.hpp"
+
 #include <memory>
 
 namespace Brisk 
@@ -7,13 +11,11 @@ namespace Brisk
 	class Renderer {
 	public:
 		void Init();
-		//void Destroy();
-  //      void BeginScene();
-  //      void EndScene();
-
-
-  //      void Present();
+		void RenderScene();
 
 		static std::unique_ptr<Renderer> Create() { return nullptr; }
+
+	public:
+		static Swapchain* swapchain;
 	};
 }

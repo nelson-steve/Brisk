@@ -10,7 +10,7 @@ namespace Brisk
 	public:
 		virtual void Init() override;
 		virtual void Allocate() override;
-		virtual void Update() override;
+		virtual void Update(BufferVulkan* buffer) override;
 
 		void SetPool(VkDescriptorPool pool) { m_Pool = pool; }
 

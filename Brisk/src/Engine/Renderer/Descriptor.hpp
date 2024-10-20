@@ -1,5 +1,7 @@
 #pragma once
 
+#include "Graphics/Vulkan/BufferVulkan.hpp"
+
 #include <cstdint>
 #include <memory>
 #include <vector>
@@ -22,7 +24,7 @@ namespace Brisk
 	public:
 		virtual void Init() = 0;
 		virtual void Allocate() = 0;
-		virtual void Update() = 0;
+		virtual void Update(BufferVulkan* buffer) = 0;
 
 		void AddBindingLayout(uint32_t binding, uint32_t count, Descriptor::DescriptorType type) {
 			Layout layout{};

@@ -17,6 +17,7 @@ namespace Brisk
 	}
 
 	void Application::Update(float deltaTime) {
+		m_Renderer->RenderScene();
 		m_Window->ProcessEvents();
 	}
 

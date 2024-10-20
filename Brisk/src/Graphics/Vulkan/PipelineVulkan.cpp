@@ -11,6 +11,7 @@
 namespace Brisk
 {
     void PipelineVulkan::Init(const Pipeline::PipelineSpecs& specs) {
+        m_Specs = specs;
         std::vector<VkDescriptorSetLayout> descriptorLayouts;
         for (int i = 0; i < specs.pShaders.size(); i++) {
             for (int j = 0; j < specs.pShaders[i]->GetDescriptors().size(); j++) {
@@ -131,6 +132,10 @@ namespace Brisk
         if (vkCreateGraphicsPipelines(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_Pipeline) != VK_SUCCESS) {
             throw std::runtime_error("failed to create graphics pipeline!");
         }
+    }
+
+    void PipelineVulkan::Bind(std::shared_ptr<CommandBuffer> cmd) {
+        vkCmdBindPipeline(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
     }
 
     void PipelineVulkan::Destroy() {

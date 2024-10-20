@@ -1,44 +1,77 @@
 #include "Renderer.hpp"
-#include "Pipeline.hpp"
 #include "RHI.hpp"
 #include "RenderPass.hpp"
 #include "Shader.hpp"
 #include "Engine/Model.hpp"
+#include "RendererAPI.hpp"
+#include <Graphics/Vulkan/CommandBufferVulkan.hpp>
+#include "RenderCommand.hpp"
+#include <Graphics/Factories/SwapchainFactory.hpp>
 
 namespace Brisk 
 {
+    BufferVulkan* m_VertexBuffer;
+    BufferVulkan* m_UniformBuffer;
+    Swapchain* Renderer::swapchain;
+    void* m_UniformBufferData;
+    VkSemaphore ImageAvailableSemaphore;
+    VkSemaphore RenderFinishedSemaphore;
+    VkFence fence;
+    uint32_t imageIndex;
+    std::shared_ptr<CommandBuffer> cmd;
+    VkCommandPool m_CommandPool;
+    RenderCommand command;
+
+    std::shared_ptr<Pipeline> pipeline;
+
+    std::vector<Point> vertices{
+    {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+    {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+    {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+    {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+    {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+    {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}}
+    };
+
+    //std::vector<Point> vertices = {
+    //{{0.0f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
+    //{{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+    //{{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}
+    //};
+
 	void Renderer::Init() {
+        swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
+        swapchain->Create(Swapchain::DOUBLE_BUFFERING);
+
         Pipeline::PipelineSpecs pipelineSpecs{};
         RenderPass::RenderPassSpecs renderPassSpecs;
-        renderPassSpecs.pAttachments.push_back({ 0, Core::Format::FORMAT_R8G8B8A8_SRGB, true, RenderPass::AttachmentType::Swapchain });
-        renderPassSpecs.pAttachments.push_back({ 1, Core::Format::FORMAT_D32_SFLOAT, true, RenderPass::AttachmentType::Depth });
+        renderPassSpecs.pAttachments =
+        {
+            { 0, Core::Format::FORMAT_B8G8R8A8_UNORM, true, RenderPass::AttachmentType::Swapchain },
+            { 1, Core::Format::FORMAT_D32_SFLOAT, true, RenderPass::AttachmentType::Depth }
+        };
 
         Pipeline::VertexDataLayout vertexLayout;
         vertexLayout.pBinding = 0;
         vertexLayout.pStride = sizeof(Vertex);
         vertexLayout.pAttributes = {
             {0, 0,Core::Format::FORMAT_R32G32B32_SFLOAT,     offsetof(Vertex, Vertex::pos)},
-            {0, 1,Core::Format::FORMAT_R32G32B32_SFLOAT,     offsetof(Vertex, Vertex::normal)},
-            {0, 2,Core::Format::FORMAT_R32G32_SFLOAT,        offsetof(Vertex, Vertex::uv0)},
-            {0, 3,Core::Format::FORMAT_R32G32_SFLOAT,        offsetof(Vertex, Vertex::uv1)},
-            {0, 4,Core::Format::FORMAT_R32G32B32_SFLOAT,  offsetof(Vertex, Vertex::color)},
+            //{0, 1,Core::Format::FORMAT_R32G32B32_SFLOAT,     offsetof(Vertex, Vertex::normal)},
+            //{0, 2,Core::Format::FORMAT_R32G32_SFLOAT,        offsetof(Vertex, Vertex::uv0)},
+            //{0, 3,Core::Format::FORMAT_R32G32_SFLOAT,        offsetof(Vertex, Vertex::uv1)},
+            {0, 1,Core::Format::FORMAT_R32G32B32_SFLOAT,     offsetof(Vertex, Vertex::color)},
         };
         pipelineSpecs.Layout = vertexLayout;
-        //renderPassSpecs.pAttachments =
-        //{
-        //    { 0, Core::Format::FORMAT_R8G8B8A8_SRGB, true, RenderPass::AttachmentType::Swapchain },
-        //    { 1, Core::Format::FORMAT_D32_SFLOAT, true, RenderPass::AttachmentType::Depth }
-        //};
 
         pipelineSpecs.pRenderPass = RenderPass::Create();
         pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 
         std::shared_ptr<Shader> vertexShader = Shader::Create();
         vertexShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
-        std::shared_ptr<Descriptor> descriptor = Descriptor::Create();
-        descriptor->AddBindingLayout(0, 1, Descriptor::DescriptorType::UNIFORM);
-        descriptor->Init();
-        vertexShader->AddDescriptor(descriptor);
+        //std::shared_ptr<Descriptor> descriptor = Descriptor::Create();
+        //descriptor->AddBindingLayout(0, 1, Descriptor::DescriptorType::UNIFORM);
+        //descriptor->Init();
+        //vertexShader->AddDescriptor(descriptor);
 
         std::shared_ptr<Shader> fragmentShader = Shader::Create();
         fragmentShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
@@ -46,16 +79,128 @@ namespace Brisk
         pipelineSpecs.pShaders.push_back(vertexShader);
         pipelineSpecs.pShaders.push_back(fragmentShader);
 
+        pipelineSpecs.pDepthClampEnable = false;
+        pipelineSpecs.pRasterizationDiscardEnable = false;
+        pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
         pipelineSpecs.pLineWidth = 1.0f;
-        std::shared_ptr<Pipeline> pipeline = Pipeline::Create();
+        pipelineSpecs.pCullMode = Pipeline::CullMode::FRONT;
+        pipelineSpecs.pFrontFace = Pipeline::FrontFace::COUTNER_CLOCKWISE;
+        pipelineSpecs.pDepthBiasEnable = false;
+        pipelineSpecs.pDepthTestEnable = true;
+        pipelineSpecs.pDepthWriteEnable = true;
+        pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS;
+        pipelineSpecs.pDepthBoundsTestEnable = false;
+        pipelineSpecs.pStencilTestEnable = false;
+
+        pipeline = Pipeline::Create();
         pipeline->Init(pipelineSpecs);
+
+        cmd = CommandBuffer::Create();
+
+        m_VertexBuffer = new BufferVulkan();
+        m_VertexBuffer->Create(sizeof(vertices[0]) * vertices.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+        m_VertexBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        m_VertexBuffer->MapMemory(vertices);
+        m_VertexBuffer->UnMapMemory();
+
+        m_UniformBuffer = new BufferVulkan();
+        m_UniformBuffer->Create(sizeof(MVPBuffer), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+        m_UniformBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        m_UniformBuffer->MapMemory(&m_UniformBufferData);
+
+        //descriptor->Update(m_UniformBuffer);
+
+        VkSemaphoreCreateInfo semaphoreInfo{};
+        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+        VkFenceCreateInfo fenceInfo{};
+        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
+        fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+
+        if (vkCreateSemaphore(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &semaphoreInfo, nullptr, &ImageAvailableSemaphore) != VK_SUCCESS ||
+            vkCreateSemaphore(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &semaphoreInfo, nullptr, &RenderFinishedSemaphore) != VK_SUCCESS ||
+            vkCreateFence(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &fenceInfo, nullptr, &fence) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create synchronization objects for a frame!");
+        }
+
+        VkCommandPoolCreateInfo poolInfo{};
+        poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+        poolInfo.queueFamilyIndex = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().FamilyIndex;
+        
+        if (vkCreateCommandPool(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create command pool!");
+        }
+
+        std::static_pointer_cast<CommandBufferVulkan>(cmd)->Allocate(m_CommandPool);
 	}
 
-    //void Renderer::Update() {
+    void Renderer::RenderScene() {
+        vkWaitForFences(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
 
-    //}
+        static_cast<SwapchainVulkan*>(swapchain)->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, fence, &imageIndex);
+        vkResetCommandBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), /*VkCommandBufferResetFlagBits*/ 0);
+        cmd->Bind();
+        pipeline->m_Specs.pRenderPass->Begin(cmd, imageIndex);
+        pipeline->Bind(cmd);
 
-    //void Renderer::Destroy() {
+        VkViewport viewport{};
+        viewport.x = 0.0f;
+        viewport.y = 0.0f;
+        viewport.width = static_cast<float>(swapchain->GetExtentWidth());
+        viewport.height = static_cast<float>(swapchain->GetExtentHeight());
+        viewport.minDepth = 0.0f;
+        viewport.maxDepth = 1.0f;
+        vkCmdSetViewport(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, &viewport);
+        
+        VkRect2D scissor{};
+        scissor.offset = { 0, 0 };
+        scissor.extent = static_cast<SwapchainVulkan*>(swapchain)->GetExtent();
+        vkCmdSetScissor(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, &scissor);
 
-    //}
+        vkResetFences(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &fence);
+
+        const VkBuffer vertexBuffers[] = { m_VertexBuffer->Get() };
+        VkDeviceSize offsets[] = { 0 };
+        vkCmdBindVertexBuffers(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, vertexBuffers, offsets);
+        //vkCmdBindDescriptorSets(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, std::static_pointer_cast<PipelineVulkan>(pipeline)->GetLayout(), 0, 1, &m_DescriptorSet, 0, nullptr);
+        RenderCommand::Draw(cmd, static_cast<uint32_t>(vertices.size()), 0);
+
+        pipeline->m_Specs.pRenderPass->End(cmd);
+        cmd->UnBind();
+
+        VkSubmitInfo submitInfo{};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        VkSemaphore waitSemaphores[] = { ImageAvailableSemaphore };
+        VkPipelineStageFlags waitStages[] = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+        submitInfo.waitSemaphoreCount = 1;
+        submitInfo.pWaitSemaphores = waitSemaphores;
+        submitInfo.pWaitDstStageMask = waitStages;
+        
+        std::vector<VkCommandBuffer> cmdBufers = { std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get() };
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = cmdBufers.data();
+        
+        VkSemaphore signalSemaphores[] = { RenderFinishedSemaphore };
+        submitInfo.signalSemaphoreCount = 1;
+        submitInfo.pSignalSemaphores = signalSemaphores;
+        
+        if (vkQueueSubmit(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle, 1, &submitInfo, fence) != VK_SUCCESS) {
+            throw std::runtime_error("failed to submit draw command buffer!");
+        }
+
+        VkPresentInfoKHR presentInfo{};
+        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        
+        presentInfo.waitSemaphoreCount = 1;
+        presentInfo.pWaitSemaphores = signalSemaphores;
+        
+        VkSwapchainKHR swapChains[] = { static_cast<SwapchainVulkan*>(swapchain)->GetSwapchain() };
+        presentInfo.swapchainCount = 1;
+        presentInfo.pSwapchains = swapChains;
+        
+        presentInfo.pImageIndices = &imageIndex;
+        
+        vkQueuePresentKHR(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle, &presentInfo);
+    }
 }

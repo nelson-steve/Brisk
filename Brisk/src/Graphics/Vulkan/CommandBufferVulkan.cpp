@@ -16,10 +16,10 @@ namespace Brisk {
 		}
 	}
 
-	void CommandBufferVulkan::Begin(VkCommandBufferUsageFlags usageFlags) {
+	void CommandBufferVulkan::Bind(/*VkCommandBufferUsageFlags usageFlags*/) {
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		beginInfo.flags = usageFlags;
+		//beginInfo.flags = usageFlags;
 		beginInfo.pInheritanceInfo = nullptr; // Optional
 
 		if (vkBeginCommandBuffer(m_CommandBuffer, &beginInfo) != VK_SUCCESS) {
@@ -27,7 +27,7 @@ namespace Brisk {
 		}
 	}
 
-	void CommandBufferVulkan::End() {
+	void CommandBufferVulkan::UnBind() {
 		vkEndCommandBuffer(m_CommandBuffer);
 	}
 }

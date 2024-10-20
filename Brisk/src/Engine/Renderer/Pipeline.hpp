@@ -76,13 +76,16 @@ namespace Brisk
             std::vector<std::shared_ptr<Shader>> pShaders;
         };
     public:
-        static std::shared_ptr<Pipeline> Create();
+        virtual ~Pipeline() = default;
 
         virtual void Init(const PipelineSpecs& specs) = 0;
 
-        virtual void Bind() = 0;
-        virtual void UnBind() = 0;
+        virtual void Bind(std::shared_ptr<CommandBuffer> cmd) = 0;
 
         virtual void Destroy() = 0;
+
+        static std::shared_ptr<Pipeline> Create();
+
+        PipelineSpecs m_Specs;
     };
 }

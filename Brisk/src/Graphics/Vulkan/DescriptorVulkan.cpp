@@ -41,10 +41,9 @@ namespace Brisk
         }
 	}
 
-	void DescriptorVulkan::Update() {
-	//void DescriptorVulkan::Update(uint32_t destination, uint32_t destinationElement) {
+	void DescriptorVulkan::Update(BufferVulkan* buffer) {
         VkDescriptorBufferInfo bufferInfo{};
-        //bufferInfo.buffer = m_UniformBuffer->Get();
+        bufferInfo.buffer = buffer->Get();
         bufferInfo.offset = 0;
         bufferInfo.range = sizeof(MVPBuffer);
 

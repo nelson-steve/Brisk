@@ -85,6 +85,45 @@ namespace Brisk
         if (vkCreateRenderPass(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
             throw std::runtime_error("failed to create render pass!");
         }
+
+        for (int i = 0; i < static_cast<SwapchainVulkan*>(Renderer::swapchain)->GetSwapchainImageViews().size(); i++) {
+            std::vector<VkImageView> imageAttachments;
+            imageAttachments.push_back(static_cast<SwapchainVulkan*>(Renderer::swapchain)->GetSwapchainImageViews()[i]);
+            imageAttachments.push_back(static_cast<SwapchainVulkan*>(Renderer::swapchain)->GetDepthImageView());
+
+            VkFramebuffer framebuffer;
+            VkFramebufferCreateInfo framebufferInfo{};
+            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+            framebufferInfo.renderPass = m_RenderPass;
+            framebufferInfo.attachmentCount = static_cast<uint32_t>(imageAttachments.size());
+            framebufferInfo.pAttachments = imageAttachments.data();
+            framebufferInfo.width = Renderer::swapchain->GetExtentWidth();
+            framebufferInfo.height = Renderer::swapchain->GetExtentHeight();
+            framebufferInfo.layers = 1;
+            if (vkCreateFramebuffer(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &framebufferInfo, nullptr, &framebuffer) != VK_SUCCESS) {
+                throw std::runtime_error("failed to create framebuffer!");
+            }
+            m_Framebuffers.push_back(framebuffer);
+        }
+    }
+
+    void RenderPassVulkan::Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t imageIndex) {
+        VkRenderPassBeginInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
+        renderPassInfo.renderPass = m_RenderPass;
+        renderPassInfo.framebuffer = m_Framebuffers[imageIndex];
+        renderPassInfo.renderArea.offset = { 0, 0 };
+        renderPassInfo.renderArea.extent = static_cast<SwapchainVulkan*>(Renderer::swapchain)->GetExtent();
+
+        std::vector<VkClearValue> clearColors = { {{0.2f, 0.2f, 0.2f, 1.0f}}, { 1.0f, 0 } };
+        renderPassInfo.clearValueCount = clearColors.size();
+        renderPassInfo.pClearValues = clearColors.data();
+
+        vkCmdBeginRenderPass(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+    }
+
+    void RenderPassVulkan::End(std::shared_ptr<CommandBuffer> cmd) {
+        vkCmdEndRenderPass(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get());
     }
 
     //void RenderPassVulkan::Create(std::vector<VkAttachmentDescription> attachments, std::vector<VkSubpassDescription> subpasses, std::vector<VkSubpassDependency> dependencies) {
@@ -112,11 +151,9 @@ namespace Brisk
     //    framebufferInfo.width = width;
     //    framebufferInfo.height = height;
     //    framebufferInfo.layers = 1;
-
     //    if (vkCreateFramebuffer(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &framebufferInfo, nullptr, &framebuffer) != VK_SUCCESS) {
     //        throw std::runtime_error("failed to create framebuffer!");
     //    }
-
     //    m_Framebuffers.push_back(framebuffer);
     //}
 

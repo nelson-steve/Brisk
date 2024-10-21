@@ -1,8 +1,57 @@
 #pragma once
 
+// INCLUDES
+#include <cstdint>
+#include <vector>
+#include <memory>
+//
 namespace Brisk
 {
 	class Buffer {
+	public:
+		enum BufferUsage {
+			BUFFER_USAGE_TRANSFER_SRC_BIT,
+			BUFFER_USAGE_TRANSFER_DST_BIT,
+			BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT,
+			BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT,
+			BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			BUFFER_USAGE_STORAGE_BUFFER_BIT,
+			BUFFER_USAGE_INDEX_BUFFER_BIT,
+			BUFFER_USAGE_VERTEX_BUFFER_BIT,
+			BUFFER_USAGE_INDIRECT_BUFFER_BIT,
+			BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
+			BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR,
+			BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR,
+			BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT,
+			BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT,
+			BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT,
+		};
+		enum MemoryProperty {
+			MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
+			MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+			MEMORY_PROPERTY_HOST_COHERENT_BIT,
+			MEMORY_PROPERTY_HOST_CACHED_BIT,
+			MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT,
+			MEMORY_PROPERTY_PROTECTED_BIT,
+			MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD,
+			MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD,
+			MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV,
+			MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM,
+		};
+	public:
+		virtual void Init(uint32_t size, 
+			void* data, 
+			std::vector<BufferUsage> usageFlags, 
+			std::vector<MemoryProperty> memoryProperty, 
+			bool mapPersistant) = 0;
+		virtual void Release() = 0;
 
+		static std::shared_ptr<Buffer> Create();
+	protected:
+		inline uint32_t GetSize() const { 
+			return m_Size; 
+		}
+	protected:
+		uint32_t m_Size;
 	};
 }

@@ -8,11 +8,8 @@
 #include "RenderCommand.hpp"
 #include <Graphics/Factories/SwapchainFactory.hpp>
 
-namespace Brisk 
+namespace Brisk
 {
-    BufferVulkan* m_VertexBuffer;
-    BufferVulkan* m_UniformBuffer;
-    Swapchain* Renderer::swapchain;
     void* m_UniformBufferData;
     VkSemaphore ImageAvailableSemaphore;
     VkSemaphore RenderFinishedSemaphore;
@@ -33,15 +30,9 @@ namespace Brisk
     {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}}
     };
 
-    //std::vector<Point> vertices = {
-    //{{0.0f, -0.5f, 0.0f}, {1.0f, 0.0f, 0.0f}},
-    //{{0.5f, 0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-    //{{-0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}}
-    //};
-
 	void Renderer::Init() {
-        swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
-        swapchain->Create(Swapchain::DOUBLE_BUFFERING);
+        m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
+        m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
         Pipeline::PipelineSpecs pipelineSpecs{};
         RenderPass::RenderPassSpecs renderPassSpecs;
@@ -62,7 +53,6 @@ namespace Brisk
             {0, 1,Core::Format::FORMAT_R32G32B32_SFLOAT,     offsetof(Point, Point::Color)},
         };
         pipelineSpecs.Layout = vertexLayout;
-
         pipelineSpecs.pRenderPass = RenderPass::Create();
         pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 
@@ -138,7 +128,7 @@ namespace Brisk
     void Renderer::RenderScene() {
         vkWaitForFences(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
 
-        static_cast<SwapchainVulkan*>(swapchain)->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, fence, &imageIndex);
+        std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, fence, &imageIndex);
         vkResetCommandBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), /*VkCommandBufferResetFlagBits*/ 0);
         cmd->Bind();
         pipeline->m_Specs.pRenderPass->Begin(cmd, imageIndex);
@@ -147,8 +137,8 @@ namespace Brisk
         VkViewport viewport{};
         viewport.x = 0.0f;
         viewport.y = 0.0f;
-        viewport.width = static_cast<float>(swapchain->GetExtentWidth());
-        viewport.height = static_cast<float>(swapchain->GetExtentHeight());
+        viewport.width = static_cast<float>(m_Swapchain->GetExtentWidth());
+        viewport.height = static_cast<float>(m_Swapchain->GetExtentHeight());
         viewport.minDepth = 0.0f;
         viewport.maxDepth = 1.0f;
         vkCmdSetViewport(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, &viewport);
@@ -202,5 +192,9 @@ namespace Brisk
         presentInfo.pImageIndices = &imageIndex;
         
         vkQueuePresentKHR(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle, &presentInfo);
+    }
+
+    std::unique_ptr<Renderer> Renderer::Create() {
+        return std::make_unique<Renderer>();
     }
 }

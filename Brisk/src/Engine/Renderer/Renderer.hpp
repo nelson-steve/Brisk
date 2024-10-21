@@ -8,14 +8,17 @@
 
 namespace Brisk 
 {
+	class BufferVulkan;
+
 	class Renderer {
 	public:
 		void Init();
 		void RenderScene();
 
-		static std::unique_ptr<Renderer> Create() { return nullptr; }
-
-	public:
-		static Swapchain* swapchain;
+		static std::unique_ptr<Renderer> Create();
+	private:
+		std::shared_ptr<Swapchain> m_Swapchain;
+		BufferVulkan* m_VertexBuffer;
+		BufferVulkan* m_UniformBuffer;
 	};
 }

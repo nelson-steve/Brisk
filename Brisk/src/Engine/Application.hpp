@@ -23,7 +23,7 @@ namespace Brisk
 		const std::shared_ptr<GpuAdapter> GetGpuAdapter() const { return m_Adapter; }
 	private:
 		std::shared_ptr<GpuAdapter> m_Adapter;
-		std::unique_ptr<Renderer> m_Renderer;
+		std::shared_ptr<Renderer> m_Renderer;
 		std::shared_ptr<Window> m_Window;
 	};
 }

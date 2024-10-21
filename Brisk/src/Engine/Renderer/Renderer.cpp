@@ -53,13 +53,13 @@ namespace Brisk
 
         Pipeline::VertexDataLayout vertexLayout;
         vertexLayout.pBinding = 0;
-        vertexLayout.pStride = sizeof(Vertex);
+        vertexLayout.pStride = sizeof(Point);
         vertexLayout.pAttributes = {
-            {0, 0,Core::Format::FORMAT_R32G32B32_SFLOAT,     offsetof(Vertex, Vertex::pos)},
+            {0, 0,Core::Format::FORMAT_R32G32B32_SFLOAT,     offsetof(Point, Point::Position)},
             //{0, 1,Core::Format::FORMAT_R32G32B32_SFLOAT,     offsetof(Vertex, Vertex::normal)},
             //{0, 2,Core::Format::FORMAT_R32G32_SFLOAT,        offsetof(Vertex, Vertex::uv0)},
             //{0, 3,Core::Format::FORMAT_R32G32_SFLOAT,        offsetof(Vertex, Vertex::uv1)},
-            {0, 1,Core::Format::FORMAT_R32G32B32_SFLOAT,     offsetof(Vertex, Vertex::color)},
+            {0, 1,Core::Format::FORMAT_R32G32B32_SFLOAT,     offsetof(Point, Point::Color)},
         };
         pipelineSpecs.Layout = vertexLayout;
 
@@ -83,8 +83,8 @@ namespace Brisk
         pipelineSpecs.pRasterizationDiscardEnable = false;
         pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
         pipelineSpecs.pLineWidth = 1.0f;
-        pipelineSpecs.pCullMode = Pipeline::CullMode::FRONT;
-        pipelineSpecs.pFrontFace = Pipeline::FrontFace::COUTNER_CLOCKWISE;
+        pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
+        pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
         pipelineSpecs.pDepthBiasEnable = false;
         pipelineSpecs.pDepthTestEnable = true;
         pipelineSpecs.pDepthWriteEnable = true;

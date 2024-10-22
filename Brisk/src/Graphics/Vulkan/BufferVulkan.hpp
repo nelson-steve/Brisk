@@ -14,8 +14,8 @@ namespace Brisk {
 	public:
 		virtual void Init(uint32_t size,
 			void* data,
-			std::vector<BufferUsage> usageFlags,
-			std::vector<MemoryProperty> memoryProperty,
+			std::vector<Core::BufferUsage> usageFlags,
+			std::vector<Core::MemoryProperty> memoryProperty,
 			bool mapPersistant) override;
 		virtual void Release() override;
 	private:

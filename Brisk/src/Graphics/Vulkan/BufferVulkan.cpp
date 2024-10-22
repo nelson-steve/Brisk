@@ -11,14 +11,22 @@ namespace Brisk
 {
 	void BufferVulkan::Init(uint32_t size,
 		void* data,
-		std::vector<BufferUsage> usageFlags,
-		std::vector<MemoryProperty> memoryProperty,
+		std::vector<Core::BufferUsage> usageFlags,
+		std::vector<Core::MemoryProperty> memoryProperty,
 		bool mapPersistant) {
-		Create(size, );
-		Allocate();
+		VkBufferUsageFlags usage;
+		VkMemoryPropertyFlags memory;
+		for (auto& flag : usageFlags)
+			usage |= UtilitiesVulkan::BufferUsageToVkFormat(flag);
+		for (auto& flag : memoryProperty)
+			memory |= UtilitiesVulkan::MemoryPropertyToVkFormat(flag);
+
+		Create(size, usage);
+		Allocate(memory);
+
 		if (mapPersistant) {
 			void* ref;
-			vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, 0, m_Size, 0, &ref;
+			vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, 0, m_Size, 0, &ref);
 			memcpy(ref, data, (size_t)m_Size);
 		}
 		else

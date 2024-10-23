@@ -87,16 +87,16 @@ namespace Brisk
 
         cmd = CommandBuffer::Create();
 
-        m_VertexBuffer = new BufferVulkan();
-        m_VertexBuffer->Create(sizeof(vertices[0]) * vertices.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-        m_VertexBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        m_VertexBuffer->MapMemory(vertices);
-        m_VertexBuffer->UnMapMemory();
+        //m_VertexBuffer = new BufferVulkan();
+        //m_VertexBuffer->Create(sizeof(vertices[0]) * vertices.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
+        //m_VertexBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        //m_VertexBuffer->MapMemory(vertices);
+        //m_VertexBuffer->UnMapMemory();
 
-        m_UniformBuffer = new BufferVulkan();
-        m_UniformBuffer->Create(sizeof(MVPBuffer), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-        m_UniformBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        m_UniformBuffer->MapMemory(&m_UniformBufferData);
+        //m_UniformBuffer = new BufferVulkan();
+        //m_UniformBuffer->Create(sizeof(MVPBuffer), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
+        //m_UniformBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        //m_UniformBuffer->MapMemory(&m_UniformBufferData);
 
         //descriptor->Update(m_UniformBuffer);
 
@@ -134,19 +134,23 @@ namespace Brisk
         pipeline->m_Specs.pRenderPass->Begin(cmd, imageIndex);
         pipeline->Bind(cmd);
 
-        VkViewport viewport{};
-        viewport.x = 0.0f;
-        viewport.y = 0.0f;
-        viewport.width = static_cast<float>(m_Swapchain->GetExtentWidth());
-        viewport.height = static_cast<float>(m_Swapchain->GetExtentHeight());
-        viewport.minDepth = 0.0f;
-        viewport.maxDepth = 1.0f;
-        vkCmdSetViewport(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, &viewport);
+        cmd->RecordCommand([&]() {
+            VkViewport viewport{};
+            viewport.x = 0.0f;
+            viewport.y = 0.0f;
+            viewport.width = static_cast<float>(m_Swapchain->GetExtentWidth());
+            viewport.height = static_cast<float>(m_Swapchain->GetExtentHeight());
+            viewport.minDepth = 0.0f;
+            viewport.maxDepth = 1.0f;
+            vkCmdSetViewport(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, &viewport);
+        });
         
-        VkRect2D scissor{};
-        scissor.offset = { 0, 0 };
-        scissor.extent = static_cast<SwapchainVulkan*>(swapchain)->GetExtent();
-        vkCmdSetScissor(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, &scissor);
+        cmd->RecordCommand([&]() {
+            VkRect2D scissor{};
+            scissor.offset = { 0, 0 };
+            scissor.extent = std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->GetExtent();
+            vkCmdSetScissor(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, &scissor);
+        });
 
         vkResetFences(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &fence);
 
@@ -185,7 +189,7 @@ namespace Brisk
         presentInfo.waitSemaphoreCount = 1;
         presentInfo.pWaitSemaphores = signalSemaphores;
         
-        VkSwapchainKHR swapChains[] = { static_cast<SwapchainVulkan*>(swapchain)->GetSwapchain() };
+        VkSwapchainKHR swapChains[] = { std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->GetSwapchain() };
         presentInfo.swapchainCount = 1;
         presentInfo.pSwapchains = swapChains;
         

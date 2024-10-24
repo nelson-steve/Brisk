@@ -33,10 +33,14 @@ namespace Brisk
 		{
 			void* ref;
 			vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, 0, m_Size, 0, &ref);
-			memcpy(ref, data, (size_t)m_Size);
+			memcpy(ref, m_PersistantPtr, (size_t)m_Size);
 			vkUnmapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory);
 		}
 
+	}
+
+	void BufferVulkan::UpdatePersistantData(uint32_t size, void* data) {
+		memcpy(m_PersistantPtr, data, size);
 	}
 
 	void BufferVulkan::Create(uint32_t bufferSize, VkBufferUsageFlags usageFlags) {

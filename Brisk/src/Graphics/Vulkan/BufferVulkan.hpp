@@ -19,6 +19,8 @@ namespace Brisk {
 			bool mapPersistant) override;
 		virtual void Release() override;
 
+		void UpdatePersistantData(uint32_t size, void* data);
+
 		inline const VkBuffer& Get() const {
 			return m_Handle;
 		}
@@ -32,7 +34,7 @@ namespace Brisk {
 		void Release();
 		const VkDeviceMemory GetMemory() const { return m_Memory; }
 	private:
-		void* m_Data;
+		void* m_PersistantPtr;
 		VkBuffer m_Handle;
 		VkDeviceMemory m_Memory;
 	};

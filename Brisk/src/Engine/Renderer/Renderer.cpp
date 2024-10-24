@@ -87,6 +87,17 @@ namespace Brisk
 
         cmd = CommandBuffer::Create();
 
+        m_VertexBuffer->Init(sizeof(vertices[0]) * vertices.size(),
+            vertices.data(),
+            { Core::BufferUsage::BUFFER_USAGE_VERTEX_BUFFER_BIT },
+            { Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
+            false);
+
+        m_UniformBuffer->Init(sizeof(MVPBuffer),
+            nullptr,
+            { Core::BufferUsage::BUFFER_USAGE_UNIFORM_BUFFER_BIT },
+            { Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
+            true);
         //m_VertexBuffer = new BufferVulkan();
         //m_VertexBuffer->Create(sizeof(vertices[0]) * vertices.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
         //m_VertexBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
@@ -134,7 +145,7 @@ namespace Brisk
         pipeline->m_Specs.pRenderPass->Begin(cmd, imageIndex);
         pipeline->Bind(cmd);
 
-        cmd->RecordCommand([&]() {
+        cmd->RecordCommand([=]() {
             VkViewport viewport{};
             viewport.x = 0.0f;
             viewport.y = 0.0f;

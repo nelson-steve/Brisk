@@ -7,6 +7,7 @@
 #include <Graphics/Vulkan/CommandBufferVulkan.hpp>
 #include "RenderCommand.hpp"
 #include <Graphics/Factories/SwapchainFactory.hpp>
+#include "../Camera.hpp"
 
 namespace Brisk
 {
@@ -58,10 +59,10 @@ namespace Brisk
 
         std::shared_ptr<Shader> vertexShader = Shader::Create();
         vertexShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
-        //std::shared_ptr<Descriptor> descriptor = Descriptor::Create();
-        //descriptor->AddBindingLayout(0, 1, Descriptor::DescriptorType::UNIFORM);
-        //descriptor->Init();
-        //vertexShader->AddDescriptor(descriptor);
+        std::shared_ptr<Descriptor> descriptor = Descriptor::Create();
+        descriptor->AddBindingLayout(0, 1, Descriptor::DescriptorType::UNIFORM);
+        descriptor->Init();
+        vertexShader->AddDescriptor(descriptor);
 
         std::shared_ptr<Shader> fragmentShader = Shader::Create();
         fragmentShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
@@ -98,16 +99,9 @@ namespace Brisk
             { Core::BufferUsage::BUFFER_USAGE_UNIFORM_BUFFER_BIT },
             { Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
             true);
-        //m_VertexBuffer = new BufferVulkan();
-        //m_VertexBuffer->Create(sizeof(vertices[0]) * vertices.size(), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-        //m_VertexBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        //m_VertexBuffer->MapMemory(vertices);
-        //m_VertexBuffer->UnMapMemory();
 
-        //m_UniformBuffer = new BufferVulkan();
-        //m_UniformBuffer->Create(sizeof(MVPBuffer), VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT);
-        //m_UniformBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-        //m_UniformBuffer->MapMemory(&m_UniformBufferData);
+
+        std::shared_ptr<Camera> m_Camera = std::make_shared<Camera>();
 
         //descriptor->Update(m_UniformBuffer);
 

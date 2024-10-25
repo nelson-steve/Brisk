@@ -18,8 +18,7 @@ namespace Brisk {
 			std::vector<Core::MemoryProperty> memoryProperty,
 			bool mapPersistant) override;
 		virtual void Release() override;
-
-		void UpdatePersistantData(uint32_t size, void* data);
+		virtual void UpdatePersistantData(uint32_t size, void* data) override;
 
 		inline const VkBuffer& Get() const {
 			return m_Handle;

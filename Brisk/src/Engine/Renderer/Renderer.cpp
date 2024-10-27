@@ -7,7 +7,6 @@
 #include <Graphics/Vulkan/CommandBufferVulkan.hpp>
 #include "RenderCommand.hpp"
 #include <Graphics/Factories/SwapchainFactory.hpp>
-#include "../Camera.hpp"
 
 namespace Brisk
 {
@@ -23,12 +22,12 @@ namespace Brisk
     std::shared_ptr<Pipeline> pipeline;
 
     std::vector<Point> vertices{
-    {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-    {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
-    {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-    {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-    {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-    {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}}
+        {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+        {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
+        {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+        {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
+        {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
+        {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}}
     };
 
 	void Renderer::Init() {
@@ -101,8 +100,6 @@ namespace Brisk
             true);
 
 
-        std::shared_ptr<Camera> m_Camera = std::make_shared<Camera>();
-
         //descriptor->Update(m_UniformBuffer);
 
         VkSemaphoreCreateInfo semaphoreInfo{};
@@ -130,7 +127,7 @@ namespace Brisk
         std::static_pointer_cast<CommandBufferVulkan>(cmd)->Allocate(m_CommandPool);
 	}
 
-    void Renderer::RenderScene() {
+    void Renderer::RenderScene(float deltaTime){
         vkWaitForFences(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
 
         std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, fence, &imageIndex);

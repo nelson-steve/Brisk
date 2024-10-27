@@ -3,21 +3,21 @@
 
 namespace Brisk 
 {
-	std::shared_ptr<Window> Application::CreateApplication() {
+	void Application::CreateApplication() {
 		m_Window = Window::Create(1280, 720);
+		m_EditorCamera = std::make_shared<Camera>(m_Window->GetWindowHandle());
 
 		m_Adapter = GpuAdapter::Create();
 		m_Adapter->Init();
 
 		m_Renderer = Renderer::Create();
-
 		m_Renderer->Init(); 
 
-		return nullptr;
 	}
 
 	void Application::Update(float deltaTime) {
-		m_Renderer->RenderScene();
+		m_Renderer->RenderScene(deltaTime);
+		m_EditorCamera->OnUpdate(deltaTime);
 		m_Window->ProcessEvents();
 	}
 

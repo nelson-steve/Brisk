@@ -4,6 +4,7 @@
 #include "Renderer/GpuAdapter.hpp"
 #include "Renderer/Renderer.hpp"
 #include "Platform/Windows/WindowsWindow.hpp"
+#include "Camera.hpp"
 
 namespace Brisk 
 {
@@ -11,7 +12,7 @@ namespace Brisk
 	public:
 		Application() = default;
 		~Application() = default;
-		std::shared_ptr<Window> CreateApplication();
+		void CreateApplication();
 		void Update(float deltaTime);
 		void Close();
 
@@ -25,5 +26,6 @@ namespace Brisk
 		std::shared_ptr<GpuAdapter> m_Adapter;
 		std::shared_ptr<Renderer> m_Renderer;
 		std::shared_ptr<Window> m_Window;
+		std::shared_ptr<Camera> m_EditorCamera;
 	};
 }

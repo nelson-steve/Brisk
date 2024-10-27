@@ -4,8 +4,14 @@
 
 namespace Brisk 
 {
+	Camera::Camera(GLFWwindow* window) 
+		: m_Window(window), 
+		m_Projection(glm::perspective(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip)) {
+		UpdateView();
+	}
+
 	Camera::Camera(float fov, float aspectRatio, float nearClip, float farClip, GLFWwindow* window)
-		: m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip) {
+		: m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip), m_Window(window) {
 		m_Projection = glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip);
 		UpdateView();
 	}
@@ -46,15 +52,16 @@ namespace Brisk
 		return speed;
 	}
 
-	void Camera::OnUpdate(float t, GLFWwindow* window) {
-		if (glfwGetKey(window, GLFW_KEY_LEFT_ALT) && m_MouseMoved) {
+	void Camera::OnUpdate(float t) {
+		assert(m_Window != nullptr);
+		if (glfwGetKey(m_Window, GLFW_KEY_LEFT_ALT) && m_MouseMoved) {
 			glm::vec2 delta = m_MouseOffset * 0.003f;
 		
-			if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_MIDDLE))
+			if (glfwGetMouseButton(m_Window, GLFW_MOUSE_BUTTON_MIDDLE))
 				MousePan(delta);
-			else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_LEFT))
+			else if (glfwGetMouseButton(m_Window, GLFW_MOUSE_BUTTON_LEFT))
 				MouseRotate(delta);
-			else if (glfwGetMouseButton(window, GLFW_MOUSE_BUTTON_RIGHT))
+			else if (glfwGetMouseButton(m_Window, GLFW_MOUSE_BUTTON_RIGHT))
 				MouseZoom(delta.y);
 			m_MouseMoved = false;
 		}

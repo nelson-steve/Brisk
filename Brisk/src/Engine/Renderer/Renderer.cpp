@@ -87,6 +87,8 @@ namespace Brisk
 
         cmd = CommandBuffer::Create();
 
+        m_VertexBuffer = std::make_shared<Buffer>();
+        m_UniformBuffer = std::make_shared<Buffer>();
         m_VertexBuffer->Init(sizeof(vertices[0]) * vertices.size(),
             vertices.data(),
             { Core::BufferUsage::BUFFER_USAGE_VERTEX_BUFFER_BIT },
@@ -127,7 +129,7 @@ namespace Brisk
         std::static_pointer_cast<CommandBufferVulkan>(cmd)->Allocate(m_CommandPool);
 	}
 
-    void Renderer::RenderScene(float deltaTime){
+    void Renderer::RenderScene(float deltaTime) {
         vkWaitForFences(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
 
         std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, fence, &imageIndex);
@@ -156,7 +158,7 @@ namespace Brisk
 
         vkResetFences(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &fence);
 
-        const VkBuffer vertexBuffers[] = { m_VertexBuffer->Get() };
+        const VkBuffer vertexBuffers[] = { std::static_pointer_cast<BufferVulkan>(m_VertexBuffer)->Get() };
         VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, vertexBuffers, offsets);
         //vkCmdBindDescriptorSets(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, std::static_pointer_cast<PipelineVulkan>(pipeline)->GetLayout(), 0, 1, &m_DescriptorSet, 0, nullptr);

@@ -3,6 +3,7 @@
 #include "Pipeline.hpp"
 #include "CommandBuffer.hpp"
 #include "Graphics/Swapchain.hpp"
+#include "Buffer.hpp"
 
 #include <memory>
 
@@ -18,7 +19,7 @@ namespace Brisk
 		static std::unique_ptr<Renderer> Create();
 	private:
 		std::shared_ptr<Swapchain> m_Swapchain;
-		BufferVulkan* m_VertexBuffer;
-		BufferVulkan* m_UniformBuffer;
+		std::shared_ptr<Buffer> m_VertexBuffer;
+		std::shared_ptr<Buffer> m_UniformBuffer;
 	};
 }

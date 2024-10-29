@@ -20,15 +20,15 @@ namespace Brisk
 
 	struct Texture {
 		//GraphicsDevice* device;
-		//VkImage image;
-		//VkImageLayout imageLayout;
-		//VkDeviceMemory deviceMemory;
-		//VkImageView view;
-		//uint32_t width, height;
-		//uint32_t mipLevels;
-		//uint32_t layerCount;
-		//VkDescriptorImageInfo descriptor;
-		//VkSampler sampler;
+		VkImage image;
+		VkImageLayout imageLayout;
+		VkDeviceMemory deviceMemory;
+		VkImageView view;
+		uint32_t width, height;
+		uint32_t mipLevels;
+		uint32_t layerCount;
+		VkDescriptorImageInfo descriptor;
+		VkSampler sampler;
 		void updateDescriptor();
 		void destroy();
 		// Load a texture from a glTF image (stored as vector of chars loaded via stb_image) and generate a full mip chaing for it
@@ -43,11 +43,11 @@ namespace Brisk
 		float roughnessFactor = 1.0f;
 		glm::vec4 baseColorFactor = glm::vec4(1.0f);
 		glm::vec4 emissiveFactor = glm::vec4(0.0f);
-		//Texture2D* baseColorTexture;
-		//Texture2D* metallicRoughnessTexture;
-		//Texture2D* normalTexture;
-		//Texture2D* occlusionTexture;
-		//Texture2D* emissiveTexture;
+		Texture2D* baseColorTexture;
+		Texture2D* metallicRoughnessTexture;
+		Texture2D* normalTexture;
+		Texture2D* occlusionTexture;
+		Texture2D* emissiveTexture;
 		bool doubleSided = false;
 		struct TexCoordSets {
 			uint8_t baseColor = 0;
@@ -58,8 +58,8 @@ namespace Brisk
 			uint8_t emissive = 0;
 		} texCoordSets;
 		struct Extension {
-			//Texture2D* specularGlossinessTexture;
-			//Texture2D* diffuseTexture;
+			Texture2D* specularGlossinessTexture;
+			Texture2D* diffuseTexture;
 			glm::vec4 diffuseFactor = glm::vec4(1.0f);
 			glm::vec3 specularFactor = glm::vec3(0.0f);
 		} extension;
@@ -67,7 +67,7 @@ namespace Brisk
 			bool metallicRoughness = true;
 			bool specularGlossiness = false;
 		} pbrWorkflows;
-		//VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+		VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
 		int index = 0;
 		bool unlit = false;
 		float emissiveStrength = 1.0f;
@@ -132,8 +132,8 @@ namespace Brisk
 	private:
 		std::vector<Node*> m_nodes;
 		std::vector<Node*> m_linear_nodes;
-		//std::vector<Texture2D*> m_textures;
-		//std::vector<TextureSampler> m_texture_samplers;
+		std::vector<Texture2D*> m_textures;
+		std::vector<TextureSampler> m_texture_samplers;
 		std::vector<Material> m_materials;
 		uint32_t* m_index_buffer;
 		Vertex* m_vertex_buffer;

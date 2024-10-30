@@ -1,7 +1,4 @@
 #include "Model.hpp"
-#include <assimp/Importer.hpp>
-#include <assimp/scene.h>
-#include <assimp/postprocess.h>
 
 namespace Brisk 
 {
@@ -67,15 +64,6 @@ namespace Brisk
 
 
 	void Model::Load(const std::string& path) {
-		//Assimp::Importer importer;
-		//const aiScene* scene = importer.ReadFile(path, aiProcess_Triangulate | aiProcess_GenNormals | aiProcess_CalcTangentSpace | aiProcess_FlipUVs);
-		//if (!scene || scene->mFlags & AI_SCENE_FLAGS_INCOMPLETE || !scene->mRootNode) {
-		//	std::cerr << "Error loading model: " << importer.GetErrorString() << std::endl;
-		//	return;
-		//}
-
-		//processNode(scene->mRootNode, scene);
-
 		//m_VertexBuffer = new BufferVulkan();
 		//m_VertexBuffer->Create(vertices.size() * sizeof(Vertex), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
 		//m_VertexBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);

@@ -161,105 +161,105 @@ namespace Brisk
 		}
 	}
 
-	//void Model::LoadMaterials(tinygltf::Model model) {
-	//	for (tinygltf::Material& mat : model.materials) {
-	//		Material material{};
-	//		material.doubleSided = mat.doubleSided;
-	//		if (mat.values.find("baseColorTexture") != mat.values.end()) {
-	//			material.baseColorTexture = m_textures[mat.values["baseColorTexture"].TextureIndex()];
-	//			material.texCoordSets.baseColor = mat.values["baseColorTexture"].TextureTexCoord();
-	//		}
-	//		if (mat.values.find("metallicRoughnessTexture") != mat.values.end()) {
-	//			material.metallicRoughnessTexture = m_textures[mat.values["metallicRoughnessTexture"].TextureIndex()];
-	//			material.texCoordSets.metallicRoughness = mat.values["metallicRoughnessTexture"].TextureTexCoord();
-	//		}
-	//		if (mat.values.find("roughnessFactor") != mat.values.end()) {
-	//			material.roughnessFactor = static_cast<float>(mat.values["roughnessFactor"].Factor());
-	//		}
-	//		if (mat.values.find("metallicFactor") != mat.values.end()) {
-	//			material.metallicFactor = static_cast<float>(mat.values["metallicFactor"].Factor());
-	//		}
-	//		if (mat.values.find("baseColorFactor") != mat.values.end()) {
-	//			material.baseColorFactor = glm::make_vec4(mat.values["baseColorFactor"].ColorFactor().data());
-	//		}
-	//		if (mat.additionalValues.find("normalTexture") != mat.additionalValues.end()) {
-	//			material.normalTexture = m_textures[mat.additionalValues["normalTexture"].TextureIndex()];
-	//			material.texCoordSets.normal = mat.additionalValues["normalTexture"].TextureTexCoord();
-	//		}
-	//		if (mat.additionalValues.find("emissiveTexture") != mat.additionalValues.end()) {
-	//			material.emissiveTexture = m_textures[mat.additionalValues["emissiveTexture"].TextureIndex()];
-	//			material.texCoordSets.emissive = mat.additionalValues["emissiveTexture"].TextureTexCoord();
-	//		}
-	//		if (mat.additionalValues.find("occlusionTexture") != mat.additionalValues.end()) {
-	//			material.occlusionTexture = m_textures[mat.additionalValues["occlusionTexture"].TextureIndex()];
-	//			material.texCoordSets.occlusion = mat.additionalValues["occlusionTexture"].TextureTexCoord();
-	//		}
-	//		if (mat.additionalValues.find("alphaMode") != mat.additionalValues.end()) {
-	//			tinygltf::Parameter param = mat.additionalValues["alphaMode"];
-	//			if (param.string_value == "BLEND") {
-	//				material.alphaMode = Material::ALPHAMODE_BLEND;
-	//			}
-	//			if (param.string_value == "MASK") {
-	//				material.alphaCutoff = 0.5f;
-	//				material.alphaMode = Material::ALPHAMODE_MASK;
-	//			}
-	//		}
-	//		if (mat.additionalValues.find("alphaCutoff") != mat.additionalValues.end()) {
-	//			material.alphaCutoff = static_cast<float>(mat.additionalValues["alphaCutoff"].Factor());
-	//		}
-	//		if (mat.additionalValues.find("emissiveFactor") != mat.additionalValues.end()) {
-	//			material.emissiveFactor = glm::vec4(glm::make_vec3(mat.additionalValues["emissiveFactor"].ColorFactor().data()), 1.0);
-	//		}
+	void Model::LoadMaterials(tinygltf::Model model) {
+		for (tinygltf::Material& mat : model.materials) {
+			Material material{};
+			material.doubleSided = mat.doubleSided;
+			if (mat.values.find("baseColorTexture") != mat.values.end()) {
+				material.baseColorTexture = m_textures[mat.values["baseColorTexture"].TextureIndex()];
+				material.texCoordSets.baseColor = mat.values["baseColorTexture"].TextureTexCoord();
+			}
+			if (mat.values.find("metallicRoughnessTexture") != mat.values.end()) {
+				material.metallicRoughnessTexture = m_textures[mat.values["metallicRoughnessTexture"].TextureIndex()];
+				material.texCoordSets.metallicRoughness = mat.values["metallicRoughnessTexture"].TextureTexCoord();
+			}
+			if (mat.values.find("roughnessFactor") != mat.values.end()) {
+				material.roughnessFactor = static_cast<float>(mat.values["roughnessFactor"].Factor());
+			}
+			if (mat.values.find("metallicFactor") != mat.values.end()) {
+				material.metallicFactor = static_cast<float>(mat.values["metallicFactor"].Factor());
+			}
+			if (mat.values.find("baseColorFactor") != mat.values.end()) {
+				material.baseColorFactor = glm::make_vec4(mat.values["baseColorFactor"].ColorFactor().data());
+			}
+			if (mat.additionalValues.find("normalTexture") != mat.additionalValues.end()) {
+				material.normalTexture = m_textures[mat.additionalValues["normalTexture"].TextureIndex()];
+				material.texCoordSets.normal = mat.additionalValues["normalTexture"].TextureTexCoord();
+			}
+			if (mat.additionalValues.find("emissiveTexture") != mat.additionalValues.end()) {
+				material.emissiveTexture = m_textures[mat.additionalValues["emissiveTexture"].TextureIndex()];
+				material.texCoordSets.emissive = mat.additionalValues["emissiveTexture"].TextureTexCoord();
+			}
+			if (mat.additionalValues.find("occlusionTexture") != mat.additionalValues.end()) {
+				material.occlusionTexture = m_textures[mat.additionalValues["occlusionTexture"].TextureIndex()];
+				material.texCoordSets.occlusion = mat.additionalValues["occlusionTexture"].TextureTexCoord();
+			}
+			if (mat.additionalValues.find("alphaMode") != mat.additionalValues.end()) {
+				tinygltf::Parameter param = mat.additionalValues["alphaMode"];
+				if (param.string_value == "BLEND") {
+					material.alphaMode = Material::ALPHAMODE_BLEND;
+				}
+				if (param.string_value == "MASK") {
+					material.alphaCutoff = 0.5f;
+					material.alphaMode = Material::ALPHAMODE_MASK;
+				}
+			}
+			if (mat.additionalValues.find("alphaCutoff") != mat.additionalValues.end()) {
+				material.alphaCutoff = static_cast<float>(mat.additionalValues["alphaCutoff"].Factor());
+			}
+			if (mat.additionalValues.find("emissiveFactor") != mat.additionalValues.end()) {
+				material.emissiveFactor = glm::vec4(glm::make_vec3(mat.additionalValues["emissiveFactor"].ColorFactor().data()), 1.0);
+			}
 
-	//		// Extensions
-	//		// @TODO: Find out if there is a nicer way of reading these properties with recent tinygltf headers
-	//		if (mat.extensions.find("KHR_materials_pbrSpecularGlossiness") != mat.extensions.end()) {
-	//			auto ext = mat.extensions.find("KHR_materials_pbrSpecularGlossiness");
-	//			if (ext->second.Has("specularGlossinessTexture")) {
-	//				auto index = ext->second.Get("specularGlossinessTexture").Get("index");
-	//				material.extension.specularGlossinessTexture = m_textures[index.Get<int>()];
-	//				auto texCoordSet = ext->second.Get("specularGlossinessTexture").Get("texCoord");
-	//				material.texCoordSets.specularGlossiness = texCoordSet.Get<int>();
-	//				material.pbrWorkflows.specularGlossiness = true;
-	//			}
-	//			if (ext->second.Has("diffuseTexture")) {
-	//				auto index = ext->second.Get("diffuseTexture").Get("index");
-	//				material.extension.diffuseTexture = m_textures[index.Get<int>()];
-	//			}
-	//			if (ext->second.Has("diffuseFactor")) {
-	//				auto factor = ext->second.Get("diffuseFactor");
-	//				for (uint32_t i = 0; i < factor.ArrayLen(); i++) {
-	//					auto val = factor.Get(i);
-	//					material.extension.diffuseFactor[i] = val.IsNumber() ? (float)val.Get<double>() : (float)val.Get<int>();
-	//				}
-	//			}
-	//			if (ext->second.Has("specularFactor")) {
-	//				auto factor = ext->second.Get("specularFactor");
-	//				for (uint32_t i = 0; i < factor.ArrayLen(); i++) {
-	//					auto val = factor.Get(i);
-	//					material.extension.specularFactor[i] = val.IsNumber() ? (float)val.Get<double>() : (float)val.Get<int>();
-	//				}
-	//			}
-	//		}
+			// Extensions
+			// @TODO: Find out if there is a nicer way of reading these properties with recent tinygltf headers
+			if (mat.extensions.find("KHR_materials_pbrSpecularGlossiness") != mat.extensions.end()) {
+				auto ext = mat.extensions.find("KHR_materials_pbrSpecularGlossiness");
+				if (ext->second.Has("specularGlossinessTexture")) {
+					auto index = ext->second.Get("specularGlossinessTexture").Get("index");
+					material.extension.specularGlossinessTexture = m_textures[index.Get<int>()];
+					auto texCoordSet = ext->second.Get("specularGlossinessTexture").Get("texCoord");
+					material.texCoordSets.specularGlossiness = texCoordSet.Get<int>();
+					material.pbrWorkflows.specularGlossiness = true;
+				}
+				if (ext->second.Has("diffuseTexture")) {
+					auto index = ext->second.Get("diffuseTexture").Get("index");
+					material.extension.diffuseTexture = m_textures[index.Get<int>()];
+				}
+				if (ext->second.Has("diffuseFactor")) {
+					auto factor = ext->second.Get("diffuseFactor");
+					for (uint32_t i = 0; i < factor.ArrayLen(); i++) {
+						auto val = factor.Get(i);
+						material.extension.diffuseFactor[i] = val.IsNumber() ? (float)val.Get<double>() : (float)val.Get<int>();
+					}
+				}
+				if (ext->second.Has("specularFactor")) {
+					auto factor = ext->second.Get("specularFactor");
+					for (uint32_t i = 0; i < factor.ArrayLen(); i++) {
+						auto val = factor.Get(i);
+						material.extension.specularFactor[i] = val.IsNumber() ? (float)val.Get<double>() : (float)val.Get<int>();
+					}
+				}
+			}
 
-	//		if (mat.extensions.find("KHR_materials_unlit") != mat.extensions.end()) {
-	//			material.unlit = true;
-	//		}
+			if (mat.extensions.find("KHR_materials_unlit") != mat.extensions.end()) {
+				material.unlit = true;
+			}
 
-	//		if (mat.extensions.find("KHR_materials_emissive_strength") != mat.extensions.end()) {
-	//			auto ext = mat.extensions.find("KHR_materials_emissive_strength");
-	//			if (ext->second.Has("emissiveStrength")) {
-	//				auto value = ext->second.Get("emissiveStrength");
-	//				material.emissiveStrength = (float)value.Get<double>();
-	//			}
-	//		}
+			if (mat.extensions.find("KHR_materials_emissive_strength") != mat.extensions.end()) {
+				auto ext = mat.extensions.find("KHR_materials_emissive_strength");
+				if (ext->second.Has("emissiveStrength")) {
+					auto value = ext->second.Get("emissiveStrength");
+					material.emissiveStrength = (float)value.Get<double>();
+				}
+			}
 
-	//		material.index = static_cast<uint32_t>(m_materials.size());
-	//		m_materials.push_back(material);
-	//	}
-	//	// Push a default material at the end of the list for meshes with no material assigned
-	//	//m_materials.push_back(Material());
-	//}
+			material.index = static_cast<uint32_t>(m_materials.size());
+			m_materials.push_back(material);
+		}
+		// Push a default material at the end of the list for meshes with no material assigned
+		//m_materials.push_back(Material());
+	}
 
 	void Model::GetNodeProps(const tinygltf::Node& node, const tinygltf::Model& model, uint32_t& vertex_count, uint32_t& index_count) {
 		if (node.children.size() > 0) {

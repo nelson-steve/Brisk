@@ -11,8 +11,7 @@ namespace Brisk
 		m_Adapter->Init();
 
 		m_Renderer = Renderer::Create();
-		m_Renderer->Init(); 
-
+		m_Renderer->Init();
 	}
 
 	void Application::Update(float deltaTime) {

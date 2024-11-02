@@ -10,49 +10,53 @@ namespace Brisk
     {
         Root,
         Sprite,
-    }
+    };
 
-    class Node
-    {
+    class Component {
+    };
+
+    class MeshComponent : public Component {
+    };
+
+    class PhysicsComponent : public Component {
+    };
+
+
+    class Node {
     public:
-        NodeType p_Type;
-        uint32_t p_ID = 0;
-        std::string p_Name;
-        std::vector<std::shared_ptr<Node>> p_Children;
-    }
+        // Constructor and Destructor
+        Node(const std::string& name = "Node");
+        virtual ~Node();
 
-    class Sprite : public Node
-    {
-    public:
-        std::shared_ptr<Texture> p_Texture;
-    }
+        // Node Hierarchy Management
+        void AddChild(std::shared_ptr<Node> child);
+        void RemoveChild(const std::shared_ptr<Node>& child);
+        std::shared_ptr<Node> GetParent() const;
 
-    class BriskScene
-    {
-    public:
-        void AddNode(const std::string &name, bool isRoot = true)
-        {
-            Node node{};
-            node.p_Name = name;
-            p_Nodes.push_back(node);
-            return newElement.id;
-        }
+        // Transform Functions
+        void SetPosition(const glm::vec3& position);
+        void SetRotation(const glm::quat& rotation);
+        void SetScale(const glm::vec3& scale);
+        glm::vec3 GetPosition() const;
+        glm::quat GetRotation() const;
+        glm::vec3 GetScale() const;
 
-        void AddNode(Ref<Node> parentNode, std::string name)
-        {
-            Node node{};
-            node.p_Name = name;
-            parentNode->AddNode(node)
-        }
+        // Component Management
+        template <typename T, typename... Args>
+        std::shared_ptr<T> AddComponent(Args&&... args);
 
-        void SelectElement(Ref<Node> node)
-        {
-            p_SelectedNode = node;
-        }
+        template <typename T>
+        std::shared_ptr<T> GetComponent() const;
 
     private:
-        std::shared_ptr<Node> p_SelectedNode;
-        std::vector<std::shared_ptr<Node>> p_Nodes;
-        uint32_t p_SceneID = 0;
+        std::string name;
+        glm::vec3 position;
+        glm::quat rotation;
+        glm::vec3 scale;
+
+        std::weak_ptr<Node> parent;
+        std::vector<std::shared_ptr<Node>> children;
+        std::vector<std::shared_ptr<Component>> components; // Base class for components
     };
+
 }

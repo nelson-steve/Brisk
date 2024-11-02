@@ -5,6 +5,7 @@
 #include "Renderer/Renderer.hpp"
 #include "Platform/Windows/WindowsWindow.hpp"
 #include "Camera.hpp"
+#include "Scene.hpp"
 
 namespace Brisk 
 {
@@ -27,5 +28,8 @@ namespace Brisk
 		std::shared_ptr<Renderer> m_Renderer;
 		std::shared_ptr<Window> m_Window;
 		std::shared_ptr<Camera> m_EditorCamera;
+		std::shared_ptr<Scene> m_ActiveScene;
+		std::vector<std::shared_ptr<Scene>> m_Scenes;
+		bool m_LoadingScene;
 	};
 }

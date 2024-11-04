@@ -15,6 +15,79 @@ namespace Brisk
     class Component {
     };
 
+    class TransformComponent : public Component {
+    public:
+        glm::vec3 position{ 0.0f, 0.0f, 0.0f };
+        glm::quat rotation{ 1.0f, 0.0f, 0.0f, 0.0f }; // Quaternion for rotation
+        glm::vec3 scale{ 1.0f, 1.0f, 1.0f };
+
+        TransformComponent() = default;
+
+        // Methods for transforming the component
+        void setPosition(const glm::vec3& pos) { position = pos; }
+        void setRotation(const glm::quat& rot) { rotation = rot; }
+        void setScale(const glm::vec3& scl) { scale = scl; }
+
+        glm::mat4 getTransformMatrix() const {
+            glm::mat4 trans = glm::translate(glm::mat4(1.0f), position);
+            glm::mat4 rot = glm::mat4_cast(rotation);
+            glm::mat4 scl = glm::scale(glm::mat4(1.0f), scale);
+            return trans * rot * scl;
+        }
+    };
+
+    class LightComponent : public Component {
+    public:
+        glm::vec3 color{ 1.0f, 1.0f, 1.0f };
+        float intensity = 1.0f;
+        bool enabled = true;
+
+        LightComponent(const glm::vec3& col = { 1.0f, 1.0f, 1.0f }, float intens = 1.0f)
+            : color(col), intensity(intens) {}
+
+        void setColor(const glm::vec3& col) { color = col; }
+        void setIntensity(float intens) { intensity = intens; }
+        void toggle() { enabled = !enabled; }
+    };
+
+    class CameraComponent : public Component {
+    public:
+        float fov = 45.0f;
+        float nearPlane = 0.1f;
+        float farPlane = 100.0f;
+        glm::vec3 position{ 0.0f, 0.0f, 0.0f };
+        glm::vec3 lookAt{ 0.0f, 0.0f, -1.0f };
+        glm::vec3 up{ 0.0f, 1.0f, 0.0f };
+
+        CameraComponent() = default;
+
+        glm::mat4 getViewMatrix() const {
+            return glm::lookAt(position, position + lookAt, up);
+        }
+
+        glm::mat4 getProjectionMatrix(float aspectRatio) const {
+            return glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane);
+        }
+    };
+
+    class ScriptComponent : public Component {
+    public:
+        std::string scriptName;
+        std::function<void()> onUpdate;
+
+        ScriptComponent(const std::string& name) : scriptName(name) {}
+
+        void setUpdateFunction(std::function<void()> func) {
+            onUpdate = func;
+        }
+
+        void update() {
+            if (onUpdate) {
+                onUpdate();  // Calls the update function if it exists
+            }
+        }
+    };
+
     class MeshComponent : public Component {
     };
 

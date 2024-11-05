@@ -10,9 +10,14 @@ namespace Brisk
 {
 	class Descriptor {
 	public:
-		enum DescriptorType {
-			UNIFORM,
-			IMAGE,
+		enum DescriptorType
+		{
+			SAMPLER,
+			COMBINED_IMAGE_SAMPLER,
+			SAMPLED_IMAGE,
+			STORAGE_IMAGE,
+			UNIFORM_BUFFER,
+			STORAGE_BUFFER,
 		};
 
 		struct Layout {

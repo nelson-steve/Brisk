@@ -13,7 +13,7 @@ namespace Brisk {
 
     // Node destructor
     Node::~Node() {
-        // Destructor logic if needed
+        // Destructor logic if neededd
     }
 
     // Add a child node

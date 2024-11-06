@@ -5,7 +5,7 @@ namespace Brisk {
 	class CommandBuffer {
 	public:
 		virtual void Bind() = 0;
-		void void RecordCommand(std::function<void()> command){
+		void RecordCommand(std::function<void()> command){
 			m_Commands.push_back(command);
 		}
 		virtual void UnBind() = 0;

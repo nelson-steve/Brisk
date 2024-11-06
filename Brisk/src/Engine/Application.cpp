@@ -1,4 +1,5 @@
 #include "Application.hpp"
+#include "Scene.hpp"
 
 
 namespace Brisk 
@@ -11,7 +12,8 @@ namespace Brisk
 		m_Adapter->Init();
 
 		m_Renderer = Renderer::Create();
-		m_Renderer->Init();
+		std::shared_ptr<Scene> scene = std::make_shared<Scene>();
+		m_Renderer->Init(scene);
 	}
 
 	void Application::Update(float deltaTime) {

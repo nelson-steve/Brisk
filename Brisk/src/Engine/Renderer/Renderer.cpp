@@ -60,6 +60,7 @@ namespace Brisk
         vertexShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
         std::shared_ptr<Descriptor> descriptor = Descriptor::Create();
         descriptor->AddBindingLayout(0, 1, Descriptor::DescriptorType::UNIFORM);
+        descriptor->AddBindingLayout(1, 1, Descriptor::DescriptorType::COMBINED_IMAGE_SAMPLER);
         descriptor->Init();
         vertexShader->AddDescriptor(descriptor);
 

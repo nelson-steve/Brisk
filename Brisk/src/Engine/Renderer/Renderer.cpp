@@ -4,9 +4,9 @@
 #include "Shader.hpp"
 #include "Engine/Model.hpp"
 #include "RendererAPI.hpp"
-#include <Graphics/Vulkan/CommandBufferVulkan.hpp>
+#include "Graphics/Vulkan/CommandBufferVulkan.hpp""
 #include "RenderCommand.hpp"
-#include <Graphics/Factories/SwapchainFactory.hpp>
+#include "Graphics/Factories/SwapchainFactory.hpp"
 
 namespace Brisk
 {
@@ -22,12 +22,12 @@ namespace Brisk
     std::shared_ptr<Pipeline> pipeline;
 
     std::vector<Point> vertices{
-        {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-        {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}},
-        {{-0.5f, -0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-        {{0.5f, -0.5f, 0.0f}, {0.0f, 1.0f, 0.0f}},
-        {{0.5f, 0.5f, 0.0f}, {0.0f, 0.0f, 1.0f}},
-        {{-0.5f, 0.5f, 0.0f}, {1.0f, 1.0f, 1.0f}}
+        {{  0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f }},
+        {{ -0.5f,  0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f }},
+        {{ -0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f }},
+        {{  0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f }},
+        {{  0.5f,  0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f }},
+        {{ -0.5f,  0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f }}
     };
 
 	void Renderer::Init() {
@@ -59,7 +59,7 @@ namespace Brisk
         std::shared_ptr<Shader> vertexShader = Shader::Create();
         vertexShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
         std::shared_ptr<Descriptor> descriptor = Descriptor::Create();
-        descriptor->AddBindingLayout(0, 1, Descriptor::DescriptorType::UNIFORM);
+        descriptor->AddBindingLayout(0, 1, Descriptor::DescriptorType::UNIFORM_BUFFER);
         descriptor->AddBindingLayout(1, 1, Descriptor::DescriptorType::COMBINED_IMAGE_SAMPLER);
         descriptor->Init();
         vertexShader->AddDescriptor(descriptor);

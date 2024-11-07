@@ -132,4 +132,12 @@ namespace Brisk
         std::vector<std::shared_ptr<Component>> components; // Base class for components
     };
 
+
+    class Scene {
+    public:
+        void AddNode();
+        void RemoveNode(int index);
+    private:
+        std::vector<Node> m_Nodes;
+    };
 }

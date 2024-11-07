@@ -126,9 +126,6 @@
     <ClInclude Include="src\Engine\Scene.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Element.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Module.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>

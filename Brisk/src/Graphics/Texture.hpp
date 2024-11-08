@@ -1,10 +1,11 @@
 #pragma once
 
 #include <string>
+#include <memory>
 
 namespace Brisk 
 {
-	class BriskTexture {
+	class Texture {
 	public:
 		enum Format {
 			RGB, BGR,
@@ -13,10 +14,10 @@ namespace Brisk
 			TEXTURE2D, TEXTURE3D, TEXTURE_ARRAY, CUBEMAP,
 		};
 	public:
-		static BriskTexture* Create(int width, int height);
-		static BriskTexture* Create();
-		static BriskTexture* Create(int width, int height, Format format, Type type);
-		static BriskTexture* Create(std::string path);
+		static std::shared_ptr<Texture> Create(int width, int height);
+		static std::shared_ptr<Texture> Create();
+		static std::shared_ptr<Texture> Create(int width, int height, Format format, Type type);
+		static std::shared_ptr<Texture> Create(std::string path);
 
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;

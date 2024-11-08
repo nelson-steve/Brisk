@@ -1,75 +1,15 @@
 #include "Model.hpp"
 
-namespace Brisk 
-{
-	std::vector<Vertex> vertices;
+#include "tiny_gltf.h"
 
+namespace Brisk {
 	Model::~Model() {
 		for (auto node : m_nodes) {
 			delete node;
 		}
 	}
 
-	void processMesh(aiMesh* mesh, const aiScene* scene) {
-		for (unsigned int i = 0; i < mesh->mNumVertices; i++) {
-			Vertex vertex;
-
-			// Position
-			vertex.pos= glm::vec3(mesh->mVertices[i].x, mesh->mVertices[i].y, mesh->mVertices[i].z);
-
-			// Normal
-			if (mesh->HasNormals()) {
-				vertex.normal = glm::vec3(mesh->mNormals[i].x, mesh->mNormals[i].y, mesh->mNormals[i].z);
-			}
-
-			// UV0
-			if (mesh->mTextureCoords[0]) {
-				vertex.uv0 = glm::vec2(mesh->mTextureCoords[0][i].x, mesh->mTextureCoords[0][i].y);
-			}
-			else {
-				vertex.uv0 = glm::vec2(0.0f, 0.0f);
-			}
-
-			// UV1 (if second set exists)
-			if (mesh->mTextureCoords[1]) {
-				vertex.uv1 = glm::vec2(mesh->mTextureCoords[1][i].x, mesh->mTextureCoords[1][i].y);
-			}
-			else {
-				vertex.uv1 = glm::vec2(0.0f, 0.0f);
-			}
-
-			// Color (Assimp supports vertex colors)
-			if (mesh->HasVertexColors(0)) {
-				vertex.color = glm::vec4(mesh->mColors[0][i].r, mesh->mColors[0][i].g, mesh->mColors[0][i].b, 1.0f);
-			}
-			else {
-				vertex.color = glm::vec4(1.0f, 1.0f, 1.0f, 1.0f);  // Default white
-			}
-
-			vertices.push_back(vertex);
-		}
-	}
-	void processNode(aiNode* node, const aiScene* scene) {
-		// Process all the node's meshes
-		for (unsigned int i = 0; i < node->mNumMeshes; i++) {
-			aiMesh* mesh = scene->mMeshes[node->mMeshes[i]];
-			processMesh(mesh, scene);
-		}
-
-		// Process child nodes
-		for (unsigned int i = 0; i < node->mNumChildren; i++) {
-			processNode(node->mChildren[i], scene);
-		}
-	}
-
-
 	void Model::Load(const std::string& path) {
-		//m_VertexBuffer = new BufferVulkan();
-		//m_VertexBuffer->Create(vertices.size() * sizeof(Vertex), VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-		//m_VertexBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-		//m_VertexBuffer->MapMemory(vertices.data());
-		//m_VertexBuffer->UnMapMemory();
-
 		tinygltf::TinyGLTF loader;
 		tinygltf::Model model;
 		std::string error;
@@ -93,35 +33,35 @@ namespace Brisk
 		uint32_t index_count = 0;
 		if (file_loaded) {
 			for (tinygltf::Sampler smpl : model.samplers) {
-				//TextureSampler texture_sampler{};
-				//texture_sampler.min_filter = vkUtilities::GetVkFilterMode(smpl.minFilter);
-				//texture_sampler.mag_filter = vkUtilities::GetVkFilterMode(smpl.magFilter);
-				//texture_sampler.address_modeU = vkUtilities::GetVkWrapMode(smpl.wrapS);
-				//texture_sampler.address_modeV = vkUtilities::GetVkWrapMode(smpl.wrapT);
-				//texture_sampler.address_modeW = texture_sampler.address_modeV;
-				//m_texture_samplers.push_back(texture_sampler);
+				TextureSampler texture_sampler{};
+				texture_sampler.min_filter = vkUtilities::GetVkFilterMode(smpl.minFilter);
+				texture_sampler.mag_filter = vkUtilities::GetVkFilterMode(smpl.magFilter);
+				texture_sampler.address_modeU = vkUtilities::GetVkWrapMode(smpl.wrapS);
+				texture_sampler.address_modeV = vkUtilities::GetVkWrapMode(smpl.wrapT);
+				texture_sampler.address_modeW = texture_sampler.address_modeV;
+				m_texture_samplers.push_back(texture_sampler);
 			}
 			for (tinygltf::Texture& tex : model.textures) {
 				tinygltf::Image image = model.images[tex.source];
-				//TextureSampler texture_sampler{};
-				//if (tex.sampler == -1)
-				//{
-				//	// No sampler specified, use a default one
-				//	texture_sampler.min_filter = VK_FILTER_LINEAR;
-				//	texture_sampler.mag_filter = VK_FILTER_LINEAR;
-				//	texture_sampler.address_modeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-				//	texture_sampler.address_modeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-				//	texture_sampler.address_modeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-				//}
-				//else {
-				//	texture_sampler = m_texture_samplers[tex.sampler];
-				//}
-				//Texture2D* texture;
-				//texture = new Texture2D(image, texture_sampler, device->Queue(), device);
-				//m_textures.push_back(texture);
+				TextureSampler texture_sampler{};
+				if (tex.sampler == -1)
+				{
+					// No sampler specified, use a default one
+					texture_sampler.min_filter = VK_FILTER_LINEAR;
+					texture_sampler.mag_filter = VK_FILTER_LINEAR;
+					texture_sampler.address_modeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+					texture_sampler.address_modeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+					texture_sampler.address_modeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+				}
+				else {
+					texture_sampler = m_texture_samplers[tex.sampler];
+				}
+				std::shared_ptr<Texture> texture;
+				texture = new Texture2D(image, texture_sampler, device->Queue(), device);
+				m_textures.push_back(texture);
 			}
 			//Load Materials
-			//LoadMaterials(model);
+			LoadMaterials(model);
 
 			const tinygltf::Scene& scene = model.scenes[model.defaultScene > -1 ? model.defaultScene : 0];
 			for (auto& node_index : scene.nodes) {
@@ -139,21 +79,14 @@ namespace Brisk
 
 		size_t vertexBufferSize = vertex_count * sizeof(Vertex);
 		size_t indexBufferSize = index_count * sizeof(uint32_t);
-		//assert(vertexBufferSize > 0);
-
-		m_VertexBuffer = new BufferVulkan();
-		m_VertexBuffer->Create(vertexBufferSize, VK_BUFFER_USAGE_VERTEX_BUFFER_BIT);
-		m_VertexBuffer->Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-		m_VertexBuffer->MapMemory(m_vertex_buffer);
-		//m_VertexBuffer->MapMemory((void**)&m_vertex_buffer);
-		m_VertexBuffer->UnMapMemory();
+		assert(vertexBufferSize > 0);
 
 		struct StagingBuffer {
 			VkBuffer buffer;
 			VkDeviceMemory memory;
 		} vertex_staging, index_staging;
 
-		 Vertex buffer
+		// Vertex buffer
 		device->CreateVertexBuffer(m_vertices.buffer, m_vertices.memory, vertexBufferSize, m_vertex_buffer);
 		// Index buffer
 		if (indexBufferSize > 0) {

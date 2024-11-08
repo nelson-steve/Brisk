@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BufferVulkan.hpp"
-#include "Graphics/BriskTexture.hpp"
+#include "Graphics/Texture.hpp"
 #include "Engine/Application.hpp"
 
 #include <stb_image.h>
@@ -11,7 +11,7 @@
 
 namespace Brisk 
 {
-	class TextureVulkan : public BriskTexture {
+	class TextureVulkan : public Texture {
 	public:
 		VkImageView GetView() { return m_ImageView; }
 		VkImage GetImage() { return m_Image; }

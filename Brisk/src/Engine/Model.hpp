@@ -1,10 +1,12 @@
 #pragma once
 
-#include "Graphics/Vulkan/BufferVulkan.hpp"
+#include "Graphics/Texture.hpp"
 
-#include <glm/glm.hpp>
-#include <glm/gtc/type_ptr.hpp>
-#include <tiny_gltf.h>
+#include "tiny_gltf.h"
+#include "glm/glm.hpp"
+#include "glm/gtc/type_ptr.hpp"
+#include "vulkan/vulkan.hpp"
+#include "vulkan/vulkan.h"
 
 #include <iostream>
 
@@ -18,22 +20,22 @@ namespace Brisk
 		glm::vec4 color;
 	};
 
-	struct Texture {
-		//GraphicsDevice* device;
-		VkImage image;
-		VkImageLayout imageLayout;
-		VkDeviceMemory deviceMemory;
-		VkImageView view;
-		uint32_t width, height;
-		uint32_t mipLevels;
-		uint32_t layerCount;
-		VkDescriptorImageInfo descriptor;
-		VkSampler sampler;
-		void updateDescriptor();
-		void destroy();
-		// Load a texture from a glTF image (stored as vector of chars loaded via stb_image) and generate a full mip chaing for it
-		//void fromglTfImage(tinygltf::Image& gltfimage, TextureSampler textureSampler, GraphicsDevice* device, VkQueue copyQueue);
-	};
+	//struct Texture {
+	//	GraphicsDevice* device;
+	//	VkImage image;
+	//	VkImageLayout imageLayout;
+	//	VkDeviceMemory deviceMemory;
+	//	VkImageView view;
+	//	uint32_t width, height;
+	//	uint32_t mipLevels;
+	//	uint32_t layerCount;
+	//	VkDescriptorImageInfo descriptor;
+	//	VkSampler sampler;
+	//	void updateDescriptor();
+	//	void destroy();
+	//	// Load a texture from a glTF image (stored as vector of chars loaded via stb_image) and generate a full mip chaing for it
+	//	void fromglTfImage(tinygltf::Image& gltfimage, TextureSampler textureSampler, GraphicsDevice* device, VkQueue copyQueue);
+	//};
 
 	struct Material {
 		enum AlphaMode { ALPHAMODE_OPAQUE, ALPHAMODE_MASK, ALPHAMODE_BLEND };
@@ -43,11 +45,11 @@ namespace Brisk
 		float roughnessFactor = 1.0f;
 		glm::vec4 baseColorFactor = glm::vec4(1.0f);
 		glm::vec4 emissiveFactor = glm::vec4(0.0f);
-		Texture2D* baseColorTexture;
-		Texture2D* metallicRoughnessTexture;
-		Texture2D* normalTexture;
-		Texture2D* occlusionTexture;
-		Texture2D* emissiveTexture;
+		std::shared_ptr<Texture> baseColorTexture;
+		std::shared_ptr<Texture> metallicRoughnessTexture;
+		std::shared_ptr<Texture> normalTexture;
+		std::shared_ptr<Texture> occlusionTexture;
+		std::shared_ptr<Texture> emissiveTexture;
 		bool doubleSided = false;
 		struct TexCoordSets {
 			uint8_t baseColor = 0;
@@ -58,8 +60,8 @@ namespace Brisk
 			uint8_t emissive = 0;
 		} texCoordSets;
 		struct Extension {
-			Texture2D* specularGlossinessTexture;
-			Texture2D* diffuseTexture;
+			std::shared_ptr<Texture> specularGlossinessTexture;
+			std::shared_ptr<Texture> diffuseTexture;
 			glm::vec4 diffuseFactor = glm::vec4(1.0f);
 			glm::vec3 specularFactor = glm::vec3(0.0f);
 		} extension;
@@ -122,7 +124,7 @@ namespace Brisk
 		void Load(const std::string& path);
 		void GetNodeProps(const tinygltf::Node& node, const tinygltf::Model& model, uint32_t& vertex_count, uint32_t& index_count);
 		void LoadNode(Node* parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model);
-		//void LoadMaterials(tinygltf::Model model);
+		void LoadMaterials(tinygltf::Model model);
 
 		const std::vector<Node*> GetNodes() const { return m_nodes; }
 		const std::vector<Node*> GetLinearNodes() const { return m_linear_nodes; }
@@ -132,7 +134,7 @@ namespace Brisk
 	private:
 		std::vector<Node*> m_nodes;
 		std::vector<Node*> m_linear_nodes;
-		std::vector<Texture2D*> m_textures;
+		std::vector<std::shared_ptr<Texture>> m_textures;
 		std::vector<TextureSampler> m_texture_samplers;
 		std::vector<Material> m_materials;
 		uint32_t* m_index_buffer;
@@ -141,6 +143,9 @@ namespace Brisk
 		uint32_t m_index_pos = 0;
 
 	public:
-		BufferVulkan* m_VertexBuffer;
+		struct {
+			VkBuffer buffer;
+			VkDeviceMemory memory;
+		} m_vertices, m_indices;
 	};
 }

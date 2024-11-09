@@ -34,6 +34,9 @@ namespace Brisk
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
+        Model model;
+        model.Load("../Data/Models/Cube/Cube.gltf");
+
         Pipeline::PipelineSpecs pipelineSpecs{};
         RenderPass::RenderPassSpecs renderPassSpecs;
         renderPassSpecs.pAttachments =
@@ -88,8 +91,8 @@ namespace Brisk
 
         cmd = CommandBuffer::Create();
 
-        m_VertexBuffer = std::make_shared<Buffer>();
-        m_UniformBuffer = std::make_shared<Buffer>();
+        m_VertexBuffer = std::make_shared<BufferVulkan>();
+        m_UniformBuffer = std::make_shared<BufferVulkan>();
         m_VertexBuffer->Init(sizeof(vertices[0]) * vertices.size(),
             vertices.data(),
             { Core::BufferUsage::BUFFER_USAGE_VERTEX_BUFFER_BIT },

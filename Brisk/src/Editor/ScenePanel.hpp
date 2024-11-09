@@ -11,7 +11,7 @@ namespace Brisk
 		virtual void OnUpdate() override;
 		virtual void OnDestroy() override;
 	private:
-		BriskTexture* m_SceneTexture;
+		Texture* m_SceneTexture;
 		VkDescriptorSet m_SceneDescriptorSet;
 	};
 }

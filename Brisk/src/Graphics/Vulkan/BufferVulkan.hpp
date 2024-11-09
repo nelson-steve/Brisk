@@ -30,7 +30,7 @@ namespace Brisk {
 		void MapMemory(Vertex* data);
 		void MapMemory(void** data);
 		void UnMapMemory();
-		void Release();
+		//void Release();
 		const VkDeviceMemory GetMemory() const { return m_Memory; }
 	private:
 		void* m_PersistantPtr;

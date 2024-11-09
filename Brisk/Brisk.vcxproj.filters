@@ -132,7 +132,7 @@
     <ClInclude Include="src\Editor\ScenePanel.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\BriskTexture.hpp">
+    <ClInclude Include="src\Graphics\Texture.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Editor\AssetsPanel.hpp">
@@ -299,7 +299,7 @@
     <ClCompile Include="src\Editor\ScenePanel.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\BriskTexture.cpp">
+    <ClCompile Include="src\Graphics\Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Editor\AssetsPanel.cpp">

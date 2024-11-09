@@ -194,7 +194,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Engine\Window.hpp" />
     <ClInclude Include="src\Graphics\Factories\SwapchainFactory.hpp" />
     <ClInclude Include="src\Graphics\Swapchain.hpp" />
-    <ClInclude Include="src\Graphics\BriskTexture.hpp" />
+    <ClInclude Include="src\Graphics\Texture.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\BufferVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\CommandBufferVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\Defines.h" />
@@ -248,7 +248,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClCompile Include="src\Engine\Scene.cpp" />
     <ClCompile Include="src\Engine\Window.cpp" />
     <ClCompile Include="src\Graphics\Swapchain.cpp" />
-    <ClCompile Include="src\Graphics\BriskTexture.cpp" />
+    <ClCompile Include="src\Graphics\Texture.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\BufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\CommandBufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\DescriptorVulkan.cpp" />

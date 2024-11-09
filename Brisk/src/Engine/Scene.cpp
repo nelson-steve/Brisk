@@ -19,7 +19,7 @@ namespace Brisk {
     // Add a child node
     void Node::AddChild(std::shared_ptr<Node> child) {
         if (child) {
-            child->parent = shared_from_this();
+            //child->parent = shared_from_this();
             children.push_back(child);
         }
     }

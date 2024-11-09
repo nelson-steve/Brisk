@@ -33,31 +33,31 @@ namespace Brisk {
 		uint32_t index_count = 0;
 		if (file_loaded) {
 			for (tinygltf::Sampler smpl : model.samplers) {
-				TextureSampler texture_sampler{};
-				texture_sampler.min_filter = vkUtilities::GetVkFilterMode(smpl.minFilter);
-				texture_sampler.mag_filter = vkUtilities::GetVkFilterMode(smpl.magFilter);
-				texture_sampler.address_modeU = vkUtilities::GetVkWrapMode(smpl.wrapS);
-				texture_sampler.address_modeV = vkUtilities::GetVkWrapMode(smpl.wrapT);
-				texture_sampler.address_modeW = texture_sampler.address_modeV;
-				m_texture_samplers.push_back(texture_sampler);
+				//TextureSampler texture_sampler{};
+				//texture_sampler.min_filter = vkUtilities::GetVkFilterMode(smpl.minFilter);
+				//texture_sampler.mag_filter = vkUtilities::GetVkFilterMode(smpl.magFilter);
+				//texture_sampler.address_modeU = vkUtilities::GetVkWrapMode(smpl.wrapS);
+				//texture_sampler.address_modeV = vkUtilities::GetVkWrapMode(smpl.wrapT);
+				//texture_sampler.address_modeW = texture_sampler.address_modeV;
+				//m_texture_samplers.push_back(texture_sampler);
 			}
 			for (tinygltf::Texture& tex : model.textures) {
 				tinygltf::Image image = model.images[tex.source];
-				TextureSampler texture_sampler{};
+				//TextureSampler texture_sampler{};
 				if (tex.sampler == -1)
 				{
 					// No sampler specified, use a default one
-					texture_sampler.min_filter = VK_FILTER_LINEAR;
+	/*				texture_sampler.min_filter = VK_FILTER_LINEAR;
 					texture_sampler.mag_filter = VK_FILTER_LINEAR;
 					texture_sampler.address_modeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 					texture_sampler.address_modeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-					texture_sampler.address_modeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+					texture_sampler.address_modeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;*/
 				}
 				else {
-					texture_sampler = m_texture_samplers[tex.sampler];
+					//texture_sampler = m_texture_samplers[tex.sampler];
 				}
 				std::shared_ptr<Texture> texture;
-				texture = new Texture2D(image, texture_sampler, device->Queue(), device);
+				texture = Texture::Create(image, texture_sampler);
 				m_textures.push_back(texture);
 			}
 			//Load Materials
@@ -87,10 +87,10 @@ namespace Brisk {
 		} vertex_staging, index_staging;
 
 		// Vertex buffer
-		device->CreateVertexBuffer(m_vertices.buffer, m_vertices.memory, vertexBufferSize, m_vertex_buffer);
+		//device->CreateVertexBuffer(m_vertices.buffer, m_vertices.memory, vertexBufferSize, m_vertex_buffer);
 		// Index buffer
 		if (indexBufferSize > 0) {
-			device->CreateIndexBuffer(m_indices.buffer, m_indices.memory, indexBufferSize, m_index_buffer);
+			//device->CreateIndexBuffer(m_indices.buffer, m_indices.memory, indexBufferSize, m_index_buffer);
 		}
 	}
 
@@ -212,8 +212,8 @@ namespace Brisk {
 		}
 	}
 
-	void Model::LoadNode(Node* parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model) {
-		Node* new_node = new Node();
+	void Model::LoadNode(GLTF_Node* parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model) {
+		GLTF_Node* new_node = new GLTF_Node();
 		new_node->parent = parent;
 		new_node->index = node_index;
 		new_node->name = node.name;

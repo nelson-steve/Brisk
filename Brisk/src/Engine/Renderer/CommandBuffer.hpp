@@ -1,5 +1,6 @@
 #pragma once
 #include <memory>
+#include <functional>
 
 namespace Brisk {
 	class CommandBuffer {

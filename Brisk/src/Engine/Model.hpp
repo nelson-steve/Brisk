@@ -97,17 +97,17 @@ namespace Brisk
 		}
 	};
 
-	struct Node {
-		Node* parent;
+	struct GLTF_Node {
+		GLTF_Node* parent;
 		uint32_t index;
-		std::vector<Node*> children;
+		std::vector<GLTF_Node*> children;
 		Mesh* mesh = nullptr;
 		glm::mat4 matrix;
 		std::string name;
 		glm::vec3 translation;
 		glm::vec3 scale = glm::vec3(1.0f);
 		glm::quat rotation;
-		~Node() {
+		~GLTF_Node() {
 			if (mesh) {
 				delete mesh;
 			}
@@ -123,19 +123,19 @@ namespace Brisk
 		~Model();
 		void Load(const std::string& path);
 		void GetNodeProps(const tinygltf::Node& node, const tinygltf::Model& model, uint32_t& vertex_count, uint32_t& index_count);
-		void LoadNode(Node* parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model);
+		void LoadNode(GLTF_Node* parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model);
 		void LoadMaterials(tinygltf::Model model);
 
-		const std::vector<Node*> GetNodes() const { return m_nodes; }
-		const std::vector<Node*> GetLinearNodes() const { return m_linear_nodes; }
+		const std::vector<GLTF_Node*> GetNodes() const { return m_nodes; }
+		const std::vector<GLTF_Node*> GetLinearNodes() const { return m_linear_nodes; }
 		const std::vector<Material>& GetMaterials() const { return m_materials; }
 		const Material& GetMaterial(int i) const { return m_materials[i]; }
 		Material& GetMaterial(int i) { return m_materials[i]; }
 	private:
-		std::vector<Node*> m_nodes;
-		std::vector<Node*> m_linear_nodes;
+		std::vector<GLTF_Node*> m_nodes;
+		std::vector<GLTF_Node*> m_linear_nodes;
+		//std::vector<TextureSampler> m_texture_samplers;
 		std::vector<std::shared_ptr<Texture>> m_textures;
-		std::vector<TextureSampler> m_texture_samplers;
 		std::vector<Material> m_materials;
 		uint32_t* m_index_buffer;
 		Vertex* m_vertex_buffer;

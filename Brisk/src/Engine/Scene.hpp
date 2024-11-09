@@ -1,8 +1,13 @@
 #pragma once
 
+#include <glm/glm.hpp>
+#define GLM_ENABLE_EXPERIMENTAL
+#include <glm/gtx/quaternion.hpp>
+
 #include <memory>
 #include <vector>
 #include <string>
+#include <functional>
 
 namespace Brisk
 {

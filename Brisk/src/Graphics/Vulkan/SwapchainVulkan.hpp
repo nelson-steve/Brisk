@@ -21,7 +21,7 @@ namespace Brisk
 		VkFormat GetDepthFormat() const { return m_DepthFormat; }
 		VkExtent2D GetExtent() const { return m_extent; }
 		VkPresentModeKHR GetPresentMode() const { return m_present_mode; }
-	private:
+	//private:
 		SwapchainVulkan(std::shared_ptr<Window> window);
 	private:
 		VkSwapchainKHR m_Swapchain = VK_NULL_HANDLE;

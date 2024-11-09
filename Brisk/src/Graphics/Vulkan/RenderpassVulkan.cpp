@@ -86,10 +86,11 @@ namespace Brisk
             throw std::runtime_error("failed to create render pass!");
         }
 
-        for (int i = 0; i < static_cast<SwapchainVulkan*>(Renderer::swapchain)->GetSwapchainImageViews().size(); i++) {
+        //for (int i = 0; i < static_cast<SwapchainVulkan*>(Renderer::swapchain)->GetSwapchainImageViews().size(); i++) 
+        {
             std::vector<VkImageView> imageAttachments;
-            imageAttachments.push_back(static_cast<SwapchainVulkan*>(Renderer::swapchain)->GetSwapchainImageViews()[i]);
-            imageAttachments.push_back(static_cast<SwapchainVulkan*>(Renderer::swapchain)->GetDepthImageView());
+            //imageAttachments.push_back(static_cast<SwapchainVulkan*>(Renderer::swapchain)->GetSwapchainImageViews()[i]);
+            //imageAttachments.push_back(static_cast<SwapchainVulkan*>(Renderer::swapchain)->GetDepthImageView());
 
             VkFramebuffer framebuffer;
             VkFramebufferCreateInfo framebufferInfo{};
@@ -97,8 +98,8 @@ namespace Brisk
             framebufferInfo.renderPass = m_RenderPass;
             framebufferInfo.attachmentCount = static_cast<uint32_t>(imageAttachments.size());
             framebufferInfo.pAttachments = imageAttachments.data();
-            framebufferInfo.width = Renderer::swapchain->GetExtentWidth();
-            framebufferInfo.height = Renderer::swapchain->GetExtentHeight();
+            //framebufferInfo.width = Renderer::swapchain->GetExtentWidth();
+            //framebufferInfo.height = Renderer::swapchain->GetExtentHeight();
             framebufferInfo.layers = 1;
             if (vkCreateFramebuffer(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &framebufferInfo, nullptr, &framebuffer) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create framebuffer!");
@@ -113,7 +114,7 @@ namespace Brisk
         renderPassInfo.renderPass = m_RenderPass;
         renderPassInfo.framebuffer = m_Framebuffers[imageIndex];
         renderPassInfo.renderArea.offset = { 0, 0 };
-        renderPassInfo.renderArea.extent = static_cast<SwapchainVulkan*>(Renderer::swapchain)->GetExtent();
+        //renderPassInfo.renderArea.extent = static_cast<SwapchainVulkan*>(Renderer::swapchain)->GetExtent();
 
         std::vector<VkClearValue> clearColors = { {{0.2f, 0.2f, 0.2f, 1.0f}}, { 1.0f, 0 } };
         renderPassInfo.clearValueCount = clearColors.size();

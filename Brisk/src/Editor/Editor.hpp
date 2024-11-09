@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IEditorPanel.hpp"
-#include "Graphics/BriskTexture.hpp"
+#include "Graphics/Texture.hpp"
 
 #include "imgui.h"
 #include "ImGuiBackends/imgui_impl_glfw.h"
@@ -21,7 +21,7 @@ namespace Brisk
 
 		const glm::vec2& GetViewportSize() const { return m_ViewportSize; }
 
-		static VkDescriptorSet AddTexToUI(BriskTexture* texture);
+		//static VkDescriptorSet AddTexToUI(BriskTexture* texture);
 	private:
 		std::unordered_map<std::string, IEditorPanel*> m_Panels;
 		ImGui_ImplVulkanH_Window s_MainWindowData;

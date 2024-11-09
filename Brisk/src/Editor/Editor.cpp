@@ -400,10 +400,10 @@ namespace Brisk
         ImGui::Render();
     }
 
-    VkDescriptorSet Editor::AddTexToUI(BriskTexture* texture) {
-        return ImGui_ImplVulkan_AddTexture(
-            static_cast<TextureVulkan*>(texture)->GetSampler(), static_cast<TextureVulkan*>(texture)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    }
+    //VkDescriptorSet Editor::AddTexToUI(BriskTexture* texture) {
+    //    return ImGui_ImplVulkan_AddTexture(
+    //        static_cast<TextureVulkan*>(texture)->GetSampler(), static_cast<TextureVulkan*>(texture)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+    //}
 
     void Editor::Release() {
         for (const auto& panel : m_Panels) {

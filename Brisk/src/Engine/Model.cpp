@@ -43,7 +43,7 @@ namespace Brisk {
 			}
 			for (tinygltf::Texture& tex : model.textures) {
 				tinygltf::Image image = model.images[tex.source];
-				//TextureSampler texture_sampler{};
+				TextureSampler texture_sampler{};
 				if (tex.sampler == -1)
 				{
 					// No sampler specified, use a default one

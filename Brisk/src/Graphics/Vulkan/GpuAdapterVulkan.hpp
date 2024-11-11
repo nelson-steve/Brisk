@@ -11,8 +11,6 @@
 
 namespace Brisk 
 {
-	struct Queue;
-
 	class GpuAdapterVulkan : public GpuAdapter {
 	public:
 		enum QueueType {

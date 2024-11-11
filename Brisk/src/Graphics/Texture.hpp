@@ -1,5 +1,7 @@
 #pragma once
 
+#include "../Engine/Renderer/RHI.hpp"
+
 #include <tiny_gltf.h>
 
 #include <string>
@@ -31,15 +33,12 @@ namespace Brisk
 
 	class Texture {
 	public:
-		enum Format {
-			RGB, BGR,
-		};
 		enum Type {
 			TEXTURE2D, TEXTURE3D, TEXTURE_ARRAY, CUBEMAP,
 		};
 	public:
 		virtual void Init() = 0;
-		virtual void Init(int width, int height, Format format = Format::RGB, Type type = Type::TEXTURE2D) = 0;
+		virtual void Init(int width, int height, Core::Format format = Core::Format::FORMAT_R8G8B8A8_SRGB, Type type = Type::TEXTURE2D) = 0;
 		virtual void Init(tinygltf::Image image, TextureSampler sampler) = 0;
 		virtual void Init(const std::string& path) = 0;
 
@@ -48,7 +47,7 @@ namespace Brisk
 		virtual void Resize() = 0;
 	protected:
 		int m_Width, m_Height;
-		Format m_Format;
+		Core::Format m_Format;
 		Type m_TextureType;
 	};
 }

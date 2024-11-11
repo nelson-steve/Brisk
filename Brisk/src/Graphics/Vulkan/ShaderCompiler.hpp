@@ -18,28 +18,29 @@ namespace Brisk
         glslang::InitializeProcess();
 
         // Create an instance of the glslang shader object
-        glslang::TShader shader(static_cast<glslang::EShLanguage>(stage));
+        //glslang::TShader shader(static_cast<glslang::EShLanguage>(stage));
 
         // Set the shader source code
         const char* sourceCStr = sourceCode.c_str();
-        shader.setStrings(&sourceCStr, 1);
+        //shader.setStrings(&sourceCStr, 1);
 
         // Set the entry point name
-        shader.setEntryPoint("main");
+        //shader.setEntryPoint("main");
 
         // Compile the shader
         EShMessages messages = EShMsgDefault;
-        bool compiled = shader.parse(nullptr, 100, false, messages);
+        bool compiled;
+        //compiled = shader.parse(nullptr, 100, false, messages);
 
         if (!compiled) {
-            std::cerr << "Shader compilation failed: " << shader.getInfoLog() << std::endl;
+            //std::cerr << "Shader compilation failed: " << shader.getInfoLog() << std::endl;
             glslang::FinalizeProcess();
             return false;
         }
 
         // Link the shader into SPIR-V
         glslang::TProgram program;
-        program.addShader(&shader);
+        //program.addShader(&shader);
 
         bool linked = program.link(messages);
         if (!linked) {
@@ -49,8 +50,8 @@ namespace Brisk
         }
 
         // Convert the linked program to SPIR-V binary format
-        glslang::SpvOptions options;
-        program.convertToSpv(spirv, &options);
+        //glslang::SpvOptions options;
+        //program.convertToSpv(spirv, &options);
 
         glslang::FinalizeProcess();
         return true;

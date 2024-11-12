@@ -94,10 +94,49 @@ namespace Brisk
     };
 
     class MeshComponent : public Component {
+    public:
+        std::string meshFile;  // Path to mesh file (could be .obj, .fbx, etc.)
+        std::shared_ptr<Mesh> mesh;  // Loaded mesh data
+        bool isVisible = true;
+
+        MeshComponent() = default;
+        MeshComponent(const std::string& filePath) : meshFile(filePath) {
+            // Load the mesh from the file, or set to nullptr if failed
+            loadMesh(filePath);
+        }
+
+        void loadMesh(const std::string& filePath) {
+            // For example, load the mesh from a file (the Mesh class would need to be defined elsewhere)
+            meshFile = filePath;
+            mesh = MeshLoader::load(filePath);  // Placeholder for a mesh loading function
+        }
+
+        void toggleVisibility() { isVisible = !isVisible; }
     };
 
     class PhysicsComponent : public Component {
+    public:
+        glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
+        glm::vec3 acceleration{ 0.0f, 0.0f, 0.0f };
+        glm::vec3 force{ 0.0f, 0.0f, 0.0f };
+        glm::vec3 lastPosition{ 0.0f, 0.0f, 0.0f };
+        float mass = 1.0f;  // Default mass for physics simulations
+
+        PhysicsComponent() = default;
+
+        void applyForce(const glm::vec3& f) { force += f; }
+        void clearForces() { force = glm::vec3(0.0f); }
+
+        void update(float deltaTime) {
+            // Basic physics: F = ma -> acceleration = force / mass
+            acceleration = force / mass;
+            velocity += acceleration * deltaTime;
+            lastPosition = velocity * deltaTime;
+        }
+
+        glm::vec3 getVelocity() const { return velocity; }
     };
+
 
 
     class Node {

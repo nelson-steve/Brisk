@@ -137,6 +137,101 @@ namespace Brisk
         glm::vec3 getVelocity() const { return velocity; }
     };
 
+    class AudioComponent : public Component {
+    public:
+        std::string soundFile;  // Path to sound file (e.g., .wav, .mp3)
+        bool isLooping = false;
+        float volume = 1.0f;     // 0.0 (muted) to 1.0 (full volume)
+        float pitch = 1.0f;      // 1.0 is normal pitch
+
+        AudioComponent(const std::string& filePath, bool loop = false, float vol = 1.0f, float ptch = 1.0f)
+            : soundFile(filePath), isLooping(loop), volume(vol), pitch(ptch) {}
+
+        void play() {
+            // Logic to play the sound using the sound file, volume, pitch, and loop settings
+        }
+
+        void stop() {
+            // Logic to stop the sound
+        }
+
+        void setVolume(float vol) { volume = vol; }
+        void setPitch(float ptch) { pitch = ptch; }
+        void setLooping(bool loop) { isLooping = loop; }
+    };
+
+    class AnimationComponent : public Component {
+    public:
+        std::vector<std::shared_ptr<Animation>> animations;  // List of animations
+        std::shared_ptr<Animation> currentAnimation;  // Currently playing animation
+        float speed = 1.0f;  // Speed multiplier for animation
+        bool isPlaying = false;
+
+        AnimationComponent() = default;
+
+        void playAnimation(const std::string& animationName) {
+            // Find animation by name and start playing
+            auto anim = findAnimationByName(animationName);
+            if (anim) {
+                currentAnimation = anim;
+                isPlaying = true;
+            }
+        }
+
+        void stopAnimation() {
+            isPlaying = false;
+        }
+
+        void update(float deltaTime) {
+            if (isPlaying && currentAnimation) {
+                currentAnimation->update(deltaTime * speed);
+            }
+        }
+
+    private:
+        std::shared_ptr<Animation> findAnimationByName(const std::string& name) {
+            for (const auto& anim : animations) {
+                if (anim->getName() == name) {
+                    return anim;
+                }
+            }
+            return nullptr;
+        }
+    };
+
+    class ParticleSystemComponent : public Component {
+    public:
+        std::shared_ptr<ParticleSystem> particleSystem;  // Particle system for handling particles
+        bool isActive = true;
+
+        ParticleSystemComponent() {
+            // Initialize the particle system
+            particleSystem = std::make_shared<ParticleSystem>();
+        }
+
+        void setActive(bool active) {
+            isActive = active;
+            if (isActive) {
+                particleSystem->start();
+            }
+            else {
+                particleSystem->stop();
+            }
+        }
+
+        void update(float deltaTime) {
+            if (isActive) {
+                particleSystem->update(deltaTime);
+            }
+        }
+
+        void emitParticles(int count) {
+            if (isActive) {
+                particleSystem->emit(count);
+            }
+        }
+    };
+
 
 
     class Node {

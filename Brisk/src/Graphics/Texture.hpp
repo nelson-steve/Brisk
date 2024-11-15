@@ -45,6 +45,8 @@ namespace Brisk
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
 		virtual void Resize() = 0;
+
+		static std::shared_ptr<Texture> Create();
 	protected:
 		int m_Width, m_Height;
 		Core::Format m_Format;

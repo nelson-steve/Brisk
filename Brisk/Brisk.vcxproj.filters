@@ -150,9 +150,6 @@
     <ClInclude Include="src\Engine\Application.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\RenderingPipeline.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Renderer\GraphicsPipeline.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>

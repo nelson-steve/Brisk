@@ -57,7 +57,8 @@ namespace Brisk {
 					//texture_sampler = m_texture_samplers[tex.sampler];
 				}
 				std::shared_ptr<Texture> texture;
-				texture = Texture::Create(image, texture_sampler);
+				texture = Texture::Create();
+				texture->Init();
 				m_textures.push_back(texture);
 			}
 			//Load Materials

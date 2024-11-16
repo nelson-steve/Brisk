@@ -33,13 +33,13 @@ namespace Brisk {
 		uint32_t index_count = 0;
 		if (file_loaded) {
 			for (tinygltf::Sampler smpl : model.samplers) {
-				//TextureSampler texture_sampler{};
-				//texture_sampler.min_filter = vkUtilities::GetVkFilterMode(smpl.minFilter);
-				//texture_sampler.mag_filter = vkUtilities::GetVkFilterMode(smpl.magFilter);
-				//texture_sampler.address_modeU = vkUtilities::GetVkWrapMode(smpl.wrapS);
-				//texture_sampler.address_modeV = vkUtilities::GetVkWrapMode(smpl.wrapT);
-				//texture_sampler.address_modeW = texture_sampler.address_modeV;
-				//m_texture_samplers.push_back(texture_sampler);
+				TextureSampler texture_sampler{};
+				texture_sampler.min_filter = vkUtilities::GetVkFilterMode(smpl.minFilter);
+				texture_sampler.mag_filter = vkUtilities::GetVkFilterMode(smpl.magFilter);
+				texture_sampler.address_modeU = vkUtilities::GetVkWrapMode(smpl.wrapS);
+				texture_sampler.address_modeV = vkUtilities::GetVkWrapMode(smpl.wrapT);
+				texture_sampler.address_modeW = texture_sampler.address_modeV;
+				m_texture_samplers.push_back(texture_sampler);
 			}
 			for (tinygltf::Texture& tex : model.textures) {
 				tinygltf::Image image = model.images[tex.source];
@@ -47,14 +47,14 @@ namespace Brisk {
 				if (tex.sampler == -1)
 				{
 					// No sampler specified, use a default one
-	/*				texture_sampler.min_filter = VK_FILTER_LINEAR;
+					texture_sampler.min_filter = VK_FILTER_LINEAR;
 					texture_sampler.mag_filter = VK_FILTER_LINEAR;
 					texture_sampler.address_modeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 					texture_sampler.address_modeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-					texture_sampler.address_modeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;*/
+					texture_sampler.address_modeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
 				}
 				else {
-					//texture_sampler = m_texture_samplers[tex.sampler];
+					texture_sampler = m_texture_samplers[tex.sampler];
 				}
 				std::shared_ptr<Texture> texture;
 				texture = Texture::Create();

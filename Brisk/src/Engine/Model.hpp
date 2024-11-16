@@ -134,7 +134,7 @@ namespace Brisk
 	private:
 		std::vector<GLTF_Node*> m_nodes;
 		std::vector<GLTF_Node*> m_linear_nodes;
-		//std::vector<TextureSampler> m_texture_samplers;
+		std::vector<TextureSampler> m_texture_samplers;
 		std::vector<std::shared_ptr<Texture>> m_textures;
 		std::vector<Material> m_materials;
 		uint32_t* m_index_buffer;

@@ -26,9 +26,9 @@ namespace Brisk
 	struct TextureSampler {
 		Filter mag_filter;
 		Filter min_filter;
-		VkSamplerAddressMode address_modeU;
-		VkSamplerAddressMode address_modeV;
-		VkSamplerAddressMode address_modeW;
+		SamplerAddressMode address_modeU;
+		SamplerAddressMode address_modeV;
+		SamplerAddressMode address_modeW;
 	};
 
 	class Texture {
@@ -45,6 +45,44 @@ namespace Brisk
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
 		virtual void Resize() = 0;
+
+		static SamplerAddressMode GetVkWrapMode(int32_t wrapMode)
+		{
+			switch (wrapMode) {
+			case -1:
+			case 10497:
+				return SamplerAddressMode::SAMPLER_ADDRESS_MODE_REPEAT;
+			case 33071:
+				return SamplerAddressMode::SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+			case 33648:
+				return SamplerAddressMode::SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
+			}
+
+			std::cerr << "Unknown wrap mode for getVkWrapMode: " << wrapMode << std::endl;
+			return SamplerAddressMode::SAMPLER_ADDRESS_MODE_REPEAT;
+		}
+
+		static Filter GetVkFilterMode(int32_t filterMode)
+		{
+			switch (filterMode) {
+			case -1:
+			case 9728:
+				return Filter::FILTER_LINEAR;
+			case 9729:
+				return Filter::FILTER_LINEAR;
+			case 9984:
+				return Filter::FILTER_NEAREST;
+			case 9985:
+				return Filter::FILTER_NEAREST;
+			case 9986:
+				return Filter::FILTER_LINEAR;
+			case 9987:
+				return Filter::FILTER_LINEAR;
+			}
+
+			std::cerr << "Unknown filter mode for GetFilterMode: " << filterMode << std::endl;
+			return Filter::FILTER_NEAREST;
+		}
 
 		static std::shared_ptr<Texture> Create();
 	protected:

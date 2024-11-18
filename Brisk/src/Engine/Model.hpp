@@ -1,12 +1,11 @@
 #pragma once
 
 #include "Graphics/Texture.hpp"
+#include "Renderer/Descriptor.hpp"
 
 #include "tiny_gltf.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
-#include "vulkan/vulkan.hpp"
-#include "vulkan/vulkan.h"
 
 #include <iostream>
 
@@ -69,7 +68,7 @@ namespace Brisk
 			bool metallicRoughness = true;
 			bool specularGlossiness = false;
 		} pbrWorkflows;
-		VkDescriptorSet descriptorSet = VK_NULL_HANDLE;
+		std::shared_ptr<Descriptor> descriptor = VK_NULL_HANDLE;
 		int index = 0;
 		bool unlit = false;
 		float emissiveStrength = 1.0f;
@@ -141,7 +140,6 @@ namespace Brisk
 		Vertex* m_vertex_buffer;
 		uint32_t m_vertex_pos = 0;
 		uint32_t m_index_pos = 0;
-
 	public:
 		struct {
 			VkBuffer buffer;

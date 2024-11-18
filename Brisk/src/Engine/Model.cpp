@@ -56,6 +56,7 @@ namespace Brisk {
 				else {
 					texture_sampler = m_texture_samplers[tex.sampler];
 				}
+
 				std::shared_ptr<Texture> texture;
 				texture = Texture::Create();
 				texture->Init();
@@ -187,12 +188,12 @@ namespace Brisk {
 					material.emissiveStrength = (float)value.Get<double>();
 				}
 			}
-
+				
 			material.index = static_cast<uint32_t>(m_materials.size());
 			m_materials.push_back(material);
 		}
 		// Push a default material at the end of the list for meshes with no material assigned
-		//m_materials.push_back(Material());
+		m_materials.push_back(Material());
 	}
 
 	void Model::GetNodeProps(const tinygltf::Node& node, const tinygltf::Model& model, uint32_t& vertex_count, uint32_t& index_count) {

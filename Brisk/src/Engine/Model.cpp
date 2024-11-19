@@ -88,6 +88,13 @@ namespace Brisk {
 			VkDeviceMemory memory;
 		} vertex_staging, index_staging;
 
+		m_VertexBuffer = std::make_shared<BufferVulkan>();
+		m_VertexBuffer->Init(sizeof(m_vertex_buffer[0])* vertexBufferSize,
+			m_vertex_buffer,
+			{ Core::BufferUsage::BUFFER_USAGE_VERTEX_BUFFER_BIT },
+			{ Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
+			false);
+
 		// Vertex buffer
 		//device->CreateVertexBuffer(m_vertices.buffer, m_vertices.memory, vertexBufferSize, m_vertex_buffer);
 		// Index buffer

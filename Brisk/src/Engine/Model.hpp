@@ -136,6 +136,7 @@ namespace Brisk
 		std::vector<TextureSampler> m_texture_samplers;
 		std::vector<std::shared_ptr<Texture>> m_textures;
 		std::vector<Material> m_materials;
+		std::shared_ptr<Buffer> m_VertexBuffer;
 		uint32_t* m_index_buffer;
 		Vertex* m_vertex_buffer;
 		uint32_t m_vertex_pos = 0;

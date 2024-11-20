@@ -5,8 +5,6 @@
 
 namespace Brisk
 {
-
-
 	void ShaderVulkan::Init(std::pair<std::string, Pipeline::ShaderStage> shaderInfo) {
 		m_Module = UtilitiesVulkan::CreateShaderModule(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), shaderInfo.first);
 		m_ShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;

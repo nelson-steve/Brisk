@@ -74,6 +74,7 @@ namespace Brisk
             bool pStencilTestEnable;
             std::shared_ptr<RenderPass> pRenderPass;
             std::vector<std::shared_ptr<Shader>> pShaders;
+            std::vector<std::shared_ptr<DescriptorLayout>> pDescriptorLayouts;
         };
     public:
         virtual ~Pipeline() = default;

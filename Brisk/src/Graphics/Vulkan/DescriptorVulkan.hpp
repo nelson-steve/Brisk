@@ -6,9 +6,13 @@
 
 namespace Brisk
 {
-	class DescriptorVulkan : public Descriptor {
+	class DescriptorLayoutVulkan : public DescriptorLayout {
 	public:
 		virtual void Init() override;
+	};
+
+	class DescriptorVulkan : public Descriptor {
+	public:
 		virtual void Allocate() override;
 		virtual void Update(BufferVulkan* buffer) override;
 

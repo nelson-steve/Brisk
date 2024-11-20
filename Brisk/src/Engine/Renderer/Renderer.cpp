@@ -34,8 +34,10 @@ namespace Brisk
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
-        Model model;
-        model.Load("../Data/Models/Cube/Cube.gltf");
+        std::shared_ptr<DescriptorLayout> vertexDescriptorLayout = DescriptorLayout::Create();
+        vertexDescriptorLayout->AddBindingLayout(0, 1, DescriptorLayout::DescriptorType::UNIFORM_BUFFER);
+        vertexDescriptorLayout->AddBindingLayout(1, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
+        vertexDescriptorLayout->Init();
 
         Pipeline::PipelineSpecs pipelineSpecs{};
         RenderPass::RenderPassSpecs renderPassSpecs;
@@ -50,22 +52,19 @@ namespace Brisk
         vertexLayout.pStride = sizeof(Point);
         vertexLayout.pAttributes = {
             {0, 0,Core::Format::FORMAT_R32G32B32_SFLOAT,     offsetof(Point, Point::Position)},
-            //{0, 1,Core::Format::FORMAT_R32G32B32_SFLOAT,     offsetof(Vertex, Vertex::normal)},
-            //{0, 2,Core::Format::FORMAT_R32G32_SFLOAT,        offsetof(Vertex, Vertex::uv0)},
-            //{0, 3,Core::Format::FORMAT_R32G32_SFLOAT,        offsetof(Vertex, Vertex::uv1)},
+            {0, 1,Core::Format::FORMAT_R32G32B32_SFLOAT,     offsetof(Vertex, Vertex::normal)},
+            {0, 2,Core::Format::FORMAT_R32G32_SFLOAT,        offsetof(Vertex, Vertex::uv0)},
+            {0, 3,Core::Format::FORMAT_R32G32_SFLOAT,        offsetof(Vertex, Vertex::uv1)},
             {0, 1,Core::Format::FORMAT_R32G32B32_SFLOAT,     offsetof(Point, Point::Color)},
         };
         pipelineSpecs.Layout = vertexLayout;
         pipelineSpecs.pRenderPass = RenderPass::Create();
         pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 
+        pipelineSpecs.pDescriptorLayouts.push_back(vertexDescriptorLayout);
+
         std::shared_ptr<Shader> vertexShader = Shader::Create();
         vertexShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
-        std::shared_ptr<Descriptor> descriptor = Descriptor::Create();
-        descriptor->AddBindingLayout(0, 1, Descriptor::DescriptorType::UNIFORM_BUFFER);
-        descriptor->AddBindingLayout(1, 1, Descriptor::DescriptorType::COMBINED_IMAGE_SAMPLER);
-        descriptor->Init();
-        vertexShader->AddDescriptor(descriptor);
 
         std::shared_ptr<Shader> fragmentShader = Shader::Create();
         fragmentShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
@@ -165,7 +164,7 @@ namespace Brisk
         const VkBuffer vertexBuffers[] = { std::static_pointer_cast<BufferVulkan>(m_VertexBuffer)->Get() };
         VkDeviceSize offsets[] = { 0 };
         vkCmdBindVertexBuffers(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, vertexBuffers, offsets);
-        //vkCmdBindDescriptorSets(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, std::static_pointer_cast<PipelineVulkan>(pipeline)->GetLayout(), 0, 1, &m_DescriptorSet, 0, nullptr);
+        vkCmdBindDescriptorSets(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, std::static_pointer_cast<PipelineVulkan>(pipeline)->GetLayout(), 0, 1, &m_DescriptorSet, 0, nullptr);
         RenderCommand::Draw(cmd, static_cast<uint32_t>(vertices.size()), 0);
 
         pipeline->m_Specs.pRenderPass->End(cmd);

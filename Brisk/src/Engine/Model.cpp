@@ -99,6 +99,12 @@ namespace Brisk {
 		//device->CreateVertexBuffer(m_vertices.buffer, m_vertices.memory, vertexBufferSize, m_vertex_buffer);
 		// Index buffer
 		if (indexBufferSize > 0) {
+			m_IndexBuffer = std::make_shared<BufferVulkan>();
+			m_IndexBuffer->Init(sizeof(m_index_buffer[0]) * indexBufferSize,
+				m_index_buffer,
+				{ Core::BufferUsage::BUFFER_USAGE_VERTEX_BUFFER_BIT },
+				{ Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
+				false);
 			//device->CreateIndexBuffer(m_indices.buffer, m_indices.memory, indexBufferSize, m_index_buffer);
 		}
 	}

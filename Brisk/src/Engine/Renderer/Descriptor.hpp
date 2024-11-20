@@ -8,7 +8,7 @@
 
 namespace Brisk
 {
-	class Descriptor {
+	class DescriptorLayout {
 	public:
 		enum DescriptorType
 		{
@@ -25,22 +25,28 @@ namespace Brisk
 			uint32_t p_DescriptorCount;
 			DescriptorType p_Type;
 		};
-
-	public:
-		virtual void Init() = 0;
-		virtual void Allocate() = 0;
-		virtual void Update(BufferVulkan* buffer) = 0;
-
-		void AddBindingLayout(uint32_t binding, uint32_t count, Descriptor::DescriptorType type) {
+		void AddBindingLayout(uint32_t binding, uint32_t count, DescriptorType type) {
 			Layout layout{};
 			layout.p_Binding = binding;
 			layout.p_DescriptorCount = count;
 			layout.p_Type = type;
-			m_Layouts.push_back(layout);
+			m_Layout = layout;
 		}
+	public:
+		virtual void Init() = 0;
+
+		static std::shared_ptr<DescriptorLayout> Create();
+	protected:
+		Layout m_Layout;
+	};
+
+	class Descriptor {
+	public:
+		virtual void Allocate() = 0;
+		virtual void Update(BufferVulkan* buffer) = 0;
 
 		static std::shared_ptr<Descriptor> Create();
 	protected:
-		std::vector<Layout> m_Layouts;
+		std::shared_ptr<DescriptorLayout> m_Layout;
 	};
 }

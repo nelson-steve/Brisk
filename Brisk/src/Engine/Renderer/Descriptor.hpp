@@ -30,14 +30,23 @@ namespace Brisk
 			layout.p_Binding = binding;
 			layout.p_DescriptorCount = count;
 			layout.p_Type = type;
-			m_Layout = layout;
+			m_Layouts.push_back(layout);
+		}
+		void AddBindingLayout(const std::vector<Layout> layouts) {
+			for (const Layout& l : layouts) {
+				Layout layout{};
+				layout.p_Binding = l.p_Binding;
+				layout.p_DescriptorCount = l.p_DescriptorCount;
+				layout.p_Type = l.p_Type;
+				m_Layouts.push_back(l);
+			}
 		}
 	public:
 		virtual void Init() = 0;
 
 		static std::shared_ptr<DescriptorLayout> Create();
 	protected:
-		Layout m_Layout;
+		std::vector<Layout> m_Layouts;
 	};
 
 	class Descriptor {

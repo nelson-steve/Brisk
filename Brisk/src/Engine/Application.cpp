@@ -6,7 +6,7 @@ namespace Brisk
 {
 	void Application::CreateApplication() {
 		m_Window = Window::Create(1280, 720);
-		//m_EditorCamera = std::make_shared<Camera>(m_Window->GetWindowHandle());
+		m_EditorCamera = std::make_shared<Camera>(m_Window->GetWindowHandle());
 
 		m_Adapter = GpuAdapter::Create();
 		m_Adapter->Init();

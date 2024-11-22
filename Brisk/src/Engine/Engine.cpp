@@ -31,6 +31,6 @@ namespace Brisk
 
 	void Engine::Terminate() {
 		s_Application->Close();
-		s_Editor->Release();
+		//s_Editor->Release();
 	}
 }

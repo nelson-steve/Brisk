@@ -21,23 +21,19 @@ namespace Brisk
 
     std::shared_ptr<Pipeline> pipeline;
 
-    std::vector<Point> vertices{
-        {{  0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f }},
-        {{ -0.5f,  0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f }},
-        {{ -0.5f, -0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f }},
-        {{  0.5f, -0.5f, 0.0f }, { 0.0f, 1.0f, 0.0f }},
-        {{  0.5f,  0.5f, 0.0f }, { 0.0f, 0.0f, 1.0f }},
-        {{ -0.5f,  0.5f, 0.0f }, { 1.0f, 1.0f, 1.0f }}
-    };
-
 	void Renderer::Init() {
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
-        std::shared_ptr<DescriptorLayout> vertexDescriptorLayout = DescriptorLayout::Create();
-        vertexDescriptorLayout->AddBindingLayout(0, 1, DescriptorLayout::DescriptorType::UNIFORM_BUFFER);
-        vertexDescriptorLayout->AddBindingLayout(1, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
-        vertexDescriptorLayout->Init();
+        std::shared_ptr<DescriptorLayout> vertexLayoutSet1 = DescriptorLayout::Create();
+        vertexLayoutSet1->AddBindingLayout(0, 1, DescriptorLayout::DescriptorType::UNIFORM_BUFFER);
+        vertexLayoutSet1->AddBindingLayout(1, 1, DescriptorLayout::DescriptorType::UNIFORM_BUFFER);
+        vertexLayoutSet1->AddBindingLayout(2, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
+        vertexLayoutSet1->AddBindingLayout(3, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
+        vertexLayoutSet1->AddBindingLayout(4, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
+        vertexLayoutSet1->AddBindingLayout(5, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
+        vertexLayoutSet1->AddBindingLayout(6, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
+        vertexLayoutSet1->Init();
 
         Pipeline::PipelineSpecs pipelineSpecs{};
         RenderPass::RenderPassSpecs renderPassSpecs;
@@ -61,10 +57,11 @@ namespace Brisk
         pipelineSpecs.pRenderPass = RenderPass::Create();
         pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 
-        pipelineSpecs.pDescriptorLayouts.push_back(vertexDescriptorLayout);
+        pipelineSpecs.pDescriptorLayouts.push_back(vertexLayoutSet1);
 
         std::shared_ptr<Shader> vertexShader = Shader::Create();
         vertexShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
+        vertexShader->AddDescriptorLayout(vertexLayoutSet1);
 
         std::shared_ptr<Shader> fragmentShader = Shader::Create();
         fragmentShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
@@ -90,23 +87,6 @@ namespace Brisk
 
         cmd = CommandBuffer::Create();
 
-        m_VertexBuffer = std::make_shared<BufferVulkan>();
-        m_UniformBuffer = std::make_shared<BufferVulkan>();
-        m_VertexBuffer->Init(sizeof(vertices[0]) * vertices.size(),
-            vertices.data(),
-            { Core::BufferUsage::BUFFER_USAGE_VERTEX_BUFFER_BIT },
-            { Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
-            false);
-
-        m_UniformBuffer->Init(sizeof(MVPBuffer),
-            nullptr,
-            { Core::BufferUsage::BUFFER_USAGE_UNIFORM_BUFFER_BIT },
-            { Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
-            true);
-
-
-        //descriptor->Update(m_UniformBuffer);
-
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
@@ -131,6 +111,7 @@ namespace Brisk
 
         std::static_pointer_cast<CommandBufferVulkan>(cmd)->Allocate(m_CommandPool);
 	}
+
 
     void Renderer::RenderScene(float deltaTime) {
         vkWaitForFences(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);

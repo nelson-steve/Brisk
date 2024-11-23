@@ -13,7 +13,10 @@ namespace Brisk
 
 		m_Renderer = Renderer::Create();
 		std::shared_ptr<Scene> scene = std::make_shared<Scene>();
-		m_Renderer->Init();
+
+		scene->AddNode();
+
+		m_Renderer->Init(scene);
 	}
 
 	void Application::Update(float deltaTime) {

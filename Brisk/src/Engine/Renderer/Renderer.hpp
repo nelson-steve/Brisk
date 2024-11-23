@@ -13,7 +13,7 @@ namespace Brisk
 
 	class Renderer {
 	public:
-		void Init();
+		void Init(const std::shared_ptr<Scene> scene);
 		void RenderScene(float deltaTime);
 
 		static std::unique_ptr<Renderer> Create();

@@ -108,7 +108,7 @@ namespace Brisk
         void loadMesh(const std::string& filePath) {
             // For example, load the mesh from a file (the Mesh class would need to be defined elsewhere)
             meshFile = filePath;
-            mesh = MeshLoader::load(filePath);  // Placeholder for a mesh loading function
+            //mesh = MeshLoader::load(filePath);  // Placeholder for a mesh loading function
         }
 
         void toggleVisibility() { isVisible = !isVisible; }
@@ -162,74 +162,74 @@ namespace Brisk
 
     class AnimationComponent : public Component {
     public:
-        std::vector<std::shared_ptr<Animation>> animations;  // List of animations
-        std::shared_ptr<Animation> currentAnimation;  // Currently playing animation
-        float speed = 1.0f;  // Speed multiplier for animation
-        bool isPlaying = false;
+    //    std::vector<std::shared_ptr<Animation>> animations;  // List of animations
+    //    std::shared_ptr<Animation> currentAnimation;  // Currently playing animation
+    //    float speed = 1.0f;  // Speed multiplier for animation
+    //    bool isPlaying = false;
 
-        AnimationComponent() = default;
+    //    AnimationComponent() = default;
 
-        void playAnimation(const std::string& animationName) {
-            // Find animation by name and start playing
-            auto anim = findAnimationByName(animationName);
-            if (anim) {
-                currentAnimation = anim;
-                isPlaying = true;
-            }
-        }
+    //    void playAnimation(const std::string& animationName) {
+    //        // Find animation by name and start playing
+    //        auto anim = findAnimationByName(animationName);
+    //        if (anim) {
+    //            currentAnimation = anim;
+    //            isPlaying = true;
+    //        }
+    //    }
 
-        void stopAnimation() {
-            isPlaying = false;
-        }
+    //    void stopAnimation() {
+    //        isPlaying = false;
+    //    }
 
-        void update(float deltaTime) {
-            if (isPlaying && currentAnimation) {
-                currentAnimation->update(deltaTime * speed);
-            }
-        }
+    //    void update(float deltaTime) {
+    //        if (isPlaying && currentAnimation) {
+    //            currentAnimation->update(deltaTime * speed);
+    //        }
+    //    }
 
-    private:
-        std::shared_ptr<Animation> findAnimationByName(const std::string& name) {
-            for (const auto& anim : animations) {
-                if (anim->getName() == name) {
-                    return anim;
-                }
-            }
-            return nullptr;
-        }
+    //private:
+    //    std::shared_ptr<Animation> findAnimationByName(const std::string& name) {
+    //        for (const auto& anim : animations) {
+    //            if (anim->getName() == name) {
+    //                return anim;
+    //            }
+    //        }
+    //        return nullptr;
+    //    }
     };
 
     class ParticleSystemComponent : public Component {
     public:
-        std::shared_ptr<ParticleSystem> particleSystem;  // Particle system for handling particles
+        //std::shared_ptr<ParticleSystem> particleSystem;  // Particle system for handling particles
         bool isActive = true;
 
-        ParticleSystemComponent() {
-            // Initialize the particle system
-            particleSystem = std::make_shared<ParticleSystem>();
-        }
+        //ParticleSystemComponent() {
+        //    // Initialize the particle system
+        //    particleSystem = std::make_shared<ParticleSystem>();
+        //}
 
-        void setActive(bool active) {
-            isActive = active;
-            if (isActive) {
-                particleSystem->start();
-            }
-            else {
-                particleSystem->stop();
-            }
-        }
+        //void setActive(bool active) {
+        //    isActive = active;
+        //    if (isActive) {
+        //        particleSystem->start();
+        //    }
+        //    else {
+        //        particleSystem->stop();
+        //    }
+        //}
 
-        void update(float deltaTime) {
-            if (isActive) {
-                particleSystem->update(deltaTime);
-            }
-        }
+        //void update(float deltaTime) {
+        //    if (isActive) {
+        //        particleSystem->update(deltaTime);
+        //    }
+        //}
 
-        void emitParticles(int count) {
-            if (isActive) {
-                particleSystem->emit(count);
-            }
-        }
+        //void emitParticles(int count) {
+        //    if (isActive) {
+        //        particleSystem->emit(count);
+        //    }
+        //}
     };
 
 

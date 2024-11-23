@@ -17,20 +17,17 @@ namespace Brisk {
     }
 
     // Add a child node
-    void Node::AddChild(std::shared_ptr<Node> child) {
-        if (child) {
-            //child->parent = shared_from_this();
-            children.push_back(child);
-        }
+    void Node::AddChild(Node child) {
+        children.push_back(child);
     }
 
     // Remove a child node
-    void Node::RemoveChild(const std::shared_ptr<Node>& child) {
-        children.erase(std::remove(children.begin(), children.end(), child), children.end());
-        if (child) {
-            child->parent.reset();
-        }
-    }
+    //void Node::RemoveChild(const std::shared_ptr<Node>& child) {
+    //    children.erase(std::remove(children.begin(), children.end(), child), children.end());
+    //    if (child) {
+    //        child->parent.reset();
+    //    }
+    //}
 
     // Get the parent node
     std::shared_ptr<Node> Node::GetParent() const {

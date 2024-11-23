@@ -10,6 +10,7 @@ namespace Brisk {
 			m_Commands.push_back(command);
 		}
 		virtual void UnBind() = 0;
+		virtual void Reset() = 0;
 
 		static std::shared_ptr<CommandBuffer> Create();
 	protected:

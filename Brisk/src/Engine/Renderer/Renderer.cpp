@@ -21,7 +21,7 @@ namespace Brisk
 
     std::shared_ptr<Pipeline> pipeline;
 
-	void Renderer::Init() {
+	void Renderer::Init(const std::shared_ptr<Scene> scene) {
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
@@ -34,6 +34,14 @@ namespace Brisk
         vertexLayoutSet1->AddBindingLayout(5, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
         vertexLayoutSet1->AddBindingLayout(6, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
         vertexLayoutSet1->Init();
+
+        std::shared_ptr<DescriptorLayout> vertexLayoutSet2 = DescriptorLayout::Create();
+        vertexLayoutSet2->AddBindingLayout(0, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
+        vertexLayoutSet2->AddBindingLayout(1, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
+        vertexLayoutSet2->AddBindingLayout(2, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
+        vertexLayoutSet2->Init();
+
+
 
         Pipeline::PipelineSpecs pipelineSpecs{};
         RenderPass::RenderPassSpecs renderPassSpecs;
@@ -58,10 +66,10 @@ namespace Brisk
         pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 
         pipelineSpecs.pDescriptorLayouts.push_back(vertexLayoutSet1);
+        pipelineSpecs.pDescriptorLayouts.push_back(vertexLayoutSet2);
 
         std::shared_ptr<Shader> vertexShader = Shader::Create();
         vertexShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
-        vertexShader->AddDescriptorLayout(vertexLayoutSet1);
 
         std::shared_ptr<Shader> fragmentShader = Shader::Create();
         fragmentShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
@@ -117,7 +125,8 @@ namespace Brisk
         vkWaitForFences(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
 
         std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, fence, &imageIndex);
-        vkResetCommandBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), /*VkCommandBufferResetFlagBits*/ 0);
+        //vkResetCommandBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), /*VkCommandBufferResetFlagBits*/ 0);
+        cmd->Reset();
         cmd->Bind();
         pipeline->m_Specs.pRenderPass->Begin(cmd, imageIndex);
         pipeline->Bind(cmd);

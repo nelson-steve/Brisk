@@ -96,7 +96,7 @@ namespace Brisk
     class MeshComponent : public Component {
     public:
         std::string meshFile;  // Path to mesh file (could be .obj, .fbx, etc.)
-        std::shared_ptr<Mesh> mesh;  // Loaded mesh data
+        std::shared_ptr<Model> model;  // Loaded mesh data
         bool isVisible = true;
 
         MeshComponent() = default;
@@ -276,7 +276,8 @@ namespace Brisk
     public:
         void AddNode();
         void RemoveNode(int index);
-    private:
+
+
         std::vector<Node> m_Nodes;
     };
 }

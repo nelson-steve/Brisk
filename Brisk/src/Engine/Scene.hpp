@@ -4,6 +4,8 @@
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
 
+#include "entt.hpp"
+
 #include <memory>
 #include <vector>
 #include <string>
@@ -11,273 +13,101 @@
 
 namespace Brisk
 {
-    enum NodeType
-    {
-        Root,
-        Sprite,
-    };
+	class Entity;
 
-    class Component {
-    };
+	struct SceneSetting
+	{
+		bool ShowCollider = true;
+		bool enableGravity = true;
+		float backgroundLight = 1.0;
+	};
 
-    class TransformComponent : public Component {
-    public:
-        glm::vec3 position{ 0.0f, 0.0f, 0.0f };
-        glm::quat rotation{ 1.0f, 0.0f, 0.0f, 0.0f }; // Quaternion for rotation
-        glm::vec3 scale{ 1.0f, 1.0f, 1.0f };
+	class Scene
+	{
+	public:
+		Scene(); // this is a constructor as you may remember. since it's name is the same as the class
 
-        TransformComponent() = default;
+		void InitDefaults();
+		void InitScene();
 
-        // Methods for transforming the component
-        void setPosition(const glm::vec3& pos) { position = pos; }
-        void setRotation(const glm::quat& rot) { rotation = rot; }
-        void setScale(const glm::vec3& scl) { scale = scl; }
+		Entity CreateMeshEntity(const std::string& name = "Mesh");
+		Entity CreateCameraEntity(const std::string& name = "Camera");
+		Entity CreateCubeEntity(const std::string& name = "Cube");
+		Entity CreatePlaneEntity(const std::string& name = "Plane");
+		Entity CreateLightEntity(const std::string& name = "Light");
+		Entity CreateSkyboxEntity(const std::string& name = "Skybox");
+		Entity CreateEntity(const std::string& name);
+		void DestroyEntity(Entity entity);
 
-        glm::mat4 getTransformMatrix() const {
-            glm::mat4 trans = glm::translate(glm::mat4(1.0f), position);
-            glm::mat4 rot = glm::mat4_cast(rotation);
-            glm::mat4 scl = glm::scale(glm::mat4(1.0f), scale);
-            return trans * rot * scl;
-        }
-    };
+		void OnRuntimeStart();
+		void OnRuntimeStop();
 
-    class LightComponent : public Component {
-    public:
-        glm::vec3 color{ 1.0f, 1.0f, 1.0f };
-        float intensity = 1.0f;
-        bool enabled = true;
+		void OnSimulationStart();
+		void OnSimulationStop();
 
-        LightComponent(const glm::vec3& col = { 1.0f, 1.0f, 1.0f }, float intens = 1.0f)
-            : color(col), intensity(intens) {}
+		void OnUpdateRuntime(Timestep ts);
+		void OnUpdateSimulation(Ref<EditorCamera> camera, Timestep ts);
+		void OnUpdateEditor(Ref<EditorCamera> camera, Timestep ts);
+		void RenderScene(Camera* camera, Timestep ts);
+		void OnUpdateResize(uint32_t width, uint32_t height);
 
-        void setColor(const glm::vec3& col) { color = col; }
-        void setIntensity(float intens) { intensity = intens; }
-        void toggle() { enabled = !enabled; }
-    };
+		void OnViewportResize(uint32_t width, uint32_t height);
 
-    class CameraComponent : public Component {
-    public:
-        float fov = 45.0f;
-        float nearPlane = 0.1f;
-        float farPlane = 100.0f;
-        glm::vec3 position{ 0.0f, 0.0f, 0.0f };
-        glm::vec3 lookAt{ 0.0f, 0.0f, -1.0f };
-        glm::vec3 up{ 0.0f, 1.0f, 0.0f };
+		Entity GetPrimaryCameraEntity();
+		SceneSetting& GetSceneSetting() { return m_SceneSetting; }
+		Entity FindEntityByName(std::string_view name);
 
-        CameraComponent() = default;
+		Entity DuplicateEntity(Entity entity);
 
-        glm::mat4 getViewMatrix() const {
-            return glm::lookAt(position, position + lookAt, up);
-        }
+		bool IsRunning() const { return m_IsRunning; }
+		bool IsPaused() const { return m_IsPaused; }
 
-        glm::mat4 getProjectionMatrix(float aspectRatio) const {
-            return glm::perspective(glm::radians(fov), aspectRatio, nearPlane, farPlane);
-        }
-    };
+		void SetPaused(bool paused) { m_IsPaused = paused; }
 
-    class ScriptComponent : public Component {
-    public:
-        std::string scriptName;
-        std::function<void()> onUpdate;
+		void SetMainFramebuffer(Ref<Framebuffer> fbo) { m_Framebuffer = fbo; }
 
-        ScriptComponent(const std::string& name) : scriptName(name) {}
+		void Step(int frames = 1);
 
-        void setUpdateFunction(std::function<void()> func) {
-            onUpdate = func;
-        }
+		void EnableGravity(bool gravity);
 
-        void update() {
-            if (onUpdate) {
-                onUpdate();  // Calls the update function if it exists
-            }
-        }
-    };
+		entt::registry& Reg() { return m_Registry; }
+		glm::vec3 lightPos = glm::vec3(-2.0f, 4.0f, -1.0f);
 
-    class MeshComponent : public Component {
-    public:
-        std::string meshFile;  // Path to mesh file (could be .obj, .fbx, etc.)
-        std::shared_ptr<Model> model;  // Loaded mesh data
-        bool isVisible = true;
+		//TODO: make this private
+		Ref<Texture2D> m_DepthMap;
+		Ref<Framebuffer> m_DepthMapFBO;
+		Ref<ShadowMap> m_ShadowMap;
+	private:
+		template<typename T>
+		void OnComponentAdded(Entity entity, T& component);
+	private:
+		// Colliders stuff
+		Ref<Model> m_Cube;
+		Ref<Model> m_Sphere;
+		Ref<Model> m_Capsule;
+		Ref<Shader> m_ColliderShader;
+		//
 
-        MeshComponent() = default;
-        MeshComponent(const std::string& filePath) : meshFile(filePath) {
-            // Load the mesh from the file, or set to nullptr if failed
-            loadMesh(filePath);
-        }
+		entt::registry m_Registry;
+		Ref<Framebuffer> m_Framebuffer;
+		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
+		bool m_IsRunning = false;
+		bool m_IsPaused = false;
+		int m_StepFrames = 0;
+		bool m_IsSimulating = false;
+		SceneSetting m_SceneSetting;
 
-        void loadMesh(const std::string& filePath) {
-            // For example, load the mesh from a file (the Mesh class would need to be defined elsewhere)
-            meshFile = filePath;
-            //mesh = MeshLoader::load(filePath);  // Placeholder for a mesh loading function
-        }
+		b2World* m_PhysicsWorld = nullptr;
 
-        void toggleVisibility() { isVisible = !isVisible; }
-    };
+		Ref<PhysicsWorld> m_PhysicsWorld3D;
+		Ref<Shader> m_SkyboxShader;
 
-    class PhysicsComponent : public Component {
-    public:
-        glm::vec3 velocity{ 0.0f, 0.0f, 0.0f };
-        glm::vec3 acceleration{ 0.0f, 0.0f, 0.0f };
-        glm::vec3 force{ 0.0f, 0.0f, 0.0f };
-        glm::vec3 lastPosition{ 0.0f, 0.0f, 0.0f };
-        float mass = 1.0f;  // Default mass for physics simulations
+		Ref<Shader> m_CubeShader;
 
-        PhysicsComponent() = default;
+		glm::mat4 transform{ 1.0f };
 
-        void applyForce(const glm::vec3& f) { force += f; }
-        void clearForces() { force = glm::vec3(0.0f); }
-
-        void update(float deltaTime) {
-            // Basic physics: F = ma -> acceleration = force / mass
-            acceleration = force / mass;
-            velocity += acceleration * deltaTime;
-            lastPosition = velocity * deltaTime;
-        }
-
-        glm::vec3 getVelocity() const { return velocity; }
-    };
-
-    class AudioComponent : public Component {
-    public:
-        std::string soundFile;  // Path to sound file (e.g., .wav, .mp3)
-        bool isLooping = false;
-        float volume = 1.0f;     // 0.0 (muted) to 1.0 (full volume)
-        float pitch = 1.0f;      // 1.0 is normal pitch
-
-        AudioComponent(const std::string& filePath, bool loop = false, float vol = 1.0f, float ptch = 1.0f)
-            : soundFile(filePath), isLooping(loop), volume(vol), pitch(ptch) {}
-
-        void play() {
-            // Logic to play the sound using the sound file, volume, pitch, and loop settings
-        }
-
-        void stop() {
-            // Logic to stop the sound
-        }
-
-        void setVolume(float vol) { volume = vol; }
-        void setPitch(float ptch) { pitch = ptch; }
-        void setLooping(bool loop) { isLooping = loop; }
-    };
-
-    class AnimationComponent : public Component {
-    public:
-    //    std::vector<std::shared_ptr<Animation>> animations;  // List of animations
-    //    std::shared_ptr<Animation> currentAnimation;  // Currently playing animation
-    //    float speed = 1.0f;  // Speed multiplier for animation
-    //    bool isPlaying = false;
-
-    //    AnimationComponent() = default;
-
-    //    void playAnimation(const std::string& animationName) {
-    //        // Find animation by name and start playing
-    //        auto anim = findAnimationByName(animationName);
-    //        if (anim) {
-    //            currentAnimation = anim;
-    //            isPlaying = true;
-    //        }
-    //    }
-
-    //    void stopAnimation() {
-    //        isPlaying = false;
-    //    }
-
-    //    void update(float deltaTime) {
-    //        if (isPlaying && currentAnimation) {
-    //            currentAnimation->update(deltaTime * speed);
-    //        }
-    //    }
-
-    //private:
-    //    std::shared_ptr<Animation> findAnimationByName(const std::string& name) {
-    //        for (const auto& anim : animations) {
-    //            if (anim->getName() == name) {
-    //                return anim;
-    //            }
-    //        }
-    //        return nullptr;
-    //    }
-    };
-
-    class ParticleSystemComponent : public Component {
-    public:
-        //std::shared_ptr<ParticleSystem> particleSystem;  // Particle system for handling particles
-        bool isActive = true;
-
-        //ParticleSystemComponent() {
-        //    // Initialize the particle system
-        //    particleSystem = std::make_shared<ParticleSystem>();
-        //}
-
-        //void setActive(bool active) {
-        //    isActive = active;
-        //    if (isActive) {
-        //        particleSystem->start();
-        //    }
-        //    else {
-        //        particleSystem->stop();
-        //    }
-        //}
-
-        //void update(float deltaTime) {
-        //    if (isActive) {
-        //        particleSystem->update(deltaTime);
-        //    }
-        //}
-
-        //void emitParticles(int count) {
-        //    if (isActive) {
-        //        particleSystem->emit(count);
-        //    }
-        //}
-    };
-
-
-
-    class Node {
-    public:
-        // Constructor and Destructor
-        Node(const std::string& name = "Node");
-        virtual ~Node();
-
-        // Node Hierarchy Management
-        void AddChild(std::shared_ptr<Node> child);
-        void RemoveChild(const std::shared_ptr<Node>& child);
-        std::shared_ptr<Node> GetParent() const;
-
-        // Transform Functions
-        void SetPosition(const glm::vec3& position);
-        void SetRotation(const glm::quat& rotation);
-        void SetScale(const glm::vec3& scale);
-        glm::vec3 GetPosition() const;
-        glm::quat GetRotation() const;
-        glm::vec3 GetScale() const;
-
-        // Component Management
-        template <typename T, typename... Args>
-        std::shared_ptr<T> AddComponent(Args&&... args);
-
-        template <typename T>
-        std::shared_ptr<T> GetComponent() const;
-
-    private:
-        std::string name;
-        glm::vec3 position;
-        glm::quat rotation;
-        glm::vec3 scale;
-
-        std::weak_ptr<Node> parent;
-        std::vector<std::shared_ptr<Node>> children;
-        std::vector<std::shared_ptr<Component>> components; // Base class for components
-    };
-
-
-    class Scene {
-    public:
-        void AddNode();
-        void RemoveNode(int index);
-
-
-        std::vector<Node> m_Nodes;
-    };
+		friend class Entity;
+		friend class SceneSerializer;
+		friend class SceneHierarchyPanel;
+	};
 }

@@ -130,6 +130,7 @@ target_include_directories(${PROJECT_NAME}
         ${PROJECT_SOURCE_DIR}/Brisk/vendors/spdlog/include
         ${PROJECT_SOURCE_DIR}/Brisk/vendors/stb_image
         ${PROJECT_SOURCE_DIR}/Brisk/vendors/json
+        ${PROJECT_SOURCE_DIR}/Brisk/vendors/entt/include
 )
 
 

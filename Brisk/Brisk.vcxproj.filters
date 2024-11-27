@@ -183,15 +183,6 @@
     <ClInclude Include="src\Engine\Renderer\GpuAdapter.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Event.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\EventListener.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\EventManager.hpp">
-      <Filter>Header Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Renderer\CommandBuffer.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -208,6 +199,27 @@
       <Filter>Header Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Vulkan\ShaderCompiler.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Component.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\Core.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Entity.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Events\Event.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Events\ApplicationEvent.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Events\KeyEvent.hpp">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Core\KeyCodes.hpp">
       <Filter>Header Files</Filter>
     </ClInclude>
   </ItemGroup>
@@ -342,9 +354,6 @@
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Renderer\Shader.cpp">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\EventManager.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Renderer\CommanBuffer.cpp">

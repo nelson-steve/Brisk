@@ -4,9 +4,8 @@
 
 #include "glm/glm.hpp"
 
-namespace s 
+namespace Brisk 
 {
-
 	class OrthographicCamera : public Camera
 	{
 	public:

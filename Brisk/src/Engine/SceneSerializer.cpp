@@ -3,6 +3,7 @@
 #include "Component.hpp"
 
 #include <fstream>
+#include <glm/glm.hpp>
 
 namespace YAML {
 

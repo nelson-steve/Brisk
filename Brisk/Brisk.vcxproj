@@ -195,6 +195,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Engine\Renderer\RendererFactory.hpp" />
     <ClInclude Include="src\Engine\Renderer\Shader.hpp" />
     <ClInclude Include="src\Engine\Scene.hpp" />
+    <ClInclude Include="src\Engine\SceneSerializer.hpp" />
     <ClInclude Include="src\Engine\Window.hpp" />
     <ClInclude Include="src\Graphics\Factories\SwapchainFactory.hpp" />
     <ClInclude Include="src\Graphics\Swapchain.hpp" />
@@ -252,6 +253,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClCompile Include="src\Engine\Renderer\RenderPass.cpp" />
     <ClCompile Include="src\Engine\Renderer\Shader.cpp" />
     <ClCompile Include="src\Engine\Scene.cpp" />
+    <ClCompile Include="src\Engine\SceneSerializer.cpp" />
     <ClCompile Include="src\Engine\Window.cpp" />
     <ClCompile Include="src\Graphics\Swapchain.cpp" />
     <ClCompile Include="src\Graphics\Texture.cpp" />

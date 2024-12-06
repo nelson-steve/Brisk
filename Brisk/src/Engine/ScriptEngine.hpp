@@ -3,6 +3,7 @@
 #include "Entity.hpp"
 #include "Scene.hpp"
 #include "Core/Core.hpp"
+#include "Core/Timer.hpp"
 
 #include <filesystem>
 #include <string>
@@ -201,7 +202,7 @@ namespace Brisk {
 			case ScriptFieldType::Vector4: return "Vector4";
 			case ScriptFieldType::Entity:  return "Entity";
 			}
-			Albedo_CORE_ASSERT(false, "Unknown ScriptFieldType");
+			Brisk_CORE_ASSERT(false, "Unknown ScriptFieldType");
 			return "None";
 		}
 
@@ -225,7 +226,7 @@ namespace Brisk {
 			if (fieldType == "Vector4") return ScriptFieldType::Vector4;
 			if (fieldType == "Entity")  return ScriptFieldType::Entity;
 
-			Albedo_CORE_ASSERT(false, "Unknown ScriptFieldType");
+			Brisk_CORE_ASSERT(false, "Unknown ScriptFieldType");
 			return ScriptFieldType::None;
 		}
 

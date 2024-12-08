@@ -48,13 +48,6 @@ namespace Brisk
 
 	void Scene::InitDefaults()
 	{
-		{
-			//TextureConfiguration config(Config::TextureType::Cubemap, Config::InternalFormat::RGB, Config::TextureLayout::ClampToEdge,
-			//	Config::MinMagFilters::LINEAR, Config::MinMagFilters::LINEAR, Config::DataType::UNSIGNED_BYTE,
-			//	Config::DataFormat::RGB, false, false);
-		}
-
-		//m_ShadowMap = std::make_shared<ShadowMap>(2048, 2048);
 	}
 
 	void Scene::InitScene()

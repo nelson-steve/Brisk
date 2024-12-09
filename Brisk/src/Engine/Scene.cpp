@@ -13,19 +13,6 @@ namespace Brisk
 
 	//extern std::unique_ptr<AssetSystem> m_AssetManager;
 
-	//static b2BodyType Rigidbody2DTypeToBox2DBody(Physics2DComponent::BodyType bodyType)
-	//{
-	//	switch (bodyType)
-	//	{
-	//	case Physics2DComponent::BodyType::Static:    return b2_staticBody;
-	//	case Physics2DComponent::BodyType::Dynamic:   return b2_dynamicBody;
-	//	case Physics2DComponent::BodyType::Kinematic: return b2_kinematicBody;
-	//	}
-
-	//	Albedo_CORE_ASSERT(false, "Unknown body type");
-	//	return b2_staticBody;
-	//}
-
 	Scene::Scene()
 	{
 	}

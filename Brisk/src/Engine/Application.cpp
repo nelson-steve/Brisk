@@ -13,16 +13,7 @@ namespace Brisk
 
 		m_Renderer = Renderer::Create();
 		std::shared_ptr<Scene> scene = std::make_shared<Scene>();
-
-		std::shared_ptr<Node> node;
-		node->SetPosition(glm::vec3(0.0f));
-		node->SetRotation(glm::vec3(0.0f));
-
-		node->AddComponent<Mesh>();
-		node->GetComponent<Mesh>().model = new std::make_shared<Model>("");
 		
-		scene->AddNode();
-
 		m_Renderer->Init(scene);
 	}
 

@@ -255,6 +255,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClCompile Include="src\Engine\Renderer\Shader.cpp" />
     <ClCompile Include="src\Engine\Scene.cpp" />
     <ClCompile Include="src\Engine\SceneSerializer.cpp" />
+    <ClCompile Include="src\Engine\ScriptEngine.cpp" />
     <ClCompile Include="src\Engine\Window.cpp" />
     <ClCompile Include="src\Graphics\Swapchain.cpp" />
     <ClCompile Include="src\Graphics\Texture.cpp" />

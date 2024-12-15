@@ -6,6 +6,7 @@
 #include "Platform/Windows/WindowsWindow.hpp"
 #include "Camera.hpp"
 #include "Scene.hpp"
+#include "Events/ApplicationEvent.hpp"
 
 namespace Brisk 
 {
@@ -14,6 +15,7 @@ namespace Brisk
 		Application() = default;
 		~Application() = default;
 		void CreateApplication();
+		void OnEvent(Event& event);
 		void Update(float deltaTime);
 		void Close();
 
@@ -23,6 +25,10 @@ namespace Brisk
 			return std::static_pointer_cast<WindowsWindow>(m_Window);
 		}
 		const std::shared_ptr<GpuAdapter> GetGpuAdapter() const { return m_Adapter; }
+
+	private:
+		bool OnWindowClose(WindowCloseEvent& e);
+		bool OnWindowResize(WindowResizeEvent& e);
 	private:
 		std::shared_ptr<GpuAdapter> m_Adapter;
 		std::shared_ptr<Renderer> m_Renderer;

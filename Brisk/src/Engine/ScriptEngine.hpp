@@ -7,6 +7,7 @@
 
 #include <filesystem>
 #include <string>
+#include <Core/Timer.hpp>
 
 extern "C" {
 	typedef struct _MonoClass MonoClass;
@@ -155,7 +156,7 @@ namespace Brisk {
 
 		static bool EntityClassExists(const std::string& fullClassName);
 		static void OnCreateEntity(Entity entity);
-		static void OnUpdateEntity(Entity entity, Timestep ts);
+		static void OnUpdateEntity(Entity entity, Timer ts);
 
 		static Scene* GetSceneContext();
 		static Ref<ScriptInstance> GetEntityScriptInstance(uint32_t entityID);
@@ -202,7 +203,7 @@ namespace Brisk {
 			case ScriptFieldType::Vector4: return "Vector4";
 			case ScriptFieldType::Entity:  return "Entity";
 			}
-			Brisk_CORE_ASSERT(false, "Unknown ScriptFieldType");
+			//Brisk_CORE_ASSERT(false, "Unknown ScriptFieldType");
 			return "None";
 		}
 
@@ -226,7 +227,7 @@ namespace Brisk {
 			if (fieldType == "Vector4") return ScriptFieldType::Vector4;
 			if (fieldType == "Entity")  return ScriptFieldType::Entity;
 
-			Brisk_CORE_ASSERT(false, "Unknown ScriptFieldType");
+			//Brisk_CORE_ASSERT(false, "Unknown ScriptFieldType");
 			return ScriptFieldType::None;
 		}
 

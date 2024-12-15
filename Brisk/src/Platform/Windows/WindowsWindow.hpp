@@ -19,7 +19,6 @@ namespace Brisk {
 		/// Queries if the window has been closed
 		/// </summary>
 		/// <returns></returns>
-
 		virtual bool WindowShouldClose() override;
 		/// <summary>
 		/// Queries if the window has been resized
@@ -68,7 +67,26 @@ namespace Brisk {
 		/// </summary>
 		/// <param name="resized"></param>
 		virtual inline void WindowResized(bool resized) override { m_HasWindowResized = resized; }
+
+		/// <summary>
+		/// Setting the function that will be process every event
+		/// </summary>
+		/// <param name="callback"></param>
+		virtual inline void SetEventCallBack(const EventCallBackFn& callback) override { m_Data.EventCallBack = callback; }
 	private:
 		GLFWwindow* m_Window = nullptr;
+
+		struct WindowData
+		{
+			std::string Title;
+			uint32_t Width, Height;
+			bool VSync;
+
+			int Focus;
+
+			EventCallBackFn EventCallBack;
+		};
+
+		WindowData m_Data;
 	};
 }

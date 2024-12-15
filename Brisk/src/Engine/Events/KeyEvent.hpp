@@ -1,10 +1,10 @@
 #pragma once
 
 #include "Event.hpp"
-#include "Albedo/Core/KeyCodes.h"
+#include "Core/KeyCodes.hpp"
 
-namespace Albedo {
-
+namespace Brisk 
+{
 	class KeyEvent : public Event {
 	public:
 		KeyEvent() {}

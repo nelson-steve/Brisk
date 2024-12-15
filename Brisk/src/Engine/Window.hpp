@@ -1,4 +1,7 @@
 #pragma once
+
+#include "Events/Event.hpp"
+
 #include <iostream>
 #include <memory>
 
@@ -9,6 +12,8 @@ namespace Brisk
 	/// </summary>
 	class Window {
 	public:
+		using EventCallBackFn = std::function<void(Event&)>;
+
 		virtual void* GetWindowHandle() = 0;
 		/// <summary>
 		/// Cleanly destroys the window
@@ -62,6 +67,11 @@ namespace Brisk
 		/// <param name="resized"></param>
 		virtual inline void WindowResized(bool resized) = 0;
 
+		/// <summary>
+		/// Setting the function that will be process every event
+		/// </summary>
+		/// <param name="callback"></param>
+		virtual inline void SetEventCallBack(const EventCallBackFn& callback) = 0;
 	public:
 		/// <summary>
 		/// Static function to create and retrieve the newly created window

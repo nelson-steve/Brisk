@@ -13,19 +13,19 @@ namespace Brisk
     void PipelineVulkan::Init(const Pipeline::PipelineSpecs& specs) {
         m_Specs = specs;
         std::vector<VkDescriptorSetLayout> descriptorLayouts;
-        for (int i = 0; i < specs.pShaders.size(); i++) {
-            for (int j = 0; j < specs.pShaders[i]->GetDescriptors().size(); j++) {
-                specs.pShaders[i]->GetDescriptors()[j]->Allocate();
-            }
-        }
+        //for (int i = 0; i < specs.pShaders.size(); i++) {
+        //    for (int j = 0; j < specs.pShaders[i]->GetDescriptors().size(); j++) {
+        //        specs.pShaders[i]->GetDescriptors()[j]->Allocate();
+        //    }
+        //}
 
-        for (int i = 0; i < specs.pShaders.size(); i++) {
-            for (int j = 0; j < specs.pShaders[i]->GetDescriptors().size(); j++) {
-                for (int k = 0; k < std::static_pointer_cast<DescriptorVulkan>(specs.pShaders[i]->GetDescriptors()[j])->GetLayouts().size(); k++) {
-                    descriptorLayouts.push_back(std::static_pointer_cast<DescriptorVulkan>(specs.pShaders[i]->GetDescriptors()[j])->GetLayouts()[k]);
-                }
-            }
-        }
+        //for (int i = 0; i < specs.pShaders.size(); i++) {
+        //    for (int j = 0; j < specs.pShaders[i]->GetDescriptors().size(); j++) {
+        //        for (int k = 0; k < std::static_pointer_cast<DescriptorVulkan>(specs.pShaders[i]->GetDescriptors()[j])->GetLayouts().size(); k++) {
+        //            descriptorLayouts.push_back(std::static_pointer_cast<DescriptorVulkan>(specs.pShaders[i]->GetDescriptors()[j])->GetLayouts()[k]);
+        //        }
+        //    }
+        //}
 
 
 

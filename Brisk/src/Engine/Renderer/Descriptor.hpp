@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Graphics/Vulkan/BufferVulkan.hpp"
+#include "Engine/Renderer/Buffer.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -52,7 +52,7 @@ namespace Brisk
 	class Descriptor {
 	public:
 		virtual void Allocate() = 0;
-		virtual void Update(BufferVulkan* buffer) = 0;
+		virtual void Update(std::shared_ptr<Buffer> buffer) = 0;
 
 		static std::shared_ptr<Descriptor> Create();
 	protected:

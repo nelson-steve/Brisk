@@ -1,7 +1,7 @@
 #pragma once
 
 #include "RenderPass.hpp"
-//#include "Texture.hpp"
+#include "Graphics/Texture.hpp"
 
 #include <cstdint>
 #include <memory>

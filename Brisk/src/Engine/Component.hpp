@@ -9,6 +9,7 @@
 #include <glm/gtx/quaternion.hpp>
 
 #include <string>
+#include "Renderer/Shader.hpp"
 
 namespace Brisk 
 {
@@ -123,7 +124,7 @@ namespace Brisk
 		void AddShader(const Ref<Shader> shader)
 		{
 			m_Shader = shader;
-			m_Shader->SetInitializationStatus(true);
+			//m_Shader->SetInitializationStatus(true);
 		}
 
 		Ref<Shader> m_Shader;
@@ -318,12 +319,12 @@ namespace Brisk
 		//ScriptableEntity* (*InstantiateScript)();
 		//void (*DestroyScript)(NativeScriptComponent*);
 
-		template<typename T>
-		void Bind()
-		{
-			InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
-			DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
-		}
+		//template<typename T>
+		//void Bind()
+		//{
+		//	//InstantiateScript = []() { return static_cast<ScriptableEntity*>(new T()); };
+		//	//DestroyScript = [](NativeScriptComponent* nsc) { delete nsc->Instance; nsc->Instance = nullptr; };
+		//}
 	};
 
 	template<typename... Component>

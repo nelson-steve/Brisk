@@ -58,7 +58,7 @@ namespace Brisk
 				return SamplerAddressMode::SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT;
 			}
 
-			std::cerr << "Unknown wrap mode for getVkWrapMode: " << wrapMode << std::endl;
+			//std::cerr << "Unknown wrap mode for getVkWrapMode: " << wrapMode << std::endl;
 			return SamplerAddressMode::SAMPLER_ADDRESS_MODE_REPEAT;
 		}
 
@@ -80,7 +80,7 @@ namespace Brisk
 				return Filter::FILTER_LINEAR;
 			}
 
-			std::cerr << "Unknown filter mode for GetFilterMode: " << filterMode << std::endl;
+			//std::cerr << "Unknown filter mode for GetFilterMode: " << filterMode << std::endl;
 			return Filter::FILTER_NEAREST;
 		}
 

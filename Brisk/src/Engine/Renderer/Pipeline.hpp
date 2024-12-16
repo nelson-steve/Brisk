@@ -6,6 +6,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <Graphics/Vulkan/DescriptorVulkan.hpp>
 
 namespace Brisk
 {

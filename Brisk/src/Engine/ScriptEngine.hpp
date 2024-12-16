@@ -156,7 +156,7 @@ namespace Brisk {
 
 		static bool EntityClassExists(const std::string& fullClassName);
 		static void OnCreateEntity(Entity entity);
-		static void OnUpdateEntity(Entity entity, Timer ts);
+		static void OnUpdateEntity(Entity entity, Brisk::Core::Timer ts);
 
 		static Scene* GetSceneContext();
 		static Ref<ScriptInstance> GetEntityScriptInstance(uint32_t entityID);

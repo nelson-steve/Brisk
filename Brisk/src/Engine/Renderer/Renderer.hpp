@@ -4,6 +4,7 @@
 #include "CommandBuffer.hpp"
 #include "Graphics/Swapchain.hpp"
 #include "Buffer.hpp"
+#include "Engine/Scene.hpp"
 
 #include <memory>
 

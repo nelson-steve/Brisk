@@ -1,5 +1,8 @@
 #pragma once
 
+#include "Engine/Renderer/Shader.hpp"
+#include "Core/Core.hpp"
+
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
@@ -45,11 +48,11 @@ namespace Brisk
 		void OnSimulationStart();
 		void OnSimulationStop();
 
-		void OnUpdateRuntime(Timestep ts);
-		void OnUpdateSimulation(Ref<EditorCamera> camera, Timestep ts);
-		void OnUpdateEditor(Ref<EditorCamera> camera, Timestep ts);
-		void RenderScene(Camera* camera, Timestep ts);
-		void OnUpdateResize(uint32_t width, uint32_t height);
+		//void OnUpdateRuntime(Timestep ts);
+		//void OnUpdateSimulation(Ref<EditorCamera> camera, Timestep ts);
+		//void OnUpdateEditor(Ref<EditorCamera> camera, Timestep ts);
+		//void RenderScene(Camera* camera, Timestep ts);
+		//void OnUpdateResize(uint32_t width, uint32_t height);
 
 		void OnViewportResize(uint32_t width, uint32_t height);
 
@@ -64,7 +67,7 @@ namespace Brisk
 
 		void SetPaused(bool paused) { m_IsPaused = paused; }
 
-		void SetMainFramebuffer(Ref<Framebuffer> fbo) { m_Framebuffer = fbo; }
+		//void SetMainFramebuffer(Ref<Framebuffer> fbo) { m_Framebuffer = fbo; }
 
 		void Step(int frames = 1);
 
@@ -74,22 +77,22 @@ namespace Brisk
 		glm::vec3 lightPos = glm::vec3(-2.0f, 4.0f, -1.0f);
 
 		//TODO: make this private
-		Ref<Texture2D> m_DepthMap;
-		Ref<Framebuffer> m_DepthMapFBO;
-		Ref<ShadowMap> m_ShadowMap;
+		//Ref<Texture2D> m_DepthMap;
+		//Ref<Framebuffer> m_DepthMapFBO;
+		//Ref<ShadowMap> m_ShadowMap;
 	private:
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
 	private:
 		// Colliders stuff
-		Ref<Model> m_Cube;
-		Ref<Model> m_Sphere;
-		Ref<Model> m_Capsule;
+		//Ref<Model> m_Cube;
+		//Ref<Model> m_Sphere;
+		//Ref<Model> m_Capsule;
 		Ref<Shader> m_ColliderShader;
 		//
 
 		entt::registry m_Registry;
-		Ref<Framebuffer> m_Framebuffer;
+		//Ref<Framebuffer> m_Framebuffer;
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
 		bool m_IsRunning = false;
 		bool m_IsPaused = false;
@@ -97,9 +100,6 @@ namespace Brisk
 		bool m_IsSimulating = false;
 		SceneSetting m_SceneSetting;
 
-		b2World* m_PhysicsWorld = nullptr;
-
-		Ref<PhysicsWorld> m_PhysicsWorld3D;
 		Ref<Shader> m_SkyboxShader;
 
 		Ref<Shader> m_CubeShader;

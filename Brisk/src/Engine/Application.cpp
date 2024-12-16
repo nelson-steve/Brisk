@@ -1,12 +1,13 @@
 #include "Application.hpp"
 #include "Scene.hpp"
 #include "Core/Core.hpp"
+#include "Events/Event.hpp"
 
 namespace Brisk 
 {
 	void Application::CreateApplication() {
 		m_Window = Window::Create(1280, 720);
-		m_EditorCamera = std::make_shared<Camera>(m_Window->GetWindowHandle());
+		//m_EditorCamera = std::make_shared<Camera>(m_Window->GetWindowHandle());
 
 		m_Window->SetEventCallBack(BIND_EVENT_FN(Application::OnEvent));
 

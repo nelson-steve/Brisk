@@ -16,7 +16,7 @@ namespace Brisk
 		template<typename T, typename... Args>
 		T& AddComponent(Args&&... args)
 		{
-			//Albedo_CORE_ASSERT(!HasComponent<T>(), "Entity already has a component!");
+			//Brisk_CORE_ASSERT(!HasComponent<T>(), "Entity already has a component!");
 			T& component = m_Scene->m_Registry.emplace_or_replace<T>(m_EntityHandle, std::forward<Args>(args)...);
 			m_Scene->OnComponentAdded<T>(*this, component);
 			return component;
@@ -33,14 +33,14 @@ namespace Brisk
 		template<typename T>
 		T& GetComponent()
 		{
-			Albedo_CORE_ASSERT(HasComponent<T>(), "Entity does not have component!");
+			//Brisk_CORE_ASSERT(HasComponent<T>(), "Entity does not have component!");
 			return m_Scene->m_Registry.get<T>(m_EntityHandle);
 		}
 
 		template<typename T>
 		static T& GetComponent(entt::entity entity)
 		{
-			//Albedo_CORE_ASSERT(m_Scene->m_Registry.try_get<T>(m_EntityHandle), "Entity does not have component!");
+			//Brisk_CORE_ASSERT(m_Scene->m_Registry.try_get<T>(m_EntityHandle), "Entity does not have component!");
 			return m_Scene->m_Registry.get<T>(entity);
 		}
 
@@ -70,7 +70,7 @@ namespace Brisk
 		template<typename T>
 		static void RemoveComponent(entt::entity entity)
 		{
-			//Albedo_CORE_ASSERT(HasComponent<T>(), "Entity does not have component!");
+			//Brisk_CORE_ASSERT(HasComponent<T>(), "Entity does not have component!");
 			m_Scene->m_Registry.remove<T>(entity);
 		}
 

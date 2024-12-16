@@ -162,10 +162,10 @@ namespace Brisk
 
 	void Scene::EnableGravity(bool gravity)
 	{
-		if (gravity)
-			m_PhysicsWorld->SetGravity({ 0.0f, -9.8f });
-		else
-			m_PhysicsWorld->SetGravity({ 0.0f, 0.0f });
+		//if (gravity)
+		//	m_PhysicsWorld->SetGravity({ 0.0f, -9.8f });
+		//else
+		//	m_PhysicsWorld->SetGravity({ 0.0f, 0.0f });
 	}
 
 	void Scene::OnRuntimeStart()
@@ -258,8 +258,8 @@ namespace Brisk
 	{
 		m_IsRunning = false;;
 
-		delete m_PhysicsWorld;
-		m_PhysicsWorld = nullptr;
+		//delete m_PhysicsWorld;
+		//m_PhysicsWorld = nullptr;
 
 		//ScriptEngine::OnRuntimeStop();
 	}
@@ -353,8 +353,8 @@ namespace Brisk
 	{
 		//m_PhysicsWorld3D->Destroy();
 
-		delete m_PhysicsWorld;
-		m_PhysicsWorld = nullptr;
+		//delete m_PhysicsWorld;
+		//m_PhysicsWorld = nullptr;
 
 		m_IsSimulating = false;
 	}
@@ -400,10 +400,10 @@ namespace Brisk
 	//	RenderScene(camera.get(), ts);
 	//}
 
-	void Scene::OnUpdateResize(uint32_t width, uint32_t height)
-	{
-		assert(false);
-	}
+	//void Scene::OnUpdateResize(uint32_t width, uint32_t height)
+	//{
+	//	assert(false);
+	//}
 
 	//void Scene::OnUpdateRuntime(Timestep ts)
 	//{
@@ -610,7 +610,6 @@ namespace Brisk
 	template<typename T>
 	void Scene::OnComponentAdded(Entity entity, T& component)
 	{
-		Albedo_Core_INFO("invalid type");
 	}
 
 	template<>

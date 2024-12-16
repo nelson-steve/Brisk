@@ -5,29 +5,29 @@
 
 namespace Brisk 
 {
-	void DescriptorVulkan::Init() {
-        std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
-        for (int i = 0; i < m_Layouts.size(); i++) {
-            VkDescriptorSetLayoutBinding layoutBinding{};
-            layoutBinding.binding = m_Layouts[i].p_Binding;
-            layoutBinding.descriptorCount = m_Layouts[i].p_DescriptorCount;
-            layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; //m_Layouts[i].p_Type
-            layoutBinding.pImmutableSamplers = nullptr;
-            layoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	//void DescriptorVulkan::Init() {
+ //       std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
+ //       //for (int i = 0; i < m_Layouts.size(); i++) {
+ //       //    VkDescriptorSetLayoutBinding layoutBinding{};
+ //       //    layoutBinding.binding = m_Layouts[i].p_Binding;
+ //       //    layoutBinding.descriptorCount = m_Layouts[i].p_DescriptorCount;
+ //       //    layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; //m_Layouts[i].p_Type
+ //       //    layoutBinding.pImmutableSamplers = nullptr;
+ //       //    layoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
 
-            layoutBindings.push_back(layoutBinding);
-        }
+ //       //    layoutBindings.push_back(layoutBinding);
+ //       //}
 
-        VkDescriptorSetLayoutCreateInfo layoutInfo{};
-        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-        layoutInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());
-        layoutInfo.pBindings = layoutBindings.data();
+ //       VkDescriptorSetLayoutCreateInfo layoutInfo{};
+ //       layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+ //       layoutInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());
+ //       layoutInfo.pBindings = layoutBindings.data();
 
-        m_DescriptorLayouts.resize(m_Layouts.size());
-        if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, m_DescriptorLayouts.data()) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create descriptor set layout!");
-        }
-	}
+ //       //m_DescriptorLayouts.resize(m_Layouts.size());
+ //       if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, m_DescriptorLayouts.data()) != VK_SUCCESS) {
+ //           throw std::runtime_error("failed to create descriptor set layout!");
+ //       }
+	//}
 
 	void DescriptorVulkan::Allocate() {
         VkDescriptorSetAllocateInfo allocInfo{};
@@ -41,9 +41,9 @@ namespace Brisk
         }
 	}
 
-	void DescriptorVulkan::Update(BufferVulkan* buffer) {
+	void DescriptorVulkan::Update(std::shared_ptr<Buffer> buffer) {
         VkDescriptorBufferInfo bufferInfo{};
-        bufferInfo.buffer = buffer->Get();
+        //bufferInfo.buffer = buffer->Get();
         bufferInfo.offset = 0;
         bufferInfo.range = sizeof(MVPBuffer);
 

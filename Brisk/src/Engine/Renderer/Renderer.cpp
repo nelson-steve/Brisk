@@ -7,6 +7,8 @@
 #include "Graphics/Vulkan/CommandBufferVulkan.hpp""
 #include "RenderCommand.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
+#include "Engine/Renderer/Shader.hpp"
+#include "Engine/Component.hpp"
 
 namespace Brisk
 {
@@ -20,9 +22,21 @@ namespace Brisk
     RenderCommand command;
 
     std::shared_ptr<Pipeline> pipeline;
+    std::shared_ptr<Shader> m_Shader;
 
 	void Renderer::Init(const std::shared_ptr<Scene> scene) {
-        for (auto& scene_object : scene->GetSceneObjects()) {
+        m_Shader->SetPipeline(pipeline);
+        m_Shader->SetAlbedoTexture();
+        m_Shader->SetNormalTexture();
+        m_Shader->SetMetallicTexture();
+        m_Shader->SetOcclusionTexture();
+        m_Shader->SetEmissiveTexture();
+        m_Shader->SetMVPBuffer();
+
+        auto view = scene->Reg().view<ShaderComponent>();
+
+        for (auto& entity : view) {
+            auto& shader = view.get<ShaderComponent>(entity);
             for (size_t i = 0; i < scene_object->p_model.GetMaterials().size(); i++) {
                 VkDescriptorSetAllocateInfo allocInfo{};
                 allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
@@ -146,8 +160,6 @@ namespace Brisk
         vertexLayoutSet2->AddBindingLayout(1, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
         vertexLayoutSet2->AddBindingLayout(2, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
         vertexLayoutSet2->Init();
-
-
 
         Pipeline::PipelineSpecs pipelineSpecs{};
         RenderPass::RenderPassSpecs renderPassSpecs;

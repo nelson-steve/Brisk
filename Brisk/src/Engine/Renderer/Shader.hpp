@@ -17,6 +17,14 @@ namespace Brisk
 
 		virtual void Init(std::pair<std::string, Pipeline::ShaderStage>) = 0;
 
+		virtual void SetPipeline(std::shared_ptr<Pipeline> pipeline) = 0;
+		virtual void SetAlbedoTexture(std::shared_ptr<Texture> texture) = 0;
+		virtual void SetNormalTexture(std::shared_ptr<Texture> texture) = 0;
+		virtual void SetMetallicTexture(std::shared_ptr<Texture> texture) = 0;
+		virtual void SetOcclusionTexture(std::shared_ptr<Texture> texture) = 0;
+		virtual void SetEmissiveTexture(std::shared_ptr<Texture> texture) = 0;
+		virtual void SetMVPBuffer() = 0;
+
 		inline void AddDescriptorLayout(const std::shared_ptr<DescriptorLayout> descriptor) { m_DescriptorLayout = descriptor; }
 		inline const std::shared_ptr<DescriptorLayout> GetDescriptorLayout() const { return m_DescriptorLayout; }
 

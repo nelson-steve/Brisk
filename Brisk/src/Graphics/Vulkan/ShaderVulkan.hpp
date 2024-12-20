@@ -13,6 +13,19 @@ namespace Brisk
 	public:
 		void Init(std::pair<std::string, Pipeline::ShaderStage>);
 
+		virtual void Init(std::pair<std::string, Pipeline::ShaderStage>) override;
+
+		virtual void SetPipeline(std::shared_ptr<Pipeline> pipeline) override;
+		virtual void SetAlbedoTexture(std::shared_ptr<Texture> texture) override;
+		virtual void SetNormalTexture(std::shared_ptr<Texture> texture) override;
+		virtual void SetMetallicTexture(std::shared_ptr<Texture> texture) override;
+		virtual void SetOcclusionTexture(std::shared_ptr<Texture> texture) override;
+		virtual void SetEmissiveTexture(std::shared_ptr<Texture> texture) override;
+		virtual void SetMVPBuffer() override;
+
+		inline void AddDescriptorLayout(const std::shared_ptr<DescriptorLayout> descriptor) { m_DescriptorLayout = descriptor; }
+		inline const std::shared_ptr<DescriptorLayout> GetDescriptorLayout() const { return m_DescriptorLayout; }
+
 		const VkPipelineShaderStageCreateInfo GetShaderStage() const { return m_ShaderStage; }
 	private:
 		VkShaderModule m_Module;

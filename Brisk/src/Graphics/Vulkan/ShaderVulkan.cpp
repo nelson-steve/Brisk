@@ -17,4 +17,32 @@ namespace Brisk
 		m_ShaderStage.module = m_Module;
 		m_ShaderStage.pName = "main";
 	}
+
+	void ShaderVulkan::SetPipeline(std::shared_ptr<Pipeline> pipeline) {
+
+	}
+
+	void ShaderVulkan::SetAlbedoTexture(std::shared_ptr<Texture> texture) {
+
+	}
+
+	void ShaderVulkan::SetNormalTexture(std::shared_ptr<Texture> texture) {
+
+	}
+
+	void ShaderVulkan::SetMetallicTexture(std::shared_ptr<Texture> texture) {
+
+	}
+
+	void ShaderVulkan::SetOcclusionTexture(std::shared_ptr<Texture> texture) {
+
+	}
+
+	void ShaderVulkan::SetEmissiveTexture(std::shared_ptr<Texture> texture) {
+
+	}
+
+	void ShaderVulkan::SetMVPBuffer() {
+
+	}
 }

@@ -8,6 +8,18 @@
 
 namespace Brisk
 {
+	class GPUResource {
+		enum ResourceType
+		{
+			SAMPLER,
+			COMBINED_IMAGE_SAMPLER,
+			SAMPLED_IMAGE,
+			STORAGE_IMAGE,
+			UNIFORM_BUFFER,
+			STORAGE_BUFFER,
+		};
+	};
+
 	class DescriptorLayout {
 	public:
 		enum DescriptorType

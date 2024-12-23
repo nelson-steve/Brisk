@@ -51,7 +51,7 @@ namespace Brisk
 			bool metallicRoughness = true;
 			bool specularGlossiness = false;
 		} pbrWorkflows;
-		std::shared_ptr<Descriptor> descriptor;
+		std::shared_ptr<GPUResource> p_GpuResource;
 		int index = 0;
 		bool unlit = false;
 		float emissiveStrength = 1.0f;

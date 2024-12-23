@@ -28,7 +28,7 @@ namespace Brisk
 	{
 		std::string name = "Material Component";
 
-		//Ref<GLTF_Material> m_Material;
+		Ref<Material> m_Material;
 
 		MaterialComponent() = default;
 		MaterialComponent(const MaterialComponent&) = default;

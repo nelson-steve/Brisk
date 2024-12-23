@@ -26,14 +26,21 @@ namespace Brisk
 
 	void Renderer::Init(const std::shared_ptr<Scene> scene) {
         m_Shader->SetPipeline(pipeline);
-        m_Shader->SetAlbedoTexture();
-        m_Shader->SetNormalTexture();
-        m_Shader->SetMetallicTexture();
-        m_Shader->SetOcclusionTexture();
-        m_Shader->SetEmissiveTexture();
-        m_Shader->SetMVPBuffer();
 
-        auto view = scene->Reg().view<ShaderComponent>();
+        auto view = scene->Reg().view<MaterialComponent>();
+
+        for (auto& entity : view) {
+            auto& material = view.get<MaterialComponent>(entity);
+            material.m_Material->baseColorTexture
+        }
+
+        GPUResource resourceAlbedoTexture;
+        resourceAlbedoTexture.binding = 0;
+        resourceAlbedoTexture.texture = albedo;
+
+        GPUResource resourceNormalTexture;
+        resourceNormalTexture.binding = 1;
+        resourceNormalTexture.texture = normal;
 
         for (auto& entity : view) {
             auto& shader = view.get<ShaderComponent>(entity);
@@ -145,21 +152,30 @@ namespace Brisk
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
-        std::shared_ptr<DescriptorLayout> vertexLayoutSet1 = DescriptorLayout::Create();
-        vertexLayoutSet1->AddBindingLayout(0, 1, DescriptorLayout::DescriptorType::UNIFORM_BUFFER);
-        vertexLayoutSet1->AddBindingLayout(1, 1, DescriptorLayout::DescriptorType::UNIFORM_BUFFER);
-        vertexLayoutSet1->AddBindingLayout(2, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
-        vertexLayoutSet1->AddBindingLayout(3, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
-        vertexLayoutSet1->AddBindingLayout(4, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
-        vertexLayoutSet1->AddBindingLayout(5, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
-        vertexLayoutSet1->AddBindingLayout(6, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
-        vertexLayoutSet1->Init();
+        std::shared_ptr<DescriptorLayout> materialLayout = DescriptorLayout::Create();
+        materialLayout->AddBindingLayout(0, 1, ResourceType::UNIFORM_BUFFER);
+        materialLayout->AddBindingLayout(1, 1, ResourceType::UNIFORM_BUFFER);
+        materialLayout->AddBindingLayout(2, 1, ResourceType::COMBINED_IMAGE_SAMPLER);
+        materialLayout->AddBindingLayout(3, 1, ResourceType::COMBINED_IMAGE_SAMPLER);
+        materialLayout->AddBindingLayout(4, 1, ResourceType::COMBINED_IMAGE_SAMPLER);
+        materialLayout->AddBindingLayout(5, 1, ResourceType::COMBINED_IMAGE_SAMPLER);
+        materialLayout->AddBindingLayout(6, 1, ResourceType::COMBINED_IMAGE_SAMPLER);
+        materialLayout->Init();
 
-        std::shared_ptr<DescriptorLayout> vertexLayoutSet2 = DescriptorLayout::Create();
-        vertexLayoutSet2->AddBindingLayout(0, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
-        vertexLayoutSet2->AddBindingLayout(1, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
-        vertexLayoutSet2->AddBindingLayout(2, 1, DescriptorLayout::DescriptorType::COMBINED_IMAGE_SAMPLER);
-        vertexLayoutSet2->Init();
+        std::shared_ptr<DescriptorLayout> pbrLayout = DescriptorLayout::Create();
+        pbrLayout->AddBindingLayout(0, 1, ResourceType::COMBINED_IMAGE_SAMPLER);
+        pbrLayout->AddBindingLayout(1, 1, ResourceType::COMBINED_IMAGE_SAMPLER);
+        pbrLayout->AddBindingLayout(2, 1, ResourceType::COMBINED_IMAGE_SAMPLER);
+        pbrLayout->Init();
+
+        std::shared_ptr<Shader> vertexShader = Shader::Create();
+        vertexShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
+
+        std::shared_ptr<Shader> fragmentShader = Shader::Create();
+        fragmentShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
+
+        vertexShader->AddDescriptorLayout(materialLayout);
+        fragmentShader->AddDescriptorLayout(pbrLayout);
 
         Pipeline::PipelineSpecs pipelineSpecs{};
         RenderPass::RenderPassSpecs renderPassSpecs;
@@ -185,12 +201,6 @@ namespace Brisk
 
         pipelineSpecs.pDescriptorLayouts.push_back(vertexLayoutSet1);
         pipelineSpecs.pDescriptorLayouts.push_back(vertexLayoutSet2);
-
-        std::shared_ptr<Shader> vertexShader = Shader::Create();
-        vertexShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
-
-        std::shared_ptr<Shader> fragmentShader = Shader::Create();
-        fragmentShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
 
         pipelineSpecs.pShaders.push_back(vertexShader);
         pipelineSpecs.pShaders.push_back(fragmentShader);

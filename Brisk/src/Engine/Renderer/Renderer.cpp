@@ -42,6 +42,22 @@ namespace Brisk
         resourceNormalTexture.binding = 1;
         resourceNormalTexture.texture = normal;
 
+        GPUResource resourceNormalTexture;
+        resourceNormalTexture.binding = 2;
+        resourceNormalTexture.texture = roughness;
+
+        GPUResource resourceNormalTexture;
+        resourceNormalTexture.binding = 3;
+        resourceNormalTexture.texture = occlussion;
+
+        GPUResource resourceNormalTexture;
+        resourceNormalTexture.binding = 4;
+        resourceNormalTexture.buffer = ubo;
+
+        GPUResource resourceNormalTexture;
+        resourceNormalTexture.binding = 5;
+        resourceNormalTexture.buffer = shaderData;
+
         for (auto& entity : view) {
             auto& shader = view.get<ShaderComponent>(entity);
             for (size_t i = 0; i < scene_object->p_model.GetMaterials().size(); i++) {

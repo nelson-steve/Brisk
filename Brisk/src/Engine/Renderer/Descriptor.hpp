@@ -21,7 +21,7 @@ namespace Brisk
 	class GPUResource
 	{
 	public:
-		struct Resource
+		struct ResourceBinding
 		{
 			uint32_t binding;
 			std::shared_ptr<Texture> texture;
@@ -34,7 +34,7 @@ namespace Brisk
 		virtual void UpdateResource() = 0;
 		virtual void Bind() = 0;
 	protected:
-		std::vector<Resource> resources;
+		std::vector<ResourceBinding> resources;
 	};
 
 	class DescriptorLayout

@@ -31,7 +31,32 @@ namespace Brisk
 
         for (auto& entity : view) {
             auto& material = view.get<MaterialComponent>(entity);
-            material.m_Material->baseColorTexture
+            GPUResource::ResourceBinding binding{};
+            binding.binding = 0;
+            binding.buffer = Buffer;
+            binding.ResourceType = ResourceType::UNIFORM_BUFFER;
+
+
+            if (scene_object->p_model.GetMaterial(i).baseColorTexture == nullptr) {
+                scene_object->p_model.GetMaterial(i).baseColorTexture = m_white_texture;
+                std::cout << "base color texture not found" << std::endl;
+            }
+            if (scene_object->p_model.GetMaterial(i).metallicRoughnessTexture == nullptr) {
+                scene_object->p_model.GetMaterial(i).metallicRoughnessTexture = m_white_texture;
+                std::cout << "metal roughness texture not found" << std::endl;
+            }
+            if (scene_object->p_model.GetMaterial(i).normalTexture == nullptr) {
+                scene_object->p_model.GetMaterial(i).normalTexture = m_white_texture;
+                std::cout << "normal texture not found" << std::endl;
+            }
+            if (scene_object->p_model.GetMaterial(i).occlusionTexture == nullptr) {
+                scene_object->p_model.GetMaterial(i).occlusionTexture = m_white_texture;
+                std::cout << "occlusion texture not found" << std::endl;
+            }
+            if (scene_object->p_model.GetMaterial(i).emissiveTexture == nullptr) {
+                scene_object->p_model.GetMaterial(i).emissiveTexture = m_white_texture;
+                std::cout << "emissive texture not found" << std::endl;
+            }
         }
 
         GPUResource resourceAlbedoTexture;

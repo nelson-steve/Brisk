@@ -10,12 +10,8 @@ namespace Brisk
 {
 	enum ResourceType
 	{
-		SAMPLER,
-		COMBINED_IMAGE_SAMPLER,
-		SAMPLED_IMAGE,
-		STORAGE_IMAGE,
-		UNIFORM_BUFFER,
-		STORAGE_BUFFER,
+		Texture,
+		Buffer,
 	};
 
 	class GPUResource
@@ -30,11 +26,14 @@ namespace Brisk
 		};
 
 	public:
-		virtual void Allocate(std::shared_ptr<Pipeline> pipeline) = 0;
-		virtual void UpdateResource() = 0;
-		virtual void Bind() = 0;
-	protected:
-		std::vector<ResourceBinding> resources;
+		void Allocate(std::shared_ptr<Pipeline> pipeline);
+		void UpdateResource();
+		void Bind();
+
+		void AddBinding(ResourceBinding binding) { m_Bindings.push_back(binding); }
+
+	private:
+		std::vector<ResourceBinding> m_Bindings;
 	};
 
 	class DescriptorLayout
@@ -56,7 +55,7 @@ namespace Brisk
 		}
 		void AddBindingLayout(const std::vector<Layout> layouts)
 		{
-			for (const Layout& l : layouts)
+			for (const Layout &l : layouts)
 			{
 				Layout layout{};
 				layout.p_Binding = l.p_Binding;

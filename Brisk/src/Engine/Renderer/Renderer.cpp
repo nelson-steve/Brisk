@@ -35,11 +35,11 @@ namespace Brisk
             auto &material = view.get<MaterialComponent>(entity);
             auto &model = view.get<ModelComponent>(entity);
 
-            material.p_Material->p_GpuResource->Allocate();
+            material.p_Material->p_GpuResource->Allocate(pipeline);
             {
                 GPUResource::ResourceBinding binding{};
                 binding.binding = 0;
-                binding.texture = material.p_Material.baseColorTexture;
+                binding.texture = material.p_Material->baseColorTexture;
                 binding.ResourceType = ResourceType::Texture;
 
                 material.p_Material->p_GpuResource->AddBinding(binding);
@@ -47,7 +47,7 @@ namespace Brisk
             {
                 GPUResource::ResourceBinding binding{};
                 binding.binding = 1;
-                binding.texture = material.p_Material.metallicRoughnessTexture;
+                binding.texture = material.p_Material->metallicRoughnessTexture;
                 binding.ResourceType = ResourceType::Texture;
 
                 material.p_Material->p_GpuResource->AddBinding(binding);
@@ -55,7 +55,7 @@ namespace Brisk
             {
                 GPUResource::ResourceBinding binding{};
                 binding.binding = 2;
-                binding.texture = material.p_Material.normalTexture;
+                binding.texture = material.p_Material->normalTexture;
                 binding.ResourceType = ResourceType::Texture;
 
                 material.p_Material->p_GpuResource->AddBinding(binding);
@@ -63,7 +63,7 @@ namespace Brisk
             {
                 GPUResource::ResourceBinding binding{};
                 binding.binding = 3;
-                binding.texture = material.p_Material.occlusionTexture;
+                binding.texture = material.p_Material->occlusionTexture;
                 binding.ResourceType = ResourceType::Texture;
 
                 material.p_Material->p_GpuResource->AddBinding(binding);
@@ -71,13 +71,13 @@ namespace Brisk
             {
                 GPUResource::ResourceBinding binding{};
                 binding.binding = 4;
-                binding.texture = material.p_Material.emissiveTexture;
+                binding.texture = material.p_Material->emissiveTexture;
                 binding.ResourceType = ResourceType::Texture;
 
                 material.p_Material->p_GpuResource->AddBinding(binding);
             }
 
-            material.p_Material->p_GpuResource->UpdateResources();
+            material.p_Material->p_GpuResource->UpdateResource();
         }
 
         /*

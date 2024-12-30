@@ -18,6 +18,26 @@ namespace Brisk
 		m_ShaderStage.pName = "main";
 	}
 
+	void ShaderVulkan::Allocate(std::shared_ptr<Pipeline> pipeline) {
+		VkDescriptorSetAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+		allocInfo.descriptorPool = m_descriptor_pools.scene;
+		allocInfo.descriptorSetCount = 1;
+		allocInfo.pSetLayouts = &m_descriptorSetLayouts.model;
+		if (vkAllocateDescriptorSets(m_device, &allocInfo, &m_DescriptorSet) != VK_SUCCESS)
+		{
+			throw std::runtime_error("failed to allocate descriptor sets!");
+		}
+	}
+
+	void ShaderVulkan::UpdateResources() {
+
+	}
+
+	void ShaderVulkan::Bind() {
+
+	}
+
 	void ShaderVulkan::SetPipeline(std::shared_ptr<Pipeline> pipeline) {
 
 	}

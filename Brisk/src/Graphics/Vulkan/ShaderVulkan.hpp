@@ -23,11 +23,16 @@ namespace Brisk
 		virtual void SetEmissiveTexture(std::shared_ptr<Texture> texture) override;
 		virtual void SetMVPBuffer() override;
 
+		virtual void Allocate(std::shared_ptr<Pipeline> pipeline) override;
+		virtual void UpdateResources() override;
+		virtual void Bind() override;
+
 		inline void AddDescriptorLayout(const std::shared_ptr<DescriptorLayout> descriptor) { m_DescriptorLayout = descriptor; }
 		inline const std::shared_ptr<DescriptorLayout> GetDescriptorLayout() const { return m_DescriptorLayout; }
 
 		const VkPipelineShaderStageCreateInfo GetShaderStage() const { return m_ShaderStage; }
 	private:
+		VkDescriptorSet descriptorSet;
 		VkShaderModule m_Module;
 		VkPipelineShaderStageCreateInfo m_ShaderStage;
 	};

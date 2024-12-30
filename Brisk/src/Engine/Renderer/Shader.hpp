@@ -27,9 +27,9 @@ namespace Brisk
 		virtual void SetEmissiveTexture(std::shared_ptr<Texture> texture) = 0;
 		virtual void SetMVPBuffer() = 0;
 
-		void Allocate(std::shared_ptr<Pipeline> pipeline);
-		void UpdateResource();
-		void Bind();
+		virtual void Allocate(std::shared_ptr<Pipeline> pipeline) = 0;
+		virtual void UpdateResources() = 0;
+		virtual void Bind() = 0;
 
 		inline void AddDescriptorLayout(const std::shared_ptr<DescriptorLayout> descriptor) { m_DescriptorLayout = descriptor; }
 		inline const std::shared_ptr<DescriptorLayout> GetDescriptorLayout() const { return m_DescriptorLayout; }

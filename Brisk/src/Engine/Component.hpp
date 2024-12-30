@@ -130,7 +130,7 @@ namespace Brisk
 			// m_Shader->SetInitializationStatus(true);
 		}
 
-		Ref<Shader> m_Shader;
+		Ref<Shader> p_Shader;
 		bool tobeinitialized = false;
 
 		ShaderComponent() = default;

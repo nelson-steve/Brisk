@@ -62,6 +62,19 @@ namespace Brisk
 		entity.AddComponent<PhysicsComponent>();
 		entity.AddComponent<BoxColliderComponent>();
 
+		auto& material = entity.GetComponent<MaterialComponent>();
+		auto& shader = entity.GetComponent<ShaderComponent>();
+
+		shader.p_Shader->Allocate();
+
+		shader.p_Shader->SetAlbedoTexture(material.p_Material->baseColorTexture);
+		shader.p_Shader->SetNormalTexture(material.p_Material->normalTexture);
+		shader.p_Shader->SetMetallicTexture(material.p_Material->metallicRoughnessTexture);
+		shader.p_Shader->SetOcclusionTexture(material.p_Material->occlusionTexture);
+		shader.p_Shader->SetEmissiveTexture(material.p_Material->emissiveTexture);
+
+		shader.p_Shader->UpdateResources();
+
 		auto &tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
 		return entity;
@@ -165,7 +178,7 @@ namespace Brisk
 		// else
 		//	m_PhysicsWorld->SetGravity({ 0.0f, 0.0f });
 	}
-
+	
 	void Scene::OnRuntimeStart()
 	{
 		m_IsRunning = true;

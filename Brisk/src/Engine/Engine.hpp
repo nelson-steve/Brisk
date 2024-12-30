@@ -4,28 +4,16 @@
 #include "Editor/Editor.hpp"
 #include "EngineGlobal.hpp"
 
-#include <glm/glm.hpp>
-
 #include <memory>
 #include <string>
 
-namespace Brisk 
+namespace Brisk
 {
-	struct Point {
-		glm::vec3 Position;
-		glm::vec3 Color;
-	};
-
-	struct MVPBuffer {
-		glm::mat4 Model;
-		glm::mat4 View;
-		glm::mat4 Projection;
-	};
-
 	/// <summary>
 	/// Main Engine class holding all major systems of the engine
 	/// </summary>
-	class Engine {
+	class Engine
+	{
 	public:
 		/// <summary>
 		/// Initialize all engine systems
@@ -39,6 +27,7 @@ namespace Brisk
 		/// Ends all Engine systems
 		/// </summary>
 		static void Terminate();
+
 	public:
 		/// <summary>
 		/// Main window of the engine

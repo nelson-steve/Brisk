@@ -6,11 +6,13 @@
 #include <vector>
 #include <cstdint>
 
-namespace Brisk 
+namespace Brisk
 {
-	class Shader {
+	class Shader
+	{
 	public:
-		enum ShaderType {
+		enum ShaderType
+		{
 			VERTEX,
 			FRAGMENT,
 		};
@@ -25,10 +27,15 @@ namespace Brisk
 		virtual void SetEmissiveTexture(std::shared_ptr<Texture> texture) = 0;
 		virtual void SetMVPBuffer() = 0;
 
+		void Allocate(std::shared_ptr<Pipeline> pipeline);
+		void UpdateResource();
+		void Bind();
+
 		inline void AddDescriptorLayout(const std::shared_ptr<DescriptorLayout> descriptor) { m_DescriptorLayout = descriptor; }
 		inline const std::shared_ptr<DescriptorLayout> GetDescriptorLayout() const { return m_DescriptorLayout; }
 
 		static std::shared_ptr<Shader> Create();
+
 	public:
 		std::shared_ptr<DescriptorLayout> m_DescriptorLayout;
 	};

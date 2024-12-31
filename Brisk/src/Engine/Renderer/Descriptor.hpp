@@ -1,6 +1,7 @@
 #pragma once
 
 #include "Engine/Renderer/Buffer.hpp"
+#include "Graphics/Texture.hpp"
 
 #include <cstdint>
 #include <memory>
@@ -8,15 +9,14 @@
 
 namespace Brisk
 {
-	enum ResourceType
-	{
-		Texture,
-		Buffer,
-	};
-
 	class GPUResource
 	{
 	public:
+		enum ResourceType
+		{
+			ResourceTexture,
+			ResourceBuffer,
+		};
 		struct ResourceBinding
 		{
 			uint32_t binding;
@@ -26,10 +26,6 @@ namespace Brisk
 		};
 
 	public:
-		void Allocate(std::shared_ptr<Pipeline> pipeline);
-		void UpdateResource();
-		void Bind();
-
 		void AddBinding(ResourceBinding binding) { m_Bindings.push_back(binding); }
 
 	private:
@@ -43,9 +39,9 @@ namespace Brisk
 		{
 			uint32_t p_Binding;
 			uint32_t p_DescriptorCount;
-			ResourceType p_Type;
+			GPUResource::ResourceType p_Type;
 		};
-		void AddBindingLayout(uint32_t binding, uint32_t count, ResourceType type)
+		void AddBindingLayout(uint32_t binding, uint32_t count, GPUResource::ResourceType type)
 		{
 			Layout layout{};
 			layout.p_Binding = binding;

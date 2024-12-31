@@ -26,7 +26,7 @@ namespace Brisk {
 	private:
 		void Create(uint32_t size, VkBufferUsageFlags usageFlags);
 		void Allocate(VkMemoryPropertyFlags properties);
-		void MapMemory(std::vector<Point>& data);
+		//void MapMemory(std::vector<Point>& data);
 		void MapMemory(Vertex* data);
 		void MapMemory(void** data);
 		void UnMapMemory();

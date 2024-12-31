@@ -2,6 +2,8 @@
 
 #include "UtilitiesVulkan.hpp"
 #include "GpuAdapterVulkan.hpp"
+#include "TextureVulkan.hpp"
+#include "CommandBufferVulkan.hpp"
 
 namespace Brisk
 {
@@ -23,26 +25,26 @@ namespace Brisk
 	{
 		VkDescriptorSetAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		allocInfo.descriptorPool = m_descriptor_pools.scene;
-		allocInfo.descriptorSetCount = 1;
-		allocInfo.pSetLayouts = &m_descriptorSetLayouts.model;
-		if (vkAllocateDescriptorSets(m_device, &allocInfo, &m_DescriptorSet) != VK_SUCCESS)
-		{
-			throw std::runtime_error("failed to allocate descriptor sets!");
-		}
+		//allocInfo.descriptorPool = m_descriptor_pools.scene;
+		//allocInfo.descriptorSetCount = 1;
+		//allocInfo.pSetLayouts = &m_descriptorSetLayouts.model;
+		//if (vkAllocateDescriptorSets(m_device, &allocInfo, &m_DescriptorSet) != VK_SUCCESS)
+		//{
+		//	throw std::runtime_error("failed to allocate descriptor sets!");
+		//}
 	}
 
 	void ShaderVulkan::UpdateResources()
 	{
-		vkUpdateDescriptorSets(m_device, m_DescriptorWrites.size(), m_DescriptorWrites.data(), 0, nullptr);
+		//vkUpdateDescriptorSets(m_device, m_DescriptorWrites.size(), m_DescriptorWrites.data(), 0, nullptr);
 	}
 
-	void ShaderVulkan::Bind(VkCommandBuffer cmdBuffer)
+	void ShaderVulkan::Bind(std::shared_ptr<CommandBuffer> cmdBuffer, std::shared_ptr<Pipeline> pipeline)
 	{
 		vkCmdBindDescriptorSets(
-			cmdBuffer,						 // Command buffer to bind the descriptor set to
+			std::static_pointer_cast<CommandBufferVulkan>(cmdBuffer)->Get(),						 // Command buffer to bind the descriptor set to
 			VK_PIPELINE_BIND_POINT_GRAPHICS, // We are binding it to a graphics pipeline
-			pipelineLayout,					 // Pipeline layout used by the pipeline
+			std::static_pointer_cast<PipelineVulkan>(pipeline)->GetLayout(),					 // Pipeline layout used by the pipeline
 			0,								 // First set index (usually 0)
 			1,								 // Number of descriptor sets to bind
 			&m_DescriptorSet,				 // Pointer to the descriptor set array
@@ -63,7 +65,7 @@ namespace Brisk
 		descriptorWrite.dstSet = m_DescriptorSet;
 		descriptorWrite.dstBinding = 0;
 		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pImageInfo = &std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
+		descriptorWrite.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
 		m_DescriptorWrites.push_back(descriptorWrite);
 	}
 
@@ -75,7 +77,7 @@ namespace Brisk
 		descriptorWrite.dstSet = m_DescriptorSet;
 		descriptorWrite.dstBinding = 1;
 		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pImageInfo = &std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
+		descriptorWrite.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
 		m_DescriptorWrites.push_back(descriptorWrite);
 	}
 
@@ -87,7 +89,7 @@ namespace Brisk
 		descriptorWrite.dstSet = m_DescriptorSet;
 		descriptorWrite.dstBinding = 2;
 		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pImageInfo = &std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
+		descriptorWrite.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
 		m_DescriptorWrites.push_back(descriptorWrite);
 	}
 
@@ -99,7 +101,7 @@ namespace Brisk
 		descriptorWrite.dstSet = m_DescriptorSet;
 		descriptorWrite.dstBinding = 3;
 		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pImageInfo = &std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
+		descriptorWrite.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
 		m_DescriptorWrites.push_back(descriptorWrite);
 	}
 
@@ -111,7 +113,7 @@ namespace Brisk
 		descriptorWrite.dstSet = m_DescriptorSet;
 		descriptorWrite.dstBinding = 4;
 		descriptorWrite.descriptorCount = 1;
-		descriptorWrite.pImageInfo = &std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
+		descriptorWrite.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
 		m_DescriptorWrites.push_back(descriptorWrite);
 	}
 

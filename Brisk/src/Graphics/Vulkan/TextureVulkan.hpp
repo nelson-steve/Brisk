@@ -24,6 +24,7 @@ namespace Brisk
 		virtual void Resize() override {}
 
 		VkDescriptorImageInfo GetDescriptor() const { return m_Descriptor; }
+		const VkDescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
 
 		// virtual void Init(int width, int height) override;
 		virtual void Init() override;

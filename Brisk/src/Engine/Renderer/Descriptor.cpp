@@ -8,7 +8,7 @@ namespace Brisk
 		return std::make_shared<DescriptorLayoutVulkan>();
 	}
 
-	std::shared_ptr<Descriptor> Descriptor::Create() {
-		return std::make_shared<DescriptorVulkan>();
-	}
+	//std::shared_ptr<Descriptor> Descriptor::Create() {
+	//	return std::make_shared<DescriptorVulkan>();
+	//}
 }

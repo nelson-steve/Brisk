@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Engine/Renderer/Descriptor.hpp"
+#include "Graphics/Texture.hpp"
+
 #include "Engine/Renderer/Shader.hpp"
 
 #include <Volk/volk.h>
@@ -26,7 +28,7 @@ namespace Brisk
 
 		virtual void Allocate(std::shared_ptr<Pipeline> pipeline) override;
 		virtual void UpdateResources() override;
-		virtual void Bind() override;
+		virtual void Bind(std::shared_ptr<CommandBuffer> cmdBuffer, std::shared_ptr<Pipeline> pipeline) override;
 
 		inline void AddDescriptorLayout(const std::shared_ptr<DescriptorLayout> descriptor) { m_DescriptorLayout = descriptor; }
 		inline const std::shared_ptr<DescriptorLayout> GetDescriptorLayout() const { return m_DescriptorLayout; }
@@ -34,7 +36,7 @@ namespace Brisk
 		const VkPipelineShaderStageCreateInfo GetShaderStage() const { return m_ShaderStage; }
 
 	private:
-		VkDescriptorSet descriptorSet;
+		VkDescriptorSet m_DescriptorSet;
 		VkShaderModule m_Module;
 		VkPipelineShaderStageCreateInfo m_ShaderStage;
 

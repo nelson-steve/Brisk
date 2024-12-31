@@ -126,7 +126,7 @@ namespace Brisk
 
 		void AddShader(const Ref<Shader> shader)
 		{
-			m_Shader = shader;
+			p_Shader = shader;
 			// m_Shader->SetInitializationStatus(true);
 		}
 

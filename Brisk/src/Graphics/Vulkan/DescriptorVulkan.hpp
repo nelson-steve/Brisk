@@ -11,17 +11,17 @@ namespace Brisk
 		virtual void Init() override {}
 	};
 
-	class DescriptorVulkan : public Descriptor {
-	public:
-		virtual void Allocate() override;
-		virtual void Update(std::shared_ptr<Buffer> buffer) override;
+	//class DescriptorVulkan : public Descriptor {
+	//public:
+	//	virtual void Allocate() override;
+	//	virtual void Update(std::shared_ptr<Buffer> buffer) override;
 
-		void SetPool(VkDescriptorPool pool) { m_Pool = pool; }
+	//	void SetPool(VkDescriptorPool pool) { m_Pool = pool; }
 
-		const std::vector<VkDescriptorSetLayout> GetLayouts() const { return m_DescriptorLayouts; }
-	private:
-		VkDescriptorSet m_Set;
-		VkDescriptorPool m_Pool;
-		std::vector<VkDescriptorSetLayout> m_DescriptorLayouts;
-	};
+	//	const std::vector<VkDescriptorSetLayout> GetLayouts() const { return m_DescriptorLayouts; }
+	//private:
+	//	VkDescriptorSet m_Set;
+	//	VkDescriptorPool m_Pool;
+	//	std::vector<VkDescriptorSetLayout> m_DescriptorLayouts;
+	//};
 }

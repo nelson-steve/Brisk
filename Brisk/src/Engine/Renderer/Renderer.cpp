@@ -39,9 +39,9 @@ namespace Brisk
         materialLayout->Init();
 
         std::shared_ptr<DescriptorLayout> pbrLayout = DescriptorLayout::Create();
-        pbrLayout->AddBindingLayout(0, 1, ResourceType::COMBINED_IMAGE_SAMPLER);
-        pbrLayout->AddBindingLayout(1, 1, ResourceType::COMBINED_IMAGE_SAMPLER);
-        pbrLayout->AddBindingLayout(2, 1, ResourceType::COMBINED_IMAGE_SAMPLER);
+        pbrLayout->AddBindingLayout(0, 1, GPUResource::ResourceType::ResourceTexture);
+        pbrLayout->AddBindingLayout(1, 1, GPUResource::ResourceType::ResourceTexture);
+        pbrLayout->AddBindingLayout(2, 1, GPUResource::ResourceType::ResourceTexture);
         pbrLayout->Init();
 
         std::shared_ptr<Shader> vertexShader = Shader::Create();

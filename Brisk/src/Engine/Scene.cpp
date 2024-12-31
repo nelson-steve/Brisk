@@ -65,7 +65,7 @@ namespace Brisk
 		auto& material = entity.GetComponent<MaterialComponent>();
 		auto& shader = entity.GetComponent<ShaderComponent>();
 
-		shader.p_Shader->Allocate();
+		//shader.p_Shader->Allocate();
 
 		shader.p_Shader->SetAlbedoTexture(material.p_Material->baseColorTexture);
 		shader.p_Shader->SetNormalTexture(material.p_Material->normalTexture);

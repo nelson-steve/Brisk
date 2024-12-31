@@ -34,10 +34,21 @@ namespace Brisk
 
 	void ShaderVulkan::UpdateResources()
 	{
+		vkUpdateDescriptorSets(m_device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
 	}
 
-	void ShaderVulkan::Bind()
+	void ShaderVulkan::Bind(VkCommandBuffer cmdBuffer)
 	{
+		vkCmdBindDescriptorSets(
+			cmdBuffer,						 // Command buffer to bind the descriptor set to
+			VK_PIPELINE_BIND_POINT_GRAPHICS, // We are binding it to a graphics pipeline
+			pipelineLayout,					 // Pipeline layout used by the pipeline
+			0,								 // First set index (usually 0)
+			1,								 // Number of descriptor sets to bind
+			&m_DescriptorSet,				 // Pointer to the descriptor set array
+			0,								 // Number of dynamic offsets (1 in this case)
+			nullptr							 // Pointer to the dynamic offsets (can be NULL)
+		);
 	}
 
 	void ShaderVulkan::SetPipeline(std::shared_ptr<Pipeline> pipeline)
@@ -53,6 +64,7 @@ namespace Brisk
 		descriptorWrite.dstBinding = 0;
 		descriptorWrite.descriptorCount = 1;
 		descriptorWrite.pImageInfo = &std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
+		m_DescriptorWrites.push_back(descriptorWrite);
 	}
 
 	void ShaderVulkan::SetNormalTexture(std::shared_ptr<Texture> texture)
@@ -64,6 +76,7 @@ namespace Brisk
 		descriptorWrite.dstBinding = 1;
 		descriptorWrite.descriptorCount = 1;
 		descriptorWrite.pImageInfo = &std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
+		m_DescriptorWrites.push_back(descriptorWrite);
 	}
 
 	void ShaderVulkan::SetMetallicTexture(std::shared_ptr<Texture> texture)
@@ -75,6 +88,7 @@ namespace Brisk
 		descriptorWrite.dstBinding = 2;
 		descriptorWrite.descriptorCount = 1;
 		descriptorWrite.pImageInfo = &std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
+		m_DescriptorWrites.push_back(descriptorWrite);
 	}
 
 	void ShaderVulkan::SetOcclusionTexture(std::shared_ptr<Texture> texture)
@@ -86,6 +100,7 @@ namespace Brisk
 		descriptorWrite.dstBinding = 3;
 		descriptorWrite.descriptorCount = 1;
 		descriptorWrite.pImageInfo = &std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
+		m_DescriptorWrites.push_back(descriptorWrite);
 	}
 
 	void ShaderVulkan::SetEmissiveTexture(std::shared_ptr<Texture> texture)
@@ -97,6 +112,7 @@ namespace Brisk
 		descriptorWrite.dstBinding = 4;
 		descriptorWrite.descriptorCount = 1;
 		descriptorWrite.pImageInfo = &std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
+		m_DescriptorWrites.push_back(descriptorWrite);
 	}
 
 	void ShaderVulkan::SetMVPBuffer()

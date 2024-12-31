@@ -34,7 +34,7 @@ namespace Brisk
 
 	void ShaderVulkan::UpdateResources()
 	{
-		vkUpdateDescriptorSets(m_device, descriptorWrites.size(), descriptorWrites.data(), 0, nullptr);
+		vkUpdateDescriptorSets(m_device, m_DescriptorWrites.size(), m_DescriptorWrites.data(), 0, nullptr);
 	}
 
 	void ShaderVulkan::Bind(VkCommandBuffer cmdBuffer)

@@ -11,12 +11,12 @@
 
 namespace Brisk 
 {
-	struct Vertex {
-		glm::vec3 pos;
-		glm::vec3 normal;
-		glm::vec2 uv0;
-		glm::vec2 uv1;
-		glm::vec4 color;
+	struct MeshData {
+		glm::vec3 Position;
+		glm::vec3 Normal;
+		glm::vec2 UV0;
+		glm::vec2 UV1;
+		glm::vec4 Color;
 	};
 
 	struct Material {

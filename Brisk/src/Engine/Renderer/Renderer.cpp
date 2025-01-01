@@ -29,13 +29,13 @@ namespace Brisk
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
         std::shared_ptr<DescriptorLayout> materialLayout = DescriptorLayout::Create();
-        materialLayout->AddBindingLayout(0, 1, ResourceType::UNIFORM_BUFFER);
-        materialLayout->AddBindingLayout(1, 1, ResourceType::UNIFORM_BUFFER);
-        materialLayout->AddBindingLayout(2, 1, ResourceType::COMBINED_IMAGE_SAMPLER);
-        materialLayout->AddBindingLayout(3, 1, ResourceType::COMBINED_IMAGE_SAMPLER);
-        materialLayout->AddBindingLayout(4, 1, ResourceType::COMBINED_IMAGE_SAMPLER);
-        materialLayout->AddBindingLayout(5, 1, ResourceType::COMBINED_IMAGE_SAMPLER);
-        materialLayout->AddBindingLayout(6, 1, ResourceType::COMBINED_IMAGE_SAMPLER);
+        materialLayout->AddBindingLayout(0, 1, GPUResource::ResourceType::ResourceBuffer);
+        materialLayout->AddBindingLayout(1, 1, GPUResource::ResourceType::ResourceBuffer);
+        materialLayout->AddBindingLayout(2, 1, GPUResource::ResourceType::ResourceTexture);
+        materialLayout->AddBindingLayout(3, 1, GPUResource::ResourceType::ResourceTexture);
+        materialLayout->AddBindingLayout(4, 1, GPUResource::ResourceType::ResourceTexture);
+        materialLayout->AddBindingLayout(5, 1, GPUResource::ResourceType::ResourceTexture);
+        materialLayout->AddBindingLayout(6, 1, GPUResource::ResourceType::ResourceTexture);
         materialLayout->Init();
 
         std::shared_ptr<DescriptorLayout> pbrLayout = DescriptorLayout::Create();
@@ -62,20 +62,20 @@ namespace Brisk
 
         Pipeline::VertexDataLayout vertexLayout;
         vertexLayout.pBinding = 0;
-        vertexLayout.pStride = sizeof(Point);
+        vertexLayout.pStride = sizeof(MeshData);
         vertexLayout.pAttributes = {
-            {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(Point, Point::Position)},
-            {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, Vertex::normal)},
-            {0, 2, Core::Format::FORMAT_R32G32_SFLOAT, offsetof(Vertex, Vertex::uv0)},
-            {0, 3, Core::Format::FORMAT_R32G32_SFLOAT, offsetof(Vertex, Vertex::uv1)},
-            {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(Point, Point::Color)},
+            {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Position)},
+            {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Normal)},
+            {0, 2, Core::Format::FORMAT_R32G32_SFLOAT, offsetof(MeshData, MeshData::UV0)},
+            {0, 3, Core::Format::FORMAT_R32G32_SFLOAT, offsetof(MeshData, MeshData::UV1)},
+            {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Color)},
         };
         pipelineSpecs.Layout = vertexLayout;
         pipelineSpecs.pRenderPass = RenderPass::Create();
         pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 
-        pipelineSpecs.pDescriptorLayouts.push_back(vertexLayoutSet1);
-        pipelineSpecs.pDescriptorLayouts.push_back(vertexLayoutSet2);
+        //pipelineSpecs.pDescriptorLayouts.push_back(vertexLayoutSet1);
+        //pipelineSpecs.pDescriptorLayouts.push_back(vertexLayoutSet2);
 
         pipelineSpecs.pShaders.push_back(vertexShader);
         pipelineSpecs.pShaders.push_back(fragmentShader);
@@ -125,26 +125,26 @@ namespace Brisk
         std::static_pointer_cast<CommandBufferVulkan>(cmd)->Allocate(m_CommandPool);
     }
 
-    void Renderer::InitRenderables()
-    {
-        auto view = scene->Reg().view<MaterialComponent, ShaderComponent>();
+    //void Renderer::InitRenderables()
+    //{
+    //    auto view = scene->Reg().view<MaterialComponent, ShaderComponent>();
 
-        for (auto &entity : view)
-        {
-            auto &material = view.get<MaterialComponent>(entity);
-            auto &shader = view.get<ShaderComponent>(entity);
+    //    for (auto &entity : view)
+    //    {
+    //        auto &material = view.get<MaterialComponent>(entity);
+    //        auto &shader = view.get<ShaderComponent>(entity);
 
-            shader.p_Shader->Allocate(pipeline);
+    //        shader.p_Shader->Allocate(pipeline);
 
-            shader.p_Shader->SetAlbedoTexture(material.p_Material->baseColorTexture);
-            shader.p_Shader->SetNormalTexture(material.p_Material->normalTexture);
-            shader.p_Shader->SetMettalicTexture(material.p_Material->metallicTexture);
-            shader.p_Shader->SetOcclusionTexture(material.p_Material->occlusionTexture);
-            shader.p_Shader->SetEmissiveTexture(material.p_Material->emissiveTexture);
+    //        shader.p_Shader->SetAlbedoTexture(material.p_Material->baseColorTexture);
+    //        shader.p_Shader->SetNormalTexture(material.p_Material->normalTexture);
+    //        shader.p_Shader->SetMettalicTexture(material.p_Material->metallicTexture);
+    //        shader.p_Shader->SetOcclusionTexture(material.p_Material->occlusionTexture);
+    //        shader.p_Shader->SetEmissiveTexture(material.p_Material->emissiveTexture);
 
-            material.p_Material->p_GpuResource->UpdateResource();
-        }
-    }
+    //        material.p_Material->p_GpuResource->UpdateResource();
+    //    }
+    //}
 
     void Renderer::RenderScene(float deltaTime)
     {

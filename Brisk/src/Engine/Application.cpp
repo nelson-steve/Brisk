@@ -3,11 +3,11 @@
 #include "Core/Core.hpp"
 #include "Events/Event.hpp"
 
-namespace Brisk 
+namespace Brisk
 {
 	void Application::CreateApplication() {
 		m_Window = Window::Create(1280, 720);
-		//m_EditorCamera = std::make_shared<Camera>(m_Window->GetWindowHandle());
+		// m_EditorCamera = std::make_shared<Camera>(m_Window->GetWindowHandle());
 
 		m_Window->SetEventCallBack(BIND_EVENT_FN(Application::OnEvent));
 
@@ -15,12 +15,13 @@ namespace Brisk
 		m_Adapter->Init();
 
 		m_Renderer = Renderer::Create();
-		std::shared_ptr<Scene> scene = std::make_shared<Scene>();
-		
-		m_Renderer->Init(scene);
+		m_Renderer->Init();
+
+		m_SceneManager= std::make_unique<SceneManager>();
+		m_SceneManager->Init();
 	}
 
-	void Application::OnEvent(Event& event) {
+	void Application::OnEvent(Event &event) {
 		EventDispatcher dispatcher(event);
 
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
@@ -33,15 +34,14 @@ namespace Brisk
 		m_Window->ProcessEvents();
 	}
 
-	bool Application::OnWindowClose(WindowCloseEvent& e) {
+	bool Application::OnWindowClose(WindowCloseEvent &e) {
 		return false;
 	}
 
-	bool Application::OnWindowResize(WindowResizeEvent& e) {
+	bool Application::OnWindowResize(WindowResizeEvent &e) {
 		return false;
 	}
 
 	void Application::Close() {
-		
 	}
 }

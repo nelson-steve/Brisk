@@ -12,38 +12,45 @@ namespace Brisk
 {
     class Shader;
 
-    class Pipeline {
+    class Pipeline
+    {
     public:
-        struct Attribute {
+        struct Attribute
+        {
             uint32_t pBinding;
             uint32_t pLocation;
             Core::Format pFormat;
             uint32_t pOffset;
         };
 
-        struct VertexDataLayout {
+        struct VertexDataLayout
+        {
             uint32_t pBinding;
             uint32_t pStride;
             std::vector<Attribute> pAttributes;
         };
 
-        enum CullMode {
+        enum CullMode
+        {
             BACK,
             FRONT,
         };
 
-        enum FrontFace {
+        enum FrontFace
+        {
             COUTNER_CLOCKWISE,
             CLOCKWISE,
         };
 
-        enum PolygonMode {
+        enum PolygonMode
+        {
             POLYGON_MODE_FILL = 0,
             POLYGON_MODE_LINE = 1,
             POLYGON_MODE_POINT = 2,
         };
 
-        enum CompareOp {
+        enum CompareOp
+        {
             COMPARE_OP_NEVER = 0,
             COMPARE_OP_LESS = 1,
             COMPARE_OP_EQUAL = 2,
@@ -54,12 +61,15 @@ namespace Brisk
             COMPARE_OP_ALWAYS = 7,
         };
 
-        enum ShaderStage {
+        enum ShaderStage
+        {
             VERTEX,
+            GEOMETRY,
             FRAGMENT,
         };
 
-        struct PipelineSpecs {
+        struct PipelineSpecs
+        {
             VertexDataLayout Layout;
             bool pDepthClampEnable;
             bool pRasterizationDiscardEnable;
@@ -77,10 +87,11 @@ namespace Brisk
             std::vector<std::shared_ptr<Shader>> pShaders;
             std::vector<std::shared_ptr<DescriptorLayout>> pDescriptorLayouts;
         };
+
     public:
         virtual ~Pipeline() = default;
 
-        virtual void Init(const PipelineSpecs& specs) = 0;
+        virtual void Init(const PipelineSpecs &specs) = 0;
 
         virtual void Bind(std::shared_ptr<CommandBuffer> cmd) = 0;
 

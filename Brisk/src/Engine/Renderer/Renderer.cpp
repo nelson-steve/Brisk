@@ -23,7 +23,7 @@ namespace Brisk
 
     std::shared_ptr<Pipeline> pipeline;
 
-    void Renderer::Init(const std::shared_ptr<Scene> scene)
+    void Renderer::Init()
     {
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
@@ -68,14 +68,14 @@ namespace Brisk
             {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Normal)},
             {0, 2, Core::Format::FORMAT_R32G32_SFLOAT, offsetof(MeshData, MeshData::UV0)},
             {0, 3, Core::Format::FORMAT_R32G32_SFLOAT, offsetof(MeshData, MeshData::UV1)},
-            {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Color)},
+            {0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Color)},
         };
         pipelineSpecs.Layout = vertexLayout;
         pipelineSpecs.pRenderPass = RenderPass::Create();
         pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 
-        //pipelineSpecs.pDescriptorLayouts.push_back(vertexLayoutSet1);
-        //pipelineSpecs.pDescriptorLayouts.push_back(vertexLayoutSet2);
+        // pipelineSpecs.pDescriptorLayouts.push_back(vertexLayoutSet1);
+        // pipelineSpecs.pDescriptorLayouts.push_back(vertexLayoutSet2);
 
         pipelineSpecs.pShaders.push_back(vertexShader);
         pipelineSpecs.pShaders.push_back(fragmentShader);
@@ -125,9 +125,9 @@ namespace Brisk
         std::static_pointer_cast<CommandBufferVulkan>(cmd)->Allocate(m_CommandPool);
     }
 
-    //void Renderer::InitRenderables()
+    // void Renderer::InitRenderables()
     //{
-    //    auto view = scene->Reg().view<MaterialComponent, ShaderComponent>();
+    //     auto view = scene->Reg().view<MaterialComponent, ShaderComponent>();
 
     //    for (auto &entity : view)
     //    {

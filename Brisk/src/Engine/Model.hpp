@@ -51,7 +51,7 @@ namespace Brisk
 			bool metallicRoughness = true;
 			bool specularGlossiness = false;
 		} pbrWorkflows;
-		std::shared_ptr<GPUResource> p_GpuResource;
+		std::shared_ptr<Shader> p_Shader;
 		int index = 0;
 		bool unlit = false;
 		float emissiveStrength = 1.0f;
@@ -125,10 +125,5 @@ namespace Brisk
 		Vertex* m_vertex_buffer;
 		uint32_t m_vertex_pos = 0;
 		uint32_t m_index_pos = 0;
-	public:
-		//struct {
-		//	VkBuffer buffer;
-		//	VkDeviceMemory memory;
-		//} m_vertices, m_indices;
-	};
+	}
 }

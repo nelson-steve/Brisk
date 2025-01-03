@@ -13,9 +13,9 @@
 namespace Brisk
 {
     void *m_UniformBufferData;
-    VkSemaphore ImageAvailableSemaphore;
-    VkSemaphore RenderFinishedSemaphore;
-    VkFence fence;
+    std::shared_ptr<Semaphore> ImageAvailableSemaphore;
+    std::shared_ptr<Semaphore> RenderFinishedSemaphore;
+    std::shared_ptr<Fence> fence;
     uint32_t imageIndex;
     std::shared_ptr<CommandBuffer> cmd;
     VkCommandPool m_CommandPool;
@@ -150,7 +150,7 @@ namespace Brisk
     {
         vkWaitForFences(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
 
-        std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, fence, &imageIndex);
+        m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, fence, &imageIndex);
         // vkResetCommandBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), /*VkCommandBufferResetFlagBits*/ 0);
         cmd->Reset();
         cmd->Bind();

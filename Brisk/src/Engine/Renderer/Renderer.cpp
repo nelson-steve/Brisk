@@ -101,16 +101,14 @@ namespace Brisk
         VkSemaphoreCreateInfo semaphoreInfo{};
         semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-        VkFenceCreateInfo fenceInfo{};
-        fenceInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        fenceInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT;
+        fence = Fence::Create();
+        fence->Init();
 
-        if (vkCreateSemaphore(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &semaphoreInfo, nullptr, &ImageAvailableSemaphore) != VK_SUCCESS ||
-            vkCreateSemaphore(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &semaphoreInfo, nullptr, &RenderFinishedSemaphore) != VK_SUCCESS ||
-            vkCreateFence(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &fenceInfo, nullptr, &fence) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to create synchronization objects for a frame!");
-        }
+        ImageAvailableSemaphore = Semaphore::Create();
+        ImageAvailableSemaphore->Init();
+
+        RenderFinishedSemaphore = Semaphore::Create();
+        RenderFinishedSemaphore->Init();
 
         VkCommandPoolCreateInfo poolInfo{};
         poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
@@ -148,7 +146,8 @@ namespace Brisk
 
     void Renderer::RenderScene(float deltaTime)
     {
-        vkWaitForFences(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
+        // vkWaitForFences(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
+        fence->Wait();
 
         m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, fence, &imageIndex);
         // vkResetCommandBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), /*VkCommandBufferResetFlagBits*/ 0);
@@ -175,7 +174,8 @@ namespace Brisk
             scissor.extent = std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->GetExtent();
             vkCmdSetScissor(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, &scissor); });
 
-        vkResetFences(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &fence);
+        fence->Reset();
+        // vkResetFences(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &fence);
 
         // const VkBuffer vertexBuffers[] = { std::static_pointer_cast<BufferVulkan>(m_VertexBuffer)->Get() };
         VkDeviceSize offsets[] = {0};

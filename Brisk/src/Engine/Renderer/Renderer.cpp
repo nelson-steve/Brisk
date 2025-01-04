@@ -44,14 +44,11 @@ namespace Brisk
         pbrLayout->AddBindingLayout(2, 1, GPUResource::ResourceType::ResourceTexture);
         pbrLayout->Init();
 
-        std::shared_ptr<Shader> vertexShader = Shader::Create();
-        vertexShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
+        std::shared_ptr<ShaderModule> vertexShaderModule = ShaderModule::Create();
+        vertexShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
 
-        std::shared_ptr<Shader> fragmentShader = Shader::Create();
-        fragmentShader->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
-
-        vertexShader->AddDescriptorLayout(materialLayout);
-        fragmentShader->AddDescriptorLayout(pbrLayout);
+        std::shared_ptr<ShaderModule> fragmentShaderModule = ShaderModule::Create();
+        fragmentShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
 
         Pipeline::PipelineSpecs pipelineSpecs{};
         RenderPass::RenderPassSpecs renderPassSpecs;
@@ -74,11 +71,11 @@ namespace Brisk
         pipelineSpecs.pRenderPass = RenderPass::Create();
         pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 
-        // pipelineSpecs.pDescriptorLayouts.push_back(vertexLayoutSet1);
-        // pipelineSpecs.pDescriptorLayouts.push_back(vertexLayoutSet2);
+        pipelineSpecs.pDescriptorLayouts.push_back(materialLayout);
+        pipelineSpecs.pDescriptorLayouts.push_back(pbrLayout);
 
-        pipelineSpecs.pShaders.push_back(vertexShader);
-        pipelineSpecs.pShaders.push_back(fragmentShader);
+        pipelineSpecs.pShaderModules.push_back(vertexShaderModule);
+        pipelineSpecs.pShaderModules.push_back(fragmentShaderModule);
 
         pipelineSpecs.pDepthClampEnable = false;
         pipelineSpecs.pRasterizationDiscardEnable = false;

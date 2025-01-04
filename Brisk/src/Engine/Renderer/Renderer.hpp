@@ -20,5 +20,6 @@ namespace Brisk
 		static std::unique_ptr<Renderer> Create();
 	private:
 		std::shared_ptr<Swapchain> m_Swapchain;
+		std::shared_ptr<Buffer> m_UniformBuffer;
 	};
 }

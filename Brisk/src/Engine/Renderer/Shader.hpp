@@ -17,7 +17,7 @@ namespace Brisk
 			FRAGMENT,
 		};
 
-		virtual void Init(std::pair<std::string, Pipeline::ShaderStage>) = 0;
+		virtual void Init(std::shared_ptr<Pipeline> pipeline) = 0;
 
 		virtual void SetPipeline(std::shared_ptr<Pipeline> pipeline) = 0;
 		virtual void SetAlbedoTexture(std::shared_ptr<Texture> texture) = 0;

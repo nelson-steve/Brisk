@@ -8,25 +8,26 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 
-namespace Brisk
+namespace Brisk 
 {
 
-	// extern std::unique_ptr<AssetSystem> m_AssetManager;
+	//extern std::unique_ptr<AssetSystem> m_AssetManager;
 
 	Scene::Scene()
 	{
 	}
 
-	template <typename... Component>
+	template<typename... Component>
 	static void CopyComponentIfExists(Entity dst, Entity src)
 	{
 		([&]()
-		 {
+			{
 				if (src.HasComponent<Component>())
-					dst.AddOrReplaceComponent<Component>(src.GetComponent<Component>()); }(), ...);
+					dst.AddOrReplaceComponent<Component>(src.GetComponent<Component>());
+			}(), ...);
 	}
 
-	template <typename... Component>
+	template<typename... Component>
 	static void CopyComponentIfExists(ComponentGroup<Component...>, Entity dst, Entity src)
 	{
 		CopyComponentIfExists<Component...>(dst, src);
@@ -38,125 +39,116 @@ namespace Brisk
 
 	void Scene::InitScene()
 	{
-		// m_Cube = m_AssetManager->LoadGLTFModel("Assets/gltf_models/Cube/glTF/Cube.gltf");
-		// m_Cube->SetSkybox(true);
-		// m_Sphere = m_AssetManager->LoadGLTFModel("Assets/gltf_models/Sphere/glTF/Sphere.gltf");
-		// m_Sphere->SetSkybox(true);
-		// m_Capsule = m_AssetManager->LoadGLTFModel("Assets/gltf_models/Capsule/glTF/Capsule.gltf");
+		//m_Cube = m_AssetManager->LoadGLTFModel("Assets/gltf_models/Cube/glTF/Cube.gltf");
+		//m_Cube->SetSkybox(true);
+		//m_Sphere = m_AssetManager->LoadGLTFModel("Assets/gltf_models/Sphere/glTF/Sphere.gltf");
+		//m_Sphere->SetSkybox(true);
+		//m_Capsule = m_AssetManager->LoadGLTFModel("Assets/gltf_models/Capsule/glTF/Capsule.gltf");
 
-		// m_ColliderShader = m_AssetManager->LoadShader("Assets/Shaders/ColliderShader.glsl");
+		//m_ColliderShader = m_AssetManager->LoadShader("Assets/Shaders/ColliderShader.glsl");
 
-		// m_PhysicsWorld3D = std::make_shared<PhysicsWorld>();
-		// m_PhysicsWorld3D->Init();
+		//m_PhysicsWorld3D = std::make_shared<PhysicsWorld>();
+		//m_PhysicsWorld3D->Init();
 
-		// Renderer::Init(m_Registry);
+		//Renderer::Init(m_Registry);
 	}
 
-	Entity Scene::CreateMeshEntity(const std::string &name)
+	Entity Scene::CreateMeshEntity(const std::string& name)
 	{
-		Entity entity = {m_Registry.create(), this};
+		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<ScriptComponent>();
-		// entity.AddComponent<ModelComponent>().AddMesh(m_AssetManager->LoadGLTFModel("Assets/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf"), (uint32_t)entity);
+		std::shared_ptr<Model> model;
+		model = std::make_shared<Model>();
+		model->Load("Assets/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
+		entity.AddComponent<ModelComponent>().AddMesh(model, (uint32_t)entity);
 		// entity.AddComponent<ShaderComponent>().AddShader(m_AssetManager->LoadShader("Assets/Shaders/ModelShader.glsl"));
 		entity.AddComponent<PhysicsComponent>();
 		entity.AddComponent<BoxColliderComponent>();
 
-		auto& material = entity.GetComponent<MaterialComponent>();
-		auto& shader = entity.GetComponent<ShaderComponent>();
-
-		//shader.p_Shader->Allocate();
-
-		shader.p_Shader->SetAlbedoTexture(material.p_Material->baseColorTexture);
-		shader.p_Shader->SetNormalTexture(material.p_Material->normalTexture);
-		shader.p_Shader->SetMetallicTexture(material.p_Material->metallicRoughnessTexture);
-		shader.p_Shader->SetOcclusionTexture(material.p_Material->occlusionTexture);
-		shader.p_Shader->SetEmissiveTexture(material.p_Material->emissiveTexture);
-
-		shader.p_Shader->UpdateResources();
-
-		auto &tag = entity.AddComponent<TagComponent>();
+		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
 		return entity;
 	}
 
-	Entity Scene::CreateCubeEntity(const std::string &name)
+	Entity Scene::CreateCubeEntity(const std::string& name)
 	{
-		Entity entity = {m_Registry.create(), this};
+		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<ScriptComponent>();
-		// entity.AddComponent<ModelComponent>().AddMesh(m_AssetManager->LoadGLTFModel("Assets/gltf_models/Cube/glTF/Cube.gltf"), (uint32_t)entity);
-		// entity.AddComponent<ShaderComponent>().AddShader(m_AssetManager->LoadShader("Assets/Shaders/ModelShader.glsl"));
+		//entity.AddComponent<ModelComponent>().AddMesh(m_AssetManager->LoadGLTFModel("Assets/gltf_models/Cube/glTF/Cube.gltf"), (uint32_t)entity);
+		//entity.AddComponent<ShaderComponent>().AddShader(m_AssetManager->LoadShader("Assets/Shaders/ModelShader.glsl"));
 		entity.AddComponent<PhysicsComponent>();
 		entity.AddComponent<BoxColliderComponent>();
 
-		auto &tag = entity.AddComponent<TagComponent>();
+		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
 		return entity;
 	}
 
-	Entity Scene::CreatePlaneEntity(const std::string &name)
+	Entity Scene::CreatePlaneEntity(const std::string& name)
 	{
-		Entity entity = {m_Registry.create(), this};
+		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<ScriptComponent>();
-		// entity.AddComponent<ModelComponent>().AddMesh(m_AssetManager->LoadGLTFModel("Assets/models/board/board.obj"), (uint32_t)entity);
-		// entity.AddComponent<TextureComponent>().AddTexture(m_AssetManager->LoadTexture("Assets/Models/board/albedo.png"), 0);
-		// entity.GetComponent<TextureComponent>().AddTexture(m_AssetManager->LoadTexture("Assets/Models/board/ao.png"), 1);
-		// entity.AddComponent<ShaderComponent>().AddShader(m_AssetManager->LoadShader("Assets/Shaders/ModelPBRShader.glsl"));
+		//entity.AddComponent<ModelComponent>().AddMesh(m_AssetManager->LoadGLTFModel("Assets/models/board/board.obj"), (uint32_t)entity);
+		//entity.AddComponent<TextureComponent>().AddTexture(m_AssetManager->LoadTexture("Assets/Models/board/albedo.png"), 0);
+		//entity.GetComponent<TextureComponent>().AddTexture(m_AssetManager->LoadTexture("Assets/Models/board/ao.png"), 1);
+		//entity.AddComponent<ShaderComponent>().AddShader(m_AssetManager->LoadShader("Assets/Shaders/ModelPBRShader.glsl"));
 
-		auto &tag = entity.AddComponent<TagComponent>();
+
+		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
 		return entity;
 	}
 
-	Entity Scene::CreateLightEntity(const std::string &name)
+	Entity Scene::CreateLightEntity(const std::string& name)
 	{
-		Entity entity = {m_Registry.create(), this};
+		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<LightComponent>();
-		auto &tag = entity.AddComponent<TagComponent>();
+		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
 		return entity;
 	}
 
-	Entity Scene::CreateSkyboxEntity(const std::string &name)
+	Entity Scene::CreateSkyboxEntity(const std::string& name)
 	{
-		Entity entity = {m_Registry.create(), this};
+		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<SkyboxComponent>();
-		// TextureConfiguration config{};
-		// config.m_MinFilter = Config::MinMagFilters::LINEAR;
-		// config.m_MagFilter = Config::MinMagFilters::LINEAR;
-		// config.m_TextureLayout = Config::TextureLayout::ClampToEdge;
-		// config.Path = entity.GetComponent<SkyboxComponent>().path;
-		// config.m_NullData = false;
-		// config.m_Flipped = true;
-		// entity.GetComponent<SkyboxComponent>().m_Skybox = Texture2D::Create(config);
-		// entity.GetComponent<SkyboxComponent>().m_Model = m_AssetManager->LoadGLTFModel("Assets/gltf_models/Cube/glTF/Cube.gltf");
-		// entity.GetComponent<SkyboxComponent>().m_Model->SetSkybox(true);
-		// entity.AddComponent<ShaderComponent>().AddShader(m_AssetManager->LoadShader("Assets/Shaders/SkyboxShader.glsl"));
+		//TextureConfiguration config{};
+		//config.m_MinFilter = Config::MinMagFilters::LINEAR;
+		//config.m_MagFilter = Config::MinMagFilters::LINEAR;
+		//config.m_TextureLayout = Config::TextureLayout::ClampToEdge;
+		//config.Path = entity.GetComponent<SkyboxComponent>().path;
+		//config.m_NullData = false;
+		//config.m_Flipped = true;
+		//entity.GetComponent<SkyboxComponent>().m_Skybox = Texture2D::Create(config);
+		//entity.GetComponent<SkyboxComponent>().m_Model = m_AssetManager->LoadGLTFModel("Assets/gltf_models/Cube/glTF/Cube.gltf");
+		//entity.GetComponent<SkyboxComponent>().m_Model->SetSkybox(true);
+		//entity.AddComponent<ShaderComponent>().AddShader(m_AssetManager->LoadShader("Assets/Shaders/SkyboxShader.glsl"));
 
-		auto &tag = entity.AddComponent<TagComponent>();
+		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
 		return entity;
 	}
 
-	Entity Scene::CreateEntity(const std::string &name)
+	Entity Scene::CreateEntity(const std::string& name)
 	{
-		Entity entity = {m_Registry.create(), this};
+		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<TransformComponent>();
-		auto &tag = entity.AddComponent<TagComponent>();
+		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
 		return entity;
 	}
 
-	Entity Scene::CreateCameraEntity(const std::string &name)
+	Entity Scene::CreateCameraEntity(const std::string& name)
 	{
-		Entity entity = {m_Registry.create(), this};
+		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<CameraComponent>();
-		auto &tag = entity.AddComponent<TagComponent>();
+		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
 		return entity;
 	}
@@ -173,33 +165,32 @@ namespace Brisk
 
 	void Scene::EnableGravity(bool gravity)
 	{
-		// if (gravity)
+		//if (gravity)
 		//	m_PhysicsWorld->SetGravity({ 0.0f, -9.8f });
-		// else
+		//else
 		//	m_PhysicsWorld->SetGravity({ 0.0f, 0.0f });
 	}
-	
+
 	void Scene::OnRuntimeStart()
 	{
 		m_IsRunning = true;
 
 		{
 			auto view = m_Registry.view<PhysicsComponent>();
-			for (auto e : view)
-			{
-				Entity entity = {e, this};
-				auto &transform = entity.GetComponent<TransformComponent>();
-				auto &physics = entity.GetComponent<PhysicsComponent>();
+			for (auto e : view) {
+				Entity entity = { e, this };
+				auto& transform = entity.GetComponent<TransformComponent>();
+				auto& physics = entity.GetComponent<PhysicsComponent>();
 
-				// if (physics.bodyType == PhysicsComponent::BodyType::Static)
+				//if (physics.bodyType == PhysicsComponent::BodyType::Static)
 				//	physics.StaticRuntimeBody = m_PhysicsWorld3D->CreateStaticBody(transform.GetPosition(), glm::vec4(transform.GetRotation(), 1.0f));
-				// else if (physics.bodyType == PhysicsComponent::BodyType::Dynamic)
+				//else if (physics.bodyType == PhysicsComponent::BodyType::Dynamic)
 				//{
 				//	physics.DynamicRuntimeBody = m_PhysicsWorld3D->CreateDynamicBody(transform.GetPosition(), glm::vec4(transform.GetRotation(), 1.0f));
 				//	physics.DynamicRuntimeBody->SetBodyType(DynamicBody::BodyType(physics.rigidBodyType));
-				// }
+				//}
 
-				// if (entity.HasComponent<BoxColliderComponent>())
+				//if (entity.HasComponent<BoxColliderComponent>())
 				//{
 				//	auto& bc3d = entity.GetComponent<BoxColliderComponent>();
 
@@ -216,65 +207,64 @@ namespace Brisk
 		}
 
 		{
-			// m_PhysicsWorld = new b2World({ 0.0f, -9.81f });
+			//m_PhysicsWorld = new b2World({ 0.0f, -9.81f });
 			EnableGravity(m_SceneSetting.enableGravity);
 			auto view = m_Registry.view<Physics2DComponent>();
 			for (auto e : view)
 			{
-				Entity entity = {e, this};
-				auto &transform = entity.GetComponent<TransformComponent>();
-				auto &rb2d = entity.GetComponent<Physics2DComponent>();
+				Entity entity = { e, this };
+				auto& transform = entity.GetComponent<TransformComponent>();
+				auto& rb2d = entity.GetComponent<Physics2DComponent>();
 
-				// b2BodyDef bodyDef;
-				// bodyDef.type = Rigidbody2DTypeToBox2DBody(rb2d.Type);
-				// bodyDef.position.Set(transform.Position.x, transform.Position.y);
-				// bodyDef.angle = transform.Rotation.z;
+				//b2BodyDef bodyDef;
+				//bodyDef.type = Rigidbody2DTypeToBox2DBody(rb2d.Type);
+				//bodyDef.position.Set(transform.Position.x, transform.Position.y);
+				//bodyDef.angle = transform.Rotation.z;
 
-				// b2Body* body = m_PhysicsWorld->CreateBody(&bodyDef);
-				// body->SetFixedRotation(rb2d.FixedRotation);
-				// rb2d.RuntimeBody = body;
+				//b2Body* body = m_PhysicsWorld->CreateBody(&bodyDef);
+				//body->SetFixedRotation(rb2d.FixedRotation);
+				//rb2d.RuntimeBody = body;
 
 				if (entity.HasComponent<BoxCollider2DComponent>())
 				{
-					auto &bc2d = entity.GetComponent<BoxCollider2DComponent>();
+					auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
 
-					// b2PolygonShape boxShape;
-					// boxShape.SetAsBox(bc2d.Size.x * transform.Scale.x, bc2d.Size.y * transform.Scale.y);
+					//b2PolygonShape boxShape;
+					//boxShape.SetAsBox(bc2d.Size.x * transform.Scale.x, bc2d.Size.y * transform.Scale.y);
 
-					// b2FixtureDef fixtureDef;
-					// fixtureDef.shape = &boxShape;
-					// fixtureDef.density = bc2d.Density;
-					// fixtureDef.friction = bc2d.Friction;
-					// fixtureDef.restitution = bc2d.Restitution;
-					// fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
-					// body->CreateFixture(&fixtureDef);
+					//b2FixtureDef fixtureDef;
+					//fixtureDef.shape = &boxShape;
+					//fixtureDef.density = bc2d.Density;
+					//fixtureDef.friction = bc2d.Friction;
+					//fixtureDef.restitution = bc2d.Restitution;
+					//fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
+					//body->CreateFixture(&fixtureDef);
 				}
 			}
 		}
 
 		// Scripting
 		{
-			// ScriptEngine::OnRuntimeStart(this);
-			//  Instantiate all script entities
+			//ScriptEngine::OnRuntimeStart(this);
+			// Instantiate all script entities
 
 			auto view = m_Registry.view<ScriptComponent>();
 			for (auto e : view)
 			{
-				Entity entity = {e, this};
-				// ScriptEngine::OnCreateEntity(entity);
+				Entity entity = { e, this };
+				//ScriptEngine::OnCreateEntity(entity);
 			}
 		}
 	}
 
 	void Scene::OnRuntimeStop()
 	{
-		m_IsRunning = false;
-		;
+		m_IsRunning = false;;
 
-		// delete m_PhysicsWorld;
-		// m_PhysicsWorld = nullptr;
+		//delete m_PhysicsWorld;
+		//m_PhysicsWorld = nullptr;
 
-		// ScriptEngine::OnRuntimeStop();
+		//ScriptEngine::OnRuntimeStop();
 	}
 
 	void Scene::OnSimulationStart()
@@ -283,21 +273,20 @@ namespace Brisk
 
 		{
 			auto view = m_Registry.view<PhysicsComponent>();
-			for (auto e : view)
-			{
-				Entity entity = {e, this};
-				auto &transform = entity.GetComponent<TransformComponent>();
-				auto &physics = entity.GetComponent<PhysicsComponent>();
+			for (auto e : view) {
+				Entity entity = { e, this };
+				auto& transform = entity.GetComponent<TransformComponent>();
+				auto& physics = entity.GetComponent<PhysicsComponent>();
 
-				// if (physics.bodyType == PhysicsComponent::BodyType::Static)
+				//if (physics.bodyType == PhysicsComponent::BodyType::Static)
 				//	physics.StaticRuntimeBody = m_PhysicsWorld3D->CreateStaticBody(transform.GetPosition(), glm::vec4(transform.GetRotation(), 1.0f));
-				// else if (physics.bodyType == PhysicsComponent::BodyType::Dynamic)
+				//else if (physics.bodyType == PhysicsComponent::BodyType::Dynamic)
 				//{
 				//	physics.DynamicRuntimeBody = m_PhysicsWorld3D->CreateDynamicBody(transform.GetPosition(), glm::vec4(transform.GetRotation(), 1.0f));
 				//	physics.DynamicRuntimeBody->SetBodyType(DynamicBody::BodyType(physics.rigidBodyType));
-				// }
+				//}
 
-				// if (entity.HasComponent<BoxColliderComponent>())
+				//if (entity.HasComponent<BoxColliderComponent>())
 				//{
 				//	auto& bc3d = entity.GetComponent<BoxColliderComponent>();
 
@@ -313,45 +302,45 @@ namespace Brisk
 			}
 		}
 
-		// m_PhysicsWorld = new b2World({ 0.0f, -9.8f });
+		//m_PhysicsWorld = new b2World({ 0.0f, -9.8f });
 		EnableGravity(m_SceneSetting.enableGravity);
 		{
 			auto view = m_Registry.view<Physics2DComponent>();
 			for (auto e : view)
 			{
-				Entity entity = {e, this};
-				auto &transform = entity.GetComponent<TransformComponent>();
-				auto &rb2d = entity.GetComponent<Physics2DComponent>();
+				Entity entity = { e, this };
+				auto& transform = entity.GetComponent<TransformComponent>();
+				auto& rb2d = entity.GetComponent<Physics2DComponent>();
 
-				// b2BodyDef bodyDef;
-				// bodyDef.type = Rigidbody2DTypeToBox2DBody(rb2d.Type);
-				// bodyDef.position.Set(transform.Position.x, transform.Position.y);
-				// bodyDef.angle = transform.Rotation.z;
+				//b2BodyDef bodyDef;
+				//bodyDef.type = Rigidbody2DTypeToBox2DBody(rb2d.Type);
+				//bodyDef.position.Set(transform.Position.x, transform.Position.y);
+				//bodyDef.angle = transform.Rotation.z;
 
-				// b2Body* body = m_PhysicsWorld->CreateBody(&bodyDef);
-				// body->SetFixedRotation(rb2d.FixedRotation);
-				// rb2d.RuntimeBody = body;
+				//b2Body* body = m_PhysicsWorld->CreateBody(&bodyDef);
+				//body->SetFixedRotation(rb2d.FixedRotation);
+				//rb2d.RuntimeBody = body;
 
 				if (entity.HasComponent<BoxCollider2DComponent>())
 				{
-					auto &bc2d = entity.GetComponent<BoxCollider2DComponent>();
+					auto& bc2d = entity.GetComponent<BoxCollider2DComponent>();
 
-					// b2PolygonShape boxShape;
-					// boxShape.SetAsBox(bc2d.Size.x * transform.Scale.x, bc2d.Size.y * transform.Scale.y);
-					// boxShape.SetAsBox(bc2d.Size.x, bc2d.Size.y);
+					//b2PolygonShape boxShape;
+					//boxShape.SetAsBox(bc2d.Size.x * transform.Scale.x, bc2d.Size.y * transform.Scale.y);
+					//boxShape.SetAsBox(bc2d.Size.x, bc2d.Size.y);
 
-					// b2FixtureDef fixtureDef;
-					// fixtureDef.shape = &boxShape;
-					// fixtureDef.density = bc2d.Density;
-					// fixtureDef.friction = bc2d.Friction;
-					// fixtureDef.restitution = bc2d.Restitution;
-					// fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
-					// body->CreateFixture(&fixtureDef);
+					//b2FixtureDef fixtureDef;
+					//fixtureDef.shape = &boxShape;
+					//fixtureDef.density = bc2d.Density;
+					//fixtureDef.friction = bc2d.Friction;
+					//fixtureDef.restitution = bc2d.Restitution;
+					//fixtureDef.restitutionThreshold = bc2d.RestitutionThreshold;
+					//body->CreateFixture(&fixtureDef);
 				}
 			}
 		}
 
-		// ScriptEngine::OnRuntimeStart(this);
+		//ScriptEngine::OnRuntimeStart(this);
 		//// Instantiate all script entities
 		//{
 		//	auto view = m_Registry.view<ScriptComponent>();
@@ -365,15 +354,15 @@ namespace Brisk
 
 	void Scene::OnSimulationStop()
 	{
-		// m_PhysicsWorld3D->Destroy();
+		//m_PhysicsWorld3D->Destroy();
 
-		// delete m_PhysicsWorld;
-		// m_PhysicsWorld = nullptr;
+		//delete m_PhysicsWorld;
+		//m_PhysicsWorld = nullptr;
 
 		m_IsSimulating = false;
 	}
 
-	// void Scene::OnUpdateSimulation(Ref<EditorCamera> camera, Timestep ts)
+	//void Scene::OnUpdateSimulation(Ref<EditorCamera> camera, Timestep ts)
 	//{
 	//	m_PhysicsWorld3D->Update(ts);
 	//	{
@@ -414,12 +403,12 @@ namespace Brisk
 	//	RenderScene(camera.get(), ts);
 	//}
 
-	// void Scene::OnUpdateResize(uint32_t width, uint32_t height)
+	//void Scene::OnUpdateResize(uint32_t width, uint32_t height)
 	//{
 	//	assert(false);
-	// }
+	//}
 
-	// void Scene::OnUpdateRuntime(Timestep ts)
+	//void Scene::OnUpdateRuntime(Timestep ts)
 	//{
 	//	Ref<SceneCamera> sceneCamera = nullptr;
 
@@ -475,7 +464,7 @@ namespace Brisk
 	//	RenderScene(sceneCamera.get(), ts);
 	//}
 
-	// void Scene::RenderScene(Camera* camera, Timestep ts)
+	//void Scene::RenderScene(Camera* camera, Timestep ts)
 	//{
 	//	auto view = m_Registry.view<ShaderComponent, TransformComponent, ModelComponent,
 	//		TextureComponent, MaterialComponent, ScriptComponent>();
@@ -554,7 +543,7 @@ namespace Brisk
 	//	}
 	//}
 
-	// void Scene::OnUpdateEditor(const Ref<EditorCamera> camera, Timestep ts)
+	//void Scene::OnUpdateEditor(const Ref<EditorCamera> camera, Timestep ts)
 	//{
 	//	// reload shader
 	//	auto view = m_Registry.view<ShaderComponent, TransformComponent, ModelComponent>();
@@ -582,9 +571,9 @@ namespace Brisk
 		auto view = m_Registry.view<CameraComponent>();
 		for (auto entity : view)
 		{
-			auto &cameraComponent = view.get<CameraComponent>(entity);
-			// if (!cameraComponent.FixedAspectRatio)
-			// cameraComponent.Camera->SetViewportSize(width, height);
+			auto& cameraComponent = view.get<CameraComponent>(entity);
+			//if (!cameraComponent.FixedAspectRatio)
+				//cameraComponent.Camera->SetViewportSize(width, height);
 		}
 	}
 
@@ -593,9 +582,9 @@ namespace Brisk
 		auto view = m_Registry.view<CameraComponent>();
 		for (auto entity : view)
 		{
-			const auto &camera = view.get<CameraComponent>(entity);
+			const auto& camera = view.get<CameraComponent>(entity);
 			if (camera.Primary)
-				return Entity{entity, this};
+				return Entity{ entity, this };
 		}
 		return {};
 	}
@@ -605,9 +594,9 @@ namespace Brisk
 		auto view = m_Registry.view<TagComponent>();
 		for (auto entity : view)
 		{
-			const TagComponent &tc = view.get<TagComponent>(entity);
+			const TagComponent& tc = view.get<TagComponent>(entity);
 			if (tc.Tag == name)
-				return Entity{entity, this};
+				return Entity{ entity, this };
 		}
 		return {};
 	}
@@ -621,98 +610,98 @@ namespace Brisk
 		return newEntity;
 	}
 
-	template <typename T>
-	void Scene::OnComponentAdded(Entity entity, T &component)
+	template<typename T>
+	void Scene::OnComponentAdded(Entity entity, T& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent &component)
+	template<>
+	void Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent &component)
+	template<>
+	void Scene::OnComponentAdded<CameraComponent>(Entity entity, CameraComponent& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<LightComponent>(Entity entity, LightComponent &component)
+	template<>
+	void Scene::OnComponentAdded<LightComponent>(Entity entity, LightComponent& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<SkyboxComponent>(Entity entity, SkyboxComponent &component)
+	template<>
+	void Scene::OnComponentAdded<SkyboxComponent>(Entity entity, SkyboxComponent& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent &component)
+	template<>
+	void Scene::OnComponentAdded<SpriteRendererComponent>(Entity entity, SpriteRendererComponent& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<BoxColliderComponent>(Entity entity, BoxColliderComponent &component)
+	template<>
+	void Scene::OnComponentAdded<BoxColliderComponent>(Entity entity, BoxColliderComponent& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<SphereColliderComponent>(Entity entity, SphereColliderComponent &component)
+	template<>
+	void Scene::OnComponentAdded<SphereColliderComponent>(Entity entity, SphereColliderComponent& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<CapsuleColliderComponent>(Entity entity, CapsuleColliderComponent &component)
+	template<>
+	void Scene::OnComponentAdded<CapsuleColliderComponent>(Entity entity, CapsuleColliderComponent& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<BoxCollider2DComponent>(Entity entity, BoxCollider2DComponent &component)
+	template<>
+	void Scene::OnComponentAdded<BoxCollider2DComponent>(Entity entity, BoxCollider2DComponent& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<MaterialComponent>(Entity entity, MaterialComponent &component)
+	template<>
+	void Scene::OnComponentAdded<MaterialComponent>(Entity entity, MaterialComponent& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent &component)
+	template<>
+	void Scene::OnComponentAdded<TagComponent>(Entity entity, TagComponent& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent &component)
+	template<>
+	void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<NativeScriptComponent>(Entity entity, NativeScriptComponent &component)
+	template<>
+	void Scene::OnComponentAdded<NativeScriptComponent>(Entity entity, NativeScriptComponent& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<ShaderComponent>(Entity entity, ShaderComponent &component)
+	template<>
+	void Scene::OnComponentAdded<ShaderComponent>(Entity entity, ShaderComponent& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<TextureComponent>(Entity entity, TextureComponent &component)
+	template<>
+	void Scene::OnComponentAdded<TextureComponent>(Entity entity, TextureComponent& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<ModelComponent>(Entity entity, ModelComponent &component)
+	template<>
+	void Scene::OnComponentAdded<ModelComponent>(Entity entity, ModelComponent& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<PhysicsComponent>(Entity entity, PhysicsComponent &component)
+	template<>
+	void Scene::OnComponentAdded<PhysicsComponent>(Entity entity, PhysicsComponent& component)
 	{
 	}
 
-	template <>
-	void Scene::OnComponentAdded<Physics2DComponent>(Entity entity, Physics2DComponent &component)
+	template<>
+	void Scene::OnComponentAdded<Physics2DComponent>(Entity entity, Physics2DComponent& component)
 	{
 	}
 

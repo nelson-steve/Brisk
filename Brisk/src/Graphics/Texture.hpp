@@ -46,6 +46,7 @@ namespace Brisk
 		virtual uint32_t GetHeight() const = 0;
 		virtual void Resize() = 0;
 
+
 		static SamplerAddressMode GetVkWrapMode(int32_t wrapMode)
 		{
 			switch (wrapMode) {

@@ -9,10 +9,12 @@
 #include "Graphics/Factories/SwapchainFactory.hpp"
 #include "Engine/Renderer/Shader.hpp"
 #include "Engine/Component.hpp"
+#include "ShaderModule.hpp"
+#include "Fence.hpp"
+#include "semaphore.hpp"
 
 namespace Brisk
 {
-    void *m_UniformBufferData;
     std::shared_ptr<Semaphore> ImageAvailableSemaphore;
     std::shared_ptr<Semaphore> RenderFinishedSemaphore;
     std::shared_ptr<Fence> fence;
@@ -67,7 +69,7 @@ namespace Brisk
             {0, 3, Core::Format::FORMAT_R32G32_SFLOAT, offsetof(MeshData, MeshData::UV1)},
             {0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Color)},
         };
-        pipelineSpecs.Layout = vertexLayout;
+        pipelineSpecs.pLayout = vertexLayout;
         pipelineSpecs.pRenderPass = RenderPass::Create();
         pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 
@@ -120,27 +122,6 @@ namespace Brisk
         std::static_pointer_cast<CommandBufferVulkan>(cmd)->Allocate(m_CommandPool);
     }
 
-    // void Renderer::InitRenderables()
-    //{
-    //     auto view = scene->Reg().view<MaterialComponent, ShaderComponent>();
-
-    //    for (auto &entity : view)
-    //    {
-    //        auto &material = view.get<MaterialComponent>(entity);
-    //        auto &shader = view.get<ShaderComponent>(entity);
-
-    //        shader.p_Shader->Allocate(pipeline);
-
-    //        shader.p_Shader->SetAlbedoTexture(material.p_Material->baseColorTexture);
-    //        shader.p_Shader->SetNormalTexture(material.p_Material->normalTexture);
-    //        shader.p_Shader->SetMettalicTexture(material.p_Material->metallicTexture);
-    //        shader.p_Shader->SetOcclusionTexture(material.p_Material->occlusionTexture);
-    //        shader.p_Shader->SetEmissiveTexture(material.p_Material->emissiveTexture);
-
-    //        material.p_Material->p_GpuResource->UpdateResource();
-    //    }
-    //}
-
     void Renderer::RenderScene(float deltaTime)
     {
         // vkWaitForFences(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
@@ -185,7 +166,7 @@ namespace Brisk
 
         VkSubmitInfo submitInfo{};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        VkSemaphore waitSemaphores[] = {ImageAvailableSemaphore};
+        VkSemaphore waitSemaphores[] = { std::static_pointer_cast<SemaphoreVulkan>(ImageAvailableSemaphore)->Get()};
         VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
         submitInfo.waitSemaphoreCount = 1;
         submitInfo.pWaitSemaphores = waitSemaphores;
@@ -195,7 +176,7 @@ namespace Brisk
         submitInfo.commandBufferCount = 1;
         submitInfo.pCommandBuffers = cmdBufers.data();
 
-        VkSemaphore signalSemaphores[] = {RenderFinishedSemaphore};
+        VkSemaphore signalSemaphores[] = { std::static_pointer_cast<SemaphoreVulkan>(RenderFinishedSemaphore)->Get()};
         submitInfo.signalSemaphoreCount = 1;
         submitInfo.pSignalSemaphores = signalSemaphores;
 

@@ -12,6 +12,7 @@
 #include "ShaderModule.hpp"
 #include "Fence.hpp"
 #include "semaphore.hpp"
+#include "Queue.hpp"
 
 namespace Brisk
 {
@@ -164,26 +165,20 @@ namespace Brisk
         pipeline->m_Specs.pRenderPass->End(cmd);
         cmd->UnBind();
 
-        VkSubmitInfo submitInfo{};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        VkSemaphore waitSemaphores[] = { std::static_pointer_cast<SemaphoreVulkan>(ImageAvailableSemaphore)->Get()};
-        VkPipelineStageFlags waitStages[] = {VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT};
-        submitInfo.waitSemaphoreCount = 1;
-        submitInfo.pWaitSemaphores = waitSemaphores;
-        submitInfo.pWaitDstStageMask = waitStages;
+        std::shared_ptr<Queue> queue;
 
-        std::vector<VkCommandBuffer> cmdBufers = {std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get()};
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = cmdBufers.data();
+        Queue::SubmitInfo submitInfo{};
+        submitInfo.pSignalSemaphores.push_back(ImageAvailableSemaphore);
+        submitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+        submitInfo.pCmdBuffers.push_back(cmd);
 
-        VkSemaphore signalSemaphores[] = { std::static_pointer_cast<SemaphoreVulkan>(RenderFinishedSemaphore)->Get()};
-        submitInfo.signalSemaphoreCount = 1;
-        submitInfo.pSignalSemaphores = signalSemaphores;
+        submitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore);
 
-        if (vkQueueSubmit(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle, 1, &submitInfo, fence) != VK_SUCCESS)
-        {
-            throw std::runtime_error("failed to submit draw command buffer!");
-        }
+        queue->Submit(submitInfo, fence);
+        //if (vkQueueSubmit(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle, 1, &submitInfo, fence) != VK_SUCCESS)
+        //{
+        //    throw std::runtime_error("failed to submit draw command buffer!");
+        //}
 
         VkPresentInfoKHR presentInfo{};
         presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;

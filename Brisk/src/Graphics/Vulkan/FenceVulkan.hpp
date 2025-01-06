@@ -1,16 +1,18 @@
 #pragma once
 
-#include <memory>
+#include "Engine/Renderer/Fence.hpp"
+
+#include <Volk/volk.h>
 
 namespace Brisk 
 {
-    class Fence {
+    class FenceVulkan : Fence {
     public:
         virtual void Init() = 0;
 
         virtual void Wait() = 0;
         virtual void Reset() = 0;
-
-        static std::shared_ptr<Fence> Create();
+    private:
+        VkFence m_Fence;
     };
 }

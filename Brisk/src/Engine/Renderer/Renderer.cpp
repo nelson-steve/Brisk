@@ -125,7 +125,6 @@ namespace Brisk
 
     void Renderer::RenderScene(float deltaTime)
     {
-        // vkWaitForFences(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &fence, VK_TRUE, UINT64_MAX);
         fence->Wait();
 
         m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, fence, &imageIndex);
@@ -154,7 +153,6 @@ namespace Brisk
             vkCmdSetScissor(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, &scissor); });
 
         fence->Reset();
-        // vkResetFences(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &fence);
 
         // const VkBuffer vertexBuffers[] = { std::static_pointer_cast<BufferVulkan>(m_VertexBuffer)->Get() };
         VkDeviceSize offsets[] = {0};

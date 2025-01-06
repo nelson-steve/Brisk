@@ -18,5 +18,7 @@ namespace Brisk
 	public:
 		void Submit(SubmitInfo submitInfo, std::shared_ptr<Fence> fence);
 		void Present();
+
+		static std::shared_ptr<Queue> Create();
 	};
 }

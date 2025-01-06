@@ -6,7 +6,7 @@
 
 namespace Brisk 
 {
-    class FenceVulkan : Fence {
+    class FenceVulkan : public Fence {
     public:
         virtual void Init() = 0;
 

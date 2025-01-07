@@ -70,7 +70,7 @@ namespace Brisk {
 				GetNodeProps(model.nodes[node_index], model, vertex_count, index_count);
 			}
 			assert(vertex_count > 0);
-			m_vertex_buffer = new Vertex[vertex_count];
+			m_vertex_buffer = new MeshData[vertex_count];
 			m_index_buffer = new uint32_t[index_count];
 
 			for (auto& node_index : scene.nodes) {
@@ -79,7 +79,7 @@ namespace Brisk {
 			}
 		}
 
-		size_t vertexBufferSize = vertex_count * sizeof(Vertex);
+		size_t vertexBufferSize = vertex_count * sizeof(MeshData);
 		size_t indexBufferSize = index_count * sizeof(uint32_t);
 		assert(vertexBufferSize > 0);
 

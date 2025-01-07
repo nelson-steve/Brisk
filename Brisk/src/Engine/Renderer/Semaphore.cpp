@@ -2,7 +2,7 @@
 
 namespace Brisk 
 {
-    void Semaphore::Create(){
+    std::shared_ptr<Semaphore> Semaphore::Create(){
         return std::make_shared<Semaphore>();
     }
 }

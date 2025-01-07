@@ -122,7 +122,7 @@ namespace Brisk
 		std::shared_ptr<Buffer> m_VertexBuffer;
 		std::shared_ptr<Buffer> m_IndexBuffer;
 		uint32_t* m_index_buffer;
-		Vertex* m_vertex_buffer;
+		MeshData* m_vertex_buffer;
 		uint32_t m_vertex_pos = 0;
 		uint32_t m_index_pos = 0;
 	}

@@ -44,18 +44,17 @@ namespace Brisk
         }
     }
 
-    void QueueVulkan::Present() {
-        // Implement Vulkan image presentation (using vkQueuePresentKHR)
-        // Need to interact with the swapchain to present the image
-        VkPresentInfoKHR presentInfo = {};
-        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-        presentInfo.waitSemaphoreCount = 0; // Optionally, wait for semaphores
-        presentInfo.pWaitSemaphores = nullptr;
-        // Set other present-related fields such as swapchain, image indices, etc.
+    void QueueVulkan::Present(Queue::PresentInfo info) {
+        VkPresentInfoKHR presentInfoVk = {};
+        presentInfoVk.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfoVk.pWaitSemaphores = waitSemaphores.data();
+        VkSwapchainKHR swapChains[] = {std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->GetSwapchain()};
+        presentInfoVk.swapchains = {swapchains};
+        presentInfoVk.image = &info.imageIndex;
 
-        VkResult result = vkQueuePresentKHR(m_queue, &presentInfo);
+        VkResult result = vkQueuePresentKHR(mQueue, &presentInfoVk);
         if (result != VK_SUCCESS) {
-            throw std::runtime_error("Failed to present the swapchain image");
-        }
+            throw std::runtime_error("Failed to submit command buffers to Vulkan queue");
+        }        
     }
 }

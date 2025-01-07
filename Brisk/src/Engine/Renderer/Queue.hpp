@@ -12,20 +12,17 @@ namespace Brisk
 			std::vector<std::shared_ptr<Semaphore>> pSignalSemaphores;
 			std::vector<std::shared_ptr<CommandBuffer>> pCmdBuffers;
 			std::vector<WaitStage> pWaitStages;
-
 		};
 
 		struct PresentInfo {
 			std::vector<std::shared_ptr<Semaphore>> pWaitSemaphores;
 			std::vector<std::shared_ptr<Swapchain> pSwapchains;
-			std::vector<std::shared_ptr<CommandBuffer>> pCmdBuffers;
-			std::vector<WaitStage> pWaitStages;
-
+			int imageIndex;
 		};		
 
 	public:
 		void Submit(SubmitInfo submitInfo, std::shared_ptr<Fence> fence);
-		void Present();
+		void Present(Queue::PresentInfo info);
 
 		static std::shared_ptr<Queue> Create();
 	};

@@ -166,7 +166,7 @@ namespace Brisk
         std::shared_ptr<Queue> queue;
 
         Queue::SubmitInfo submitInfo{};
-        submitInfo.pSignalSemaphores.push_back(ImageAvailableSemaphore);
+        submitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
         submitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
         submitInfo.pCmdBuffers.push_back(cmd);
 
@@ -179,13 +179,13 @@ namespace Brisk
         //}
 
         Queue::PresentInfo presentInfo{};
-        presentInfo.pWaitSemaphores.push_back(signalSemaphores);
+        presentInfo.pWaitSemaphores.push_back(RenderFinishedSemaphore);
 
         // VkSwapchainKHR swapChains[] = {std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->GetSwapchain()};
         presentInfo.pSwapchains.push_back(m_Swapchain);
-        presentInfo.pImageIndices = imageIndex;
+        presentInfo.imageIndex = imageIndex;
 
-        queue->Present();
+        queue->Present(presentInfo);
         //vkQueuePresentKHR(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle, &presentInfo);
     }
 

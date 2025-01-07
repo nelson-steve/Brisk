@@ -125,5 +125,5 @@ namespace Brisk
 		MeshData* m_vertex_buffer;
 		uint32_t m_vertex_pos = 0;
 		uint32_t m_index_pos = 0;
-	}
+	};
 }

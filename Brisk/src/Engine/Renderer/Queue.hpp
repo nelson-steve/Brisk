@@ -1,5 +1,12 @@
 #pragma once
 
+#include "Semaphore.hpp"
+#include "Graphics/Swapchain.hpp"
+#include "CommandBuffer.hpp"
+
+#include <vector>
+#include <memory>
+
 namespace Brisk 
 {
 	class Queue {
@@ -16,7 +23,7 @@ namespace Brisk
 
 		struct PresentInfo {
 			std::vector<std::shared_ptr<Semaphore>> pWaitSemaphores;
-			std::vector<std::shared_ptr<Swapchain> pSwapchains;
+			std::vector<std::shared_ptr<Swapchain>> pSwapchains;
 			int imageIndex;
 		};		
 

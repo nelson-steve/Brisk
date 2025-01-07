@@ -178,19 +178,15 @@ namespace Brisk
         //    throw std::runtime_error("failed to submit draw command buffer!");
         //}
 
-        VkPresentInfoKHR presentInfo{};
-        presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        Queue::PresentInfo presentInfo{};
+        presentInfo.pWaitSemaphores.push_back(signalSemaphores);
 
-        presentInfo.waitSemaphoreCount = 1;
-        presentInfo.pWaitSemaphores = signalSemaphores;
+        // VkSwapchainKHR swapChains[] = {std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->GetSwapchain()};
+        presentInfo.pSwapchains.push_back(m_Swapchain);
+        presentInfo.pImageIndices = imageIndex;
 
-        VkSwapchainKHR swapChains[] = {std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->GetSwapchain()};
-        presentInfo.swapchainCount = 1;
-        presentInfo.pSwapchains = swapChains;
-
-        presentInfo.pImageIndices = &imageIndex;
-
-        vkQueuePresentKHR(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle, &presentInfo);
+        queue->Present();
+        //vkQueuePresentKHR(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle, &presentInfo);
     }
 
     std::unique_ptr<Renderer> Renderer::Create()

@@ -1,8 +1,9 @@
 #pragma once
 
-#include "Semaphore.hpp"
 #include "Graphics/Swapchain.hpp"
 #include "CommandBuffer.hpp"
+#include "Semaphore.hpp"
+#include "Fence.hpp"
 
 #include <vector>
 #include <memory>
@@ -14,6 +15,7 @@ namespace Brisk
 		enum WaitStage {
 			PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
 		};
+
 		struct SubmitInfo {
 			std::vector<std::shared_ptr<Semaphore>> pWaitSemaphores;
 			std::vector<std::shared_ptr<Semaphore>> pSignalSemaphores;
@@ -24,12 +26,12 @@ namespace Brisk
 		struct PresentInfo {
 			std::vector<std::shared_ptr<Semaphore>> pWaitSemaphores;
 			std::vector<std::shared_ptr<Swapchain>> pSwapchains;
-			int imageIndex;
-		};		
+			int pImageIndex;
+		};
 
 	public:
-		void Submit(SubmitInfo submitInfo, std::shared_ptr<Fence> fence);
-		void Present(Queue::PresentInfo info);
+		virtual void Submit(SubmitInfo submitInfo, std::shared_ptr<Fence> fence) = 0;
+		virtual void Present(Queue::PresentInfo info) = 0;
 
 		static std::shared_ptr<Queue> Create();
 	};

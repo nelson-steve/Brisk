@@ -80,14 +80,7 @@ namespace Brisk
 	{
 		std::string name = "Model Component";
 
-		void AddMesh(const Ref<Model> model, int id)
-		{
-			m_Model = model;
-			ID = id;
-		}
-
 		Ref<Model> m_Model;
-		int ID = -1;
 
 		ModelComponent() = default;
 		ModelComponent(const ModelComponent &) = default;

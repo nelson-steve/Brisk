@@ -39,18 +39,8 @@ namespace Brisk
 
 	void Scene::InitScene()
 	{
-		//m_Cube = m_AssetManager->LoadGLTFModel("Assets/gltf_models/Cube/glTF/Cube.gltf");
-		//m_Cube->SetSkybox(true);
-		//m_Sphere = m_AssetManager->LoadGLTFModel("Assets/gltf_models/Sphere/glTF/Sphere.gltf");
-		//m_Sphere->SetSkybox(true);
-		//m_Capsule = m_AssetManager->LoadGLTFModel("Assets/gltf_models/Capsule/glTF/Capsule.gltf");
-
-		//m_ColliderShader = m_AssetManager->LoadShader("Assets/Shaders/ColliderShader.glsl");
-
 		//m_PhysicsWorld3D = std::make_shared<PhysicsWorld>();
 		//m_PhysicsWorld3D->Init();
-
-		//Renderer::Init(m_Registry);
 	}
 
 	Entity Scene::CreateMeshEntity(const std::string& name)

@@ -75,36 +75,17 @@ namespace Brisk
 
 		entt::registry& Reg() { return m_Registry; }
 		glm::vec3 lightPos = glm::vec3(-2.0f, 4.0f, -1.0f);
-
-		//TODO: make this private
-		//Ref<Texture2D> m_DepthMap;
-		//Ref<Framebuffer> m_DepthMapFBO;
-		//Ref<ShadowMap> m_ShadowMap;
 	private:
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
 	private:
-		// Colliders stuff
-		//Ref<Model> m_Cube;
-		//Ref<Model> m_Sphere;
-		//Ref<Model> m_Capsule;
-		Ref<Shader> m_ColliderShader;
-		//
-
 		entt::registry m_Registry;
-		//Ref<Framebuffer> m_Framebuffer;
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
 		bool m_IsRunning = false;
 		bool m_IsPaused = false;
 		int m_StepFrames = 0;
 		bool m_IsSimulating = false;
 		SceneSetting m_SceneSetting;
-
-		Ref<Shader> m_SkyboxShader;
-
-		Ref<Shader> m_CubeShader;
-
-		glm::mat4 transform{ 1.0f };
 
 		friend class Entity;
 		friend class SceneSerializer;

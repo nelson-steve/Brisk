@@ -1,6 +1,8 @@
 #pragma once
 
 #include "Engine/Window.hpp"
+#include <Engine/Renderer/Semaphore.hpp>
+#include <Engine/Renderer/Fence.hpp>
 
 namespace Brisk 
 {
@@ -28,7 +30,7 @@ namespace Brisk
 		Swapchain& operator=(const Swapchain&) = delete;
 		Swapchain& operator=(const Swapchain&&) = delete;
 
-		void AquireNextImage(uint64_t timeout, std::shared_ptr<Semaphore> semaphore, std::shared_ptr<Fence> fence, uint32_t* pImageIndex);
+		virtual void AquireNextImage(uint64_t timeout, std::shared_ptr<Semaphore> semaphore, std::shared_ptr<Fence> fence, uint32_t* pImageIndex) = 0;
 		uint32_t GetImageCount() const { return m_ImageCount; }
 
 		virtual uint32_t GetExtentWidth() const = 0;

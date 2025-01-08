@@ -7,6 +7,7 @@
 #include "Camera.hpp"
 #include "Scene.hpp"
 #include "Events/ApplicationEvent.hpp"
+#include "SceneManager.hpp"
 
 namespace Brisk 
 {
@@ -35,6 +36,7 @@ namespace Brisk
 		std::shared_ptr<Window> m_Window;
 		std::shared_ptr<Camera> m_EditorCamera;
 		std::shared_ptr<Scene> m_ActiveScene;
+		std::shared_ptr<SceneManager> m_SceneManager;
 		std::vector<std::shared_ptr<Scene>> m_Scenes;
 		bool m_LoadingScene;
 	};

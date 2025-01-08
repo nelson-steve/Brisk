@@ -10,7 +10,7 @@ namespace Brisk
     public:
         virtual void Init() override;
 
-        VkSemaphore Get() const;
+        VkSemaphore Get();
     private:
         VkSemaphore mSemaphore;
     };

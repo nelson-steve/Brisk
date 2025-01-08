@@ -200,6 +200,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Engine\Renderer\Shader.hpp" />
     <ClInclude Include="src\Engine\Renderer\ShaderModule.hpp" />
     <ClInclude Include="src\Engine\Scene.hpp" />
+    <ClInclude Include="src\Engine\SceneManager.hpp" />
     <ClInclude Include="src\Engine\SceneSerializer.hpp" />
     <ClInclude Include="src\Engine\ScriptEngine.hpp" />
     <ClInclude Include="src\Engine\Window.hpp" />
@@ -210,10 +211,13 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClInclude Include="src\Graphics\Vulkan\CommandBufferVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\Defines.h" />
     <ClInclude Include="src\Graphics\Vulkan\DescriptorVulkan.hpp" />
+    <ClInclude Include="src\Graphics\Vulkan\FenceVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\FramebufferVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\PipelineVulkan.hpp" />
+    <ClInclude Include="src\Graphics\Vulkan\QueueVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\RendererAPIVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\RenderPassVulkan.hpp" />
+    <ClInclude Include="src\Graphics\Vulkan\SemaphoreVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\ShaderCompiler.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\ShaderVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\SurfaceFactoryVulkan.hpp" />
@@ -254,6 +258,7 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClCompile Include="src\Engine\Renderer\Fence.cpp" />
     <ClCompile Include="src\Engine\Renderer\GpuAdapter.cpp" />
     <ClCompile Include="src\Engine\Renderer\Pipeline.cpp" />
+    <ClCompile Include="src\Engine\Renderer\Queue.cpp" />
     <ClCompile Include="src\Engine\Renderer\RenderCommand.cpp" />
     <ClCompile Include="src\Engine\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Engine\Renderer\RendererAPI.cpp" />
@@ -270,9 +275,12 @@ $(Projectdir)vendors\glslcompiler\glslc.exe -o $(Projectdir)Shaders\Vulkan\Compi
     <ClCompile Include="src\Graphics\Vulkan\BufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\CommandBufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\DescriptorVulkan.cpp" />
+    <ClCompile Include="src\Graphics\Vulkan\FenceVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\FramebufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\PipelineVulkan.cpp" />
+    <ClCompile Include="src\Graphics\Vulkan\QueueVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\RenderPassVulkan.cpp" />
+    <ClCompile Include="src\Graphics\Vulkan\SemaphoreVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\ShaderVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\SwapchainVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\GpuAdapterVulkan.cpp" />

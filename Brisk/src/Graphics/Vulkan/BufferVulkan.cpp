@@ -72,11 +72,11 @@ namespace Brisk
 		vkBindBufferMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Handle, m_Memory, 0);
 	}
 
-	void BufferVulkan::MapMemory(std::vector<Point>& vertices) {
-		void* data;
-		vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, 0, m_Size, 0, &data);
-		memcpy(data, vertices.data(), (size_t)m_Size);
-	}
+	//void BufferVulkan::MapMemory(std::vector<Point>& vertices) {
+	//	void* data;
+	//	vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, 0, m_Size, 0, &data);
+	//	memcpy(data, vertices.data(), (size_t)m_Size);
+	//}
 
 	void BufferVulkan::MapMemory(Vertex* vertices) {
 		void* data;

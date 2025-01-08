@@ -32,16 +32,16 @@ namespace Brisk
         VkPipelineVertexInputStateCreateInfo m_VertexInputInfo{};
         m_VertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
         VkVertexInputBindingDescription bindingDescription{};
-        bindingDescription.binding = specs.Layout.pBinding;
+        bindingDescription.binding = specs.pLayout.pBinding;
         bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-        bindingDescription.stride = specs.Layout.pStride;
+        bindingDescription.stride = specs.pLayout.pStride;
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-        for (int i = 0; i < specs.Layout.pAttributes.size(); i++) {
+        for (int i = 0; i < specs.pLayout.pAttributes.size(); i++) {
             VkVertexInputAttributeDescription attributeDescription;
-            attributeDescription.binding = specs.Layout.pAttributes[i].pBinding;
-            attributeDescription.location = specs.Layout.pAttributes[i].pLocation;
-            attributeDescription.format = UtilitiesVulkan::FormatToVkFormat(specs.Layout.pAttributes[i].pFormat);
-            attributeDescription.offset = specs.Layout.pAttributes[i].pOffset;
+            attributeDescription.binding = specs.pLayout.pAttributes[i].pBinding;
+            attributeDescription.location = specs.pLayout.pAttributes[i].pLocation;
+            attributeDescription.format = UtilitiesVulkan::FormatToVkFormat(specs.pLayout.pAttributes[i].pFormat);
+            attributeDescription.offset = specs.pLayout.pAttributes[i].pOffset;
             attributeDescriptions.push_back(attributeDescription);
         }
         m_VertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
@@ -109,8 +109,8 @@ namespace Brisk
         }
 
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
-        for (int i = 0; i < specs.pShaders.size(); i++) {
-            shaderStages.push_back(std::static_pointer_cast<ShaderVulkan>(specs.pShaders[i])->GetShaderStage());
+        for (int i = 0; i < specs.pShaderModules.size(); i++) {
+            //shaderStages.push_back(std::static_pointer_cast<ShaderVulkan>(specs.pShaderModules[i])->GetShaderStage());
         }
 
         VkGraphicsPipelineCreateInfo pipelineInfo{ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };

@@ -13,6 +13,8 @@
 #include "Fence.hpp"
 #include "semaphore.hpp"
 #include "Queue.hpp"
+#include "Engine/SceneManager.hpp"
+#include "Engine/Entity.hpp"
 
 namespace Brisk
 {
@@ -25,6 +27,7 @@ namespace Brisk
     RenderCommand command;
 
     std::shared_ptr<Pipeline> pipeline;
+    std::shared_ptr<Queue> queue;
 
     void Renderer::Init()
     {
@@ -125,7 +128,7 @@ namespace Brisk
 
     void Renderer::RenderScene(float deltaTime)
     {
-        auto view = m_Registry.view<MeshComponent>();
+        auto view = SceneManager::pActiveScene->Reg().view<MeshComponent, MaterialComponent>();
 
         fence->Wait();
 
@@ -158,12 +161,13 @@ namespace Brisk
 
         for (auto e : view)
         {
-            Entity entity = { e, this };
+            Entity entity = { e, SceneManager::pActiveScene.get() };
             auto& mesh = entity.GetComponent<MeshComponent>();
+            auto& mat = entity.GetComponent<MaterialComponent>();
             
             // vkCmdBindVertexBuffers(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, vertexBuffers, offsets);
             for (auto& node : mesh.pModel->GetNodes()) {
-                DrawNode(mesh.pModel, node);
+                DrawNode(mesh.pModel, mat.pMaterials, node);
             }
         }
 
@@ -182,23 +186,23 @@ namespace Brisk
         Queue::PresentInfo presentInfo{};
         presentInfo.pWaitSemaphores.push_back(RenderFinishedSemaphore);
         presentInfo.pSwapchains.push_back(m_Swapchain);
-        presentInfo.imageIndex = imageIndex;
+        presentInfo.pImageIndex = imageIndex;
 
         // Present
         queue->Present(presentInfo);
     }
 
- void Renderer::DrawNode(const std::shared_ptr<Model> model, std::vector<std::shared_ptr<Shader> materials, Node* node) {
+    void Renderer::DrawNode(const std::shared_ptr<Mesh> model, std::vector<std::shared_ptr<Shader>> materials, GLTF_Node* node) {
         if (node->mesh) {
             for (Primitive* primitive : node->mesh->primitives) {
-                pipeline->Bind();
+                pipeline->Bind(cmd);
                 uint32_t index = primitive->material_index > -1 ? primitive->material_index : 0;
-                materials[index]->Bind();
-                RenderCommand::DrawIndex(cmd, primitive->index_count, 1, primitive->first_index, 0, 0);
+                //materials[index]->Bind();
+                RenderCommand::DrawIndexed(cmd, primitive->index_count, 1, primitive->first_index, 0, 0);
             }
         }
         for (auto& child : node->children) {
-            DrawNode(object, materials, child);
+            DrawNode(model, materials, child);
         }
     }
 

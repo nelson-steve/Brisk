@@ -66,12 +66,12 @@ namespace Brisk
 			:first_index(_first_index), index_count(_index_count), vertex_count(_vertex_count), material_index(index) {}
 	};
 
-	struct Mesh {
+	struct GLTF_Mesh {
 		std::vector<Primitive*> primitives;
 		glm::mat4 matrix;
-		Mesh(const glm::mat4& mat)
+		GLTF_Mesh(const glm::mat4& mat)
 			:matrix(mat) {}
-		~Mesh() {
+		~GLTF_Mesh() {
 			for (auto& p : primitives) {
 				delete p;
 			}
@@ -82,7 +82,7 @@ namespace Brisk
 		GLTF_Node* parent;
 		uint32_t index;
 		std::vector<GLTF_Node*> children;
-		Mesh* mesh = nullptr;
+		GLTF_Mesh* mesh = nullptr;
 		glm::mat4 matrix;
 		std::string name;
 		glm::vec3 translation;
@@ -98,10 +98,10 @@ namespace Brisk
 		}
 	};
 
-	class Model {
+	class Mesh {
 	public:
-		Model() = default;
-		~Model();
+		Mesh() = default;
+		~Mesh();
 		void Load(const std::string& path);
 		void GetNodeProps(const tinygltf::Node& node, const tinygltf::Model& model, uint32_t& vertex_count, uint32_t& index_count);
 		void LoadNode(GLTF_Node* parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model);
@@ -109,9 +109,9 @@ namespace Brisk
 
 		const std::vector<GLTF_Node*> GetNodes() const { return m_nodes; }
 		const std::vector<GLTF_Node*> GetLinearNodes() const { return m_linear_nodes; }
-		const std::vector<Material>& GetMaterials() const { return m_materials; }
-		const Material& GetMaterial(int i) const { return m_materials[i]; }
-		Material& GetMaterial(int i) { return m_materials[i]; }
+		const std::vector<MaterialData>& GetMaterials() const { return m_materials; }
+		const MaterialData& GetMaterial(int i) const { return m_materials[i]; }
+		MaterialData& GetMaterial(int i) { return m_materials[i]; }
 	private:
 		std::vector<GLTF_Node*> m_nodes;
 		std::vector<GLTF_Node*> m_linear_nodes;

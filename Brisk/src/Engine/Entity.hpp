@@ -98,8 +98,9 @@ namespace Brisk
 		{
 			return !(*this == other);
 		}
-	private:
+
 		entt::entity m_EntityHandle{ entt::null };
+		static Scene* m_Scene;
 		std::vector<Entity> m_Children;
 	};
 

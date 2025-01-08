@@ -7,10 +7,11 @@
 #include <string>
 #include <memory>
 #include <Graphics/Vulkan/DescriptorVulkan.hpp>
+#include "ShaderModule.hpp"
 
 namespace Brisk
 {
-    class Shader;
+    //class Shader;
 
     class Pipeline {
     public:

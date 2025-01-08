@@ -30,7 +30,7 @@ namespace Brisk
 		inline void AddDescriptorLayout(const std::shared_ptr<DescriptorLayout> descriptor) { m_DescriptorLayout = descriptor; }
 		inline const std::shared_ptr<DescriptorLayout> GetDescriptorLayout() const { return m_DescriptorLayout; }
 
-		const VkPipelineShaderStageCreateInfo GetShaderStage() const { return m_ShaderStage; }
+		//const VkPipelineShaderStageCreateInfo GetShaderStage() const { return m_ShaderStage; }
 
 	private:
 		VkDescriptorSet m_DescriptorSet;

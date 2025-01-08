@@ -80,17 +80,17 @@ namespace Brisk
 	{
 		std::string name = "Model Component";
 
-		Ref<Model> pModel;
+		Ref<Mesh> pModel;
 
-		ModelComponent() = default;
-		ModelComponent(const ModelComponent &) = default;
+		MeshComponent() = default;
+		MeshComponent(const MeshComponent&) = default;
 	};
 
 	struct MaterialComponent
 	{
 		std::string name = "Material Component";
 
-		std::vector<std::shared_ptr<Shader> p_Materials;
+		std::vector<std::shared_ptr<Shader>> pMaterials;
 
 		MaterialComponent() = default;
 		MaterialComponent(const MaterialComponent &) = default;

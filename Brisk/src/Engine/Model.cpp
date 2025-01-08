@@ -3,13 +3,13 @@
 #include "tiny_gltf.h"
 
 namespace Brisk {
-	Model::~Model() {
+	Mesh::~Mesh() {
 		for (auto node : m_nodes) {
 			delete node;
 		}
 	}
 
-	void Model::Load(const std::string& path) {
+	void Mesh::Load(const std::string& path) {
 		tinygltf::TinyGLTF loader;
 		tinygltf::Model model;
 		std::string error;
@@ -109,9 +109,9 @@ namespace Brisk {
 		}
 	}
 
-	void Model::LoadMaterials(tinygltf::Model model) {
+	void Mesh::LoadMaterials(tinygltf::Model model) {
 		for (tinygltf::Material& mat : model.materials) {
-			Material material{};
+			MaterialData material{};
 			material.doubleSided = mat.doubleSided;
 			if (mat.values.find("baseColorTexture") != mat.values.end()) {
 				material.baseColorTexture = m_textures[mat.values["baseColorTexture"].TextureIndex()];
@@ -145,11 +145,11 @@ namespace Brisk {
 			if (mat.additionalValues.find("alphaMode") != mat.additionalValues.end()) {
 				tinygltf::Parameter param = mat.additionalValues["alphaMode"];
 				if (param.string_value == "BLEND") {
-					material.alphaMode = Material::ALPHAMODE_BLEND;
+					material.alphaMode = MaterialData::ALPHAMODE_BLEND;
 				}
 				if (param.string_value == "MASK") {
 					material.alphaCutoff = 0.5f;
-					material.alphaMode = Material::ALPHAMODE_MASK;
+					material.alphaMode = MaterialData::ALPHAMODE_MASK;
 				}
 			}
 			if (mat.additionalValues.find("alphaCutoff") != mat.additionalValues.end()) {
@@ -206,10 +206,10 @@ namespace Brisk {
 			m_materials.push_back(material);
 		}
 		// Push a default material at the end of the list for meshes with no material assigned
-		m_materials.push_back(Material());
+		m_materials.push_back(MaterialData());
 	}
 
-	void Model::GetNodeProps(const tinygltf::Node& node, const tinygltf::Model& model, uint32_t& vertex_count, uint32_t& index_count) {
+	void Mesh::GetNodeProps(const tinygltf::Node& node, const tinygltf::Model& model, uint32_t& vertex_count, uint32_t& index_count) {
 		if (node.children.size() > 0) {
 			for (size_t i = 0; i < node.children.size(); i++) {
 				GetNodeProps(model.nodes[node.children[i]], model, vertex_count, index_count);
@@ -227,7 +227,7 @@ namespace Brisk {
 		}
 	}
 
-	void Model::LoadNode(GLTF_Node* parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model) {
+	void Mesh::LoadNode(GLTF_Node* parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model) {
 		
 
 		GLTF_Node* new_node = new GLTF_Node();
@@ -256,7 +256,7 @@ namespace Brisk {
 
 		if (node.mesh > -1) {
 			const tinygltf::Mesh mesh = model.meshes[node.mesh];
-			Mesh* new_mesh = new Mesh(new_node->matrix);
+			GLTF_Mesh* new_mesh = new GLTF_Mesh(new_node->matrix);
 			for (auto& primitive : mesh.primitives) {
 				uint32_t vertex_start = m_vertex_pos;
 				uint32_t index_start = m_index_pos;
@@ -321,12 +321,12 @@ namespace Brisk {
 
 					const tinygltf::Accessor& pos_accessor = model.accessors[primitive.attributes.find("POSITION")->second];
 					for (size_t v = 0; v < pos_accessor.count; v++) {
-						Vertex& vert = m_vertex_buffer[m_vertex_pos];
-						vert.pos = glm::vec4(glm::make_vec3(&buffer_pos[v * posByteStride]), 1.0f);
-						vert.normal = glm::normalize(glm::vec3(buffer_normals ? glm::make_vec3(&buffer_normals[v * normByteStride]) : glm::vec3(0.0f)));
-						vert.uv0 = buffer_uv_set0 ? glm::make_vec2(&buffer_uv_set0[v * uv0ByteStride]) : glm::vec3(0.0f);
-						vert.uv1 = buffer_uv_set1 ? glm::make_vec2(&buffer_uv_set1[v * uv1ByteStride]) : glm::vec3(0.0f);
-						vert.color = buffer_color_set0 ? glm::make_vec4(&buffer_color_set0[v * color0ByteStride]) : glm::vec4(1.0f);
+						MeshData& vert = m_vertex_buffer[m_vertex_pos];
+						vert.Position = glm::vec4(glm::make_vec3(&buffer_pos[v * posByteStride]), 1.0f);
+						vert.Normal = glm::normalize(glm::vec3(buffer_normals ? glm::make_vec3(&buffer_normals[v * normByteStride]) : glm::vec3(0.0f)));
+						vert.UV0 = buffer_uv_set0 ? glm::make_vec2(&buffer_uv_set0[v * uv0ByteStride]) : glm::vec3(0.0f);
+						vert.UV1 = buffer_uv_set1 ? glm::make_vec2(&buffer_uv_set1[v * uv1ByteStride]) : glm::vec3(0.0f);
+						vert.Color = buffer_color_set0 ? glm::make_vec4(&buffer_color_set0[v * color0ByteStride]) : glm::vec4(1.0f);
 
 						m_vertex_pos++;
 					}

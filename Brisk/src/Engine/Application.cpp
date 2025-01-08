@@ -17,7 +17,7 @@ namespace Brisk
 		m_Renderer = Renderer::Create();
 		m_Renderer->Init();
 
-		m_SceneManager= std::make_unique<SceneManager>();
+		m_SceneManager = std::make_unique<SceneManager>();
 		m_SceneManager->Init();
 	}
 

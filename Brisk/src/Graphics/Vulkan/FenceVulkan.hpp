@@ -8,11 +8,11 @@ namespace Brisk
 {
     class FenceVulkan : public Fence {
     public:
-        virtual void Init() = 0;
+        virtual void Init() override;
 
-        virtual void Wait() = 0;
-        virtual void Reset() = 0;
+        virtual void Wait() override;
+        virtual void Reset() override;
     private:
-        VkFence m_Fence;
+        VkFence mFence;
     };
 }

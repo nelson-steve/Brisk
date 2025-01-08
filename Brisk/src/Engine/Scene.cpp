@@ -48,10 +48,10 @@ namespace Brisk
 		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<ScriptComponent>();
-		std::shared_ptr<Model> model;
-		model = std::make_shared<Model>();
+		std::shared_ptr<Mesh> model;
+		model = std::make_shared<Mesh>();
 		model->Load("Assets/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
-		entity.AddComponent<ModelComponent>().AddMesh(model, (uint32_t)entity);
+		//entity.AddComponent<ModelComponent>().AddMesh(model, (uint32_t)entity);
 		// entity.AddComponent<ShaderComponent>().AddShader(m_AssetManager->LoadShader("Assets/Shaders/ModelShader.glsl"));
 		entity.AddComponent<PhysicsComponent>();
 		entity.AddComponent<BoxColliderComponent>();
@@ -662,26 +662,6 @@ namespace Brisk
 
 	template<>
 	void Scene::OnComponentAdded<ScriptComponent>(Entity entity, ScriptComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentAdded<NativeScriptComponent>(Entity entity, NativeScriptComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentAdded<ShaderComponent>(Entity entity, ShaderComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentAdded<TextureComponent>(Entity entity, TextureComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentAdded<ModelComponent>(Entity entity, ModelComponent& component)
 	{
 	}
 

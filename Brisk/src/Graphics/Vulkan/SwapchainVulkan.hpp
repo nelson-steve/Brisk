@@ -10,7 +10,8 @@ namespace Brisk
 		virtual void Create(Mode mode) override;
 		virtual void Release() override;
 
-		VkResult AquireNextImage(uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* pImageIndex);
+		//VkResult AquireNextImage(uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* pImageIndex);
+		virtual void AquireNextImage(uint64_t timeout, std::shared_ptr<Semaphore> semaphore, std::shared_ptr<Fence> fence, uint32_t* pImageIndex) override {};
 		VkSwapchainKHR GetSwapchain() const { return m_Swapchain; }
 		std::vector<VkImage> GetSwapchainImages() const { return m_SwapchainImages; }
 		std::vector<VkImageView> GetSwapchainImageViews() const { return m_SwapchainImageViews; }

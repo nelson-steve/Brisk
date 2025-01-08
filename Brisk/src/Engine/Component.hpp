@@ -80,7 +80,7 @@ namespace Brisk
 	{
 		std::string name = "Model Component";
 
-		Ref<Model> m_Model;
+		Ref<Model> pModel;
 
 		ModelComponent() = default;
 		ModelComponent(const ModelComponent &) = default;

@@ -125,6 +125,8 @@ namespace Brisk
 
     void Renderer::RenderScene(float deltaTime)
     {
+        auto view = m_Registry.view<MeshComponent>();
+
         fence->Wait();
 
         m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, fence, &imageIndex);
@@ -154,39 +156,50 @@ namespace Brisk
 
         fence->Reset();
 
-        // const VkBuffer vertexBuffers[] = { std::static_pointer_cast<BufferVulkan>(m_VertexBuffer)->Get() };
-        VkDeviceSize offsets[] = {0};
-        // vkCmdBindVertexBuffers(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, vertexBuffers, offsets);
-        // vkCmdBindDescriptorSets(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, std::static_pointer_cast<PipelineVulkan>(pipeline)->GetLayout(), 0, 1, &m_DescriptorSet, 0, nullptr);
-        // RenderCommand::Draw(cmd, static_cast<uint32_t>(vertices.size()), 0);
+        for (auto e : view)
+        {
+            Entity entity = { e, this };
+            auto& mesh = entity.GetComponent<MeshComponent>();
+            
+            // vkCmdBindVertexBuffers(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, vertexBuffers, offsets);
+            for (auto& node : mesh.pModel->GetNodes()) {
+                DrawNode(mesh.pModel, node);
+            }
+        }
 
         pipeline->m_Specs.pRenderPass->End(cmd);
         cmd->UnBind();
-
-        std::shared_ptr<Queue> queue;
 
         Queue::SubmitInfo submitInfo{};
         submitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
         submitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
         submitInfo.pCmdBuffers.push_back(cmd);
-
         submitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore);
 
+        // Submit queue
         queue->Submit(submitInfo, fence);
-        //if (vkQueueSubmit(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle, 1, &submitInfo, fence) != VK_SUCCESS)
-        //{
-        //    throw std::runtime_error("failed to submit draw command buffer!");
-        //}
 
         Queue::PresentInfo presentInfo{};
         presentInfo.pWaitSemaphores.push_back(RenderFinishedSemaphore);
-
-        // VkSwapchainKHR swapChains[] = {std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->GetSwapchain()};
         presentInfo.pSwapchains.push_back(m_Swapchain);
         presentInfo.imageIndex = imageIndex;
 
+        // Present
         queue->Present(presentInfo);
-        //vkQueuePresentKHR(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle, &presentInfo);
+    }
+
+ void Renderer::DrawNode(const std::shared_ptr<Model> model, std::vector<std::shared_ptr<Shader> materials, Node* node) {
+        if (node->mesh) {
+            for (Primitive* primitive : node->mesh->primitives) {
+                pipeline->Bind();
+                uint32_t index = primitive->material_index > -1 ? primitive->material_index : 0;
+                materials[index]->Bind();
+                RenderCommand::DrawIndex(cmd, primitive->index_count, 1, primitive->first_index, 0, 0);
+            }
+        }
+        for (auto& child : node->children) {
+            DrawNode(object, materials, child);
+        }
     }
 
     std::unique_ptr<Renderer> Renderer::Create()

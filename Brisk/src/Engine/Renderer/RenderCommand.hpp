@@ -15,6 +15,9 @@ namespace Brisk
 		inline static void Draw(std::shared_ptr<CommandBuffer> cmd, uint32_t vertexCount, uint32_t firstVertex){
 			s_RendererAPI->Draw(cmd, vertexCount, firstVertex);
 		}
+		inline static void DrawIndex(std::shared_ptr<CommandBuffer> cmd, uint32_t vertexCount, uint32_t firstVertex){
+			s_RendererAPI->DrawIndex(cmd, vertexCount, firstVertex);
+		}
 	public:
 		static RendererAPI* s_RendererAPI;
 	};

@@ -19,7 +19,7 @@ namespace Brisk
 		glm::vec4 Color;
 	};
 
-	struct Material {
+	struct MaterialData {
 		enum AlphaMode { ALPHAMODE_OPAQUE, ALPHAMODE_MASK, ALPHAMODE_BLEND };
 		AlphaMode alphaMode = ALPHAMODE_OPAQUE;
 		float alphaCutoff = 1.0f;
@@ -51,7 +51,6 @@ namespace Brisk
 			bool metallicRoughness = true;
 			bool specularGlossiness = false;
 		} pbrWorkflows;
-		std::shared_ptr<Shader> p_Shader;
 		int index = 0;
 		bool unlit = false;
 		float emissiveStrength = 1.0f;

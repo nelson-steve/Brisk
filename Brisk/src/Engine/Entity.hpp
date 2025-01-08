@@ -74,6 +74,14 @@ namespace Brisk
 			m_Scene->m_Registry.remove<T>(entity);
 		}
 
+		void AddChild(Entity e) {
+			m_Children.push_back(e);
+		}
+
+		const std::vector<Entity>& GetChildren() {
+			return m_Children;
+		}		
+
 		entt::entity GetEntityHandle() const { return m_EntityHandle; }
 		const std::string& GetName();
 
@@ -92,7 +100,7 @@ namespace Brisk
 		}
 	private:
 		entt::entity m_EntityHandle{ entt::null };
-		static Scene* m_Scene;
+		std::vector<Entity> m_Children;
 	};
 
 }

@@ -25,6 +25,10 @@ namespace Brisk
 		//vkUpdateDescriptorSets(m_device, m_DescriptorWrites.size(), m_DescriptorWrites.data(), 0, nullptr);
 	}
 
+	void ShaderVulkan::Allocate(std::shared_ptr<CommandBuffer> cmdBuffer, std::shared_ptr<Pipeline> pipeline) {
+		//
+	}
+
 	void ShaderVulkan::Bind(std::shared_ptr<CommandBuffer> cmdBuffer, std::shared_ptr<Pipeline> pipeline)
 	{
 		vkCmdBindDescriptorSets(

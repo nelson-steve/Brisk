@@ -24,6 +24,7 @@ namespace Brisk
 		virtual void SetEmissiveTexture(std::shared_ptr<Texture> texture) override;
 		virtual void SetMVPBuffer() override;
 
+		virtual void Allocate(std::shared_ptr<CommandBuffer> cmdBuffer, std::shared_ptr<Pipeline> pipeline) override;
 		virtual void UpdateResources() override;
 		virtual void Bind(std::shared_ptr<CommandBuffer> cmdBuffer, std::shared_ptr<Pipeline> pipeline) override;
 

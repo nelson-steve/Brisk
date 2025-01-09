@@ -102,28 +102,6 @@ namespace Brisk
 		return entity;
 	}
 
-	Entity Scene::CreateSkyboxEntity(const std::string& name)
-	{
-		Entity entity = { m_Registry.create(), this };
-		entity.AddComponent<TransformComponent>();
-		entity.AddComponent<SkyboxComponent>();
-		//TextureConfiguration config{};
-		//config.m_MinFilter = Config::MinMagFilters::LINEAR;
-		//config.m_MagFilter = Config::MinMagFilters::LINEAR;
-		//config.m_TextureLayout = Config::TextureLayout::ClampToEdge;
-		//config.Path = entity.GetComponent<SkyboxComponent>().path;
-		//config.m_NullData = false;
-		//config.m_Flipped = true;
-		//entity.GetComponent<SkyboxComponent>().m_Skybox = Texture2D::Create(config);
-		//entity.GetComponent<SkyboxComponent>().m_Model = m_AssetManager->LoadGLTFModel("Assets/gltf_models/Cube/glTF/Cube.gltf");
-		//entity.GetComponent<SkyboxComponent>().m_Model->SetSkybox(true);
-		//entity.AddComponent<ShaderComponent>().AddShader(m_AssetManager->LoadShader("Assets/Shaders/SkyboxShader.glsl"));
-
-		auto& tag = entity.AddComponent<TagComponent>();
-		tag.Tag = name.empty() ? "Entity" : name;
-		return entity;
-	}
-
 	Entity Scene::CreateEntity(const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };

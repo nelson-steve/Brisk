@@ -193,9 +193,9 @@ namespace Brisk
 		}
 	}
 
-	VkResult SwapchainVulkan::AquireNextImage(uint64_t timeout, VkSemaphore semaphore, VkFence fence, uint32_t* imageIndex) {
+	void SwapchainVulkan::AquireNextImage(uint64_t timeout, std::shared_ptr<Semaphore> semaphore, std::shared_ptr<Fence> fence, uint32_t* pImageIndex) {
 		VkResult result = vkAcquireNextImageKHR(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(),
-			m_Swapchain, timeout, semaphore, VK_NULL_HANDLE, imageIndex);
-		return result;
+			m_Swapchain, timeout, nullptr/*semaphore*/, VK_NULL_HANDLE, pImageIndex);
+		//return result;
 	}
 }

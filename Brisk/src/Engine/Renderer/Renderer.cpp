@@ -25,6 +25,7 @@ namespace Brisk
     std::shared_ptr<CommandBuffer> cmd;
     VkCommandPool m_CommandPool;
     RenderCommand command;
+    std::shared_ptr<Swapchain> Renderer::m_Swapchain;
 
     std::shared_ptr<Pipeline> pipeline;
     std::shared_ptr<Queue> queue;
@@ -51,10 +52,10 @@ namespace Brisk
         pbrLayout->Init();
 
         std::shared_ptr<ShaderModule> vertexShaderModule = ShaderModule::Create();
-        vertexShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
+        //vertexShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
 
         std::shared_ptr<ShaderModule> fragmentShaderModule = ShaderModule::Create();
-        fragmentShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
+        //fragmentShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
 
         Pipeline::PipelineSpecs pipelineSpecs{};
         RenderPass::RenderPassSpecs renderPassSpecs;

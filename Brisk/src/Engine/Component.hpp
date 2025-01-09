@@ -128,6 +128,8 @@ namespace Brisk
 
 	struct SkyboxComponent
 	{
+		int value;
+
 		SkyboxComponent() = default;
 		SkyboxComponent(const SkyboxComponent &) = default;
 	};

@@ -86,11 +86,11 @@ namespace Brisk
             throw std::runtime_error("failed to create render pass!");
         }
 
-        //for (int i = 0; i < static_cast<SwapchainVulkan*>(Renderer::swapchain)->GetSwapchainImageViews().size(); i++) 
+        for (int i = 0; i < std::static_pointer_cast<SwapchainVulkan>(Renderer::GetSwapchain())->GetSwapchainImageViews().size(); i++) 
         {
             std::vector<VkImageView> imageAttachments;
-            //imageAttachments.push_back(static_cast<SwapchainVulkan*>(Renderer::swapchain)->GetSwapchainImageViews()[i]);
-            //imageAttachments.push_back(static_cast<SwapchainVulkan*>(Renderer::swapchain)->GetDepthImageView());
+            imageAttachments.push_back(std::static_pointer_cast<SwapchainVulkan>(Renderer::GetSwapchain())->GetSwapchainImageViews()[i]);
+            imageAttachments.push_back(std::static_pointer_cast<SwapchainVulkan>(Renderer::GetSwapchain())->GetDepthImageView());
 
             VkFramebuffer framebuffer;
             VkFramebufferCreateInfo framebufferInfo{};
@@ -98,8 +98,8 @@ namespace Brisk
             framebufferInfo.renderPass = m_RenderPass;
             framebufferInfo.attachmentCount = static_cast<uint32_t>(imageAttachments.size());
             framebufferInfo.pAttachments = imageAttachments.data();
-            //framebufferInfo.width = Renderer::swapchain->GetExtentWidth();
-            //framebufferInfo.height = Renderer::swapchain->GetExtentHeight();
+            framebufferInfo.width = Renderer::GetSwapchain()->GetExtentWidth();
+            framebufferInfo.height = Renderer::GetSwapchain()->GetExtentHeight();
             framebufferInfo.layers = 1;
             if (vkCreateFramebuffer(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &framebufferInfo, nullptr, &framebuffer) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create framebuffer!");

@@ -110,7 +110,7 @@ namespace Brisk
 
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages{};
         for (int i = 0; i < specs.pShaderModules.size(); i++) {
-            //shaderStages.push_back(std::static_pointer_cast<ShaderVulkan>(specs.pShaderModules[i])->GetShaderStage());
+            shaderStages.push_back(std::static_pointer_cast<ShaderVulkan>(specs.pShaderModules[i])->GetShaderStage());
         }
 
         VkGraphicsPipelineCreateInfo pipelineInfo{ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };

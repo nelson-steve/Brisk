@@ -11,8 +11,6 @@
 
 namespace Brisk
 {
-    //class Shader;
-
     class Pipeline {
     public:
         struct Attribute {

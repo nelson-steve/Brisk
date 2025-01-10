@@ -30,7 +30,7 @@ namespace Brisk
 
 	void Application::Update(float deltaTime) {
 		m_Renderer->RenderScene(deltaTime);
-		m_EditorCamera->OnUpdate(deltaTime);
+		//m_EditorCamera->OnUpdate(deltaTime);
 		m_Window->ProcessEvents();
 	}
 

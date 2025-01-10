@@ -124,6 +124,8 @@ namespace Brisk
             throw std::runtime_error("failed to create command pool!");
         }
 
+        queue = Queue::Create();
+
         std::static_pointer_cast<CommandBufferVulkan>(cmd)->Allocate(m_CommandPool);
     }
 
@@ -137,6 +139,9 @@ namespace Brisk
 
         m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &imageIndex);
         // vkResetCommandBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), /*VkCommandBufferResetFlagBits*/ 0);
+
+        fence->Reset();
+
         cmd->Reset();
         cmd->Bind();
         pipeline->m_Specs.pRenderPass->Begin(cmd, imageIndex);
@@ -164,8 +169,6 @@ namespace Brisk
         //        vkCmdSetScissor(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, &scissor); 
         //    }
         //);
-
-        fence->Reset();
 
         for (auto e : view)
         {

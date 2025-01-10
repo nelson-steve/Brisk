@@ -69,42 +69,42 @@ namespace Brisk
 
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
 			{
-				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-				data.Width = width;
-				data.Height = height;
+				//WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				//data.Width = width;
+				//data.Height = height;
 
-				WindowResizeEvent event(width, height);
-				//Brisk_Core_TRACE("{0}, {1}", width, height);
-				data.EventCallBack(event);
+				//WindowResizeEvent event(width, height);
+				////Brisk_Core_TRACE("{0}, {1}", width, height);
+				//data.EventCallBack(event);
 			});
 
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
 			{
-				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				//WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
-				WindowCloseEvent event;
-				data.EventCallBack(event);
+				//WindowCloseEvent event;
+				//data.EventCallBack(event);
 				//Brisk_Core_TRACE("Window Close");
 			});
 
 		glfwSetWindowFocusCallback(m_Window, [](GLFWwindow* window, int focus)
 			{
-				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-				data.Focus = focus;
+				//WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				//data.Focus = focus;
 
-				switch (focus)
-				{
-				case 0:
-				{
-					WindowFocusEvent event(focus);
-					data.EventCallBack(event);
-				}
-				case 1:
-				{
-					WindowLoseFocusEvent event(focus);
-					data.EventCallBack(event);
-				}
-				}
+				//switch (focus)
+				//{
+				//case 0:
+				//{
+				//	WindowFocusEvent event(focus);
+				//	data.EventCallBack(event);
+				//}
+				//case 1:
+				//{
+				//	WindowLoseFocusEvent event(focus);
+				//	data.EventCallBack(event);
+				//}
+				//}
 			});
 
 		//glfwSetWindowPosCallback(m_Window, [](GLFWwindow* window, int xPos, int yPos)
@@ -125,67 +125,67 @@ namespace Brisk
 
 		glfwSetMouseButtonCallback(m_Window, [](GLFWwindow* window, int button, int action, int mods)
 			{
-				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				//WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
-				switch (action)
-				{
-				case GLFW_PRESS:
-				{
-					MouseButtonPressedEvent event(button);
-					data.EventCallBack(event);
-					break;
-				}
-				case GLFW_RELEASE:
-				{
-					MouseButtonReleasedEvent event(button);
-					data.EventCallBack(event);
-					break;
-				}
-				}
+				//switch (action)
+				//{
+				//case GLFW_PRESS:
+				//{
+				//	MouseButtonPressedEvent event(button);
+				//	data.EventCallBack(event);
+				//	break;
+				//}
+				//case GLFW_RELEASE:
+				//{
+				//	MouseButtonReleasedEvent event(button);
+				//	data.EventCallBack(event);
+				//	break;
+				//}
+				//}
 
 			});
 
 		glfwSetScrollCallback(m_Window, [](GLFWwindow* window, double xOffset, double yOffset)
 			{
-				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				//WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
-				MouseScrolledEvent event((float)xOffset, (float)yOffset);
-				data.EventCallBack(event);
+				//MouseScrolledEvent event((float)xOffset, (float)yOffset);
+				//data.EventCallBack(event);
 			});
 
 		glfwSetCursorPosCallback(m_Window, [](GLFWwindow* window, double xPos, double yPos)
 			{
-				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				//WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
-				MouseMovedEvent event((float)xPos, (float)yPos);
-				data.EventCallBack(event);
+				//MouseMovedEvent event((float)xPos, (float)yPos);
+				//data.EventCallBack(event);
 			});
 
 		glfwSetKeyCallback(m_Window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
 			{
-				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				//WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
-				switch (action)
-				{
-				case GLFW_PRESS:
-				{
-					KeyPressedEvent event(key, 0);
-					data.EventCallBack(event);
-					break;
-				}
-				case GLFW_RELEASE:
-				{
-					KeyReleasedEvent event(key);
-					data.EventCallBack(event);
-					break;
-				}
-				case GLFW_REPEAT:
-				{
-					KeyPressedEvent event(key, 1);
-					data.EventCallBack(event);
-					break;
-				}
-				}
+				//switch (action)
+				//{
+				//case GLFW_PRESS:
+				//{
+				//	KeyPressedEvent event(key, 0);
+				//	data.EventCallBack(event);
+				//	break;
+				//}
+				//case GLFW_RELEASE:
+				//{
+				//	KeyReleasedEvent event(key);
+				//	data.EventCallBack(event);
+				//	break;
+				//}
+				//case GLFW_REPEAT:
+				//{
+				//	KeyPressedEvent event(key, 1);
+				//	data.EventCallBack(event);
+				//	break;
+				//}
+				//}
 			});
 	}
 

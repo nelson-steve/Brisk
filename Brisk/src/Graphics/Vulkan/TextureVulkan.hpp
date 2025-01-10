@@ -42,5 +42,7 @@ namespace Brisk
 		VkImageView m_ImageView;
 		VkDeviceMemory m_Memory;
 		VkSampler m_Sampler;
+
+		VkDevice m_DeviceCached;
 	};
 }

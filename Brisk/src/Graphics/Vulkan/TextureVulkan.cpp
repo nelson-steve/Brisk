@@ -5,6 +5,7 @@
 namespace Brisk 
 {
     void TextureVulkan::Init() {
+        assert(m_Width != 0 && m_Height != 0);
         VkImageCreateInfo imageinfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
         imageinfo.pNext = nullptr;
         imageinfo.flags = 0;
@@ -335,6 +336,9 @@ namespace Brisk
     }
 
     void TextureVulkan::Init(tinygltf::Image image, TextureSampler sampler) {
+        m_DeviceCached = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice();
+        VkPhysicalDevice physicalDevice = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetPhysicalDevice();
+
         unsigned char* buffer = nullptr;
         bool delete_buffer = false;
         VkDeviceSize buffer_size = 0;
@@ -361,13 +365,13 @@ namespace Brisk
 
         VkFormatProperties formatProperties;
 
-        //m_width = image.width;
-        //m_height = image.height;
+        m_Width = image.width;
+        m_Height = image.height;
         //m_mip_levels = static_cast<uint32_t>(floor(log2(std::max(m_width, m_height))) + 1.0);
 
-        //vkGetPhysicalDeviceFormatProperties(m_graphics_device->PhysicalDevice(), format, &formatProperties);
-        //assert(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT);
-        //assert(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT);
+        vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &formatProperties);
+        assert(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT);
+        assert(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT);
 
         VkMemoryAllocateInfo memAllocInfo{};
         memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -381,53 +385,86 @@ namespace Brisk
         bufferCreateInfo.size = buffer_size;
         bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
         bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        //if (vkCreateBuffer(m_graphics_device->Device(), &bufferCreateInfo, nullptr, &stagingBuffer)) {
-        //    throw std::runtime_error("failed to create buffer!");
-        //}
-        //vkGetBufferMemoryRequirements(m_graphics_device->Device(), stagingBuffer, &memReqs);
+        if (vkCreateBuffer(m_DeviceCached, &bufferCreateInfo, nullptr, &stagingBuffer)) {
+            throw std::runtime_error("failed to create buffer!");
+        }
+        vkGetBufferMemoryRequirements(m_DeviceCached, stagingBuffer, &memReqs);
         memAllocInfo.allocationSize = memReqs.size;
-        //memAllocInfo.memoryTypeIndex = vkUtilities::FindMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT, m_graphics_device->PhysicalDevice());
-        //if (vkAllocateMemory(m_graphics_device->Device(), &memAllocInfo, nullptr, &stagingMemory)) {
-        //    throw std::runtime_error("failed to load texture image!");
-        //}
-        //if (vkBindBufferMemory(m_graphics_device->Device(), stagingBuffer, stagingMemory, 0)) {
-        //    throw std::runtime_error("failed to load texture image!");
-        //}
+        memAllocInfo.memoryTypeIndex = UtilitiesVulkan::FindMemoryType(physicalDevice, memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        if (vkAllocateMemory(m_DeviceCached, &memAllocInfo, nullptr, &stagingMemory)) {
+            throw std::runtime_error("failed to load texture image!");
+        }
+        if (vkBindBufferMemory(m_DeviceCached, stagingBuffer, stagingMemory, 0)) {
+            throw std::runtime_error("failed to load texture image!");
+        }
 
         uint8_t* data;
-        //if (vkMapMemory(m_graphics_device->Device(), stagingMemory, 0, memReqs.size, 0, (void**)&data)) {
-        //    throw std::runtime_error("failed to map memory!");
-        //}
-        //memcpy(data, buffer, buffer_size);
-        //vkUnmapMemory(m_graphics_device->Device(), stagingMemory);
+        if (vkMapMemory(m_DeviceCached, stagingMemory, 0, memReqs.size, 0, (void**)&data)) {
+            throw std::runtime_error("failed to map memory!");
+        }
+        memcpy(data, buffer, buffer_size);
+        vkUnmapMemory(m_DeviceCached, stagingMemory);
 
         VkImageCreateInfo image_create_info{};
         image_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
         image_create_info.imageType = VK_IMAGE_TYPE_2D;
         image_create_info.format = format;
         //image_create_info.mipLevels = m_mip_levels;
+        image_create_info.mipLevels = 1;
         image_create_info.arrayLayers = 1;
         image_create_info.samples = VK_SAMPLE_COUNT_1_BIT;
         image_create_info.tiling = VK_IMAGE_TILING_OPTIMAL;
         image_create_info.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
         image_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         image_create_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        //image_create_info.extent = { m_width, m_height, 1 };
+        image_create_info.extent.width = m_Width;
+        image_create_info.extent.height = m_Height;
+        image_create_info.extent.depth = 1;
         image_create_info.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-        //if (vkCreateImage(m_graphics_device->Device(), &image_create_info, nullptr, &m_texture_image)) {
-        //    throw std::runtime_error("failed to create image!");
-        //}
-        //vkGetImageMemoryRequirements(m_graphics_device->Device(), m_texture_image, &memReqs);
+        if (vkCreateImage(m_DeviceCached, &image_create_info, nullptr, &m_Image)) {
+            throw std::runtime_error("failed to create image!");
+        }
+        vkGetImageMemoryRequirements(m_DeviceCached, m_Image, &memReqs);
         memAllocInfo.allocationSize = memReqs.size;
-        //memAllocInfo.memoryTypeIndex = UtilitiesVulkan::FindMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_graphics_device->PhysicalDevice());
-        //if (vkAllocateMemory(m_graphics_device->Device(), &memAllocInfo, nullptr, &m_texture_image_memory)) {
-        //    throw std::runtime_error("failed to allocate memory!");
-        //}
-        //if (vkBindImageMemory(m_graphics_device->Device(), m_texture_image, m_texture_image_memory, 0)) {
-        //    throw std::runtime_error("failed to find memory!");
-        //}
+        memAllocInfo.memoryTypeIndex = UtilitiesVulkan::FindMemoryType(physicalDevice, memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+        if (vkAllocateMemory(m_DeviceCached, &memAllocInfo, nullptr, &m_Memory)) {
+            throw std::runtime_error("failed to allocate memory!");
+        }
+        if (vkBindImageMemory(m_DeviceCached, m_Image, m_Memory, 0)) {
+            throw std::runtime_error("failed to find memory!");
+        }
 
-        //VkCommandBuffer copy_cmd = m_graphics_device->CreateCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
+        VkCommandPool cmdPool;
+        VkCommandPoolCreateInfo commandPoolCreateInfo = {};
+        commandPoolCreateInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
+        commandPoolCreateInfo.queueFamilyIndex = 0;  // Assuming 0 is the queue family index for graphics/transfer
+        commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+        if (vkCreateCommandPool(m_DeviceCached, &commandPoolCreateInfo, nullptr, &cmdPool) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate command buffers!");
+        }
+
+        VkCommandBuffer copy_cmd;
+        {
+            VkCommandBufferAllocateInfo allocInfo = {};
+            allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+            allocInfo.commandPool = cmdPool;
+            allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;  // Primary command buffer
+            allocInfo.commandBufferCount = 1;
+
+            if (vkAllocateCommandBuffers(m_DeviceCached, &allocInfo, &copy_cmd) != VK_SUCCESS) {
+                throw std::runtime_error("failed to allocate command buffers!");
+            }
+
+            VkCommandBufferBeginInfo beginInfo = {};
+            beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+            beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;  // One-time submission flag
+            beginInfo.pInheritanceInfo = nullptr;
+
+            if (vkBeginCommandBuffer(copy_cmd, &beginInfo) != VK_SUCCESS) {
+                throw std::runtime_error("failed to allocate command buffers!");
+            }
+        }
 
         VkImageSubresourceRange subresource_range = {};
         subresource_range.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
@@ -441,9 +478,9 @@ namespace Brisk
             image_memory_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
             image_memory_barrier.srcAccessMask = 0;
             image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-            //image_memory_barrier.image = m_texture_image;
-            //image_memory_barrier.subresourceRange = subresource_range;
-            //vkCmdPipelineBarrier(copy_cmd, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
+            image_memory_barrier.image = m_Image;
+            image_memory_barrier.subresourceRange = subresource_range;
+            vkCmdPipelineBarrier(copy_cmd, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
         }
 
         VkBufferImageCopy buffer_copy_region = {};
@@ -451,11 +488,11 @@ namespace Brisk
         buffer_copy_region.imageSubresource.mipLevel = 0;
         buffer_copy_region.imageSubresource.baseArrayLayer = 0;
         buffer_copy_region.imageSubresource.layerCount = 1;
-        //buffer_copy_region.imageExtent.width = m_width;
-        //buffer_copy_region.imageExtent.height = m_height;
+        buffer_copy_region.imageExtent.width = m_Width;
+        buffer_copy_region.imageExtent.height = m_Height;
         buffer_copy_region.imageExtent.depth = 1;
 
-        //vkCmdCopyBufferToImage(copy_cmd, stagingBuffer, m_texture_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &buffer_copy_region);
+        vkCmdCopyBufferToImage(copy_cmd, stagingBuffer, m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &buffer_copy_region);
 
         {
             VkImageMemoryBarrier image_memory_barrier{};
@@ -464,17 +501,29 @@ namespace Brisk
             image_memory_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
             image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
             image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-            //image_memory_barrier.image = m_texture_image;
-            //image_memory_barrier.subresourceRange = subresource_range;
-            //vkCmdPipelineBarrier(copy_cmd, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
+            image_memory_barrier.image = m_Image;
+            image_memory_barrier.subresourceRange = subresource_range;
+            vkCmdPipelineBarrier(copy_cmd, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
+        }
+
+
+        {
+            if (vkEndCommandBuffer(copy_cmd) != VK_SUCCESS) {
+                throw std::runtime_error("failed to allocate command buffers!");
+            }
+
+            VkSubmitInfo submitInfo = {};
+            submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+            submitInfo.commandBufferCount = 1;
+            submitInfo.pCommandBuffers = &copy_cmd;
+
+            if (vkQueueSubmit(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+                throw std::runtime_error("failed to allocate command buffers!");
+            }
         }
 
         // TODO: implement this
         //device->flushCommandBuffer(copyCmd, copyQueue, true);
-        //m_graphics_device->FlushCommandBuffer(copy_cmd, copy_queue, true);
-
-        //vkFreeMemory(m_graphics_device->Device(), stagingMemory, nullptr);
-        //vkDestroyBuffer(m_graphics_device->Device(), stagingBuffer, nullptr);
 
         // Generate the mip chain (glTF uses jpg and png, so we need to create this manually)
         //VkCommandBuffer blit_cmd = m_graphics_device->CreateCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
@@ -528,8 +577,33 @@ namespace Brisk
         //    }
         //}
 
+        //
+
+        VkCommandBuffer blit_cmd;
+        VkCommandBufferAllocateInfo allocBlitInfo = {};
+        allocBlitInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+        allocBlitInfo.commandPool = cmdPool;
+        allocBlitInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;  // Primary command buffer
+        allocBlitInfo.commandBufferCount = 1;
+
+        if (vkAllocateCommandBuffers(m_DeviceCached, &allocBlitInfo, &blit_cmd) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate command buffers!");
+        }
+
+        VkCommandBufferBeginInfo beginBlitInfo = {};
+        beginBlitInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginBlitInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;  // One-time submission flag
+        beginBlitInfo.pInheritanceInfo = nullptr;
+
+        if (vkBeginCommandBuffer(blit_cmd, &beginBlitInfo) != VK_SUCCESS) {
+            throw std::runtime_error("failed to allocate command buffers!");
+        }
+
+        //
+
         //subresource_range.levelCount = m_mip_levels;
-        //m_imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        VkImageLayout layout;
+        layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
         {
             VkImageMemoryBarrier imageMemoryBarrier{};
@@ -538,50 +612,67 @@ namespace Brisk
             imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
             imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-            //imageMemoryBarrier.image = m_texture_image;
-            //imageMemoryBarrier.subresourceRange = subresource_range;
-            //vkCmdPipelineBarrier(blit_cmd, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
+            imageMemoryBarrier.image = m_Image;
+            imageMemoryBarrier.subresourceRange = subresource_range;
+            vkCmdPipelineBarrier(blit_cmd, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
         }
 
         //m_graphics_device->FlushCommandBuffer(blit_cmd, copy_queue, true);
+        {
+            // Step 5: End Command Buffer Recording
+            if (vkEndCommandBuffer(blit_cmd) != VK_SUCCESS) {
+                throw std::runtime_error("failed to allocate command buffers!");
+            }
+
+            VkSubmitInfo submitInfo = {};
+            submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+            submitInfo.commandBufferCount = 1;
+            submitInfo.pCommandBuffers = &blit_cmd;
+
+            if (vkQueueSubmit(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+                throw std::runtime_error("failed to allocate command buffers!");
+            }
+        }
 
         VkSamplerCreateInfo samplerInfo{};
-        //samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        //samplerInfo.magFilter = sampler.mag_filter;
-        //samplerInfo.minFilter = sampler.min_filter;
-        //samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        //samplerInfo.addressModeU = sampler.address_modeU;
-        //samplerInfo.addressModeV = sampler.address_modeV;
-        //samplerInfo.addressModeW = sampler.address_modeW;
-        //samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
-        //samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-        //samplerInfo.maxAnisotropy = 1.0;
-        //samplerInfo.anisotropyEnable = VK_FALSE;
-        //samplerInfo.maxLod = (float)m_mip_levels;
-        //samplerInfo.maxAnisotropy = 8.0f;
-        //samplerInfo.anisotropyEnable = VK_TRUE;
-        //if (vkCreateSampler(m_graphics_device->Device(), &samplerInfo, nullptr, &m_texture_sampler)) {
-        //    throw std::runtime_error("failed to create sampler!");
-        //}
+        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+        samplerInfo.magFilter = (VkFilter) sampler.mag_filter;
+        samplerInfo.minFilter = (VkFilter)sampler.min_filter;
+        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+        samplerInfo.addressModeU = (VkSamplerAddressMode)sampler.address_modeU;
+        samplerInfo.addressModeV = (VkSamplerAddressMode)sampler.address_modeV;
+        samplerInfo.addressModeW = (VkSamplerAddressMode)sampler.address_modeW;
+        samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
+        samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+        samplerInfo.maxAnisotropy = 1.0;
+        samplerInfo.anisotropyEnable = VK_FALSE;
+        samplerInfo.maxLod = (float)1;
+        samplerInfo.maxAnisotropy = 8.0f;
+        if (vkCreateSampler(m_DeviceCached, &samplerInfo, nullptr, &m_Sampler)) {
+            throw std::runtime_error("failed to create sampler!");
+        }
 
         VkImageViewCreateInfo viewInfo{};
         viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
-        //viewInfo.image = m_texture_image;
+        viewInfo.image = m_Image;
         viewInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
         viewInfo.format = format;
         viewInfo.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
         viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         viewInfo.subresourceRange.layerCount = 1;
-        //viewInfo.subresourceRange.levelCount = m_mip_levels;
-        //if (vkCreateImageView(m_graphics_device->Device(), &viewInfo, nullptr, &m_texture_image_view)) {
-        //    throw std::runtime_error("failed to create image view!");
-        //}
+        viewInfo.subresourceRange.levelCount = 1;
+        if (vkCreateImageView(m_DeviceCached, &viewInfo, nullptr, &m_ImageView)) {
+            throw std::runtime_error("failed to create image view!");
+        }
 
-        //m_descriptor.sampler = m_texture_sampler;
-        //m_descriptor.imageView = m_texture_image_view;
-        //m_descriptor.imageLayout = m_imageLayout;
+        m_Descriptor.sampler = m_Sampler;
+        m_Descriptor.imageView = m_ImageView;
+        m_Descriptor.imageLayout = layout;
 
         if (delete_buffer)
             delete[] buffer;
+
+        //vkFreeMemory(m_DeviceCached, stagingMemory, nullptr);
+        //vkDestroyBuffer(m_DeviceCached, stagingBuffer, nullptr);
     }
 }

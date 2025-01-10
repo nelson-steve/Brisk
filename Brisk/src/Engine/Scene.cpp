@@ -47,13 +47,10 @@ namespace Brisk
 	{
 		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<TransformComponent>();
-		entity.AddComponent<ScriptComponent>();
 		std::shared_ptr<Mesh> model;
 		model = std::make_shared<Mesh>();
 		model->Load("../Data/Models/Cube/Cube.gltf");
 		entity.AddComponent<MaterialComponent>();
-		entity.AddComponent<PhysicsComponent>();
-		entity.AddComponent<BoxColliderComponent>();
 
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;

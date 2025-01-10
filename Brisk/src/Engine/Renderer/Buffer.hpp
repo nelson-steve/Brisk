@@ -18,6 +18,7 @@ namespace Brisk
 			bool mapPersistant) = 0;
 		virtual void Release() = 0;
 		virtual void UpdatePersistantData(uint32_t size, void* data) = 0;
+		
 
 		static std::shared_ptr<Buffer> Create();
 	protected:

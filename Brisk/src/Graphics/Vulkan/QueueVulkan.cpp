@@ -2,6 +2,9 @@
 
 #include "QueueVulkan.hpp"
 #include "SwapchainVulkan.hpp"
+#include "SemaphoreVulkan.hpp"
+#include "CommandBufferVulkan.hpp"
+#include "FenceVulkan.hpp"
 
 namespace Brisk 
 {
@@ -15,15 +18,15 @@ namespace Brisk
         }
 
         for (size_t i = 0; i < submitInfo.pWaitSemaphores.size(); ++i) {
-            //waitSemaphores[i] = submitInfo.pWaitSemaphores[i]->GetHandle();
+            waitSemaphores[i] = std::static_pointer_cast<SemaphoreVulkan>(submitInfo.pWaitSemaphores[i])->Get();
         }
         for (size_t i = 0; i < submitInfo.pSignalSemaphores.size(); ++i) {
-            //signalSemaphores[i] = submitInfo.pSignalSemaphores[i]->GetHandle();
+            signalSemaphores[i] = std::static_pointer_cast<SemaphoreVulkan>(submitInfo.pSignalSemaphores[i])->Get();
         }
 
         std::vector<VkCommandBuffer> commandBuffers(submitInfo.pCmdBuffers.size());
         for (size_t i = 0; i < submitInfo.pCmdBuffers.size(); ++i) {
-            //commandBuffers[i] = submitInfo.pCmdBuffers[i]->GetHandle();
+            commandBuffers[i] = std::static_pointer_cast<CommandBufferVulkan>(submitInfo.pCmdBuffers[i])->Get();
         }
 
         // Create submit info struct for Vulkan
@@ -37,24 +40,24 @@ namespace Brisk
         submitInfoVk.signalSemaphoreCount = static_cast<uint32_t>(submitInfo.pSignalSemaphores.size());
         submitInfoVk.pSignalSemaphores = signalSemaphores.data();
 
-        //VkFence vkFence = fence ? fence->GetHandle() : VK_NULL_HANDLE;
+        VkFence vkFence = fence ? std::static_pointer_cast<FenceVulkan>(fence)->Get() : VK_NULL_HANDLE;
 
-        //VkResult result = vkQueueSubmit(mQueue, 1, &submitInfoVk, vkFence);
-        //if (result != VK_SUCCESS) {
-        //    throw std::runtime_error("Failed to submit command buffers to Vulkan queue");
-        //}
+        VkResult result = vkQueueSubmit(mQueue, 1, &submitInfoVk, vkFence);
+        if (result != VK_SUCCESS) {
+            throw std::runtime_error("Failed to submit command buffers to Vulkan queue");
+        }
     }
 
     void QueueVulkan::Present(Queue::PresentInfo info) {
         std::vector<VkSemaphore> waitSemaphores(info.pWaitSemaphores.size());
 
         for (size_t i = 0; i < info.pWaitSemaphores.size(); ++i) {
-            //waitSemaphores[i] = submitInfo.pWaitSemaphores[i]->GetHandle();
+            waitSemaphores[i] = std::static_pointer_cast<SemaphoreVulkan>(info.pWaitSemaphores[i])->Get();
         }
 
         std::vector<VkSwapchainKHR> swapchains(info.pSwapchains.size());
         for (size_t i = 0; i < info.pSwapchains.size(); ++i) {
-            //swapchains[i] = info.pSwapchains[i]->GetHandle();
+            swapchains[i] = std::static_pointer_cast<SwapchainVulkan>(info.pSwapchains[i])->GetSwapchain();
         }
 
         VkPresentInfoKHR presentInfoVk = {};

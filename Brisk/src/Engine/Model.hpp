@@ -112,6 +112,8 @@ namespace Brisk
 		const std::vector<MaterialData>& GetMaterials() const { return m_materials; }
 		const MaterialData& GetMaterial(int i) const { return m_materials[i]; }
 		MaterialData& GetMaterial(int i) { return m_materials[i]; }
+		std::shared_ptr<Buffer> GetIndexBuffer() const { return m_IndexBuffer; }
+		std::shared_ptr<Buffer> GetVertexBuffer() const { return m_VertexBuffer; }
 	private:
 		std::vector<GLTF_Node*> m_nodes;
 		std::vector<GLTF_Node*> m_linear_nodes;

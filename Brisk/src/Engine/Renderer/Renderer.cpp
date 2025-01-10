@@ -135,30 +135,35 @@ namespace Brisk
 
         fence->Wait();
 
-        m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, fence, &imageIndex);
+        m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &imageIndex);
         // vkResetCommandBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), /*VkCommandBufferResetFlagBits*/ 0);
         cmd->Reset();
         cmd->Bind();
         pipeline->m_Specs.pRenderPass->Begin(cmd, imageIndex);
         pipeline->Bind(cmd);
 
-        cmd->RecordCommand([=]()
-                           {
-            VkViewport viewport{};
-            viewport.x = 0.0f;
-            viewport.y = 0.0f;
-            viewport.width = static_cast<float>(m_Swapchain->GetExtentWidth());
-            viewport.height = static_cast<float>(m_Swapchain->GetExtentHeight());
-            viewport.minDepth = 0.0f;
-            viewport.maxDepth = 1.0f;
-            vkCmdSetViewport(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, &viewport); });
+        RenderCommand::SetViewport(cmd, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
 
-        cmd->RecordCommand([&]()
-                           {
-            VkRect2D scissor{};
-            scissor.offset = { 0, 0 };
-            scissor.extent = std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->GetExtent();
-            vkCmdSetScissor(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, &scissor); });
+        //cmd->RecordCommand([=]()
+        //                   {
+        //    VkViewport viewport{};
+        //    viewport.x = 0.0f;
+        //    viewport.y = 0.0f;
+        //    viewport.width = static_cast<float>(m_Swapchain->GetExtentWidth());
+        //    viewport.height = static_cast<float>(m_Swapchain->GetExtentHeight());
+        //    viewport.minDepth = 0.0f;
+        //    viewport.maxDepth = 1.0f;
+        //    vkCmdSetViewport(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, &viewport); });
+
+        RenderCommand::SetScissor(cmd, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+        //cmd->RecordCommand([&]()
+        //    {
+        //        VkRect2D scissor{};
+        //        scissor.offset = { 0, 0 };
+        //        scissor.extent = std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->GetExtent();
+        //        vkCmdSetScissor(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, &scissor); 
+        //    }
+        //);
 
         fence->Reset();
 
@@ -168,7 +173,8 @@ namespace Brisk
             auto& mesh = entity.GetComponent<MeshComponent>();
             auto& mat = entity.GetComponent<MaterialComponent>();
             
-            // vkCmdBindVertexBuffers(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, vertexBuffers, offsets);
+            RenderCommand::BindVertexBuffer(cmd, { mesh.pModel->GetVertexBuffer() }, 0);
+            RenderCommand::BindIndexBuffer(cmd, mesh.pModel->GetIndexBuffer(), 0);
             for (auto& node : mesh.pModel->GetNodes()) {
                 DrawNode(mesh.pModel, mat.pMaterials, node);
             }
@@ -200,7 +206,7 @@ namespace Brisk
             for (Primitive* primitive : node->mesh->primitives) {
                 pipeline->Bind(cmd);
                 uint32_t index = primitive->material_index > -1 ? primitive->material_index : 0;
-                //materials[index]->Bind();
+                //materials[index]->Bind(cmd, pipeline);
                 RenderCommand::DrawIndexed(cmd, primitive->index_count, 1, primitive->first_index, 0, 0);
             }
         }

@@ -26,6 +26,7 @@ namespace Brisk
 			return std::static_pointer_cast<WindowsWindow>(m_Window);
 		}
 		const std::shared_ptr<GpuAdapter> GetGpuAdapter() const { return m_Adapter; }
+		const std::shared_ptr<Renderer> GetRenderer() const { return m_Renderer; }
 
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);

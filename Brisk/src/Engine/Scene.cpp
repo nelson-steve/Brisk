@@ -51,6 +51,7 @@ namespace Brisk
 		model = std::make_shared<Mesh>();
 		model->Load("../Data/Models/Cube/Cube.gltf");
 		entity.AddComponent<MaterialComponent>();
+		entity.AddComponent<MeshComponent>().pModel = model;
 
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;

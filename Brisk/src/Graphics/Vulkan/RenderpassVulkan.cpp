@@ -114,7 +114,7 @@ namespace Brisk
         renderPassInfo.renderPass = m_RenderPass;
         renderPassInfo.framebuffer = m_Framebuffers[imageIndex];
         renderPassInfo.renderArea.offset = { 0, 0 };
-        //renderPassInfo.renderArea.extent = static_cast<SwapchainVulkan*>(Renderer::swapchain)->GetExtent();
+        renderPassInfo.renderArea.extent = std::static_pointer_cast<SwapchainVulkan>(Renderer::GetSwapchain())->GetExtent();
 
         std::vector<VkClearValue> clearColors = { {{0.2f, 0.2f, 0.2f, 1.0f}}, { 1.0f, 0 } };
         renderPassInfo.clearValueCount = clearColors.size();

@@ -3,6 +3,8 @@
 #include "Engine/Engine.hpp"
 #include "UtilitiesVulkan.hpp"
 #include "Engine/Application.hpp"
+#include "FenceVulkan.hpp"
+#include "SemaphoreVulkan.hpp"
 
 namespace Brisk 
 {
@@ -195,7 +197,7 @@ namespace Brisk
 
 	void SwapchainVulkan::AquireNextImage(uint64_t timeout, std::shared_ptr<Semaphore> semaphore, std::shared_ptr<Fence> fence, uint32_t* pImageIndex) {
 		VkResult result = vkAcquireNextImageKHR(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(),
-			m_Swapchain, timeout, nullptr/*semaphore*/, VK_NULL_HANDLE, pImageIndex);
+			m_Swapchain, timeout, std::static_pointer_cast<SemaphoreVulkan>(semaphore)->Get(), std::static_pointer_cast<FenceVulkan>(fence)->Get(), pImageIndex);
 		//return result;
 	}
 }

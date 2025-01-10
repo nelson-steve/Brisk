@@ -12,6 +12,8 @@ namespace Brisk
 
         virtual void Wait() override;
         virtual void Reset() override;
+
+        VkFence Get() { return mFence; }
     private:
         VkFence mFence;
     };

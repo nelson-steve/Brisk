@@ -1,5 +1,4 @@
 #include "InspectorPanel.hpp"
-#include "Engine/Module.hpp"
 #include "Engine/Engine.hpp"
 
 //#include <glm/glm.hpp>
@@ -7,23 +6,23 @@
 
 namespace Brisk
 {
-    void RenderTransformUI(Transform& transform) {
-        //ImGui::Begin("Transform");
+    //void RenderTransformUI(Transform& transform) {
+    //    ImGui::Begin("Transform");
 
-        // Position
-        //ImGui::Text("Position");
-        //ImGui::DragFloat3("##Position", &transform.pPosition[0], 0.1f);
+    //     Position
+    //    ImGui::Text("Position");
+    //    ImGui::DragFloat3("##Position", &transform.pPosition[0], 0.1f);
 
-        //// Rotation
-        //ImGui::Text("Rotation");
-        //ImGui::DragFloat3("##Rotation", &transform.pRotation[0], 0.1f);
+    //    // Rotation
+    //    ImGui::Text("Rotation");
+    //    ImGui::DragFloat3("##Rotation", &transform.pRotation[0], 0.1f);
 
-        //// Scale
-        //ImGui::Text("Scale");
-        //ImGui::DragFloat3("##Scale", &transform.pScale[0], 0.1f);
+    //    // Scale
+    //    ImGui::Text("Scale");
+    //    ImGui::DragFloat3("##Scale", &transform.pScale[0], 0.1f);
 
-        //ImGui::End();
-    }
+    //    ImGui::End();
+    //}
 
 	static void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f)
 	{
@@ -103,7 +102,7 @@ namespace Brisk
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
 			float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 			ImGui::Separator();
-			bool open = ImGui::TreeNodeEx((void*)typeid(Transform).hash_code(), treeNodeFlags, "Transform");
+			//bool open = ImGui::TreeNodeEx((void*)typeid(Transform).hash_code(), treeNodeFlags, "Transform");
 			ImGui::PopStyleVar(
 			);
 			ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
@@ -121,13 +120,13 @@ namespace Brisk
 				ImGui::EndPopup();
 			}
 
-			if (open)
-			{
-				//DrawVec3Control("Position", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pPosition);
-				//DrawVec3Control("Rotation", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pRotation);
-				//DrawVec3Control("Scale", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pScale);
-				ImGui::TreePop();
-			}
+			//if (open)
+			//{
+			//	DrawVec3Control("Position", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pPosition);
+			//	DrawVec3Control("Rotation", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pRotation);
+			//	DrawVec3Control("Scale", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pScale);
+			//	ImGui::TreePop();
+			//}
 
 			//if (removeComponent)
 			//	entity.RemoveComponent<T>();

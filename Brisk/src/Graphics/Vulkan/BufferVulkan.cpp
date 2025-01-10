@@ -14,8 +14,8 @@ namespace Brisk
 		std::vector<Core::BufferUsage> usageFlags,
 		std::vector<Core::MemoryProperty> memoryProperty,
 		bool mapPersistant) {
-		VkBufferUsageFlags usage;
-		VkMemoryPropertyFlags memory;
+		VkBufferUsageFlags usage{};
+		VkMemoryPropertyFlags memory{};
 		for (auto& flag : usageFlags)
 			usage |= UtilitiesVulkan::BufferUsageToVkFormat(flag);
 		for (auto& flag : memoryProperty)
@@ -31,6 +31,7 @@ namespace Brisk
 		}
 		else
 		{
+			m_PersistantPtr = data;
 			void* ref;
 			vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, 0, m_Size, 0, &ref);
 			memcpy(ref, m_PersistantPtr, (size_t)m_Size);

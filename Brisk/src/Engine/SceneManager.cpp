@@ -1,5 +1,7 @@
 #include "SceneManager.hpp"
 
+#include "Entity.hpp"
+
 namespace Brisk
 {
     std::shared_ptr<Scene> SceneManager::pActiveScene;
@@ -9,7 +11,8 @@ namespace Brisk
     }
 
     void SceneManager::Init() {
-
+        pActiveScene = std::make_shared<Scene>();
+        pActiveScene->CreateMeshEntity();
     }
 
     void SceneManager::SetDefaultScene() {

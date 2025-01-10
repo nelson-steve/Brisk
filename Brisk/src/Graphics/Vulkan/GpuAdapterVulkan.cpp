@@ -127,8 +127,9 @@ namespace Brisk
 		vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &queueFamilyCount, queueFamilies.data());
 
 		std::vector<QueueFamily> QueuFamilies{};
-		// Requesting all availabel queues
-		std::vector<float> queuePriorities;
+		// Requesting all available queues
+		std::vector<std::vector<float>> queuePrioritiesList;
+		queuePrioritiesList.resize(queueFamilyCount);
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 		for (uint32_t i = 0; i < queueFamilyCount; ++i) {
 			bool isGraphics = false;
@@ -179,8 +180,8 @@ namespace Brisk
 			queueCreateInfo.queueFamilyIndex = i;
 			queueCreateInfo.queueCount = queueFamilies[i].queueCount;
 
-			queuePriorities.resize(queueFamilies[i].queueCount, 1.0f);
-			queueCreateInfo.pQueuePriorities = queuePriorities.data();
+			queuePrioritiesList[i].resize(queueFamilies[i].queueCount, 1.0f);
+			queueCreateInfo.pQueuePriorities = queuePrioritiesList[i].data();
 
 			QueuFamilies.push_back(queueFamily);
 			queueCreateInfos.push_back(queueCreateInfo);
@@ -265,6 +266,7 @@ namespace Brisk
 			BRISK_CORE_ERROR("Failed to create logical device!");
 		}
 
+		queuePrioritiesList.clear();
 		for (QueueFamily queue : QueuFamilies) {
 			for (QueueType type : queue.SupportedTypes) {
 				int i = 0;

@@ -50,9 +50,8 @@ namespace Brisk
 		entity.AddComponent<ScriptComponent>();
 		std::shared_ptr<Mesh> model;
 		model = std::make_shared<Mesh>();
-		model->Load("Assets/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
-		//entity.AddComponent<ModelComponent>().AddMesh(model, (uint32_t)entity);
-		// entity.AddComponent<ShaderComponent>().AddShader(m_AssetManager->LoadShader("Assets/Shaders/ModelShader.glsl"));
+		model->Load("../Data/Models/Cube/Cube.gltf");
+		entity.AddComponent<MaterialComponent>();
 		entity.AddComponent<PhysicsComponent>();
 		entity.AddComponent<BoxColliderComponent>();
 

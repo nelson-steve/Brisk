@@ -57,54 +57,54 @@ namespace Brisk
 		}
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
-		glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+		//glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 		m_Window = glfwCreateWindow((int)m_Width, (int)m_Height, Engine::s_EngineInfo.EngineName.c_str(), nullptr, nullptr);
 		if (m_Window == nullptr) {
 			BRISK_APP_FATAL("Could not create window of size width/height: " + std::to_string(m_Width) + "/" + std::to_string(m_Height));
 		}
 		//SetVSync(true);
 
-		glfwSetWindowUserPointer(m_Window, this);
+		glfwSetWindowUserPointer(m_Window, &m_Data);
 		//glfwSetFramebufferSizeCallback(m_Window, FramebufferResizeCallback);
 
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
 			{
-				//WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-				//data.Width = width;
-				//data.Height = height;
+				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				data.Width = width;
+				data.Height = height;
 
-				//WindowResizeEvent event(width, height);
-				////Brisk_Core_TRACE("{0}, {1}", width, height);
-				//data.EventCallBack(event);
+				WindowResizeEvent event(width, height);
+				//Brisk_Core_TRACE("{0}, {1}", width, height);
+				data.EventCallBack(event);
 			});
 
 		glfwSetWindowCloseCallback(m_Window, [](GLFWwindow* window)
 			{
-				//WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
-				//WindowCloseEvent event;
-				//data.EventCallBack(event);
-				//Brisk_Core_TRACE("Window Close");
+				WindowCloseEvent event;
+				data.EventCallBack(event);
+				std::cout << "Window close";
 			});
 
 		glfwSetWindowFocusCallback(m_Window, [](GLFWwindow* window, int focus)
 			{
-				//WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
-				//data.Focus = focus;
+				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				data.Focus = focus;
 
-				//switch (focus)
-				//{
-				//case 0:
-				//{
-				//	WindowFocusEvent event(focus);
-				//	data.EventCallBack(event);
-				//}
-				//case 1:
-				//{
-				//	WindowLoseFocusEvent event(focus);
-				//	data.EventCallBack(event);
-				//}
-				//}
+				switch (focus)
+				{
+				case 0:
+				{
+					WindowFocusEvent event(focus);
+					data.EventCallBack(event);
+				}
+				case 1:
+				{
+					WindowLoseFocusEvent event(focus);
+					data.EventCallBack(event);
+				}
+				}
 			});
 
 		//glfwSetWindowPosCallback(m_Window, [](GLFWwindow* window, int xPos, int yPos)
@@ -125,67 +125,68 @@ namespace Brisk
 
 		glfwSetMouseButtonCallback(m_Window, [](GLFWwindow* window, int button, int action, int mods)
 			{
-				//WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
-				//switch (action)
-				//{
-				//case GLFW_PRESS:
-				//{
-				//	MouseButtonPressedEvent event(button);
-				//	data.EventCallBack(event);
-				//	break;
-				//}
-				//case GLFW_RELEASE:
-				//{
-				//	MouseButtonReleasedEvent event(button);
-				//	data.EventCallBack(event);
-				//	break;
-				//}
-				//}
+				std::cout << "Mouse button";
+				switch (action)
+				{
+				case GLFW_PRESS:
+				{
+					MouseButtonPressedEvent event(button);
+					data.EventCallBack(event);
+					break;
+				}
+				case GLFW_RELEASE:
+				{
+					MouseButtonReleasedEvent event(button);
+					data.EventCallBack(event);
+					break;
+				}
+				}
 
 			});
 
 		glfwSetScrollCallback(m_Window, [](GLFWwindow* window, double xOffset, double yOffset)
 			{
-				//WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
-				//MouseScrolledEvent event((float)xOffset, (float)yOffset);
-				//data.EventCallBack(event);
+				MouseScrolledEvent event((float)xOffset, (float)yOffset);
+				data.EventCallBack(event);
 			});
 
 		glfwSetCursorPosCallback(m_Window, [](GLFWwindow* window, double xPos, double yPos)
 			{
-				//WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
-				//MouseMovedEvent event((float)xPos, (float)yPos);
-				//data.EventCallBack(event);
+				MouseMovedEvent event((float)xPos, (float)yPos);
+				data.EventCallBack(event);
 			});
 
 		glfwSetKeyCallback(m_Window, [](GLFWwindow* window, int key, int scancode, int action, int mods)
 			{
-				//WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
+				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
-				//switch (action)
-				//{
-				//case GLFW_PRESS:
-				//{
-				//	KeyPressedEvent event(key, 0);
-				//	data.EventCallBack(event);
-				//	break;
-				//}
-				//case GLFW_RELEASE:
-				//{
-				//	KeyReleasedEvent event(key);
-				//	data.EventCallBack(event);
-				//	break;
-				//}
-				//case GLFW_REPEAT:
-				//{
-				//	KeyPressedEvent event(key, 1);
-				//	data.EventCallBack(event);
-				//	break;
-				//}
-				//}
+				switch (action)
+				{
+				case GLFW_PRESS:
+				{
+					KeyPressedEvent event(key, 0);
+					data.EventCallBack(event);
+					break;
+				}
+				case GLFW_RELEASE:
+				{
+					KeyReleasedEvent event(key);
+					data.EventCallBack(event);
+					break;
+				}
+				case GLFW_REPEAT:
+				{
+					KeyPressedEvent event(key, 1);
+					data.EventCallBack(event);
+					break;
+				}
+				}
 			});
 	}
 

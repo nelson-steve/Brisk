@@ -1,13 +1,14 @@
 #pragma once
 
+// INCLUDES
 #include "RenderPass.hpp"
-
+#include "ShaderModule.hpp"
+//------------------------
 #include <cstdint>
 #include <vector>
 #include <string>
 #include <memory>
-#include <Graphics/Vulkan/DescriptorVulkan.hpp>
-#include "ShaderModule.hpp"
+//---------------
 
 namespace Brisk
 {

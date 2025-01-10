@@ -1,6 +1,8 @@
 #pragma once
 
+// INCLUDES
 #include <string>
+//--------------
 
 /// <summary>
 /// Store engine information with default values

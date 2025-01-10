@@ -1,6 +1,8 @@
+// INCLUDES
 #include "Camera.hpp"
-
+//------------------
 #include "glfw3.h"
+//----------------
 
 namespace Brisk 
 {

@@ -1,5 +1,7 @@
+// INCLUDES
 #include "Entity.hpp"
 #include "Component.hpp"
+//---------------------
 
 #define STATIC(a) decltype(a) a
 

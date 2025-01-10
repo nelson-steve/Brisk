@@ -6,7 +6,8 @@
 #include <cstdint>
 #include <vector>
 #include <memory>
-//
+//---------------
+
 namespace Brisk
 {
 	class Buffer {

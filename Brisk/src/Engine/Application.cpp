@@ -1,8 +1,9 @@
+// INCLUDES
 #include "Application.hpp"
 #include "Scene.hpp"
 #include "Core/Core.hpp"
 #include "Events/Event.hpp"
-
+//------------------------
 namespace Brisk
 {
 	void Application::CreateApplication() {

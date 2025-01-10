@@ -1,10 +1,12 @@
 #pragma once
 
+// INCLUDES
 #include "Events/Event.hpp"
-
+//------------------------
 #include <iostream>
 #include <memory>
 #include <functional>
+//------------------
 
 namespace Brisk 
 {

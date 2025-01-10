@@ -1,7 +1,9 @@
+// INCLUDES
 #include "Window.hpp"
 #include "Engine/Engine.hpp"
 #include "Core/Log.hpp"
 #include "Platform/Windows/WindowsWindow.hpp"
+//------------------------------------------
 
 namespace Brisk 
 {

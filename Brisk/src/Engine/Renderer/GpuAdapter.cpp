@@ -1,6 +1,7 @@
+// INCLUDES
 #include "GpuAdapter.hpp"
-
 #include "Graphics/Vulkan/GpuAdapterVulkan.hpp"
+//--------------------------------------------
 
 namespace Brisk
 {

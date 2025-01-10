@@ -1,6 +1,8 @@
 #pragma once
 
+// INCLUDES
 #include "Engine/Window.hpp"
+//--------------------
 
 struct GLFWwindow;
 

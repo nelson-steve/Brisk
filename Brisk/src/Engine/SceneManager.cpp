@@ -1,6 +1,8 @@
+// INCLUDES
 #include "SceneManager.hpp"
-
+//------------------------
 #include "Entity.hpp"
+//------------------
 
 namespace Brisk
 {

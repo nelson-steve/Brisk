@@ -1,4 +1,6 @@
+// INCLUDES
 #include "RenderCommand.hpp"
+//-------------------------
 
 namespace Brisk
 {

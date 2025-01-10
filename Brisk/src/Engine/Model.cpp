@@ -1,6 +1,8 @@
+// INCLUDES
 #include "Model.hpp"
-
+//-----------------
 #include "tiny_gltf.h"
+//-------------------
 
 namespace Brisk {
 	Mesh::~Mesh() {

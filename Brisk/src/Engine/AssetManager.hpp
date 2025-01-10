@@ -1,15 +1,17 @@
 #pragma once
 
-#include <unordered_map>
+// INCLUDES
 #include <memory>
 #include <string>
-#include <iostream>
-#include <fstream>
-#include <typeindex>
-#include <typeinfo>
-#include <functional>
-#include <stdexcept>
 #include <vector>
+#include <fstream>
+#include <iostream>
+#include <typeinfo>
+#include <stdexcept>
+#include <typeindex>
+#include <functional>
+#include <unordered_map>
+//----------------------
 
 class Texture;
 class Model;

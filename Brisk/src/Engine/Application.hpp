@@ -1,13 +1,15 @@
 #pragma once
 
-#include "Window.hpp"
-#include "Renderer/GpuAdapter.hpp"
-#include "Renderer/Renderer.hpp"
-#include "Platform/Windows/WindowsWindow.hpp"
-#include "Camera.hpp"
+// INCLUDES
 #include "Scene.hpp"
-#include "Events/ApplicationEvent.hpp"
+#include "Window.hpp"
+#include "Camera.hpp"
 #include "SceneManager.hpp"
+#include "Renderer/Renderer.hpp"
+#include "Renderer/GpuAdapter.hpp"
+#include "Events/ApplicationEvent.hpp"
+#include "Platform/Windows/WindowsWindow.hpp"
+//------------------------
 
 namespace Brisk 
 {

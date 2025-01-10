@@ -1,18 +1,19 @@
 #pragma once
 
+// INCLUDES
 #include "Engine/Renderer/Shader.hpp"
 #include "Core/Core.hpp"
-
+//---------------------
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
-
 #include "entt.hpp"
-
+//----------------
 #include <memory>
 #include <vector>
 #include <string>
 #include <functional>
+//-------------------
 
 namespace Brisk
 {

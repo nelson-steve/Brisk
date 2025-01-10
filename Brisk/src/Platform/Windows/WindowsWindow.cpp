@@ -1,3 +1,4 @@
+// INCLUDES
 #include "WindowsWindow.hpp"
 #include "Core/Log.hpp"
 #include "Engine/Engine.hpp"
@@ -5,49 +6,13 @@
 #include "Engine/Events/ApplicationEvent.hpp"
 #include "Engine/Events/MouseEvent.hpp"
 #include "Engine/Events/KeyEvent.hpp"
-
+//----------------------------------
 #define GLFW_INCLUDE_VULKAN
 #include <glfw3.h>
+//----------------
 
 namespace Brisk 
 {
-	void FramebufferResizeCallback(GLFWwindow* window, int width, int height) {
-		auto win = reinterpret_cast<WindowsWindow*>(glfwGetWindowUserPointer(window));
-		win->SetWidth(width);
-		win->SetHeight(height);
-		win->WindowResized(true);
-	}
-	
-	//float lastX = 0.0f;
-	//float lastY = 0.0f;
-	//bool firstMouse = true;
-	//void mouseCallback(GLFWwindow* window, double xposIn, double yposIn)
-	//{
-	//	float xpos = static_cast<float>(xposIn);
-	//	float ypos = static_cast<float>(yposIn);
-
-	//	if (firstMouse)
-	//	{
-	//		lastX = xpos;
-	//		lastY = ypos;
-	//		firstMouse = false;
-	//	}
-
-	//	float xoffset = xpos - lastX;
-	//	float yoffset = lastY - ypos; // reversed since y-coordinates go from bottom to top
-
-	//	lastX = xpos;
-	//	lastY = ypos;
-
-	//	Engine::s_Camera->SetMouseOffset(xoffset, yoffset);
-	//	Engine::s_Camera->MouseMoved();
-	//}
-
-	//void scrollCallback(GLFWwindow* window, double xoffset, double yoffset)
-	//{
-	//	Engine::s_Camera->OnMouseScroll(yoffset);
-	//}
-
 	WindowsWindow::WindowsWindow(int width, int height) {
 		m_Width = width;
 		m_Height = height;
@@ -65,7 +30,6 @@ namespace Brisk
 		//SetVSync(true);
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
-		//glfwSetFramebufferSizeCallback(m_Window, FramebufferResizeCallback);
 
 		glfwSetWindowSizeCallback(m_Window, [](GLFWwindow* window, int width, int height)
 			{

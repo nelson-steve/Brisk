@@ -1,12 +1,13 @@
+// INCLUDES
 #include "Scene.hpp"
 #include "Entity.hpp"
-
 #include "Component.hpp"
-
+//---------------------
 #include "imgui.h"
 #include <glm/glm.hpp>
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
+//-------------------------------------
 
 namespace Brisk 
 {

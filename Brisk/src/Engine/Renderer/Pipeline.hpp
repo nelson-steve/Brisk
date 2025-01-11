@@ -3,6 +3,7 @@
 // INCLUDES
 #include "RenderPass.hpp"
 #include "ShaderModule.hpp"
+#include "Descriptor.hpp"
 //------------------------
 #include <cstdint>
 #include <vector>

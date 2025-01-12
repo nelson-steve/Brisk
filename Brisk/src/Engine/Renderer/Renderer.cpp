@@ -137,39 +137,17 @@ namespace Brisk
         auto view = SceneManager::pActiveScene->Reg().view<MeshComponent, MaterialComponent>();
 
         fence->Wait();
-
         m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &imageIndex);
         // vkResetCommandBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), /*VkCommandBufferResetFlagBits*/ 0);
 
         fence->Reset();
-
         cmd->Reset();
         cmd->Bind();
         pipeline->m_Specs.pRenderPass->Begin(cmd, imageIndex);
         pipeline->Bind(cmd);
 
         RenderCommand::SetViewport(cmd, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
-
-        //cmd->RecordCommand([=]()
-        //                   {
-        //    VkViewport viewport{};
-        //    viewport.x = 0.0f;
-        //    viewport.y = 0.0f;
-        //    viewport.width = static_cast<float>(m_Swapchain->GetExtentWidth());
-        //    viewport.height = static_cast<float>(m_Swapchain->GetExtentHeight());
-        //    viewport.minDepth = 0.0f;
-        //    viewport.maxDepth = 1.0f;
-        //    vkCmdSetViewport(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, &viewport); });
-
         RenderCommand::SetScissor(cmd, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
-        //cmd->RecordCommand([&]()
-        //    {
-        //        VkRect2D scissor{};
-        //        scissor.offset = { 0, 0 };
-        //        scissor.extent = std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->GetExtent();
-        //        vkCmdSetScissor(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, &scissor); 
-        //    }
-        //);
 
         for (auto e : view)
         {
@@ -211,7 +189,8 @@ namespace Brisk
                 pipeline->Bind(cmd);
                 uint32_t index = primitive->material_index > -1 ? primitive->material_index : 0;
                 //materials[index]->Bind(cmd, pipeline);
-                RenderCommand::DrawIndexed(cmd, primitive->index_count, 1, primitive->first_index, 0, 0);
+                //RenderCommand::DrawIndexed(cmd, primitive->index_count, 1, primitive->first_index, 0, 0);
+                RenderCommand::BindVertexBuffer(cmd, { model->GetVertexBuffer() }, 0);
             }
         }
         for (auto& child : node->children) {

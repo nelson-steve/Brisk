@@ -189,8 +189,8 @@ namespace Brisk
                 pipeline->Bind(cmd);
                 uint32_t index = primitive->material_index > -1 ? primitive->material_index : 0;
                 //materials[index]->Bind(cmd, pipeline);
-                //RenderCommand::DrawIndexed(cmd, primitive->index_count, 1, primitive->first_index, 0, 0);
-                RenderCommand::BindVertexBuffer(cmd, { model->GetVertexBuffer() }, 0);
+                RenderCommand::DrawIndexed(cmd, primitive->index_count, 1, primitive->first_index, 0, 0);
+                //RenderCommand::BindVertexBuffer(cmd, { model->GetVertexBuffer() }, 0);
             }
         }
         for (auto& child : node->children) {

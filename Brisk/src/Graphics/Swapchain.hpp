@@ -14,6 +14,7 @@ namespace Brisk
 	class Swapchain {
 	public:
 		enum Mode {
+			SINGLE_BUFFERING = 1U,
 			DOUBLE_BUFFERING = 2U,
 			TRIPLE_BUFFERING = 3U,
 		};

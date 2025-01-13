@@ -37,19 +37,22 @@ namespace Brisk
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
         std::shared_ptr<DescriptorLayout> materialLayout = DescriptorLayout::Create();
-        materialLayout->AddBindingLayout(0, 1, GPUResource::ResourceType::ResourceBuffer);
-        materialLayout->AddBindingLayout(1, 1, GPUResource::ResourceType::ResourceBuffer);
-        materialLayout->AddBindingLayout(2, 1, GPUResource::ResourceType::ResourceTexture);
-        materialLayout->AddBindingLayout(3, 1, GPUResource::ResourceType::ResourceTexture);
-        materialLayout->AddBindingLayout(4, 1, GPUResource::ResourceType::ResourceTexture);
-        materialLayout->AddBindingLayout(5, 1, GPUResource::ResourceType::ResourceTexture);
-        materialLayout->AddBindingLayout(6, 1, GPUResource::ResourceType::ResourceTexture);
+        materialLayout->pName = "material";
+        materialLayout->AddBindingLayout(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_VERTEX_BIT });
+        materialLayout->AddBindingLayout(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        materialLayout->AddBindingLayout(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        materialLayout->AddBindingLayout(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        materialLayout->AddBindingLayout(4, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        materialLayout->AddBindingLayout(5, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        materialLayout->AddBindingLayout(6, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        materialLayout->AddBindingLayout(7, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
         materialLayout->Init();
 
         std::shared_ptr<DescriptorLayout> pbrLayout = DescriptorLayout::Create();
-        pbrLayout->AddBindingLayout(0, 1, GPUResource::ResourceType::ResourceTexture);
-        pbrLayout->AddBindingLayout(1, 1, GPUResource::ResourceType::ResourceTexture);
-        pbrLayout->AddBindingLayout(2, 1, GPUResource::ResourceType::ResourceTexture);
+        pbrLayout->pName = "pbr";
+        pbrLayout->AddBindingLayout(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        pbrLayout->AddBindingLayout(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        pbrLayout->AddBindingLayout(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
         pbrLayout->Init();
 
         std::shared_ptr<ShaderModule> vertexShaderModule = ShaderModule::Create();
@@ -63,7 +66,8 @@ namespace Brisk
         renderPassSpecs.pAttachments =
             {
                 {0, Core::Format::FORMAT_B8G8R8A8_UNORM, true, RenderPass::AttachmentType::Swapchain},
-                {1, Core::Format::FORMAT_D32_SFLOAT, true, RenderPass::AttachmentType::Depth}};
+                {1, Core::Format::FORMAT_D32_SFLOAT, true, RenderPass::AttachmentType::Depth}
+            };
 
         Pipeline::VertexDataLayout vertexLayout;
         vertexLayout.pBinding = 0;

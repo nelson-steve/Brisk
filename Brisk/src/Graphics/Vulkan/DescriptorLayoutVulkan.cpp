@@ -1,33 +1,36 @@
-#include "DescriptorVulkan.hpp"
+#include "DescriptorLayoutVulkan.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Application.hpp"
-#include "Graphics/Vulkan/GpuAdapterVulkan.hpp"
+#include "GpuAdapterVulkan.hpp"
+#include "UtilitiesVulkan.hpp"
 
 namespace Brisk 
 {
-	//void DescriptorVulkan::Init() {
- //       std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
- //       //for (int i = 0; i < m_Layouts.size(); i++) {
- //       //    VkDescriptorSetLayoutBinding layoutBinding{};
- //       //    layoutBinding.binding = m_Layouts[i].p_Binding;
- //       //    layoutBinding.descriptorCount = m_Layouts[i].p_DescriptorCount;
- //       //    layoutBinding.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER; //m_Layouts[i].p_Type
- //       //    layoutBinding.pImmutableSamplers = nullptr;
- //       //    layoutBinding.stageFlags = VK_SHADER_STAGE_VERTEX_BIT;
+	void DescriptorLayoutVulkan::Init() {
+        std::vector<VkDescriptorSetLayoutBinding> layoutBindings;
+        for (int i = 0; i < m_Layouts.size(); i++) {
+            VkDescriptorSetLayoutBinding layoutBinding{};
+            layoutBinding.binding = m_Layouts[i].p_Binding;
+            layoutBinding.descriptorCount = m_Layouts[i].p_DescriptorCount;
+            layoutBinding.descriptorType = UtilitiesVulkan::ResourceToDescriptorType(m_Layouts[i].p_Type);
+            layoutBinding.pImmutableSamplers = nullptr;
+            VkShaderStageFlags stageFlags{};
+            for (int j = 0; j < m_Layouts[i].pStageAccessFlags.size(); j++) {
+                stageFlags |= UtilitiesVulkan::ShaderStageToVkType(m_Layouts[i].pStageAccessFlags[j]);
+            }
+            layoutBinding.stageFlags = stageFlags;
+            layoutBindings.push_back(layoutBinding);
+        }
 
- //       //    layoutBindings.push_back(layoutBinding);
- //       //}
+        VkDescriptorSetLayoutCreateInfo layoutInfo{};
+        layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+        layoutInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());
+        layoutInfo.pBindings = layoutBindings.data();
 
- //       VkDescriptorSetLayoutCreateInfo layoutInfo{};
- //       layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
- //       layoutInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());
- //       layoutInfo.pBindings = layoutBindings.data();
-
- //       //m_DescriptorLayouts.resize(m_Layouts.size());
- //       if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, m_DescriptorLayouts.data()) != VK_SUCCESS) {
- //           throw std::runtime_error("failed to create descriptor set layout!");
- //       }
-	//}
+        if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, &m_DescriptorLayout) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create descriptor set layout!");
+        }
+	}
 
 	//void DescriptorVulkan::Allocate() {
  //       VkDescriptorSetAllocateInfo allocInfo{};

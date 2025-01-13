@@ -35,17 +35,17 @@ namespace Brisk
         // Create submit info struct for Vulkan
         VkSubmitInfo submitInfoVk = {};
         submitInfoVk.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfoVk.waitSemaphoreCount = static_cast<uint32_t>(submitInfo.pWaitSemaphores.size());
+        submitInfoVk.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
         submitInfoVk.pWaitSemaphores = waitSemaphores.data();
         submitInfoVk.pWaitDstStageMask = waitStages.data();
         submitInfoVk.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
         submitInfoVk.pCommandBuffers = commandBuffers.data();
-        submitInfoVk.signalSemaphoreCount = static_cast<uint32_t>(submitInfo.pSignalSemaphores.size());
+        submitInfoVk.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
         submitInfoVk.pSignalSemaphores = signalSemaphores.data();
 
         VkFence vkFence = fence ? std::static_pointer_cast<FenceVulkan>(fence)->Get() : VK_NULL_HANDLE;
 
-        VkResult result = vkQueueSubmit(std::static_pointer_cast<GpuAdapterVulkan> (Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle, 1, &submitInfoVk, vkFence);
+        VkResult result = vkQueueSubmit(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle, 1, &submitInfoVk, vkFence);
         if (result != VK_SUCCESS) {
             throw std::runtime_error("Failed to submit command buffers to Vulkan queue");
         }
@@ -65,6 +65,7 @@ namespace Brisk
 
         VkPresentInfoKHR presentInfoVk = {};
         presentInfoVk.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+        presentInfoVk.waitSemaphoreCount = waitSemaphores.size();
         presentInfoVk.pWaitSemaphores = waitSemaphores.data();
         VkSwapchainKHR swapChains[] = { std::static_pointer_cast<SwapchainVulkan>(info.pSwapchains[0])->GetSwapchain() };
         presentInfoVk.pSwapchains = { swapChains };

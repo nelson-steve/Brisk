@@ -137,10 +137,10 @@ namespace Brisk
         auto view = SceneManager::pActiveScene->Reg().view<MeshComponent, MaterialComponent>();
 
         fence->Wait();
+        fence->Reset();
+
         m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &imageIndex);
         // vkResetCommandBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), /*VkCommandBufferResetFlagBits*/ 0);
-
-        fence->Reset();
         cmd->Reset();
         cmd->Bind();
         pipeline->m_Specs.pRenderPass->Begin(cmd, imageIndex);
@@ -167,9 +167,9 @@ namespace Brisk
 
         Queue::SubmitInfo submitInfo{};
         submitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
+        submitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore);
         submitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
         submitInfo.pCmdBuffers.push_back(cmd);
-        submitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore);
 
         // Submit queue
         queue->Submit(submitInfo, fence);

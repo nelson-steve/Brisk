@@ -1,6 +1,6 @@
 // INCLUDES
 #include "Camera.hpp"
-//------------------
+//-------------------
 #include "glfw3.h"
 //----------------
 
@@ -10,6 +10,18 @@ namespace Brisk
 		: m_Window(window), 
 		m_Projection(glm::perspective(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip)) {
 		UpdateView();
+
+		mMVPBuffer = Buffer::Create();
+		mMVPBuffer->Init(sizeof(MVP), nullptr,
+			{
+				Core::BufferUsage::BUFFER_USAGE_UNIFORM_BUFFER_BIT,
+			},
+			{
+				Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT,
+				Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT
+			},
+			false
+		);
 	}
 
 	Camera::Camera(float fov, float aspectRatio, float nearClip, float farClip, GLFWwindow* window)
@@ -68,6 +80,13 @@ namespace Brisk
 			m_MouseMoved = false;
 		}
 		UpdateView();
+
+		MVP mvp{};
+		mvp.Model = glm::mat4(1.0f);
+		mvp.Projection = m_Projection;
+		mvp.View = m_ViewMatrix;
+
+		mMVPBuffer->UpdatePersistantData(sizeof(MVP), &mvp);
 	}
 
 	bool Camera::OnMouseScroll(float yOffset) {

@@ -2,6 +2,7 @@
 #include "Scene.hpp"
 #include "Entity.hpp"
 #include "Component.hpp"
+#include "Engine/Engine.hpp"
 //---------------------
 #include "imgui.h"
 #include <glm/glm.hpp>
@@ -53,6 +54,12 @@ namespace Brisk
 		model->Load("../Data/Models/Cube/Cube.gltf");
 		entity.AddComponent<MaterialComponent>();
 		entity.AddComponent<MeshComponent>().pModel = model;
+		auto& mat = entity.GetComponent<MaterialComponent>();
+
+		mat.pMaterials.push_back(Shader::Create());
+		mat.pMaterials[0]->Init(Engine::s_Application->GetRenderer()->pipeline, "material");
+		mat.pMaterials[0]->SetMVPBuffer(Engine::s_Application->GetCamera()->mMVPBuffer);
+		mat.pMaterials[0]->UpdateResources();
 
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;

@@ -19,7 +19,7 @@ namespace Brisk
 			FRAGMENT,
 		};
 
-		virtual void Init(std::shared_ptr<Pipeline> pipeline) = 0;
+		virtual void Init(std::shared_ptr<Pipeline> pipeline, std::string layoutName) = 0;
 
 		virtual void SetPipeline(std::shared_ptr<Pipeline> pipeline) = 0;
 		virtual void SetAlbedoTexture(std::shared_ptr<Texture> texture) = 0;
@@ -27,7 +27,7 @@ namespace Brisk
 		virtual void SetMetallicTexture(std::shared_ptr<Texture> texture) = 0;
 		virtual void SetOcclusionTexture(std::shared_ptr<Texture> texture) = 0;
 		virtual void SetEmissiveTexture(std::shared_ptr<Texture> texture) = 0;
-		virtual void SetMVPBuffer() = 0;
+		virtual void SetMVPBuffer(std::shared_ptr<Buffer> buffer) = 0;
 
 		virtual void Allocate(std::shared_ptr<CommandBuffer> cmdBuffer, std::shared_ptr<Pipeline> pipeline) = 0;
 		virtual void UpdateResources() = 0;

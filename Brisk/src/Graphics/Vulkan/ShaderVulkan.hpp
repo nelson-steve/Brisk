@@ -14,7 +14,7 @@ namespace Brisk
 	class ShaderVulkan : public Shader
 	{
 	public:
-		virtual void Init(std::shared_ptr<Pipeline> pipeline) override;
+		virtual void Init(std::shared_ptr<Pipeline> pipeline, std::string layoutName) override;
 
 		virtual void SetPipeline(std::shared_ptr<Pipeline> pipeline) override;
 		virtual void SetAlbedoTexture(std::shared_ptr<Texture> texture) override;
@@ -22,7 +22,7 @@ namespace Brisk
 		virtual void SetMetallicTexture(std::shared_ptr<Texture> texture) override;
 		virtual void SetOcclusionTexture(std::shared_ptr<Texture> texture) override;
 		virtual void SetEmissiveTexture(std::shared_ptr<Texture> texture) override;
-		virtual void SetMVPBuffer() override;
+		virtual void SetMVPBuffer(std::shared_ptr<Buffer> buffer) override;
 
 		virtual void Allocate(std::shared_ptr<CommandBuffer> cmdBuffer, std::shared_ptr<Pipeline> pipeline) override;
 		virtual void UpdateResources() override;

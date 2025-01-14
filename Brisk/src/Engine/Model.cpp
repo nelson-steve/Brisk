@@ -90,7 +90,7 @@ namespace Brisk {
 			m_vertex_buffer,
 			{ Core::BufferUsage::BUFFER_USAGE_VERTEX_BUFFER_BIT },
 			{ Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
-			false);
+			true);
 
 		if (indexBufferSize > 0) {
 			m_IndexBuffer = Buffer::Create();
@@ -98,7 +98,7 @@ namespace Brisk {
 				m_index_buffer,
 				{ Core::BufferUsage::BUFFER_USAGE_INDEX_BUFFER_BIT },
 				{ Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
-				false);
+				true);
 		}
 	}
 

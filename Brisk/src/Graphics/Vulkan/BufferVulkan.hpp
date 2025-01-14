@@ -4,12 +4,12 @@
 #include "PipelineVulkan.hpp"
 #include "Engine/Engine.hpp"
 #include "Engine/Renderer/Buffer.hpp"
-//----------------------------------
+#include "Engine/Model.hpp"
+//-------------------------
 #include <Volk/volk.h>
 //--------------------
 
 namespace Brisk {
-	struct Vertex;
 	class BufferVulkan : public Buffer {
 	public:
 		virtual void Init(uint32_t size,
@@ -23,11 +23,17 @@ namespace Brisk {
 		inline const VkBuffer& Get() const {
 			return m_Handle;
 		}
+		const VkDescriptorBufferInfo* GetDescriptor() {
+			bufferInfo.buffer = m_Handle;
+			bufferInfo.offset = 0;
+			bufferInfo.range = sizeof(MeshData);
+			return &bufferInfo;
+		}
 	private:
 		void Create(uint32_t size, VkBufferUsageFlags usageFlags);
 		void Allocate(VkMemoryPropertyFlags properties);
 		//void MapMemory(std::vector<Point>& data);
-		void MapMemory(Vertex* data);
+		void MapMemory(MeshData* data);
 		void MapMemory(void** data);
 		void UnMapMemory();
 		//void Release();
@@ -36,5 +42,6 @@ namespace Brisk {
 		void* m_PersistantPtr;
 		VkBuffer m_Handle;
 		VkDeviceMemory m_Memory;
+		VkDescriptorBufferInfo bufferInfo;
 	};
 }

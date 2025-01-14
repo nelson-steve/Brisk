@@ -80,7 +80,7 @@ namespace Brisk
 
 	struct MeshComponent
 	{
-		std::string name = "Model Component";
+		std::string name = "Mesh Component";
 
 		Ref<Mesh> pModel;
 

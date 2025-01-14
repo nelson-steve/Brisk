@@ -1,11 +1,14 @@
 #pragma once
 
 // INCLUDES
+#include "Engine/Renderer/Buffer.hpp"
+//-----------------------------------
 #define GLM_ENABLE_EXPERIMENTAL
 #include "glm/glm.hpp"
 #include "glm/gtx/quaternion.hpp"
 //------------------------------
 #include <utility>
+#include <memory>
 //----------------
 
 struct GLFWwindow;
@@ -14,6 +17,12 @@ namespace Brisk
 {
 	class Camera {
 	public:
+		struct MVP {
+			glm::mat4 Model;
+			glm::mat4 View;
+			glm::mat4 Projection;
+		};
+
 		Camera(GLFWwindow* window);
 		Camera(float fov, float aspectRatio, float nearClip, float farClip, GLFWwindow* window);
 
@@ -41,6 +50,8 @@ namespace Brisk
 
 		float GetPitch() const { return m_Pitch; }
 		float GetYaw() const { return m_Yaw; }
+
+		std::shared_ptr<Buffer> mMVPBuffer;
 	private:
 		void UpdateProjection();
 		void UpdateView();

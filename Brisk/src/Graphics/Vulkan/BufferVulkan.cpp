@@ -1,12 +1,13 @@
+// INCLUDES
 #include "BufferVulkan.hpp"
+#include "Engine/Model.hpp"
 #include "Engine/Engine.hpp"
 #include "UtilitiesVulkan.hpp"
-#include "Engine/Model.hpp"
 #include "GpuAdapterVulkan.hpp"
 #include "Engine/Application.hpp"
-
+//-------------------------------
 #include <memory>
-
+//---------------
 namespace Brisk 
 {
 	void BufferVulkan::Init(uint32_t size,
@@ -25,17 +26,18 @@ namespace Brisk
 		Allocate(memory);
 
 		if (mapPersistant) {
-			void* ref;
-			vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, 0, m_Size, 0, &ref);
-			memcpy(ref, data, (size_t)m_Size);
-		}
-		else
-		{
 			m_PersistantPtr = data;
 			void* ref;
 			vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, 0, m_Size, 0, &ref);
 			memcpy(ref, m_PersistantPtr, (size_t)m_Size);
 			vkUnmapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory);
+		}
+		else
+		{
+			//void* ref;
+			vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, 0, m_Size, 0, &m_PersistantPtr);
+			if (data)
+				memcpy(m_PersistantPtr, data, (size_t)m_Size);
 		}
 
 	}
@@ -79,7 +81,7 @@ namespace Brisk
 	//	memcpy(data, vertices.data(), (size_t)m_Size);
 	//}
 
-	void BufferVulkan::MapMemory(Vertex* vertices) {
+	void BufferVulkan::MapMemory(MeshData* vertices) {
 		void* data;
 		vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, 0, m_Size, 0, &data);
 		memcpy(data, vertices, (size_t)m_Size);

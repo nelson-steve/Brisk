@@ -1,35 +1,21 @@
 // INCLUDES
 #include "RHI.hpp"
-#include "Fence.hpp"
-#include "Queue.hpp"
 #include "Shader.hpp"
 #include "Renderer.hpp"
 #include "RenderPass.hpp"
 #include "RendererAPI.hpp"
 #include "Engine/Model.hpp"
 #include "ShaderModule.hpp"
-#include "RenderCommand.hpp"
 #include "Engine/Entity.hpp"
 #include "Engine/Component.hpp"
 #include "Engine/SceneManager.hpp"
 #include "Engine/Renderer/Shader.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
-#include "Graphics/Vulkan/CommandBufferVulkan.hpp"
 //-----------------------------------------------
 
 namespace Brisk
 {
-    std::shared_ptr<Semaphore> ImageAvailableSemaphore;
-    std::shared_ptr<Semaphore> RenderFinishedSemaphore;
-    std::shared_ptr<Fence> fence;
-    uint32_t imageIndex;
-    std::shared_ptr<CommandBuffer> cmd;
-    VkCommandPool m_CommandPool;
-    RenderCommand command;
     std::shared_ptr<Swapchain> Renderer::m_Swapchain;
-
-    std::shared_ptr<Pipeline> pipeline;
-    std::shared_ptr<Queue> queue;
 
     void Renderer::Init()
     {
@@ -39,21 +25,21 @@ namespace Brisk
         std::shared_ptr<DescriptorLayout> materialLayout = DescriptorLayout::Create();
         materialLayout->pName = "material";
         materialLayout->AddBindingLayout(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_VERTEX_BIT });
-        materialLayout->AddBindingLayout(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-        materialLayout->AddBindingLayout(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-        materialLayout->AddBindingLayout(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-        materialLayout->AddBindingLayout(4, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-        materialLayout->AddBindingLayout(5, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-        materialLayout->AddBindingLayout(6, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-        materialLayout->AddBindingLayout(7, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        //materialLayout->AddBindingLayout(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        //materialLayout->AddBindingLayout(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        //materialLayout->AddBindingLayout(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        //materialLayout->AddBindingLayout(4, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        //materialLayout->AddBindingLayout(5, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        //materialLayout->AddBindingLayout(6, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        //materialLayout->AddBindingLayout(7, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
         materialLayout->Init();
 
-        std::shared_ptr<DescriptorLayout> pbrLayout = DescriptorLayout::Create();
-        pbrLayout->pName = "pbr";
-        pbrLayout->AddBindingLayout(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-        pbrLayout->AddBindingLayout(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-        pbrLayout->AddBindingLayout(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-        pbrLayout->Init();
+        //std::shared_ptr<DescriptorLayout> pbrLayout = DescriptorLayout::Create();
+        //pbrLayout->pName = "pbr";
+        //pbrLayout->AddBindingLayout(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        //pbrLayout->AddBindingLayout(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        //pbrLayout->AddBindingLayout(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+        //pbrLayout->Init();
 
         std::shared_ptr<ShaderModule> vertexShaderModule = ShaderModule::Create();
         vertexShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
@@ -83,8 +69,8 @@ namespace Brisk
         pipelineSpecs.pRenderPass = RenderPass::Create();
         pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 
-        pipelineSpecs.pDescriptorLayouts.push_back(materialLayout);
-        pipelineSpecs.pDescriptorLayouts.push_back(pbrLayout);
+        pipelineSpecs.pDescriptorLayouts["material"] = materialLayout;
+        //pipelineSpecs.pDescriptorLayouts["pbr"] = pbrLayout;
 
         pipelineSpecs.pShaderModules.push_back(vertexShaderModule);
         pipelineSpecs.pShaderModules.push_back(fragmentShaderModule);
@@ -161,6 +147,7 @@ namespace Brisk
             
             RenderCommand::BindVertexBuffer(cmd, { mesh.pModel->GetVertexBuffer() }, 0);
             RenderCommand::BindIndexBuffer(cmd, mesh.pModel->GetIndexBuffer(), 0);
+
             for (auto& node : mesh.pModel->GetNodes()) {
                 DrawNode(mesh.pModel, mat.pMaterials, node);
             }

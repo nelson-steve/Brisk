@@ -4,25 +4,34 @@
 #include "GpuAdapterVulkan.hpp"
 #include "TextureVulkan.hpp"
 #include "CommandBufferVulkan.hpp"
+#include "DescriptorLayoutVulkan.hpp"
 
 namespace Brisk
 {
-	void ShaderVulkan::Init(std::shared_ptr<Pipeline> pipeline)
+	void ShaderVulkan::Init(std::shared_ptr<Pipeline> pipeline, std::string layoutName)
 	{
+		VkDescriptorSetLayout layout{};
 		VkDescriptorSetAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		//allocInfo.descriptorPool = m_descriptor_pools.scene;
-		//allocInfo.descriptorSetCount = 1;
-		//allocInfo.pSetLayouts = &m_descriptorSetLayouts.model;
-		//if (vkAllocateDescriptorSets(m_device, &allocInfo, &m_DescriptorSet) != VK_SUCCESS)
-		//{
-		//	throw std::runtime_error("failed to allocate descriptor sets!");
-		//}
+		if (pipeline->m_Specs.pDescriptorLayouts.find(layoutName) != pipeline->m_Specs.pDescriptorLayouts.end()) {
+			for (const auto& pair : pipeline->m_Specs.pDescriptorLayouts) {
+				layout = std::static_pointer_cast<DescriptorLayoutVulkan>(pair.second)->GetLayout();
+				break;
+			}
+		}
+
+		allocInfo.descriptorPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDescriptorPool();
+		allocInfo.descriptorSetCount = 1;
+		allocInfo.pSetLayouts = &layout;
+		if (vkAllocateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfo, &m_DescriptorSet) != VK_SUCCESS)
+		{
+			throw std::runtime_error("failed to allocate descriptor sets!");
+		}
 	}
 
 	void ShaderVulkan::UpdateResources()
 	{
-		//vkUpdateDescriptorSets(m_device, m_DescriptorWrites.size(), m_DescriptorWrites.data(), 0, nullptr);
+		vkUpdateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_DescriptorWrites.size(), m_DescriptorWrites.data(), 0, nullptr);
 	}
 
 	void ShaderVulkan::Allocate(std::shared_ptr<CommandBuffer> cmdBuffer, std::shared_ptr<Pipeline> pipeline) {
@@ -107,7 +116,15 @@ namespace Brisk
 		m_DescriptorWrites.push_back(descriptorWrite);
 	}
 
-	void ShaderVulkan::SetMVPBuffer()
+	void ShaderVulkan::SetMVPBuffer(std::shared_ptr<Buffer> buffer)
 	{
+		VkWriteDescriptorSet descriptorWrite{};
+		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+		descriptorWrite.dstSet = m_DescriptorSet;
+		descriptorWrite.dstBinding = 0;
+		descriptorWrite.descriptorCount = 1;
+		descriptorWrite.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
+		m_DescriptorWrites.push_back(descriptorWrite);
 	}
 }

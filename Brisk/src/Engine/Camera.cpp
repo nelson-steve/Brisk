@@ -83,10 +83,10 @@ namespace Brisk
 
 		MVP mvp{};
 		mvp.Model = glm::mat4(1.0f);
-		mvp.Projection = m_Projection;
-		mvp.View = m_ViewMatrix;
+		mvp.View = glm::mat4(1.0f);
+		mvp.Projection = glm::mat4(1.0f);
 
-		mMVPBuffer->UpdatePersistantData(sizeof(MVP), &mvp);
+		mMVPBuffer->UpdatePersistantData(sizeof(mvp), &mvp);
 	}
 
 	bool Camera::OnMouseScroll(float yOffset) {

@@ -148,6 +148,8 @@ namespace Brisk
             RenderCommand::BindVertexBuffer(cmd, { mesh.pModel->GetVertexBuffer() }, 0);
             RenderCommand::BindIndexBuffer(cmd, mesh.pModel->GetIndexBuffer(), 0);
 
+            mat.pMaterials[0]->Bind(cmd, pipeline);
+
             for (auto& node : mesh.pModel->GetNodes()) {
                 DrawNode(mesh.pModel, mat.pMaterials, node);
             }

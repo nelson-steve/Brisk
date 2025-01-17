@@ -1,13 +1,16 @@
 #pragma once
 
+// INCLUDES
 #include "Entity.hpp"
 #include "Scene.hpp"
 #include "Core/Core.hpp"
 #include "Core/Timer.hpp"
-
+//-----------------------
+#include <Core/Timer.hpp>
+//-----------------------
 #include <filesystem>
 #include <string>
-#include <Core/Timer.hpp>
+//---------------
 
 extern "C" {
 	typedef struct _MonoClass MonoClass;

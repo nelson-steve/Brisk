@@ -1,11 +1,11 @@
 #pragma once
 
 // INCLUDES
-#include "PipelineVulkan.hpp"
-#include "Engine/Engine.hpp"
-#include "Engine/Renderer/Buffer.hpp"
 #include "Engine/Model.hpp"
-//-------------------------
+#include "Engine/Engine.hpp"
+#include "PipelineVulkan.hpp"
+#include "Engine/Renderer/Buffer.hpp"
+//-----------------------------------
 #include <Volk/volk.h>
 //--------------------
 

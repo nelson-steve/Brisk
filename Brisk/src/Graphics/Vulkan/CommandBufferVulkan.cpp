@@ -1,8 +1,10 @@
-#include "CommandBufferVulkan.hpp"
+// INCLUDES
 #include "Engine/Engine.hpp"
 #include "GpuAdapterVulkan.hpp"
-
+#include "CommandBufferVulkan.hpp"
+//--------------------------------
 #include <memory>
+//---------------
 
 namespace Brisk {
 	void CommandBufferVulkan::Allocate(VkCommandPool pool) {

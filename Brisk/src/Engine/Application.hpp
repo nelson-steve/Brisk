@@ -9,7 +9,7 @@
 #include "Renderer/GpuAdapter.hpp"
 #include "Events/ApplicationEvent.hpp"
 #include "Platform/Windows/WindowsWindow.hpp"
-//------------------------
+//-------------------------------------------
 
 namespace Brisk 
 {

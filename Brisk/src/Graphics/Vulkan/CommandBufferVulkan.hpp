@@ -1,10 +1,12 @@
 #pragma once
-
+// INCLUDES
 #include "Engine/Renderer/CommandBuffer.hpp"
-
+//------------------------------------------
 #include <Volk/volk.h>
+//--------------------
 
-namespace Brisk {
+namespace Brisk 
+{
 	class CommandBufferVulkan : public CommandBuffer {
 	public:
 		virtual void Bind() override;

@@ -1,8 +1,10 @@
 #pragma once
 
+// INCLUDES
+#include "Core/Log.hpp"
 #include "Engine/Engine.hpp"
 #include "Graphics/Vulkan/SwapchainVulkan.hpp"
-#include "Core/Log.hpp"
+//--------------------------------------------
 
 namespace Brisk {
 	class SwapchainFactory {

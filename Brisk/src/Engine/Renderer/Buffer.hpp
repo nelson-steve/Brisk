@@ -12,7 +12,7 @@ namespace Brisk
 {
 	class Buffer {
 	public:
-		virtual void Init(uint32_t size, 
+		virtual void Init(uint64_t size,
 			void* data, 
 			std::vector<Core::BufferUsage> usageFlags, 
 			std::vector<Core::MemoryProperty> memoryProperty, 
@@ -27,6 +27,6 @@ namespace Brisk
 			return m_Size; 
 		}
 	protected:
-		uint32_t m_Size;
+		uint64_t m_Size;
 	};
 }

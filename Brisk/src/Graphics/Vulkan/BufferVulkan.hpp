@@ -12,7 +12,7 @@
 namespace Brisk {
 	class BufferVulkan : public Buffer {
 	public:
-		virtual void Init(uint32_t size,
+		virtual void Init(uint64_t size,
 			void* data,
 			std::vector<Core::BufferUsage> usageFlags,
 			std::vector<Core::MemoryProperty> memoryProperty,
@@ -30,7 +30,7 @@ namespace Brisk {
 			return &bufferInfo;
 		}
 	private:
-		void Create(uint32_t size, VkBufferUsageFlags usageFlags);
+		void Create(uint64_t size, VkBufferUsageFlags usageFlags);
 		void Allocate(VkMemoryPropertyFlags properties);
 		//void MapMemory(std::vector<Point>& data);
 		void MapMemory(MeshData* data);
@@ -39,7 +39,7 @@ namespace Brisk {
 		//void Release();
 		const VkDeviceMemory GetMemory() const { return m_Memory; }
 	private:
-		void* m_PersistantPtr;
+		void* m_MappedPointerHandle;
 		VkBuffer m_Handle;
 		VkDeviceMemory m_Memory;
 		VkDescriptorBufferInfo bufferInfo;

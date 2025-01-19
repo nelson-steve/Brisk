@@ -6,6 +6,7 @@
 #include "Camera.hpp"
 #include "SceneManager.hpp"
 #include "Renderer/Renderer.hpp"
+#include "Events/MouseEvent.hpp"
 #include "Renderer/GpuAdapter.hpp"
 #include "Events/ApplicationEvent.hpp"
 #include "Platform/Windows/WindowsWindow.hpp"
@@ -34,6 +35,8 @@ namespace Brisk
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
+		bool OnMouseMoved(MouseMovedEvent& e);
+		bool OnMouseScrolled(MouseScrolledEvent& e);
 	private:
 		std::shared_ptr<GpuAdapter> m_Adapter;
 		std::shared_ptr<Renderer> m_Renderer;

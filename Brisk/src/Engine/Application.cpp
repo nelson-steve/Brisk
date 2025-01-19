@@ -27,6 +27,8 @@ namespace Brisk
 
 		dispatcher.Dispatch<WindowCloseEvent>(BIND_EVENT_FN(Application::OnWindowClose));
 		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
+		dispatcher.Dispatch<MouseMovedEvent>(BIND_EVENT_FN(Application::OnMouseMoved));
+		dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(Application::OnMouseScrolled));
 	}
 
 	void Application::Update(float deltaTime) {
@@ -40,6 +42,18 @@ namespace Brisk
 	}
 
 	bool Application::OnWindowResize(WindowResizeEvent &e) {
+		return false;
+	}
+
+	bool Application::OnMouseMoved(MouseMovedEvent& e) {
+		m_EditorCamera->MouseMoved();
+		m_EditorCamera->SetMouseOffset(e.GetMouseX(), e.GetMouseY());
+		return false;
+	}
+
+	bool Application::OnMouseScrolled(MouseScrolledEvent& e) {
+		m_EditorCamera->MouseMoved();
+		m_EditorCamera->OnMouseScroll(e.GetYOffset());
 		return false;
 	}
 

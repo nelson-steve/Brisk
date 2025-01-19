@@ -10,7 +10,7 @@
 //---------------
 namespace Brisk 
 {
-	void BufferVulkan::Init(uint32_t size,
+	void BufferVulkan::Init(uint64_t size,
 		void* data,
 		std::vector<Core::BufferUsage> usageFlags,
 		std::vector<Core::MemoryProperty> memoryProperty,
@@ -26,28 +26,26 @@ namespace Brisk
 		Allocate(memory);
 
 		if (mapPersistant) {
-			m_PersistantPtr = data;
 			void* ref;
 			vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, 0, m_Size, 0, &ref);
-			memcpy(ref, m_PersistantPtr, (size_t)m_Size);
+			memcpy(ref, data, (size_t)m_Size);
 			vkUnmapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory);
 		}
 		else
 		{
 			void* ref;
 			vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, 0, m_Size, 0, &ref);
-			m_PersistantPtr = ref;
+			m_MappedPointerHandle = ref;
 			if (data)
-				memcpy(m_PersistantPtr, data, (size_t)m_Size);
+				memcpy(m_MappedPointerHandle, data, (size_t)m_Size);
 		}
-
 	}
 
 	void BufferVulkan::UpdatePersistantData(uint32_t size, void* data) {
-		memcpy(m_PersistantPtr, data, size);
+		memcpy(m_MappedPointerHandle, data, m_Size);
 	}
 
-	void BufferVulkan::Create(uint32_t bufferSize, VkBufferUsageFlags usageFlags) {
+	void BufferVulkan::Create(uint64_t bufferSize, VkBufferUsageFlags usageFlags) {
 		VkBufferCreateInfo createInfo{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
 		createInfo.pNext = nullptr;
 		m_Size = bufferSize;

@@ -1,10 +1,12 @@
+// INCLUDES
 #include "GpuAdapterVulkan.hpp"
 #include "Core/Log.hpp"
 #include "Engine/Engine.hpp"
 #include "Graphics/Vulkan/UtilitiesVulkan.hpp"
-
+//--------------------------------------------
 #include <set>
 #include <iostream>
+//-----------------
 
 namespace Brisk 
 {

@@ -81,12 +81,12 @@ namespace Brisk {
 			}
 		}
 
-		size_t vertexBufferSize = vertex_count * sizeof(MeshData);
-		size_t indexBufferSize = index_count * sizeof(uint32_t);
+		uint64_t vertexBufferSize = vertex_count * sizeof(MeshData);
+		uint64_t indexBufferSize = index_count * sizeof(uint32_t);
 		assert(vertexBufferSize > 0);
 
 		m_VertexBuffer = Buffer::Create();
-		m_VertexBuffer->Init(sizeof(m_vertex_buffer[0])* vertexBufferSize,
+		m_VertexBuffer->Init(vertexBufferSize,
 			m_vertex_buffer,
 			{ Core::BufferUsage::BUFFER_USAGE_VERTEX_BUFFER_BIT },
 			{ Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
@@ -94,7 +94,7 @@ namespace Brisk {
 
 		if (indexBufferSize > 0) {
 			m_IndexBuffer = Buffer::Create();
-			m_IndexBuffer->Init(sizeof(m_index_buffer[0]) * indexBufferSize,
+			m_IndexBuffer->Init(indexBufferSize,
 				m_index_buffer,
 				{ Core::BufferUsage::BUFFER_USAGE_INDEX_BUFFER_BIT },
 				{ Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
@@ -315,11 +315,11 @@ namespace Brisk {
 					const tinygltf::Accessor& pos_accessor = model.accessors[primitive.attributes.find("POSITION")->second];
 					for (size_t v = 0; v < pos_accessor.count; v++) {
 						MeshData& vert = m_vertex_buffer[m_vertex_pos];
-						vert.Position = glm::vec4(glm::make_vec3(&buffer_pos[v * posByteStride]), 1.0f);
+						vert.Position = glm::make_vec3(&buffer_pos[v * posByteStride]);
 						vert.Normal = glm::normalize(glm::vec3(buffer_normals ? glm::make_vec3(&buffer_normals[v * normByteStride]) : glm::vec3(0.0f)));
 						vert.UV0 = buffer_uv_set0 ? glm::make_vec2(&buffer_uv_set0[v * uv0ByteStride]) : glm::vec3(0.0f);
 						vert.UV1 = buffer_uv_set1 ? glm::make_vec2(&buffer_uv_set1[v * uv1ByteStride]) : glm::vec3(0.0f);
-						vert.Color = buffer_color_set0 ? glm::make_vec4(&buffer_color_set0[v * color0ByteStride]) : glm::vec4(1.0f);
+						vert.Color = buffer_color_set0 ? glm::make_vec3(&buffer_color_set0[v * color0ByteStride]) : glm::vec3(1.0f);
 
 						m_vertex_pos++;
 					}

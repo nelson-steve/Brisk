@@ -18,7 +18,7 @@ namespace Brisk
 		glm::vec3 Normal;
 		glm::vec2 UV0;
 		glm::vec2 UV1;
-		glm::vec4 Color;
+		glm::vec3 Color;
 	};
 
 	struct MaterialData {

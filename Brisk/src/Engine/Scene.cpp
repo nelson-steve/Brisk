@@ -51,7 +51,7 @@ namespace Brisk
 		entity.AddComponent<TransformComponent>();
 		std::shared_ptr<Mesh> model;
 		model = std::make_shared<Mesh>();
-		model->Load("../Data/Models/Cube/Cube.gltf");
+		model->Load("../Data/Models/revolver/revolver.gltf");
 		entity.AddComponent<MaterialComponent>();
 		entity.AddComponent<MeshComponent>().pModel = model;
 		auto& mat = entity.GetComponent<MaterialComponent>();

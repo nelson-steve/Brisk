@@ -221,8 +221,6 @@ namespace Brisk {
 	}
 
 	void Mesh::LoadNode(GLTF_Node* parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model) {
-		
-
 		GLTF_Node* new_node = new GLTF_Node();
 		new_node->parent = parent;
 		new_node->index = node_index;

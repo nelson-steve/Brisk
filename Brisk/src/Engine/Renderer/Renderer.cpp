@@ -146,7 +146,7 @@ namespace Brisk
             auto& mat = entity.GetComponent<MaterialComponent>();
             
             RenderCommand::BindVertexBuffer(cmd, { mesh.pModel->GetVertexBuffer() }, 0);
-            RenderCommand::BindIndexBuffer(cmd, mesh.pModel->GetIndexBuffer(), 0);
+            //RenderCommand::BindIndexBuffer(cmd, mesh.pModel->GetIndexBuffer(), 0);
 
             mat.pMaterials[0]->Bind(cmd, pipeline);
 
@@ -182,8 +182,8 @@ namespace Brisk
                 pipeline->Bind(cmd);
                 uint32_t index = primitive->material_index > -1 ? primitive->material_index : 0;
                 //materials[index]->Bind(cmd, pipeline);
-                RenderCommand::DrawIndexed(cmd, primitive->index_count, 1, primitive->first_index, 0, 0);
-                //RenderCommand::BindVertexBuffer(cmd, { model->GetVertexBuffer() }, 0);
+                //RenderCommand::DrawIndexed(cmd, primitive->index_count, 1, primitive->first_index, 0, 0);
+                RenderCommand::Draw(cmd, primitive->vertex_count, 0);
             }
         }
         for (auto& child : node->children) {

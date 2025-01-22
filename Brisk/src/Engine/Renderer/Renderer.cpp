@@ -150,6 +150,8 @@ namespace Brisk
 
             mat.pMaterials[0]->Bind(cmd, pipeline);
 
+            pipeline->Bind(cmd);
+
             for (auto& node : mesh.pModel->GetNodes()) {
                 DrawNode(mesh.pModel, mat.pMaterials, node);
             }
@@ -179,7 +181,7 @@ namespace Brisk
     void Renderer::DrawNode(const std::shared_ptr<Mesh> model, std::vector<std::shared_ptr<Shader>> materials, GLTF_Node* node) {
         if (node->mesh) {
             for (Primitive* primitive : node->mesh->primitives) {
-                pipeline->Bind(cmd);
+                //pipeline->Bind(cmd);
                 uint32_t index = primitive->material_index > -1 ? primitive->material_index : 0;
                 //materials[index]->Bind(cmd, pipeline);
                 //RenderCommand::DrawIndexed(cmd, primitive->index_count, 1, primitive->first_index, 0, 0);

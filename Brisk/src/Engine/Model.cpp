@@ -85,8 +85,47 @@ namespace Brisk {
 		uint64_t indexBufferSize = index_count * sizeof(uint32_t);
 		assert(vertexBufferSize > 0);
 
+		//std::vector<MeshData> cubeVertices = {
+		//	// Front face
+		//	{ { -0.5f, -0.5f,  0.5f }, {  0.0f,  0.0f,  1.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } }, // Bottom-left
+		//	{ {  0.5f, -0.5f,  0.5f }, {  0.0f,  0.0f,  1.0f }, { 1.0f, 0.0f }, { 1.0f, 0.0f }, { 0.0f, 1.0f, 0.0f } }, // Bottom-right
+		//	{ {  0.5f,  0.5f,  0.5f }, {  0.0f,  0.0f,  1.0f }, { 1.0f, 1.0f }, { 1.0f, 1.0f }, { 0.0f, 0.0f, 1.0f } }, // Top-right
+		//	{ { -0.5f,  0.5f,  0.5f }, {  0.0f,  0.0f,  1.0f }, { 0.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 1.0f } }, // Top-left
+
+		//	// Back face
+		//	{ { -0.5f, -0.5f, -0.5f }, {  0.0f,  0.0f, -1.0f }, { 1.0f, 0.0f }, { 1.0f, 0.0f }, { 1.0f, 0.0f, 1.0f } },
+		//	{ { -0.5f,  0.5f, -0.5f }, {  0.0f,  0.0f, -1.0f }, { 1.0f, 1.0f }, { 1.0f, 1.0f }, { 0.0f, 1.0f, 1.0f } },
+		//	{ {  0.5f,  0.5f, -0.5f }, {  0.0f,  0.0f, -1.0f }, { 0.0f, 1.0f }, { 0.0f, 1.0f }, { 1.0f, 1.0f, 0.0f } },
+		//	{ {  0.5f, -0.5f, -0.5f }, {  0.0f,  0.0f, -1.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f }, { 1.0f, 0.0f, 0.0f } },
+
+		//	// Left face
+		//	{ { -0.5f, -0.5f, -0.5f }, { -1.0f,  0.0f,  0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f }, { 0.5f, 0.5f, 0.5f } },
+		//	{ { -0.5f, -0.5f,  0.5f }, { -1.0f,  0.0f,  0.0f }, { 1.0f, 0.0f }, { 1.0f, 0.0f }, { 0.3f, 0.7f, 0.8f } },
+		//	{ { -0.5f,  0.5f,  0.5f }, { -1.0f,  0.0f,  0.0f }, { 1.0f, 1.0f }, { 1.0f, 1.0f }, { 0.4f, 0.6f, 0.2f } },
+		//	{ { -0.5f,  0.5f, -0.5f }, { -1.0f,  0.0f,  0.0f }, { 0.0f, 1.0f }, { 0.0f, 1.0f }, { 0.9f, 0.4f, 0.1f } },
+
+		//	// Right face
+		//	{ {  0.5f, -0.5f, -0.5f }, {  1.0f,  0.0f,  0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f }, { 0.6f, 0.2f, 0.3f } },
+		//	{ {  0.5f,  0.5f, -0.5f }, {  1.0f,  0.0f,  0.0f }, { 0.0f, 1.0f }, { 0.0f, 1.0f }, { 0.8f, 0.3f, 0.2f } },
+		//	{ {  0.5f,  0.5f,  0.5f }, {  1.0f,  0.0f,  0.0f }, { 1.0f, 1.0f }, { 1.0f, 1.0f }, { 0.2f, 0.5f, 0.7f } },
+		//	{ {  0.5f, -0.5f,  0.5f }, {  1.0f,  0.0f,  0.0f }, { 1.0f, 0.0f }, { 1.0f, 0.0f }, { 0.7f, 0.1f, 0.5f } },
+
+		//	// Top face
+		//	{ { -0.5f,  0.5f,  0.5f }, {  0.0f,  1.0f,  0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f }, { 0.4f, 0.7f, 0.8f } },
+		//	{ {  0.5f,  0.5f,  0.5f }, {  0.0f,  1.0f,  0.0f }, { 1.0f, 0.0f }, { 1.0f, 0.0f }, { 0.6f, 0.4f, 0.3f } },
+		//	{ {  0.5f,  0.5f, -0.5f }, {  0.0f,  1.0f,  0.0f }, { 1.0f, 1.0f }, { 1.0f, 1.0f }, { 0.9f, 0.2f, 0.6f } },
+		//	{ { -0.5f,  0.5f, -0.5f }, {  0.0f,  1.0f,  0.0f }, { 0.0f, 1.0f }, { 0.0f, 1.0f }, { 0.5f, 0.8f, 0.1f } },
+
+		//	// Bottom face
+		//	{ { -0.5f, -0.5f,  0.5f }, {  0.0f, -1.0f,  0.0f }, { 0.0f, 0.0f }, { 0.0f, 0.0f }, { 0.7f, 0.3f, 0.2f } },
+		//	{ {  0.5f, -0.5f,  0.5f }, {  0.0f, -1.0f,  0.0f }, { 1.0f, 0.0f }, { 1.0f, 0.0f }, { 0.4f, 0.6f, 0.9f } },
+		//	{ {  0.5f, -0.5f, -0.5f }, {  0.0f, -1.0f,  0.0f }, { 1.0f, 1.0f }, { 1.0f, 1.0f }, { 0.3f, 0.5f, 0.8f } },
+		//	{ { -0.5f, -0.5f, -0.5f }, {  0.0f, -1.0f,  0.0f }, { 0.0f, 1.0f }, { 0.0f, 1.0f }, { 0.6f, 0.2f, 0.4f } },
+		//};
+
+
 		m_VertexBuffer = Buffer::Create();
-		m_VertexBuffer->Init(vertexBufferSize,
+		m_VertexBuffer->Init(sizeof(m_vertex_buffer[0]) * vertex_count,
 			m_vertex_buffer,
 			{ Core::BufferUsage::BUFFER_USAGE_VERTEX_BUFFER_BIT },
 			{ Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
@@ -94,7 +133,7 @@ namespace Brisk {
 
 		if (indexBufferSize > 0) {
 			m_IndexBuffer = Buffer::Create();
-			m_IndexBuffer->Init(indexBufferSize,
+			m_IndexBuffer->Init(sizeof(m_index_buffer[0]) * index_count,
 				m_index_buffer,
 				{ Core::BufferUsage::BUFFER_USAGE_INDEX_BUFFER_BIT },
 				{ Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
@@ -315,8 +354,8 @@ namespace Brisk {
 						MeshData& vert = m_vertex_buffer[m_vertex_pos];
 						vert.Position = glm::make_vec3(&buffer_pos[v * posByteStride]);
 						vert.Normal = glm::normalize(glm::vec3(buffer_normals ? glm::make_vec3(&buffer_normals[v * normByteStride]) : glm::vec3(0.0f)));
-						vert.UV0 = buffer_uv_set0 ? glm::make_vec2(&buffer_uv_set0[v * uv0ByteStride]) : glm::vec3(0.0f);
-						vert.UV1 = buffer_uv_set1 ? glm::make_vec2(&buffer_uv_set1[v * uv1ByteStride]) : glm::vec3(0.0f);
+						vert.UV0 = buffer_uv_set0 ? glm::make_vec2(&buffer_uv_set0[v * uv0ByteStride]) : glm::vec2(0.0f);
+						vert.UV1 = buffer_uv_set1 ? glm::make_vec2(&buffer_uv_set1[v * uv1ByteStride]) : glm::vec2(0.0f);
 						vert.Color = buffer_color_set0 ? glm::make_vec3(&buffer_color_set0[v * color0ByteStride]) : glm::vec3(1.0f);
 
 						m_vertex_pos++;

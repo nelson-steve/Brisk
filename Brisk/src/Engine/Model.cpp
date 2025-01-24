@@ -81,8 +81,8 @@ namespace Brisk {
 			}
 		}
 
-		uint64_t vertexBufferSize = vertex_count * sizeof(MeshData);
-		uint64_t indexBufferSize = index_count * sizeof(uint32_t);
+		size_t vertexBufferSize = vertex_count * sizeof(MeshData);
+		size_t indexBufferSize = index_count * sizeof(uint32_t);
 		assert(vertexBufferSize > 0);
 
 		//std::vector<MeshData> cubeVertices = {

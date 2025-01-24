@@ -89,6 +89,7 @@ namespace Brisk
 		mvp.Model = glm::mat4(1.0f);
 		mvp.View = m_ViewMatrix;
 		mvp.Projection = m_Projection;
+		mvp.Projection[1][1] *= -1;
 
 		mMVPBuffer->UpdatePersistantData(sizeof(MVP), &mvp);
 	}

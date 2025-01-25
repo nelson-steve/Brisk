@@ -15,10 +15,10 @@ namespace Brisk
 {
 	struct MeshData {
 		glm::vec3 Position;
-		//glm::vec3 Normal;
-		//glm::vec2 UV0;
-		//glm::vec2 UV1;
-		//glm::vec3 Color;
+		glm::vec3 Normal;
+		glm::vec2 UV0;
+		glm::vec2 UV1;
+		glm::vec3 Color;
 	};
 
 	struct MaterialData {
@@ -103,7 +103,7 @@ namespace Brisk
 	class Mesh {
 	public:
 		Mesh() = default;
-		~Mesh();
+		~Mesh() = default;
 		void Load(const std::string& path);
 		void GetNodeProps(const tinygltf::Node& node, const tinygltf::Model& model, uint32_t& vertex_count, uint32_t& index_count);
 		void LoadNode(GLTF_Node* parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model);

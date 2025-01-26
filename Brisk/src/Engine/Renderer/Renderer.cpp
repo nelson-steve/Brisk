@@ -59,11 +59,11 @@ namespace Brisk
         vertexLayout.pBinding = 0;
         vertexLayout.pStride = sizeof(MeshData);
         vertexLayout.pAttributes = {
-            {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, 0},
-            //{0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Normal)},
-            //{0, 2, Core::Format::FORMAT_R32G32_SFLOAT, offsetof(MeshData, MeshData::UV0)},
-            //{0, 3, Core::Format::FORMAT_R32G32_SFLOAT, offsetof(MeshData, MeshData::UV1)},
-            //{0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Color)},
+            {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Position)},
+            {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Normal)},
+            {0, 2, Core::Format::FORMAT_R32G32_SFLOAT, offsetof(MeshData, MeshData::UV0)},
+            {0, 3, Core::Format::FORMAT_R32G32_SFLOAT, offsetof(MeshData, MeshData::UV1)},
+            {0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Color)},
         };
         pipelineSpecs.pLayout = vertexLayout;
         pipelineSpecs.pRenderPass = RenderPass::Create();
@@ -146,7 +146,7 @@ namespace Brisk
             auto& mat = entity.GetComponent<MaterialComponent>();
             
             RenderCommand::BindVertexBuffer(cmd, { mesh.pModel->GetVertexBuffer() }, 0);
-            //RenderCommand::BindIndexBuffer(cmd, mesh.pModel->GetIndexBuffer(), 0);
+            RenderCommand::BindIndexBuffer(cmd, mesh.pModel->GetIndexBuffer(), 0);
 
             mat.pMaterials[0]->Bind(cmd, pipeline);
 
@@ -184,8 +184,8 @@ namespace Brisk
                 //pipeline->Bind(cmd);
                 uint32_t index = primitive->material_index > -1 ? primitive->material_index : 0;
                 //materials[index]->Bind(cmd, pipeline);
-                //RenderCommand::DrawIndexed(cmd, primitive->index_count, 1, primitive->first_index, 0, 0);
-                RenderCommand::Draw(cmd, primitive->vertex_count, 0);
+                RenderCommand::DrawIndexed(cmd, primitive->index_count, 1, primitive->first_index, 0, 0);
+                //RenderCommand::Draw(cmd, primitive->vertex_count, 0);
             }
         }
         for (auto& child : node->children) {

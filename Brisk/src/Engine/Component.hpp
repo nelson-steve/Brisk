@@ -83,6 +83,7 @@ namespace Brisk
 		std::string name = "Mesh Component";
 
 		Ref<Mesh> pModel;
+		//Ref<ObjModel> pModel;
 
 		MeshComponent() = default;
 		MeshComponent(const MeshComponent&) = default;

@@ -40,7 +40,7 @@ namespace Brisk
 		}
 
 		virtual void BindIndexBuffer(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Buffer> buffer, uint32_t firstBinding) override {
-			vkCmdBindIndexBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), std::static_pointer_cast<BufferVulkan>(buffer)->Get(), 0, VK_INDEX_TYPE_UINT16);
+			vkCmdBindIndexBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), std::static_pointer_cast<BufferVulkan>(buffer)->Get(), 0, VK_INDEX_TYPE_UINT32);
 		}
 
 		virtual void BindVertexBuffer(std::shared_ptr<CommandBuffer> cmd, std::vector<std::shared_ptr<Buffer>> buffers, uint32_t firstBinding) override {

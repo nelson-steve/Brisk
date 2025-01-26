@@ -15,10 +15,10 @@ namespace Brisk
 {
 	struct MeshData {
 		glm::vec3 Position;
-		//glm::vec3 Normal;
-		//glm::vec2 UV0;
-		//glm::vec2 UV1;
-		//glm::vec3 Color;
+		glm::vec3 Normal;
+		glm::vec2 UV0;
+		glm::vec2 UV1;
+		glm::vec3 Color;
 	};
 
 	struct MaterialData {

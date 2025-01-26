@@ -157,7 +157,7 @@ namespace Brisk
         //stagingBuffer.Init(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
         //stagingBuffer.Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
 
-        void* data;
+        //void* data;
         //vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), stagingBuffer.GetMemory(), 0, imageSize, 0, &data);
         //memcpy(data, pixels, static_cast<size_t>(imageSize));
         VkMappedMemoryRange range[1] = {};

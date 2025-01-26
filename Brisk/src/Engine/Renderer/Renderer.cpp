@@ -59,11 +59,11 @@ namespace Brisk
         vertexLayout.pBinding = 0;
         vertexLayout.pStride = sizeof(MeshData);
         vertexLayout.pAttributes = {
-            {0, 0, Core::Format::FORMAT_R32G32B32A32_SFLOAT, offsetof(MeshData, MeshData::Position)},
-            {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Normal)},
-            {0, 2, Core::Format::FORMAT_R32G32_SFLOAT, offsetof(MeshData, MeshData::UV0)},
-            {0, 3, Core::Format::FORMAT_R32G32_SFLOAT, offsetof(MeshData, MeshData::UV1)},
-            {0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Color)},
+            {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, 0},
+            //{0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Normal)},
+            //{0, 2, Core::Format::FORMAT_R32G32_SFLOAT, offsetof(MeshData, MeshData::UV0)},
+            //{0, 3, Core::Format::FORMAT_R32G32_SFLOAT, offsetof(MeshData, MeshData::UV1)},
+            //{0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Color)},
         };
         pipelineSpecs.pLayout = vertexLayout;
         pipelineSpecs.pRenderPass = RenderPass::Create();
@@ -80,7 +80,7 @@ namespace Brisk
         pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
         pipelineSpecs.pLineWidth = 1.0f;
         pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
-        pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
+        pipelineSpecs.pFrontFace = Pipeline::FrontFace::COUTNER_CLOCKWISE;
         pipelineSpecs.pDepthBiasEnable = false;
         pipelineSpecs.pDepthTestEnable = true;
         pipelineSpecs.pDepthWriteEnable = true;

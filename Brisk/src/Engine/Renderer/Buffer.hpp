@@ -23,7 +23,7 @@ namespace Brisk
 
 		static std::shared_ptr<Buffer> Create();
 	protected:
-		inline uint32_t GetSize() const { 
+		inline uint64_t GetSize() const { 
 			return m_Size; 
 		}
 	protected:

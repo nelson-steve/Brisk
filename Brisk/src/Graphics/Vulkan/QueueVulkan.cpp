@@ -65,7 +65,7 @@ namespace Brisk
 
         VkPresentInfoKHR presentInfoVk = {};
         presentInfoVk.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-        presentInfoVk.waitSemaphoreCount = waitSemaphores.size();
+        presentInfoVk.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
         presentInfoVk.pWaitSemaphores = waitSemaphores.data();
         VkSwapchainKHR swapChains[] = { std::static_pointer_cast<SwapchainVulkan>(info.pSwapchains[0])->GetSwapchain() };
         presentInfoVk.pSwapchains = { swapChains };

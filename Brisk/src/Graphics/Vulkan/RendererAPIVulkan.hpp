@@ -13,12 +13,12 @@ namespace Brisk
 	class RendererAPIVulkan : public RendererAPI {
 		virtual void SetViewport(std::shared_ptr<CommandBuffer> cmd, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t minDepth, uint32_t maxDepth) override {
 			VkViewport viewport{};
-			viewport.x = x;
-			viewport.y = y;
+			viewport.x = static_cast<float>(x);
+			viewport.y = static_cast<float>(y);
 			viewport.width = static_cast<float>(width);
 			viewport.height = static_cast<float>(height);
-			viewport.minDepth = minDepth;
-			viewport.maxDepth = maxDepth;														
+			viewport.minDepth = static_cast<float>(minDepth);
+			viewport.maxDepth = static_cast<float>(maxDepth);
 
 			vkCmdSetViewport(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 0, 1, &viewport);
 		}
@@ -50,7 +50,7 @@ namespace Brisk
 				vertexBuffers.push_back(std::static_pointer_cast<BufferVulkan>(buffer)->Get());
 				offsets.push_back(0);
 			}
-			vkCmdBindVertexBuffers(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), firstBinding, vertexBuffers.size(), vertexBuffers.data(), offsets.data());
+			vkCmdBindVertexBuffers(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), firstBinding, static_cast<uint32_t>(vertexBuffers.size()), vertexBuffers.data(), offsets.data());
 		}
 	};
 }

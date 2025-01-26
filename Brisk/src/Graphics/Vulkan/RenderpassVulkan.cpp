@@ -117,7 +117,7 @@ namespace Brisk
         renderPassInfo.renderArea.extent = std::static_pointer_cast<SwapchainVulkan>(Renderer::GetSwapchain())->GetExtent();
 
         std::vector<VkClearValue> clearColors = { {{0.2f, 0.2f, 0.2f, 1.0f}}, { 1.0f, 0 } };
-        renderPassInfo.clearValueCount = clearColors.size();
+        renderPassInfo.clearValueCount = static_cast<uint32_t>(clearColors.size());
         renderPassInfo.pClearValues = clearColors.data();
 
         vkCmdBeginRenderPass(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);

@@ -217,6 +217,7 @@ namespace Brisk
 				case Core::Format::FORMAT_ASTC_12x12_UNORM_BLOCK: return VK_FORMAT_ASTC_12x12_UNORM_BLOCK;
 				case Core::Format::FORMAT_ASTC_12x12_SRGB_BLOCK: return VK_FORMAT_ASTC_12x12_SRGB_BLOCK;
 			}
+			assert(false);
 		}
 
 		static VkBufferUsageFlags BufferUsageToVkFormat(Core::BufferUsage usageFlag) {
@@ -238,6 +239,7 @@ namespace Brisk
 				case Core::BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT: return VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT;
 				case Core::BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT: return VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT;
 			}
+			assert(false);
 		}
 
 		static VkMemoryPropertyFlags MemoryPropertyToVkFormat(Core::MemoryProperty memoryPropertyFlag) {
@@ -254,6 +256,7 @@ namespace Brisk
 				case Core::MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV: return VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV;
 				case Core::MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM: return VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM;
 			}
+			assert(false);
 		}
 
 		static VkDescriptorType ResourceToDescriptorType(GPUResource::ResourceType resourceType) {
@@ -277,6 +280,7 @@ namespace Brisk
 				case GPUResource::ResourceType::DESCRIPTOR_TYPE_BLOCK_MATCH_IMAGE_QCOM: return VK_DESCRIPTOR_TYPE_BLOCK_MATCH_IMAGE_QCOM;
 				case GPUResource::ResourceType::DESCRIPTOR_TYPE_MUTABLE_EXT: return VK_DESCRIPTOR_TYPE_MUTABLE_EXT;
 			}
+			assert(false);
 		}
 
 		static VkShaderStageFlagBits ShaderStageToVkType(GPUResource::ShaderStageAccess stage) {
@@ -301,6 +305,7 @@ namespace Brisk
 				case GPUResource::ShaderStageAccess::SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI: return VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI;
 				case GPUResource::ShaderStageAccess::SHADER_STAGE_CLUSTER_CULLING_BIT_HUAWEI: return VK_SHADER_STAGE_CLUSTER_CULLING_BIT_HUAWEI;
 			}
+			assert(false);
 		}
 	};
 }

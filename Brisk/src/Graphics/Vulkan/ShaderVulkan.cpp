@@ -31,7 +31,7 @@ namespace Brisk
 
 	void ShaderVulkan::UpdateResources()
 	{
-		vkUpdateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_DescriptorWrites.size(), m_DescriptorWrites.data(), 0, nullptr);
+		vkUpdateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), static_cast<uint32_t>(m_DescriptorWrites.size()), m_DescriptorWrites.data(), 0, nullptr);
 	}
 
 	void ShaderVulkan::Allocate(std::shared_ptr<CommandBuffer> cmdBuffer, std::shared_ptr<Pipeline> pipeline) {

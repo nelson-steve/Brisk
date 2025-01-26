@@ -31,8 +31,8 @@ namespace Brisk {
 			file_loaded = loader.LoadASCIIFromFile(&model, &error, &warning, path.c_str());
 		}
 
-		uint32_t vertex_count = 0;
-		uint32_t index_count = 0;
+		size_t vertex_count = 0;
+		size_t index_count = 0;
 		if (file_loaded) {
 			for (tinygltf::Sampler smpl : model.samplers) {
 				TextureSampler texture_sampler{};
@@ -241,7 +241,7 @@ namespace Brisk {
 		m_materials.push_back(MaterialData());
 	}
 
-	void Mesh::GetNodeProps(const tinygltf::Node& node, const tinygltf::Model& model, uint32_t& vertex_count, uint32_t& index_count) {
+	void Mesh::GetNodeProps(const tinygltf::Node& node, const tinygltf::Model& model, size_t& vertex_count, size_t& index_count) {
 		if (node.children.size() > 0) {
 			for (size_t i = 0; i < node.children.size(); i++) {
 				GetNodeProps(model.nodes[node.children[i]], model, vertex_count, index_count);
@@ -302,13 +302,13 @@ namespace Brisk {
 					const void* buffer_joints = nullptr;
 					const float* buffer_weights = nullptr;
 
-					int posByteStride;
-					int normByteStride;
-					int uv0ByteStride;
-					int uv1ByteStride;
-					int color0ByteStride;
-					int jointByteStride;
-					int weightByteStride;
+					int posByteStride = 0;
+					int normByteStride = 0;
+					int uv0ByteStride = 0;
+					int uv1ByteStride = 0;
+					int color0ByteStride = 0;
+					//int jointByteStride;
+					//int weightByteStride;
 
 					if (primitive.attributes.find("POSITION") != primitive.attributes.end()) {
 						const tinygltf::Accessor& pos_accessor = model.accessors[primitive.attributes.find("POSITION")->second];
@@ -321,38 +321,39 @@ namespace Brisk {
 						assert(primitive.attributes.find("POSITION") != primitive.attributes.end());
 					}
 
-					if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) {
-						const tinygltf::Accessor& normal_accessor = model.accessors[primitive.attributes.find("NORMAL")->second];
-						const tinygltf::BufferView& normal_view = model.bufferViews[normal_accessor.bufferView];
-						buffer_normals = reinterpret_cast<const float*>(&(model.buffers[normal_view.buffer].data[normal_accessor.byteOffset + normal_view.byteOffset]));
-						normByteStride = normal_accessor.ByteStride(normal_view) ? (normal_accessor.ByteStride(normal_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC3);
-					}
+					//if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) {
+					//	const tinygltf::Accessor& normal_accessor = model.accessors[primitive.attributes.find("NORMAL")->second];
+					//	const tinygltf::BufferView& normal_view = model.bufferViews[normal_accessor.bufferView];
+					//	buffer_normals = reinterpret_cast<const float*>(&(model.buffers[normal_view.buffer].data[normal_accessor.byteOffset + normal_view.byteOffset]));
+					//	normByteStride = normal_accessor.ByteStride(normal_view) ? (normal_accessor.ByteStride(normal_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC3);
+					//}
 
-					if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) {
-						const tinygltf::Accessor& uv0_accessor = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
-						const tinygltf::BufferView& uv0_view = model.bufferViews[uv0_accessor.bufferView];
-						buffer_uv_set0 = reinterpret_cast<const float*>(&(model.buffers[uv0_view.buffer].data[uv0_accessor.byteOffset + uv0_view.byteOffset]));
-						uv0ByteStride = uv0_accessor.ByteStride(uv0_view) ? (uv0_accessor.ByteStride(uv0_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC2);
-					}
+					//if (primitive.attributes.find("TEXCOORD_0") != primitive.attributes.end()) {
+					//	const tinygltf::Accessor& uv0_accessor = model.accessors[primitive.attributes.find("TEXCOORD_0")->second];
+					//	const tinygltf::BufferView& uv0_view = model.bufferViews[uv0_accessor.bufferView];
+					//	buffer_uv_set0 = reinterpret_cast<const float*>(&(model.buffers[uv0_view.buffer].data[uv0_accessor.byteOffset + uv0_view.byteOffset]));
+					//	uv0ByteStride = uv0_accessor.ByteStride(uv0_view) ? (uv0_accessor.ByteStride(uv0_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC2);
+					//}
 
-					if (primitive.attributes.find("TEXCOORD_1") != primitive.attributes.end()) {
-						const tinygltf::Accessor& uv1_accessor = model.accessors[primitive.attributes.find("TEXCOORD_1")->second];
-						const tinygltf::BufferView& uv1_view = model.bufferViews[uv1_accessor.bufferView];
-						buffer_uv_set1 = reinterpret_cast<const float*>(&(model.buffers[uv1_view.buffer].data[uv1_accessor.byteOffset + uv1_view.byteOffset]));
-						uv1ByteStride = uv1_accessor.ByteStride(uv1_view) ? (uv1_accessor.ByteStride(uv1_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC2);
-					}
+					//if (primitive.attributes.find("TEXCOORD_1") != primitive.attributes.end()) {
+					//	const tinygltf::Accessor& uv1_accessor = model.accessors[primitive.attributes.find("TEXCOORD_1")->second];
+					//	const tinygltf::BufferView& uv1_view = model.bufferViews[uv1_accessor.bufferView];
+					//	buffer_uv_set1 = reinterpret_cast<const float*>(&(model.buffers[uv1_view.buffer].data[uv1_accessor.byteOffset + uv1_view.byteOffset]));
+					//	uv1ByteStride = uv1_accessor.ByteStride(uv1_view) ? (uv1_accessor.ByteStride(uv1_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC2);
+					//}
 
-					if (primitive.attributes.find("COLOR_0") != primitive.attributes.end()) {
-						const tinygltf::Accessor& color0_accessor = model.accessors[primitive.attributes.find("COLOR_0")->second];
-						const tinygltf::BufferView& uv1_view = model.bufferViews[color0_accessor.bufferView];
-						buffer_color_set0 = reinterpret_cast<const float*>(&(model.buffers[uv1_view.buffer].data[color0_accessor.byteOffset + uv1_view.byteOffset]));
-						color0ByteStride = color0_accessor.ByteStride(uv1_view) ? (color0_accessor.ByteStride(uv1_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC3);
-					}
+					//if (primitive.attributes.find("COLOR_0") != primitive.attributes.end()) {
+					//	const tinygltf::Accessor& color0_accessor = model.accessors[primitive.attributes.find("COLOR_0")->second];
+					//	const tinygltf::BufferView& uv1_view = model.bufferViews[color0_accessor.bufferView];
+					//	buffer_color_set0 = reinterpret_cast<const float*>(&(model.buffers[uv1_view.buffer].data[color0_accessor.byteOffset + uv1_view.byteOffset]));
+					//	color0ByteStride = color0_accessor.ByteStride(uv1_view) ? (color0_accessor.ByteStride(uv1_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC3);
+					//}
 
 					const tinygltf::Accessor& pos_accessor = model.accessors[primitive.attributes.find("POSITION")->second];
 					for (size_t v = 0; v < pos_accessor.count; v++) {
 						MeshData& vert = m_vertex_buffer[m_vertex_pos];
 						vert.Position = glm::vec4( glm::make_vec3(&buffer_pos[v * posByteStride]), 1.0f);
+						//std::cout << vert.Position.x << ":" << vert.Position.y << ":" << vert.Position.z << std::endl;
 						//vert.Normal = glm::normalize(glm::vec3(buffer_normals ? glm::make_vec3(&buffer_normals[v * normByteStride]) : glm::vec3(0.0f)));
 						//vert.UV0 = buffer_uv_set0 ? glm::make_vec2(&buffer_uv_set0[v * uv0ByteStride]) : glm::vec2(0.0f);
 						//vert.UV1 = buffer_uv_set1 ? glm::make_vec2(&buffer_uv_set1[v * uv1ByteStride]) : glm::vec2(0.0f);

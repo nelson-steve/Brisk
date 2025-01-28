@@ -10,8 +10,8 @@ layout(binding = 3) uniform sampler2D normal;
 layout(binding = 4) uniform sampler2D emissive;
 layout(binding = 5) uniform sampler2D metallic;
 
-layout(location = 0) in vec3 inUV0;
-layout(location = 1) in vec3 inUV1;
+//layout(location = 0) in vec3 inUV0;
+//layout(location = 1) in vec3 inUV1;
 
 void main() {
     outColor = vec4(fragColor, 1.0);

@@ -58,12 +58,12 @@ namespace Brisk
 		entity.AddComponent<MaterialComponent>();
 		entity.AddComponent<MeshComponent>().pModel = model;
 		auto& mat = entity.GetComponent<MaterialComponent>();
-
-		mat.SetAlbedoTexture(model->GetAlbedoTexture());
-		mat.SetAlbedoTexture(model->GetAlbedoTexture());
-		mat.SetAlbedoTexture(model->GetAlbedoTexture());
-		mat.SetAlbedoTexture(model->GetAlbedoTexture());
-		mat.SetAlbedoTexture(model->GetAlbedoTexture());
+		mat.pipeline = Pipeline::Create();
+		mat.pipeline.SetAlbedoTexture(model->GetAlbedoTexture());
+		mat.pipeline.SetAlbedoTexture(model->GetAlbedoTexture());
+		mat.pipeline.SetAlbedoTexture(model->GetAlbedoTexture());
+		mat.pipeline.SetAlbedoTexture(model->GetAlbedoTexture());
+		mat.pipeline.SetAlbedoTexture(model->GetAlbedoTexture());
 
 		mat.pMaterials.push_back(Shader::Create());
 		mat.pMaterials[0]->Init(Engine::s_Application->GetRenderer()->pipeline, "material");

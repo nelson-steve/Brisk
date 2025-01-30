@@ -78,12 +78,24 @@ namespace Brisk
 		}
 	};
 
+	struct SubMesh 
+	{
+		uint32_t first_index = 0;
+		uint32_t index_count = 0;
+		uint32_t vertex_count = 0;
+	};
+
+	struct RenderableDataRef 
+	{
+
+	};
+
 	struct MeshComponent
 	{
 		std::string name = "Mesh Component";
 
-		Ref<Mesh> pModel;
-		//Ref<ObjModel> pModel;
+		std::shared_ptr<RenderableDataRef> renderableRef;
+		std::vector<SubMesh> subMeshes;
 
 		MeshComponent() = default;
 		MeshComponent(const MeshComponent&) = default;

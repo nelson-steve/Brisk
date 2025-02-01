@@ -119,13 +119,13 @@ namespace Brisk
 		renderableRef->pMeshDataPtr.resize(renderableRef->pVertexCount);
 		renderableRef->pMeshDataPtr.resize(renderableRef->pIndexCount);
 
-		LoadNodes(nullptr, model);
+		//LoadNodes(nullptr, model, renderableRef);
 	}
 
 	void LoadNodes(GLTF_Node* parent, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> renderableRef) {
 		std::stack<std::pair<GLTF_Node*, uint32_t>> node_stack;
-		uint32_t vertexPos;
-		uint32_t indexPos;
+		uint32_t vertexPos = 0;
+		uint32_t indexPos = 0;
 
 		// Initialize stack with the root node
 		if (!model.nodes.empty()) {

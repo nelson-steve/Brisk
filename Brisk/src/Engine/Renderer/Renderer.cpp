@@ -145,16 +145,16 @@ namespace Brisk
             auto& mesh = entity.GetComponent<MeshComponent>();
             auto& mat = entity.GetComponent<MaterialComponent>();
             
-            RenderCommand::BindVertexBuffer(cmd, { mesh.pModel->GetVertexBuffer() }, 0);
-            RenderCommand::BindIndexBuffer(cmd, mesh.pModel->GetIndexBuffer(), 0);
+            //RenderCommand::BindVertexBuffer(cmd, { mesh.pModel->GetVertexBuffer() }, 0);
+            //RenderCommand::BindIndexBuffer(cmd, mesh.pModel->GetIndexBuffer(), 0);
 
             mat.pMaterials[0]->Bind(cmd, pipeline);
 
             pipeline->Bind(cmd);
 
-            for (auto& node : mesh.pModel->GetNodes()) {
-                DrawNode(mesh.pModel, mat.pMaterials, node);
-            }
+            //for (auto& node : mesh.pModel->GetNodes()) {
+                //DrawNode(mesh.pModel, mat.pMaterials, node);
+            //}
         }
 
         pipeline->m_Specs.pRenderPass->End(cmd);

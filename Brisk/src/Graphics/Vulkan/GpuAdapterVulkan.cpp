@@ -34,7 +34,7 @@ namespace Brisk
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.pEngineName = Engine::s_EngineInfo.EngineName.c_str();
 		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-		appInfo.apiVersion = VK_API_VERSION_1_0;
+		appInfo.apiVersion = VK_API_VERSION_1_2;
 
 		m_Extensions = UtilitiesVulkan::GetRequiredExtensions();
 		m_ValidationLayersFound = false;
@@ -308,6 +308,13 @@ namespace Brisk
 
 		VkPhysicalDeviceFeatures supportedFeatures;
 		vkGetPhysicalDeviceFeatures(device, &supportedFeatures);
+
+		VkPhysicalDeviceDescriptorIndexingFeatures indexing_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES, nullptr };
+		VkPhysicalDeviceFeatures2 device_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,&indexing_features };
+		vkGetPhysicalDeviceFeatures2(device, &device_features);
+
+		bool bindless_supported = indexing_features.descriptorBindingPartiallyBound && indexing_features.runtimeDescriptorArray;
+		assert(bindless_supported); // Solely dependent on bindless rendering for now
 
 		if (requirements.pFeatures.pRobustBufferAccess) if (!supportedFeatures.robustBufferAccess) return false;
 		if (requirements.pFeatures.pFullDrawIndexUint32) if (!supportedFeatures.fullDrawIndexUint32) return false;

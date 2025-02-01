@@ -73,7 +73,7 @@ namespace Brisk
 		}
 #endif
 
-		m_RequiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+		m_RequiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME, VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME };
 
 		std::vector<QueueType> queueTypes;
 		std::vector<DeviceFeatures> features;
@@ -107,6 +107,12 @@ namespace Brisk
             { VK_DESCRIPTOR_TYPE_SAMPLER,				 100 },
             { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,		 100 },
             { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,		 100 },
+            { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,			 100 },
+			{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,			 100 },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,   100 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,   100 },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 100 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 100 },
         };
 
 		VkDescriptorPoolCreateInfo poolInfo{};
@@ -119,6 +125,78 @@ namespace Brisk
         if (vkCreateDescriptorPool(m_Device, &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor pool!");
         }
+
+		uint32_t maxBindessResources = 1024;
+		uint32_t bindlessBinding = 1024;
+
+		{
+			std::vector< VkDescriptorPoolSize> pool_sizes_bindless =
+			{
+				{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, maxBindessResources },
+				{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,			 maxBindessResources },
+			};
+
+			// Update after bind is needed here, for each binding and in the descriptor set layout creation.
+			poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_UPDATE_AFTER_BIND_BIT_EXT;
+			poolInfo.maxSets = maxBindessResources * static_cast<uint32_t>(pool_sizes_bindless.size());
+			poolInfo.poolSizeCount = static_cast<uint32_t>(pool_sizes_bindless.size());
+			poolInfo.pPoolSizes = pool_sizes_bindless.data();
+			if (vkCreateDescriptorPool(m_Device, &poolInfo, nullptr, &m_BindlessDescriptorPool) != VK_SUCCESS) {
+				throw std::runtime_error("failed to create bindless descriptor pool!");
+			}
+			
+			std::vector<VkDescriptorSetLayoutBinding> bindings;
+
+			VkDescriptorSetLayoutBinding image_sampler_binding{};
+			image_sampler_binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			image_sampler_binding.descriptorCount = maxBindessResources;
+			image_sampler_binding.binding = bindlessBinding;
+			image_sampler_binding.stageFlags = VK_SHADER_STAGE_ALL;
+			image_sampler_binding.pImmutableSamplers = nullptr;
+
+			VkDescriptorSetLayoutBinding storage_image_binding{};
+			storage_image_binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
+			storage_image_binding.descriptorCount = maxBindessResources;
+			storage_image_binding.binding = bindlessBinding + 1;
+			storage_image_binding.stageFlags = VK_SHADER_STAGE_ALL;
+			storage_image_binding.pImmutableSamplers = nullptr;
+
+			VkDescriptorSetLayoutCreateInfo layout_info = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
+			layout_info.bindingCount = static_cast<uint32_t>(pool_sizes_bindless.size());
+			layout_info.pBindings = bindings.data();
+			layout_info.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT;
+
+			VkDescriptorBindingFlags bindless_flags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT_EXT | /*VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT_EXT |*/ VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT;
+			std::vector< VkDescriptorBindingFlags> bindingflagsList{
+				bindless_flags,
+				bindless_flags,
+			};
+			VkDescriptorSetLayoutBindingFlagsCreateInfoEXT extended_info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT, nullptr };
+			extended_info.bindingCount = static_cast<uint32_t>(pool_sizes_bindless.size());
+			extended_info.pBindingFlags = &bindless_flags;
+
+			layout_info.pNext = &extended_info;
+
+			//if (vkCreateDescriptorSetLayout(m_Device, &layout_info, nullptr, &vulkan_bindless_descriptor_layout) != VK_SUCCESS) {
+			//	throw std::runtime_error("failed to create bindless descriptor pool!");
+			//}
+
+			VkDescriptorSetAllocateInfo alloc_info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+			alloc_info.descriptorPool = m_BindlessDescriptorPool;
+			alloc_info.descriptorSetCount = 1;
+			//alloc_info.pSetLayouts = &vulkan_bindless_descriptor_layout;
+
+			VkDescriptorSetVariableDescriptorCountAllocateInfoEXT count_info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT };
+			uint32_t max_binding = maxBindessResources - 1;
+			count_info.descriptorSetCount = 1;
+			// This number is the max allocatable count
+			count_info.pDescriptorCounts = &max_binding;
+			//alloc_info.pNext = &count_info;
+
+			//if (vkAllocateDescriptorSets(m_Device, &alloc_info, &vulkan_bindless_descriptor_set) != VK_SUCCESS) {
+			//	throw std::runtime_error("failed to create bindless descriptor pool!");
+			//}
+		}
 	}
 
 	void GpuAdapterVulkan::CreateLogicalDevice(const GpuRequirements& requirements) {
@@ -250,10 +328,17 @@ namespace Brisk
 		VkDeviceCreateInfo deviceCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 		deviceCreateInfo.queueCreateInfoCount = static_cast<uint16_t>(queueCreateInfos.size());
 		deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
-		deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
-		std::vector<const char*> requiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
-		deviceCreateInfo.enabledExtensionCount = static_cast<uint16_t>(requiredExtensions.size());
-		deviceCreateInfo.ppEnabledExtensionNames = requiredExtensions.data();
+		//deviceCreateInfo.pEnabledFeatures = &deviceFeatures;
+		//std::vector<const char*> requiredExtensions = { VK_KHR_SWAPCHAIN_EXTENSION_NAME };
+		deviceCreateInfo.enabledExtensionCount = static_cast<uint16_t>(m_RequiredExtensions.size());
+		deviceCreateInfo.ppEnabledExtensionNames = m_RequiredExtensions.data();
+
+		VkPhysicalDeviceDescriptorIndexingFeatures indexing_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES, nullptr };
+		VkPhysicalDeviceFeatures2 physical_features2{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,&indexing_features };
+		vkGetPhysicalDeviceFeatures2(m_PhysicalDevice, &physical_features2);
+
+		deviceCreateInfo.pNext = &physical_features2;
+		physical_features2.pNext = &indexing_features;
 
 #if _DEBUG
 		const std::vector<const char*> validation_layers = {

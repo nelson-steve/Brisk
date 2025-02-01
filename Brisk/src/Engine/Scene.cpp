@@ -46,83 +46,7 @@ namespace Brisk
 		//m_PhysicsWorld3D->Init();
 	}
 
-	struct RendererableDataRef {
-		uint32_t pVertexCount;
-		uint32_t pIndexCount;
-		std::vector<MeshData> pMeshDataPtr;
-		std::vector<uint32_t> pIndicesDataPtr;
-	};
-
-	// TODO: Move GLTF specific functions to a namespace or static class GLTF_Utility
-	void GetNodeProps(const tinygltf::Node& rootNode, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> ref) {
-		std::vector<const tinygltf::Node*> nodeStack;
-		nodeStack.push_back(&rootNode);
-
-		while (!nodeStack.empty()) {
-			const tinygltf::Node* node = nodeStack.back(); // Get the node at the top of the stack.
-			nodeStack.pop_back(); // Remove that node from the stack.
-
-			if (node->children.size() > 0) {
-				for (size_t i = 0; i < node->children.size(); i++) {
-					nodeStack.push_back(&model.nodes[node->children[i]]);
-				}
-			}
-
-			if (node->mesh > -1) {
-				const tinygltf::Mesh& mesh = model.meshes[node->mesh];
-				for (size_t i = 0; i < mesh.primitives.size(); i++) {
-					auto primitive = mesh.primitives[i];
-					ref->pVertexCount += model.accessors[primitive.attributes.find("POSITION")->second].count;
-					if (primitive.indices > -1) {
-						ref->pIndexCount += model.accessors[primitive.indices].count;
-					}
-				}
-			}
-		}
-	}
-
-
-	void CalculateGLTFMeshSize(const tinygltf::Scene& scene, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> ref) {
-		for (auto& node_index : scene.nodes) {
-			GetNodeProps(model.nodes[node_index], model, ref);
-		}
-	}
-
-	void Scene::LoadGLTFFile(std::string path) {
-		tinygltf::TinyGLTF loader;
-		tinygltf::Model model;
-		std::string error;
-		std::string warning;
-
-		bool binary = false;
-		size_t extpos = path.rfind('.', path.length());
-		if (extpos != std::string::npos) {
-			binary = (path.substr(extpos + 1, path.length() - extpos) == "glb");
-		}
-
-		bool file_loaded = false;
-		if (binary) {
-			file_loaded = loader.LoadBinaryFromFile(&model, &error, &warning, path.c_str());
-		}
-		else {
-			file_loaded = loader.LoadASCIIFromFile(&model, &error, &warning, path.c_str());
-		}
-
-		if (!file_loaded) return; // TODO: Handle the error
-
-		std::shared_ptr<RendererableDataRef> renderableRef = std::make_shared<RendererableDataRef>();
-
-		const tinygltf::Scene& scene = model.scenes[model.defaultScene > -1 ? model.defaultScene : 0];
-		CalculateGLTFMeshSize(scene, model, renderableRef);
-
-		assert(renderableRef->pVertexCount > 0);
-		renderableRef->pMeshDataPtr.resize(renderableRef->pVertexCount);
-		renderableRef->pMeshDataPtr.resize(renderableRef->pIndexCount);
-
-		//LoadNodes(nullptr, model, renderableRef);
-	}
-
-	void LoadNodes(GLTF_Node* parent, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> renderableRef) {
+	void Scene::LoadNodes(GLTF_Node* parent, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> renderableRef) {
 		std::stack<std::pair<GLTF_Node*, uint32_t>> node_stack;
 		uint32_t vertexPos = 0;
 		uint32_t indexPos = 0;
@@ -300,12 +224,197 @@ namespace Brisk
 			}
 			else {
 				// TODO: each node should be a gameobject
-				//m_nodes.push_back(current_node);
+				pNodes.push_back(current_node);
 			}
 			//m_linear_nodes.push_back(current_node);
 		}
 	}
 
+	// TODO: Move GLTF specific functions to a namespace or static class GLTF_Utility
+	void GetNodeProps(const tinygltf::Node& rootNode, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> ref) {
+		std::vector<const tinygltf::Node*> nodeStack;
+		nodeStack.push_back(&rootNode);
+
+		while (!nodeStack.empty()) {
+			const tinygltf::Node* node = nodeStack.back(); // Get the node at the top of the stack.
+			nodeStack.pop_back(); // Remove that node from the stack.
+
+			if (node->children.size() > 0) {
+				for (size_t i = 0; i < node->children.size(); i++) {
+					nodeStack.push_back(&model.nodes[node->children[i]]);
+				}
+			}
+
+			if (node->mesh > -1) {
+				const tinygltf::Mesh& mesh = model.meshes[node->mesh];
+				for (size_t i = 0; i < mesh.primitives.size(); i++) {
+					auto primitive = mesh.primitives[i];
+					ref->pVertexCount += model.accessors[primitive.attributes.find("POSITION")->second].count;
+					if (primitive.indices > -1) {
+						ref->pIndexCount += model.accessors[primitive.indices].count;
+					}
+				}
+			}
+		}
+	}
+
+	void Scene::LoadMaterials(tinygltf::Model model, std::shared_ptr<RendererableDataRef> ref) {
+		for (tinygltf::Material& mat : model.materials) {
+			MaterialData material{};
+			material.doubleSided = mat.doubleSided;
+			if (mat.values.find("baseColorTexture") != mat.values.end()) {
+				material.baseColorTexture = mTextures[mat.values["baseColorTexture"].TextureIndex()];
+				material.texCoordSets.baseColor = mat.values["baseColorTexture"].TextureTexCoord();
+			}
+			if (mat.values.find("metallicRoughnessTexture") != mat.values.end()) {
+				material.metallicRoughnessTexture = mTextures[mat.values["metallicRoughnessTexture"].TextureIndex()];
+				material.texCoordSets.metallicRoughness = mat.values["metallicRoughnessTexture"].TextureTexCoord();
+			}
+			if (mat.values.find("roughnessFactor") != mat.values.end()) {
+				material.roughnessFactor = static_cast<float>(mat.values["roughnessFactor"].Factor());
+			}
+			if (mat.values.find("metallicFactor") != mat.values.end()) {
+				material.metallicFactor = static_cast<float>(mat.values["metallicFactor"].Factor());
+			}
+			if (mat.values.find("baseColorFactor") != mat.values.end()) {
+				material.baseColorFactor = glm::make_vec4(mat.values["baseColorFactor"].ColorFactor().data());
+			}
+			if (mat.additionalValues.find("normalTexture") != mat.additionalValues.end()) {
+				material.normalTexture = mTextures[mat.additionalValues["normalTexture"].TextureIndex()];
+				material.texCoordSets.normal = mat.additionalValues["normalTexture"].TextureTexCoord();
+			}
+			if (mat.additionalValues.find("emissiveTexture") != mat.additionalValues.end()) {
+				material.emissiveTexture = mTextures[mat.additionalValues["emissiveTexture"].TextureIndex()];
+				material.texCoordSets.emissive = mat.additionalValues["emissiveTexture"].TextureTexCoord();
+			}
+			if (mat.additionalValues.find("occlusionTexture") != mat.additionalValues.end()) {
+				material.occlusionTexture = mTextures[mat.additionalValues["occlusionTexture"].TextureIndex()];
+				material.texCoordSets.occlusion = mat.additionalValues["occlusionTexture"].TextureTexCoord();
+			}
+			if (mat.additionalValues.find("alphaMode") != mat.additionalValues.end()) {
+				tinygltf::Parameter param = mat.additionalValues["alphaMode"];
+				if (param.string_value == "BLEND") {
+					material.alphaMode = MaterialData::ALPHAMODE_BLEND;
+				}
+				if (param.string_value == "MASK") {
+					material.alphaCutoff = 0.5f;
+					material.alphaMode = MaterialData::ALPHAMODE_MASK;
+				}
+			}
+			if (mat.additionalValues.find("alphaCutoff") != mat.additionalValues.end()) {
+				material.alphaCutoff = static_cast<float>(mat.additionalValues["alphaCutoff"].Factor());
+			}
+			if (mat.additionalValues.find("emissiveFactor") != mat.additionalValues.end()) {
+				material.emissiveFactor = glm::vec4(glm::make_vec3(mat.additionalValues["emissiveFactor"].ColorFactor().data()), 1.0);
+			}
+
+			// Extensions
+			// @TODO: Find out if there is a nicer way of reading these properties with recent tinygltf headers
+			if (mat.extensions.find("KHR_materials_pbrSpecularGlossiness") != mat.extensions.end()) {
+				auto ext = mat.extensions.find("KHR_materials_pbrSpecularGlossiness");
+				if (ext->second.Has("specularGlossinessTexture")) {
+					auto index = ext->second.Get("specularGlossinessTexture").Get("index");
+					material.extension.specularGlossinessTexture = mTextures[index.Get<int>()];
+					auto texCoordSet = ext->second.Get("specularGlossinessTexture").Get("texCoord");
+					material.texCoordSets.specularGlossiness = texCoordSet.Get<int>();
+					material.pbrWorkflows.specularGlossiness = true;
+				}
+				if (ext->second.Has("diffuseTexture")) {
+					auto index = ext->second.Get("diffuseTexture").Get("index");
+					material.extension.diffuseTexture = mTextures[index.Get<int>()];
+				}
+				if (ext->second.Has("diffuseFactor")) {
+					auto factor = ext->second.Get("diffuseFactor");
+					for (uint32_t i = 0; i < factor.ArrayLen(); i++) {
+						auto val = factor.Get(i);
+						material.extension.diffuseFactor[i] = val.IsNumber() ? (float)val.Get<double>() : (float)val.Get<int>();
+					}
+				}
+				if (ext->second.Has("specularFactor")) {
+					auto factor = ext->second.Get("specularFactor");
+					for (uint32_t i = 0; i < factor.ArrayLen(); i++) {
+						auto val = factor.Get(i);
+						material.extension.specularFactor[i] = val.IsNumber() ? (float)val.Get<double>() : (float)val.Get<int>();
+					}
+				}
+			}
+
+			if (mat.extensions.find("KHR_materials_unlit") != mat.extensions.end()) {
+				material.unlit = true;
+			}
+
+			if (mat.extensions.find("KHR_materials_emissive_strength") != mat.extensions.end()) {
+				auto ext = mat.extensions.find("KHR_materials_emissive_strength");
+				if (ext->second.Has("emissiveStrength")) {
+					auto value = ext->second.Get("emissiveStrength");
+					material.emissiveStrength = (float)value.Get<double>();
+				}
+			}
+
+			//material.index = static_cast<uint32_t>(m_materials.size());
+			//m_materials.push_back(material);
+		}
+		// Push a default material at the end of the list for meshes with no material assigned
+		//m_materials.push_back(MaterialData());
+	}
+
+
+	void CalculateGLTFMeshSize(const tinygltf::Scene& scene, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> ref) {
+		for (auto& node_index : scene.nodes) {
+			GetNodeProps(model.nodes[node_index], model, ref);
+		}
+	}
+
+	void Scene::LoadGLTFFile(std::string path) {
+		tinygltf::TinyGLTF loader;
+		tinygltf::Model model;
+		std::string error;
+		std::string warning;
+
+		bool binary = false;
+		size_t extpos = path.rfind('.', path.length());
+		if (extpos != std::string::npos) {
+			binary = (path.substr(extpos + 1, path.length() - extpos) == "glb");
+		}
+
+		bool file_loaded = false;
+		if (binary) {
+			file_loaded = loader.LoadBinaryFromFile(&model, &error, &warning, path.c_str());
+		}
+		else {
+			file_loaded = loader.LoadASCIIFromFile(&model, &error, &warning, path.c_str());
+		}
+
+		if (!file_loaded) return; // TODO: Handle the error
+
+		std::shared_ptr<RendererableDataRef> renderableRef = std::make_shared<RendererableDataRef>();
+
+		for (tinygltf::Texture& tex : model.textures) {
+			tinygltf::Image image = model.images[tex.source];
+
+			TextureSampler texture_sampler{};
+			// No sampler specified, use a default one
+			texture_sampler.min_filter = FILTER_LINEAR;
+			texture_sampler.mag_filter = FILTER_LINEAR;
+			texture_sampler.address_modeU = SAMPLER_ADDRESS_MODE_REPEAT;
+			texture_sampler.address_modeV = SAMPLER_ADDRESS_MODE_REPEAT;
+			texture_sampler.address_modeW = SAMPLER_ADDRESS_MODE_REPEAT;
+
+			std::shared_ptr<Texture> texture;
+			texture = Texture::Create();
+			texture->Init(image, texture_sampler);
+			mTextures.push_back(texture);
+		}
+
+		const tinygltf::Scene& scene = model.scenes[model.defaultScene > -1 ? model.defaultScene : 0];
+		CalculateGLTFMeshSize(scene, model, renderableRef);
+
+		assert(renderableRef->pVertexCount > 0);
+		renderableRef->pMeshDataPtr.resize(renderableRef->pVertexCount);
+		renderableRef->pMeshDataPtr.resize(renderableRef->pIndexCount);
+
+		LoadNodes(nullptr, model, renderableRef);
+	}
 
 	Entity Scene::CreateMeshEntity(const std::string& name)
 	{
@@ -314,18 +423,13 @@ namespace Brisk
 		std::shared_ptr<Mesh> model;
 		model = std::make_shared<Mesh>();
 		//model->Load("../Data/Models/Cube/Cube.gltf");
-		model->Load("../Data/Models/damaged_helmet/DamagedHelmet.gltf");
+		//LoadGLTFFile("../Data/Models/damaged_helmet/DamagedHelmet.gltf");
+		LoadGLTFFile("../Data/Models/revolver/revolver.gltf");
 		//model->Load("../Data/Models/revolver/revolver.gltf");
 		//model->Load("../Data/Models/cerberus/cerberus.gltf");
 		entity.AddComponent<MaterialComponent>();
 		//entity.AddComponent<MeshComponent>().pModel = model;
 		auto& mat = entity.GetComponent<MaterialComponent>();
-		//mat.pipeline = Pipeline::Create();
-		//mat.pipeline.SetAlbedoTexture(model->GetAlbedoTexture());
-		//mat.pipeline.SetAlbedoTexture(model->GetAlbedoTexture());
-		//mat.pipeline.SetAlbedoTexture(model->GetAlbedoTexture());
-		//mat.pipeline.SetAlbedoTexture(model->GetAlbedoTexture());
-		//mat.pipeline.SetAlbedoTexture(model->GetAlbedoTexture());
 
 		mat.pMaterials.push_back(Shader::Create());
 		mat.pMaterials[0]->Init(Engine::s_Application->GetRenderer()->pipeline, "material");

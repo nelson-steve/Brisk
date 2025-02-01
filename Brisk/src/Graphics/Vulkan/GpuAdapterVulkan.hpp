@@ -123,6 +123,7 @@ namespace Brisk
 	private:
 		// Pools
 		VkDescriptorPool m_DescriptorPool;
+		VkDescriptorPool m_BindlessDescriptorPool;
 
 		VkPhysicalDevice m_PhysicalDevice;
 		VkDevice m_Device;

@@ -4,6 +4,7 @@
 #include "Core/Core.hpp"
 #include "Engine/Model.hpp"
 #include "Renderer/Shader.hpp"
+#include "Entity.hpp"
 //---------------------------
 #include <glm/glm.hpp>
 #include <glm/gtc/matrix_transform.hpp>
@@ -29,6 +30,9 @@ namespace Brisk
 	struct TransformComponent
 	{
 		std::string name = "Transform Compnent";
+
+		Entity parent;
+		std::vector<Entity> children;
 
 		const glm::vec3 &GetPosition() const { return Position; }
 		const glm::vec3 &GetRotation() const { return Rotation; }
@@ -78,23 +82,23 @@ namespace Brisk
 		}
 	};
 
-	struct SubMesh 
+	struct SubMesh
 	{
 		uint32_t first_index = 0;
 		uint32_t index_count = 0;
 		uint32_t vertex_count = 0;
+		uint32_t material_index = 0;
 	};
 
-	struct RenderableDataRef 
-	{
-
+	struct RootComponent {
+		std::string name = "Root Component";
 	};
 
 	struct MeshComponent
 	{
 		std::string name = "Mesh Component";
 
-		std::shared_ptr<RenderableDataRef> renderableRef;
+		std::shared_ptr<RendererableDataRef> renderableRef;
 		std::vector<SubMesh> subMeshes;
 
 		MeshComponent() = default;
@@ -291,6 +295,7 @@ namespace Brisk
 
 	using AllComponents =
 		ComponentGroup<MeshComponent,
+						RootComponent,
 					   TransformComponent,
 					   LightComponent,
 					   SkyboxComponent,

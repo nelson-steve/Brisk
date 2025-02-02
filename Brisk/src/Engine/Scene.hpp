@@ -59,7 +59,7 @@ namespace Brisk
 		void OnSimulationStart();
 		void OnSimulationStop();
 
-		void LoadNodes(GLTF_Node* parent, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> renderableRef);
+		void LoadNode(Entity parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> renderableRef);
 		void LoadMaterials(tinygltf::Model model, std::shared_ptr<RendererableDataRef> ref);
 
 		//void OnUpdateRuntime(Timestep ts);
@@ -100,6 +100,9 @@ namespace Brisk
 		int m_StepFrames = 0;
 		bool m_IsSimulating = false;
 		SceneSetting m_SceneSetting;
+
+		uint32_t m_vertex_pos = 0;
+		uint32_t m_index_pos = 0;
 
 		std::vector<std::shared_ptr<Texture>> mTextures;
 		std::vector<GLTF_Node*> pNodes;

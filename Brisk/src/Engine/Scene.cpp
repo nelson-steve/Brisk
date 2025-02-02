@@ -46,67 +46,48 @@ namespace Brisk
 		//m_PhysicsWorld3D->Init();
 	}
 
-	void Scene::LoadNodes(GLTF_Node* parent, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> renderableRef) {
-		std::stack<std::pair<GLTF_Node*, uint32_t>> node_stack;
-		uint32_t vertexPos = 0;
-		uint32_t indexPos = 0;
+	void Scene::LoadNode(Entity parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> renderableRef) {
+		//GLTF_Node* new_node = new GLTF_Node();
+		Entity entity = { m_Registry.create(), this };
+		entity.AddComponent<TransformComponent>();
+		entity.GetComponent<TransformComponent>().parent = parent;
+		entity.AddComponent<TagComponent>().Tag = node.name;
+		//new_node->index = node_index;
+		//new_node->matrix = glm::mat4(1.0f);
 
-		// Initialize stack with the root node
-		if (!model.nodes.empty()) {
-			for (size_t i = 0; i < model.nodes.size(); ++i) {
-				GLTF_Node* root_node = new GLTF_Node();
-				root_node->parent = parent;
-				root_node->index = static_cast<uint32_t>(i);
-				root_node->name = model.nodes[i].name;
-				root_node->matrix = glm::mat4(1.0f);
-				node_stack.push({ root_node, static_cast<uint32_t>(i) });
-			}
+		if (node.translation.size() == 3) {
+			entity.GetComponent<TransformComponent>().Position = glm::make_vec3(node.translation.data());
+			//new_node->translation = glm::make_vec3(node.translation.data());
+		}
+		if (node.rotation.size() == 4) {
+			//new_node->rotation = glm::make_quat(node.rotation.data());
+			entity.GetComponent<TransformComponent>().Rotation = glm::make_vec3(node.rotation.data());
+		}
+		if (node.scale.size() == 4) {
+			//new_node->scale = glm::make_vec3(node.scale.data());
+			entity.GetComponent<TransformComponent>().Scale = glm::make_vec3(node.scale.data());
+		}
+		if (node.matrix.size() == 16) {
+			//new_node->matrix = glm::make_mat4x4(node.matrix.data());
+			//entity.GetComponent<TransformComponent>().Scale = glm::make_vec3(node.scale.data());
 		}
 
-		while (!node_stack.empty()) {
-			auto [current_node, node_index] = node_stack.top();
-			node_stack.pop();
+		if (node.children.size() > 0) {
+			for (auto& node_index : node.children)
+				LoadNode(entity, model.nodes[node_index], node_index, model, renderableRef);
+		}
 
-			const tinygltf::Node& node = model.nodes[node_index];
-			current_node->translation = glm::vec3(0.0f);
-			current_node->rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-			current_node->scale = glm::vec3(1.0f);
-
-			if (node.translation.size() == 3) {
-				current_node->translation = glm::make_vec3(node.translation.data());
-			}
-			if (node.rotation.size() == 4) {
-				current_node->rotation = glm::make_quat(node.rotation.data());
-			}
-			if (node.scale.size() == 4) {
-				current_node->scale = glm::make_vec3(node.scale.data());
-			}
-			if (node.matrix.size() == 16) {
-				current_node->matrix = glm::make_mat4x4(node.matrix.data());
-			}
-
-			if (node.children.size() > 0) {
-				for (auto& child_index : node.children) {
-					GLTF_Node* new_child_node = new GLTF_Node();
-					new_child_node->parent = current_node;
-					new_child_node->index = child_index;
-					new_child_node->name = model.nodes[child_index].name;
-					new_child_node->matrix = glm::mat4(1.0f);
-					node_stack.push({ new_child_node, child_index });
-				}
-			}
-
-			// Handle mesh data
-			if (node.mesh > -1) {
-				const tinygltf::Mesh& mesh = model.meshes[node.mesh];
-				GLTF_Mesh* new_mesh = new GLTF_Mesh(current_node->matrix);
-				for (auto& primitive : mesh.primitives) {
-					uint32_t vertex_start = vertexPos;
-					uint32_t index_start = indexPos;
-					uint32_t vertex_count = 0;
-					uint32_t index_count = 0;
-
-					// Handle vertices
+		if (node.mesh > -1) {
+			const tinygltf::Mesh mesh = model.meshes[node.mesh];
+			//GLTF_Mesh* new_mesh = new GLTF_Mesh(new_node->matrix);
+			entity.AddComponent<MeshComponent>();
+			for (auto& primitive : mesh.primitives) {
+				uint32_t vertex_start = m_vertex_pos;
+				uint32_t index_start = m_index_pos;
+				uint32_t vertex_count = 0;
+				uint32_t index_count = 0;
+				// Vertices
+				{
 					const float* buffer_pos = nullptr;
 					const float* buffer_normals = nullptr;
 					const float* buffer_uv_set0 = nullptr;
@@ -120,6 +101,8 @@ namespace Brisk
 					int uv0ByteStride = 0;
 					int uv1ByteStride = 0;
 					int color0ByteStride = 0;
+					//int jointByteStride;
+					//int weightByteStride;
 
 					if (primitive.attributes.find("POSITION") != primitive.attributes.end()) {
 						const tinygltf::Accessor& pos_accessor = model.accessors[primitive.attributes.find("POSITION")->second];
@@ -127,6 +110,9 @@ namespace Brisk
 						vertex_count = static_cast<uint32_t>(pos_accessor.count);
 						buffer_pos = reinterpret_cast<const float*>(&(model.buffers[pos_view.buffer].data[pos_accessor.byteOffset + pos_view.byteOffset]));
 						posByteStride = pos_accessor.ByteStride(pos_view) ? (pos_accessor.ByteStride(pos_view) / sizeof(float)) : tinygltf::GetNumComponentsInType(TINYGLTF_TYPE_VEC3);
+					}
+					else {
+						assert(primitive.attributes.find("POSITION") != primitive.attributes.end());
 					}
 
 					if (primitive.attributes.find("NORMAL") != primitive.attributes.end()) {
@@ -159,75 +145,79 @@ namespace Brisk
 
 					const tinygltf::Accessor& pos_accessor = model.accessors[primitive.attributes.find("POSITION")->second];
 					for (size_t v = 0; v < pos_accessor.count; v++) {
-						MeshData& vert = renderableRef->pMeshDataPtr[vertexPos];
+						MeshData& vert = renderableRef->pMeshDataPtr[m_vertex_pos];
 						vert.Position = glm::vec4(glm::make_vec3(&buffer_pos[v * posByteStride]), 1.0f);
 						vert.Normal = glm::normalize(glm::vec3(buffer_normals ? glm::make_vec3(&buffer_normals[v * normByteStride]) : glm::vec3(0.0f)));
 						vert.UV0 = buffer_uv_set0 ? glm::make_vec2(&buffer_uv_set0[v * uv0ByteStride]) : glm::vec2(0.0f);
 						vert.UV1 = buffer_uv_set1 ? glm::make_vec2(&buffer_uv_set1[v * uv1ByteStride]) : glm::vec2(0.0f);
 						vert.Color = buffer_color_set0 ? glm::make_vec3(&buffer_color_set0[v * color0ByteStride]) : glm::vec3(1.0f);
 
-						vertexPos++;
+						m_vertex_pos++;
 					}
 
-					bool has_indices = primitive.indices > -1;
-					if (has_indices) {
-						const tinygltf::Accessor& accessor = model.accessors[primitive.indices];
-						const tinygltf::BufferView& buffer_view = model.bufferViews[accessor.bufferView];
-						const tinygltf::Buffer& buffer = model.buffers[buffer_view.buffer];
-
-						index_count = static_cast<uint32_t>(accessor.count);
-						const void* data_ptr = &(buffer.data[accessor.byteOffset + buffer_view.byteOffset]);
-
-						switch (accessor.componentType) {
-						case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: {
-							const uint32_t* buf = static_cast<const uint32_t*>(data_ptr);
-							for (size_t index = 0; index < accessor.count; index++) {
-								renderableRef->pIndicesDataPtr[indexPos] = buf[index] + vertex_start;
-								indexPos++;
-							}
-							break;
-						}
-						case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT: {
-							const uint16_t* buf = static_cast<const uint16_t*>(data_ptr);
-							for (size_t index = 0; index < accessor.count; index++) {
-								renderableRef->pIndicesDataPtr[indexPos] = buf[index] + vertex_start;
-								indexPos++;
-							}
-							break;
-						}
-						case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: {
-							const uint8_t* buf = static_cast<const uint8_t*>(data_ptr);
-							for (size_t index = 0; index < accessor.count; index++) {
-								renderableRef->pIndicesDataPtr[indexPos] = buf[index] + vertex_start;
-								indexPos++;
-							}
-							break;
-						}
-						default:
-							std::cerr << "Index component type " << accessor.componentType << " not supported!" << std::endl;
-							return;
-						}
-					}
-					else {
-						assert(false);
-					}
-
-					uint32_t mat_index = primitive.material > -1 ? primitive.material : -1;
-					Primitive* new_primitive = new Primitive(index_start, index_count, vertex_count, mat_index);
-					new_mesh->primitives.push_back(new_primitive);
 				}
-				current_node->mesh = new_mesh;
-			}
+				bool has_indices = primitive.indices > -1;
+				if (has_indices) {
+					const tinygltf::Accessor& accessor = model.accessors[primitive.indices];
+					const tinygltf::BufferView& buffer_view = model.bufferViews[accessor.bufferView];
+					const tinygltf::Buffer& buffer = model.buffers[buffer_view.buffer];
 
-			if (parent) {
-				parent->children.push_back(current_node);
+					index_count = static_cast<uint32_t>(accessor.count);
+					const void* data_ptr = &(buffer.data[accessor.byteOffset + buffer_view.byteOffset]);
+
+					switch (accessor.componentType) {
+					case TINYGLTF_PARAMETER_TYPE_UNSIGNED_INT: {
+						const uint32_t* buf = static_cast<const uint32_t*>(data_ptr);
+						for (size_t index = 0; index < accessor.count; index++) {
+							renderableRef->pIndicesDataPtr[m_index_pos] = buf[index] + vertex_start;
+							m_index_pos++;
+						}
+						break;
+					}
+					case TINYGLTF_PARAMETER_TYPE_UNSIGNED_SHORT: {
+						const uint16_t* buf = static_cast<const uint16_t*>(data_ptr);
+						for (size_t index = 0; index < accessor.count; index++) {
+							renderableRef->pIndicesDataPtr[m_index_pos] = buf[index] + vertex_start;
+							m_index_pos++;
+						}
+						break;
+					}
+					case TINYGLTF_PARAMETER_TYPE_UNSIGNED_BYTE: {
+						const uint8_t* buf = static_cast<const uint8_t*>(data_ptr);
+						for (size_t index = 0; index < accessor.count; index++) {
+							renderableRef->pIndicesDataPtr[m_index_pos] = buf[index] + vertex_start;
+							m_index_pos++;
+						}
+						break;
+					}
+					default:
+						std::cerr << "Index component type " << accessor.componentType << " not supported!" << std::endl;
+						return;
+					}
+				}
+				else {
+					assert(false);
+				}
+				uint32_t mat_index = primitive.material > -1 ? primitive.material : -1;
+				Primitive* new_primitive = new Primitive(index_start, index_count, vertex_count, mat_index);
+				SubMesh subMesh{};
+				subMesh.first_index = index_start;
+				subMesh.index_count = index_count;
+				subMesh.vertex_count = vertex_count;
+				subMesh.vertex_count = vertex_count;
+				entity.AddComponent<MeshComponent>().subMeshes.push_back(subMesh);
+				//new_mesh->primitives.push_back(new_primitive);
 			}
-			else {
-				// TODO: each node should be a gameobject
-				pNodes.push_back(current_node);
-			}
-			//m_linear_nodes.push_back(current_node);
+			//new_node->mesh = new_mesh;
 		}
+		if (parent) {
+			parent.GetComponent<TransformComponent>().children.push_back(entity);
+			//parent->children.push_back(new_node);
+		}
+		else {
+			//pNodes.push_back(new_node);
+		}
+		//m_linear_nodes.push_back(new_node);
 	}
 
 	// TODO: Move GLTF specific functions to a namespace or static class GLTF_Utility
@@ -238,6 +228,8 @@ namespace Brisk
 		while (!nodeStack.empty()) {
 			const tinygltf::Node* node = nodeStack.back(); // Get the node at the top of the stack.
 			nodeStack.pop_back(); // Remove that node from the stack.
+
+			std::cout << "Node" << std::endl;
 
 			if (node->children.size() > 0) {
 				for (size_t i = 0; i < node->children.size(); i++) {
@@ -387,7 +379,9 @@ namespace Brisk
 
 		if (!file_loaded) return; // TODO: Handle the error
 
-		std::shared_ptr<RendererableDataRef> renderableRef = std::make_shared<RendererableDataRef>();
+		Entity entity = { m_Registry.create(), this };
+		entity.AddComponent<MeshComponent>();
+		entity.GetComponent<MeshComponent>().renderableRef = std::make_shared<RendererableDataRef>();
 
 		for (tinygltf::Texture& tex : model.textures) {
 			tinygltf::Image image = model.images[tex.source];
@@ -407,13 +401,19 @@ namespace Brisk
 		}
 
 		const tinygltf::Scene& scene = model.scenes[model.defaultScene > -1 ? model.defaultScene : 0];
-		CalculateGLTFMeshSize(scene, model, renderableRef);
+		CalculateGLTFMeshSize(scene, model, entity.GetComponent<MeshComponent>().renderableRef);
 
-		assert(renderableRef->pVertexCount > 0);
-		renderableRef->pMeshDataPtr.resize(renderableRef->pVertexCount);
-		renderableRef->pMeshDataPtr.resize(renderableRef->pIndexCount);
+		assert(entity.GetComponent<MeshComponent>().renderableRef->pVertexCount > 0);
+		entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr.resize(entity.GetComponent<MeshComponent>().renderableRef->pVertexCount);
+		entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr.resize(entity.GetComponent<MeshComponent>().renderableRef->pIndexCount);
 
-		LoadNodes(nullptr, model, renderableRef);
+		entity.AddComponent<RootComponent>();
+		entity.AddComponent<TransformComponent>();
+
+		for (auto& node_index : scene.nodes) {
+			const tinygltf::Node node = model.nodes[node_index];
+			LoadNode(entity, node, node_index, model, entity.GetComponent<MeshComponent>().renderableRef);
+		}
 	}
 
 	Entity Scene::CreateMeshEntity(const std::string& name)

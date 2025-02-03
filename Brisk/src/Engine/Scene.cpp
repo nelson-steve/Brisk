@@ -379,10 +379,6 @@ namespace Brisk
 
 		if (!file_loaded) return; // TODO: Handle the error
 
-		Entity entity = { m_Registry.create(), this };
-		entity.AddComponent<MeshComponent>();
-		entity.GetComponent<MeshComponent>().renderableRef = std::make_shared<RendererableDataRef>();
-
 		for (tinygltf::Texture& tex : model.textures) {
 			tinygltf::Image image = model.images[tex.source];
 
@@ -400,12 +396,16 @@ namespace Brisk
 			mTextures.push_back(texture);
 		}
 
+		Entity entity = { m_Registry.create(), this };
+		entity.AddComponent<MeshComponent>();
+		entity.GetComponent<MeshComponent>().renderableRef = std::make_shared<RendererableDataRef>();
+
 		const tinygltf::Scene& scene = model.scenes[model.defaultScene > -1 ? model.defaultScene : 0];
 		CalculateGLTFMeshSize(scene, model, entity.GetComponent<MeshComponent>().renderableRef);
 
 		assert(entity.GetComponent<MeshComponent>().renderableRef->pVertexCount > 0);
 		entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr.resize(entity.GetComponent<MeshComponent>().renderableRef->pVertexCount);
-		entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr.resize(entity.GetComponent<MeshComponent>().renderableRef->pIndexCount);
+		entity.GetComponent<MeshComponent>().renderableRef->pIndicesDataPtr.resize(entity.GetComponent<MeshComponent>().renderableRef->pIndexCount);
 
 		entity.AddComponent<RootComponent>();
 		entity.AddComponent<TransformComponent>();

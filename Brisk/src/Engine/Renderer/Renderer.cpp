@@ -125,6 +125,7 @@ namespace Brisk
         if (!SceneManager::pActiveScene) return;
 
         auto view = SceneManager::pActiveScene->Reg().view<MeshComponent, MaterialComponent>();
+        auto parent = SceneManager::pActiveScene->Reg().view<RootComponent>();
 
         fence->Wait();
         fence->Reset();
@@ -138,6 +139,8 @@ namespace Brisk
 
         RenderCommand::SetViewport(cmd, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
         RenderCommand::SetScissor(cmd, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+
+
 
         for (auto e : view)
         {

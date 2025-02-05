@@ -25,13 +25,6 @@ namespace Brisk
         std::shared_ptr<DescriptorLayout> materialLayout = DescriptorLayout::Create();
         materialLayout->pName = "material";
         materialLayout->AddBindingLayout(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_VERTEX_BIT });
-        //materialLayout->AddBindingLayout(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-        //materialLayout->AddBindingLayout(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-        //materialLayout->AddBindingLayout(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-        //materialLayout->AddBindingLayout(4, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-        //materialLayout->AddBindingLayout(5, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-        //materialLayout->AddBindingLayout(6, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-        //materialLayout->AddBindingLayout(7, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
         materialLayout->Init();
 
         //std::shared_ptr<DescriptorLayout> pbrLayout = DescriptorLayout::Create();
@@ -131,7 +124,6 @@ namespace Brisk
         fence->Reset();
 
         m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &imageIndex);
-        // vkResetCommandBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), /*VkCommandBufferResetFlagBits*/ 0);
         cmd->Reset();
         cmd->Bind();
         pipeline->m_Specs.pRenderPass->Begin(cmd, imageIndex);

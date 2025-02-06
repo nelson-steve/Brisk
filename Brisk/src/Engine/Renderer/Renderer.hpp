@@ -23,6 +23,7 @@ namespace Brisk
 		void Init();
 		void RenderScene(float deltaTime);
 		void DrawNode(const std::shared_ptr<Mesh> model, std::vector<std::shared_ptr<Shader>> materials, GLTF_Node* node);
+		void HandleEntity(Entity e);
 
 		static std::shared_ptr<Swapchain> GetSwapchain() { return m_Swapchain; }
 

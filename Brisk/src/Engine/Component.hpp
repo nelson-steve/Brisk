@@ -92,11 +92,16 @@ namespace Brisk
 
 	struct RootComponent {
 		std::string name = "Root Component";
+
+		std::shared_ptr<Buffer> m_VertexBuffer;
+		std::shared_ptr<Buffer> m_IndexBuffer;
 	};
 
 	struct MeshComponent
 	{
 		std::string name = "Mesh Component";
+
+		std::shared_ptr<Mesh> pModel;
 
 		std::shared_ptr<RendererableDataRef> renderableRef;
 		std::vector<SubMesh> subMeshes;

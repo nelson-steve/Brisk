@@ -118,7 +118,7 @@ namespace Brisk
         if (!SceneManager::pActiveScene) return;
 
         auto view = SceneManager::pActiveScene->Reg().view<MeshComponent, MaterialComponent>();
-        auto parent = SceneManager::pActiveScene->Reg().view<RootComponent>();
+        //auto parent = SceneManager::pActiveScene->Reg().view<RootComponent>();
 
         fence->Wait();
         fence->Reset();
@@ -132,7 +132,21 @@ namespace Brisk
         RenderCommand::SetViewport(cmd, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
         RenderCommand::SetScissor(cmd, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
 
+        //for (auto e : parent) {
+        //    Entity entity = { e, SceneManager::pActiveScene.get() };
+        //    auto& mesh = entity.GetComponent<MeshComponent>();
+        //    auto& root = entity.GetComponent<RootComponent>();
+        //    auto& mat = entity.GetComponent<MaterialComponent>();
 
+        //    RenderCommand::BindVertexBuffer(cmd, { root.m_VertexBuffer }, 0);
+        //    RenderCommand::BindIndexBuffer(cmd, root.m_IndexBuffer, 0);
+
+        //    mat.pMaterials[0]->Bind(cmd, pipeline);
+
+        //    pipeline->Bind(cmd);
+
+        //    HandleEntity(entity);
+        //}
 
         for (auto e : view)
         {
@@ -140,16 +154,16 @@ namespace Brisk
             auto& mesh = entity.GetComponent<MeshComponent>();
             auto& mat = entity.GetComponent<MaterialComponent>();
             
-            //RenderCommand::BindVertexBuffer(cmd, { mesh.pModel->GetVertexBuffer() }, 0);
-            //RenderCommand::BindIndexBuffer(cmd, mesh.pModel->GetIndexBuffer(), 0);
+            RenderCommand::BindVertexBuffer(cmd, { mesh.pModel->GetVertexBuffer() }, 0);
+            RenderCommand::BindIndexBuffer(cmd, mesh.pModel->GetIndexBuffer(), 0);
 
             mat.pMaterials[0]->Bind(cmd, pipeline);
 
             pipeline->Bind(cmd);
 
-            //for (auto& node : mesh.pModel->GetNodes()) {
-                //DrawNode(mesh.pModel, mat.pMaterials, node);
-            //}
+            for (auto& node : mesh.pModel->GetNodes()) {
+                DrawNode(mesh.pModel, mat.pMaterials, node);
+            }
         }
 
         pipeline->m_Specs.pRenderPass->End(cmd);
@@ -171,6 +185,17 @@ namespace Brisk
 
         // Present
         queue->Present(presentInfo);
+    }
+
+    void Renderer::HandleEntity(Entity e) {
+        if (e.HasComponent<MeshComponent>()) {
+            for (auto& subMesh : e.GetComponent<MeshComponent>().subMeshes) {
+                RenderCommand::DrawIndexed(cmd, subMesh.index_count, 1, subMesh.first_index, 0, 0);
+            }
+        }
+        for (auto& child : e.GetComponent<TransformComponent>().children) {
+            HandleEntity(child);
+        }
     }
 
     void Renderer::DrawNode(const std::shared_ptr<Mesh> model, std::vector<std::shared_ptr<Shader>> materials, GLTF_Node* node) {

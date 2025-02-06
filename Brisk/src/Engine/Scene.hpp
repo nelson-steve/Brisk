@@ -42,7 +42,7 @@ namespace Brisk
 		void InitDefaults();
 		void InitScene();
 
-		void LoadGLTFFile(std::string path);
+		void LoadGLTFFile(std::string path, Entity e);
 
 		Entity CreateMeshEntity(const std::string& name = "Mesh");
 		Entity CreateCameraEntity(const std::string& name = "Camera");

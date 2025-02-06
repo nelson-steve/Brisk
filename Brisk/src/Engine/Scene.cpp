@@ -199,13 +199,13 @@ namespace Brisk
 					assert(false);
 				}
 				uint32_t mat_index = primitive.material > -1 ? primitive.material : -1;
-				Primitive* new_primitive = new Primitive(index_start, index_count, vertex_count, mat_index);
+				//Primitive* new_primitive = new Primitive(index_start, index_count, vertex_count, mat_index);
 				SubMesh subMesh{};
 				subMesh.first_index = index_start;
 				subMesh.index_count = index_count;
 				subMesh.vertex_count = vertex_count;
 				subMesh.vertex_count = vertex_count;
-				entity.AddComponent<MeshComponent>().subMeshes.push_back(subMesh);
+				entity.GetComponent<MeshComponent>().subMeshes.push_back(subMesh);
 				//new_mesh->primitives.push_back(new_primitive);
 			}
 			//new_node->mesh = new_mesh;
@@ -222,29 +222,18 @@ namespace Brisk
 
 	// TODO: Move GLTF specific functions to a namespace or static class GLTF_Utility
 	void GetNodeProps(const tinygltf::Node& rootNode, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> ref) {
-		std::vector<const tinygltf::Node*> nodeStack;
-		nodeStack.push_back(&rootNode);
-
-		while (!nodeStack.empty()) {
-			const tinygltf::Node* node = nodeStack.back(); // Get the node at the top of the stack.
-			nodeStack.pop_back(); // Remove that node from the stack.
-
-			std::cout << "Node" << std::endl;
-
-			if (node->children.size() > 0) {
-				for (size_t i = 0; i < node->children.size(); i++) {
-					nodeStack.push_back(&model.nodes[node->children[i]]);
-				}
+		if (rootNode.children.size() > 0) {
+			for (size_t i = 0; i < rootNode.children.size(); i++) {
+				GetNodeProps(model.nodes[rootNode.children[i]], model, ref);
 			}
-
-			if (node->mesh > -1) {
-				const tinygltf::Mesh& mesh = model.meshes[node->mesh];
-				for (size_t i = 0; i < mesh.primitives.size(); i++) {
-					auto primitive = mesh.primitives[i];
-					ref->pVertexCount += model.accessors[primitive.attributes.find("POSITION")->second].count;
-					if (primitive.indices > -1) {
-						ref->pIndexCount += model.accessors[primitive.indices].count;
-					}
+		}
+		if (rootNode.mesh > -1) {
+			const tinygltf::Mesh mesh = model.meshes[rootNode.mesh];
+			for (size_t i = 0; i < mesh.primitives.size(); i++) {
+				auto primitive = mesh.primitives[i];
+				ref->pVertexCount += model.accessors[primitive.attributes.find("POSITION")->second].count;
+				if (primitive.indices > -1) {
+					ref->pIndexCount += model.accessors[primitive.indices].count;
 				}
 			}
 		}
@@ -357,7 +346,7 @@ namespace Brisk
 		}
 	}
 
-	void Scene::LoadGLTFFile(std::string path) {
+	void Scene::LoadGLTFFile(std::string path, Entity entity) {
 		tinygltf::TinyGLTF loader;
 		tinygltf::Model model;
 		std::string error;
@@ -396,7 +385,7 @@ namespace Brisk
 			mTextures.push_back(texture);
 		}
 
-		Entity entity = { m_Registry.create(), this };
+		//Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<MeshComponent>();
 		entity.GetComponent<MeshComponent>().renderableRef = std::make_shared<RendererableDataRef>();
 
@@ -410,6 +399,22 @@ namespace Brisk
 		entity.AddComponent<RootComponent>();
 		entity.AddComponent<TransformComponent>();
 
+		entity.GetComponent<RootComponent>().m_VertexBuffer = Buffer::Create();
+		entity.GetComponent<RootComponent>().m_VertexBuffer->Init(sizeof(entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr[0]) * entity.GetComponent<MeshComponent>().renderableRef->pVertexCount,
+			entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr.data(),
+			{ Core::BufferUsage::BUFFER_USAGE_VERTEX_BUFFER_BIT },
+			{ Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
+			true);
+
+		if (entity.GetComponent<MeshComponent>().renderableRef->pIndexCount > 0) {
+			entity.GetComponent<RootComponent>().m_IndexBuffer = Buffer::Create();
+			entity.GetComponent<RootComponent>().m_IndexBuffer->Init(sizeof(entity.GetComponent<MeshComponent>().renderableRef->pIndicesDataPtr[0]) * entity.GetComponent<MeshComponent>().renderableRef->pIndexCount,
+				entity.GetComponent<MeshComponent>().renderableRef->pIndicesDataPtr.data(),
+				{ Core::BufferUsage::BUFFER_USAGE_INDEX_BUFFER_BIT },
+				{ Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
+				true);
+		}
+
 		for (auto& node_index : scene.nodes) {
 			const tinygltf::Node node = model.nodes[node_index];
 			LoadNode(entity, node, node_index, model, entity.GetComponent<MeshComponent>().renderableRef);
@@ -419,16 +424,16 @@ namespace Brisk
 	Entity Scene::CreateMeshEntity(const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
-		entity.AddComponent<TransformComponent>();
+		//entity.AddComponent<TransformComponent>();
 		std::shared_ptr<Mesh> model;
 		model = std::make_shared<Mesh>();
-		//model->Load("../Data/Models/Cube/Cube.gltf");
+		model->Load("../Data/Models/Cube/Cube.gltf");
 		//LoadGLTFFile("../Data/Models/damaged_helmet/DamagedHelmet.gltf");
-		LoadGLTFFile("../Data/Models/revolver/revolver.gltf");
+		//LoadGLTFFile("../Data/Models/revolver/revolver.gltf", entity);
 		//model->Load("../Data/Models/revolver/revolver.gltf");
 		//model->Load("../Data/Models/cerberus/cerberus.gltf");
 		entity.AddComponent<MaterialComponent>();
-		//entity.AddComponent<MeshComponent>().pModel = model;
+		entity.AddComponent<MeshComponent>().pModel = model;
 		auto& mat = entity.GetComponent<MaterialComponent>();
 
 		mat.pMaterials.push_back(Shader::Create());

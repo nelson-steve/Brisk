@@ -427,9 +427,9 @@ namespace Brisk
 		//entity.AddComponent<TransformComponent>();
 		std::shared_ptr<Mesh> model;
 		model = std::make_shared<Mesh>();
-		model->Load("../Data/Models/Cube/Cube.gltf");
+		//model->Load("../Data/Models/Cube/Cube.gltf");
+		model->Load("../Data/Models/revolver/revolver.gltf");
 		//LoadGLTFFile("../Data/Models/damaged_helmet/DamagedHelmet.gltf");
-		//LoadGLTFFile("../Data/Models/revolver/revolver.gltf", entity);
 		//model->Load("../Data/Models/revolver/revolver.gltf");
 		//model->Load("../Data/Models/cerberus/cerberus.gltf");
 		entity.AddComponent<MaterialComponent>();
@@ -451,8 +451,6 @@ namespace Brisk
 		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<ScriptComponent>();
-		//entity.AddComponent<ModelComponent>().AddMesh(m_AssetManager->LoadGLTFModel("Assets/gltf_models/Cube/glTF/Cube.gltf"), (uint32_t)entity);
-		//entity.AddComponent<ShaderComponent>().AddShader(m_AssetManager->LoadShader("Assets/Shaders/ModelShader.glsl"));
 		entity.AddComponent<PhysicsComponent>();
 		entity.AddComponent<BoxColliderComponent>();
 
@@ -466,11 +464,6 @@ namespace Brisk
 		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<ScriptComponent>();
-		//entity.AddComponent<ModelComponent>().AddMesh(m_AssetManager->LoadGLTFModel("Assets/models/board/board.obj"), (uint32_t)entity);
-		//entity.AddComponent<TextureComponent>().AddTexture(m_AssetManager->LoadTexture("Assets/Models/board/albedo.png"), 0);
-		//entity.GetComponent<TextureComponent>().AddTexture(m_AssetManager->LoadTexture("Assets/Models/board/ao.png"), 1);
-		//entity.AddComponent<ShaderComponent>().AddShader(m_AssetManager->LoadShader("Assets/Shaders/ModelPBRShader.glsl"));
-
 
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;

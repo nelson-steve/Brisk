@@ -120,10 +120,14 @@ namespace Brisk
 		const VkDescriptorPool GetDescriptorPool() const { return m_DescriptorPool; }
 
 		std::shared_ptr<SurfaceVulkan> GetSurface() { return m_Surface; }
+
+	public:
+		VkDescriptorPool m_BindlessDescriptorPool;
+		VkDescriptorSetLayout m_BindlessDescriptorLayout;
+		VkDescriptorSet m_BindlessDescriptorSet;
 	private:
 		// Pools
 		VkDescriptorPool m_DescriptorPool;
-		VkDescriptorPool m_BindlessDescriptorPool;
 
 		VkPhysicalDevice m_PhysicalDevice;
 		VkDevice m_Device;

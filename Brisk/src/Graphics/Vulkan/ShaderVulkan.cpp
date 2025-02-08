@@ -34,19 +34,41 @@ namespace Brisk
 		vkUpdateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), static_cast<uint32_t>(m_DescriptorWrites.size()), m_DescriptorWrites.data(), 0, nullptr);
 	}
 
+	void ShaderVulkan::AddTextures(std::vector<std::shared_ptr<Texture>> textures) {
+		std::vector<VkWriteDescriptorSet> writes;
+		writes.resize(textures.size());
+		for (int i = 0; i < textures.size(); i++) {
+			VkWriteDescriptorSet& writeDescriptorSet3 = writes[i];
+			writeDescriptorSet3.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			writeDescriptorSet3.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorSet;
+			writeDescriptorSet3.dstBinding = 10;
+			writeDescriptorSet3.dstArrayElement = i;
+			writeDescriptorSet3.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			writeDescriptorSet3.descriptorCount = 1;
+			writeDescriptorSet3.pImageInfo = std::static_pointer_cast<TextureVulkan>(textures[i])->GetDescriptor();
+		}
+
+		vkUpdateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), writes.size(), writes.data(), 0, nullptr);
+	}
+
 	void ShaderVulkan::Allocate(std::shared_ptr<CommandBuffer> cmdBuffer, std::shared_ptr<Pipeline> pipeline) {
 		//
 	}
 
+	bool firstTime = true;
 	void ShaderVulkan::Bind(std::shared_ptr<CommandBuffer> cmdBuffer, std::shared_ptr<Pipeline> pipeline)
 	{
+		std::vector<VkDescriptorSet> sets;
+		sets.push_back(m_DescriptorSet);
+		sets.push_back(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorSet);
+
 		vkCmdBindDescriptorSets(
 			std::static_pointer_cast<CommandBufferVulkan>(cmdBuffer)->Get(),						 // Command buffer to bind the descriptor set to
 			VK_PIPELINE_BIND_POINT_GRAPHICS, // We are binding it to a graphics pipeline
 			std::static_pointer_cast<PipelineVulkan>(pipeline)->GetLayout(),					 // Pipeline layout used by the pipeline
 			0,								 // First set index (usually 0)
-			1,								 // Number of descriptor sets to bind
-			&m_DescriptorSet,				 // Pointer to the descriptor set array
+			sets.size(),								 // Number of descriptor sets to bind
+			sets.data(),				 // Pointer to the descriptor set array
 			0,								 // Number of dynamic offsets (1 in this case)
 			nullptr							 // Pointer to the dynamic offsets (can be NULL)
 		);

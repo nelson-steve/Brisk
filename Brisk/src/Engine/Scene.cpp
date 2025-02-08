@@ -419,6 +419,9 @@ namespace Brisk
 				{ Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
 				true);
 		}
+
+		entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr.clear();
+		entity.GetComponent<MeshComponent>().renderableRef->pIndicesDataPtr.clear();
 	}
 
 	Entity Scene::CreateMeshEntity(const std::string& name)
@@ -429,12 +432,15 @@ namespace Brisk
 		//entity.AddComponent<TransformComponent>();
 		//std::shared_ptr<Mesh> model;
 		//model = std::make_shared<Mesh>();
-		//model->Load("../Data/Models/Cube/Cube.gltf");
-		//model->Load("../Data/Models/revolver/revolver.gltf");
-		LoadGLTFFile("../Data/Models/revolver/revolver.gltf", entity);
-		//LoadGLTFFile("../Data/Models/damaged_helmet/DamagedHelmet.gltf", entity);
-		//model->Load("../Data/Models/revolver/revolver.gltf");
-		//model->Load("../Data/Models/cerberus/cerberus.gltf");
+		// "../Data/Models/Cube/Cube.gltf"
+		// "../Data/Models/revolver/revolver.gltf"
+		// "../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf"
+		// "../Data/Models/damaged_helmet/DamagedHelmet.gltf"
+		// "../Data/Models/revolver/revolver.gltf"
+		// "../Data/Models/cerberus/cerberus.gltf"
+		// "../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf"
+		LoadGLTFFile("../Data/Models/Cube/Cube.gltf", entity);
+
 		entity.AddComponent<MaterialComponent>();
 		//entity.AddComponent<MeshComponent>().pModel = model;
 		auto& mat = entity.GetComponent<MaterialComponent>();
@@ -443,6 +449,8 @@ namespace Brisk
 		mat.pMaterials[0]->Init(Engine::s_Application->GetRenderer()->pipeline, "material");
 		mat.pMaterials[0]->SetMVPBuffer(Engine::s_Application->GetCamera()->mMVPBuffer);
 		mat.pMaterials[0]->UpdateResources();
+
+		mat.pMaterials[0]->AddTextures(mTextures);
 
 		//auto& tag = entity.AddComponent<TagComponent>();
 		//tag.Tag = name.empty() ? "Entity" : name;

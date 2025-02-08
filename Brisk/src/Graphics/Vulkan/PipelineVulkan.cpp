@@ -135,6 +135,7 @@ namespace Brisk
             std::vector<VkDescriptorSetLayout> descriptorLayouts;
             for (const auto& pair : specs.pDescriptorLayouts) {
                 descriptorLayouts.push_back(std::static_pointer_cast<DescriptorLayoutVulkan>(pair.second)->GetLayout());
+                descriptorLayouts.push_back(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout);
             }
 
             VkPipelineLayoutCreateInfo m_PipelineLayoutInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };

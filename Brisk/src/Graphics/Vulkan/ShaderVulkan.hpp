@@ -26,6 +26,7 @@ namespace Brisk
 
 		virtual void Allocate(std::shared_ptr<CommandBuffer> cmdBuffer, std::shared_ptr<Pipeline> pipeline) override;
 		virtual void UpdateResources() override;
+		virtual void AddTextures(std::vector<std::shared_ptr<Texture>> textures) override;
 		virtual void Bind(std::shared_ptr<CommandBuffer> cmdBuffer, std::shared_ptr<Pipeline> pipeline) override;
 
 		inline void AddDescriptorLayout(const std::shared_ptr<DescriptorLayout> descriptor) { m_DescriptorLayout = descriptor; }

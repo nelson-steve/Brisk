@@ -127,7 +127,7 @@ namespace Brisk
         }
 
 		uint32_t maxBindessResources = 1024;
-		uint32_t bindlessBinding = 1024;
+		uint32_t bindlessBinding = 10;
 
 		{
 			std::vector< VkDescriptorPoolSize> pool_sizes_bindless =
@@ -153,6 +153,7 @@ namespace Brisk
 			image_sampler_binding.binding = bindlessBinding;
 			image_sampler_binding.stageFlags = VK_SHADER_STAGE_ALL;
 			image_sampler_binding.pImmutableSamplers = nullptr;
+			bindings.push_back(image_sampler_binding);
 
 			VkDescriptorSetLayoutBinding storage_image_binding{};
 			storage_image_binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
@@ -160,6 +161,7 @@ namespace Brisk
 			storage_image_binding.binding = bindlessBinding + 1;
 			storage_image_binding.stageFlags = VK_SHADER_STAGE_ALL;
 			storage_image_binding.pImmutableSamplers = nullptr;
+			bindings.push_back(storage_image_binding);
 
 			VkDescriptorSetLayoutCreateInfo layout_info = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
 			layout_info.bindingCount = static_cast<uint32_t>(pool_sizes_bindless.size());
@@ -173,18 +175,18 @@ namespace Brisk
 			};
 			VkDescriptorSetLayoutBindingFlagsCreateInfoEXT extended_info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT, nullptr };
 			extended_info.bindingCount = static_cast<uint32_t>(pool_sizes_bindless.size());
-			extended_info.pBindingFlags = &bindless_flags;
+			extended_info.pBindingFlags = bindingflagsList.data();
 
 			layout_info.pNext = &extended_info;
 
-			//if (vkCreateDescriptorSetLayout(m_Device, &layout_info, nullptr, &vulkan_bindless_descriptor_layout) != VK_SUCCESS) {
-			//	throw std::runtime_error("failed to create bindless descriptor pool!");
-			//}
+			if (vkCreateDescriptorSetLayout(m_Device, &layout_info, nullptr, &m_BindlessDescriptorLayout) != VK_SUCCESS) {
+				throw std::runtime_error("failed to create bindless descriptor pool!");
+			}
 
 			VkDescriptorSetAllocateInfo alloc_info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
 			alloc_info.descriptorPool = m_BindlessDescriptorPool;
 			alloc_info.descriptorSetCount = 1;
-			//alloc_info.pSetLayouts = &vulkan_bindless_descriptor_layout;
+			alloc_info.pSetLayouts = &m_BindlessDescriptorLayout;
 
 			VkDescriptorSetVariableDescriptorCountAllocateInfoEXT count_info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT };
 			uint32_t max_binding = maxBindessResources - 1;
@@ -193,9 +195,9 @@ namespace Brisk
 			count_info.pDescriptorCounts = &max_binding;
 			//alloc_info.pNext = &count_info;
 
-			//if (vkAllocateDescriptorSets(m_Device, &alloc_info, &vulkan_bindless_descriptor_set) != VK_SUCCESS) {
-			//	throw std::runtime_error("failed to create bindless descriptor pool!");
-			//}
+			if (vkAllocateDescriptorSets(m_Device, &alloc_info, &m_BindlessDescriptorSet) != VK_SUCCESS) {
+				throw std::runtime_error("failed to create bindless descriptor pool!");
+			}
 		}
 	}
 

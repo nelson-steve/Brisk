@@ -86,7 +86,8 @@ namespace Brisk
 		//}
 
 		MVP mvp{};
-		mvp.Model = glm::mat4(1.0f);
+		//mvp.Model = glm::mat4(1.0f);
+		mvp.Model = glm::scale(glm::mat4(1.0f), glm::vec3(0.2, 0.2, 0.2));
 		mvp.View = m_ViewMatrix;
 		mvp.Projection = m_Projection;
 		//mvp.Projection[1][1] *= -1;

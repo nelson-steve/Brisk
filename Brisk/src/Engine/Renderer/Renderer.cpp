@@ -117,8 +117,8 @@ namespace Brisk
     {
         if (!SceneManager::pActiveScene) return;
 
-        auto view = SceneManager::pActiveScene->Reg().view<MeshComponent, MaterialComponent>();
-        //auto parent = SceneManager::pActiveScene->Reg().view<RootComponent>();
+        //auto view = SceneManager::pActiveScene->Reg().view<MeshComponent, MaterialComponent>();
+        auto parent = SceneManager::pActiveScene->Reg().view<RootComponent>();
 
         fence->Wait();
         fence->Reset();
@@ -132,39 +132,43 @@ namespace Brisk
         RenderCommand::SetViewport(cmd, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
         RenderCommand::SetScissor(cmd, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
 
-        //for (auto e : parent) {
-        //    Entity entity = { e, SceneManager::pActiveScene.get() };
-        //    auto& mesh = entity.GetComponent<MeshComponent>();
-        //    auto& root = entity.GetComponent<RootComponent>();
-        //    auto& mat = entity.GetComponent<MaterialComponent>();
-
-        //    RenderCommand::BindVertexBuffer(cmd, { root.m_VertexBuffer }, 0);
-        //    RenderCommand::BindIndexBuffer(cmd, root.m_IndexBuffer, 0);
-
-        //    mat.pMaterials[0]->Bind(cmd, pipeline);
-
-        //    pipeline->Bind(cmd);
-
-        //    HandleEntity(entity);
-        //}
-
-        for (auto e : view)
-        {
+        for (auto e : parent) {
             Entity entity = { e, SceneManager::pActiveScene.get() };
-            auto& mesh = entity.GetComponent<MeshComponent>();
-            auto& mat = entity.GetComponent<MaterialComponent>();
             
-            RenderCommand::BindVertexBuffer(cmd, { mesh.pModel->GetVertexBuffer() }, 0);
-            RenderCommand::BindIndexBuffer(cmd, mesh.pModel->GetIndexBuffer(), 0);
+            //std::cout << entity.GetComponent<TagComponent>().Tag << std::endl;
+            //auto& mesh = entity.GetComponent<MeshComponent>();
+            auto& root = entity.GetComponent<RootComponent>();
+            auto& mat = entity.GetComponent<MaterialComponent>();
+
+            RenderCommand::BindVertexBuffer(cmd, { root.m_VertexBuffer }, 0);
+            RenderCommand::BindIndexBuffer(cmd, root.m_IndexBuffer, 0);
 
             mat.pMaterials[0]->Bind(cmd, pipeline);
 
             pipeline->Bind(cmd);
 
-            for (auto& node : mesh.pModel->GetNodes()) {
-                DrawNode(mesh.pModel, mat.pMaterials, node);
-            }
+            HandleEntity(entity);
         }
+
+        //std::cout << "loop ends" << std::endl;
+
+        //for (auto e : view)
+        //{
+        //    Entity entity = { e, SceneManager::pActiveScene.get() };
+        //    auto& mesh = entity.GetComponent<MeshComponent>();
+        //    auto& mat = entity.GetComponent<MaterialComponent>();
+        //    
+        //    RenderCommand::BindVertexBuffer(cmd, { mesh.pModel->GetVertexBuffer() }, 0);
+        //    RenderCommand::BindIndexBuffer(cmd, mesh.pModel->GetIndexBuffer(), 0);
+
+        //    mat.pMaterials[0]->Bind(cmd, pipeline);
+
+        //    pipeline->Bind(cmd);
+
+        //    for (auto& node : mesh.pModel->GetNodes()) {
+        //        DrawNode(mesh.pModel, mat.pMaterials, node);
+        //    }
+        //}
 
         pipeline->m_Specs.pRenderPass->End(cmd);
         cmd->UnBind();

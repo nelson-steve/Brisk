@@ -399,6 +399,11 @@ namespace Brisk
 		entity.AddComponent<RootComponent>();
 		entity.AddComponent<TransformComponent>();
 
+		for (auto& node_index : scene.nodes) {
+			const tinygltf::Node node = model.nodes[node_index];
+			LoadNode(entity, node, node_index, model, entity.GetComponent<MeshComponent>().renderableRef);
+		}
+
 		entity.GetComponent<RootComponent>().m_VertexBuffer = Buffer::Create();
 		entity.GetComponent<RootComponent>().m_VertexBuffer->Init(sizeof(entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr[0]) * entity.GetComponent<MeshComponent>().renderableRef->pVertexCount,
 			entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr.data(),
@@ -414,26 +419,24 @@ namespace Brisk
 				{ Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
 				true);
 		}
-
-		for (auto& node_index : scene.nodes) {
-			const tinygltf::Node node = model.nodes[node_index];
-			LoadNode(entity, node, node_index, model, entity.GetComponent<MeshComponent>().renderableRef);
-		}
 	}
 
 	Entity Scene::CreateMeshEntity(const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
+		entity.AddComponent<TagComponent>().Tag = "PARENT";
+		std::cout << entity.GetComponent<TagComponent>().Tag << std::endl;
 		//entity.AddComponent<TransformComponent>();
-		std::shared_ptr<Mesh> model;
-		model = std::make_shared<Mesh>();
+		//std::shared_ptr<Mesh> model;
+		//model = std::make_shared<Mesh>();
 		//model->Load("../Data/Models/Cube/Cube.gltf");
-		model->Load("../Data/Models/revolver/revolver.gltf");
-		//LoadGLTFFile("../Data/Models/damaged_helmet/DamagedHelmet.gltf");
+		//model->Load("../Data/Models/revolver/revolver.gltf");
+		LoadGLTFFile("../Data/Models/revolver/revolver.gltf", entity);
+		//LoadGLTFFile("../Data/Models/damaged_helmet/DamagedHelmet.gltf", entity);
 		//model->Load("../Data/Models/revolver/revolver.gltf");
 		//model->Load("../Data/Models/cerberus/cerberus.gltf");
 		entity.AddComponent<MaterialComponent>();
-		entity.AddComponent<MeshComponent>().pModel = model;
+		//entity.AddComponent<MeshComponent>().pModel = model;
 		auto& mat = entity.GetComponent<MaterialComponent>();
 
 		mat.pMaterials.push_back(Shader::Create());
@@ -441,8 +444,8 @@ namespace Brisk
 		mat.pMaterials[0]->SetMVPBuffer(Engine::s_Application->GetCamera()->mMVPBuffer);
 		mat.pMaterials[0]->UpdateResources();
 
-		auto& tag = entity.AddComponent<TagComponent>();
-		tag.Tag = name.empty() ? "Entity" : name;
+		//auto& tag = entity.AddComponent<TagComponent>();
+		//tag.Tag = name.empty() ? "Entity" : name;
 		return entity;
 	}
 

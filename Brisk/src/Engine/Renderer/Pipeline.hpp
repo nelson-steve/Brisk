@@ -86,6 +86,8 @@ namespace Brisk
 
         virtual void Bind(std::shared_ptr<CommandBuffer> cmd) = 0;
 
+        virtual void BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t, void* data) = 0;
+
         virtual void Destroy() = 0;
 
         static std::shared_ptr<Pipeline> Create();

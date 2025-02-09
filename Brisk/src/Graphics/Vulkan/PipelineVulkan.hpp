@@ -9,11 +9,21 @@
 
 namespace Brisk
 {
+	struct PushConstants {
+		uint32_t albedoIndex;
+		uint32_t metallicRoughnessIndex;
+		uint32_t normalIndex;
+		uint32_t emissiveIndex;
+		uint32_t occlusionIndex;
+	};
+
 	class PipelineVulkan : public Pipeline {
 	public:
 		virtual void Init(const PipelineSpecs& specs) override;
 
 		virtual void Bind(std::shared_ptr<CommandBuffer> cmd) override;
+
+		virtual void BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data) override;
 
 		void Destroy();
 

@@ -7,6 +7,7 @@
 #include "Engine/Model.hpp"
 #include "ShaderModule.hpp"
 #include "Engine/Entity.hpp"
+#include "Graphics/Vulkan/PipelineVulkan.hpp"
 #include "Engine/Component.hpp"
 #include "Engine/SceneManager.hpp"
 #include "Engine/Renderer/Shader.hpp"
@@ -145,8 +146,6 @@ namespace Brisk
 
             mat.pMaterials[0]->Bind(cmd, pipeline);
 
-            pipeline->Bind(cmd);
-
             HandleEntity(entity);
         }
 
@@ -208,6 +207,19 @@ namespace Brisk
                 //pipeline->Bind(cmd);
                 uint32_t index = primitive->material_index > -1 ? primitive->material_index : 0;
                 //materials[index]->Bind(cmd, pipeline);
+
+                PushConstants pushConstantsData = {
+                    SceneManager::pActiveScene->mMaterials[index].baseColorTextureIndex,   // Index for albedo texture
+                    SceneManager::pActiveScene->mMaterials[index].metallicRoughnessTextureIndex, // Index for metallic texture
+                    SceneManager::pActiveScene->mMaterials[index].normalTextureIndex,   // Index for normal texture
+                    SceneManager::pActiveScene->mMaterials[index].emissiveTextureIndex,// Index for roughness texture
+                    SceneManager::pActiveScene->mMaterials[index].occlusionTextureIndex// Index for emissive texture
+                };
+
+                pipeline->BindPushConstant(cmd, sizeof(PushConstants), &pushConstantsData);
+
+                pipeline->Bind(cmd);
+
                 RenderCommand::DrawIndexed(cmd, primitive->index_count, 1, primitive->first_index, 0, 0);
                 //RenderCommand::Draw(cmd, primitive->vertex_count, 0);
             }

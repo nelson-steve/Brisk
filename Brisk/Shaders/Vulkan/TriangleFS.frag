@@ -4,11 +4,13 @@ layout(location = 0) in vec3 fragColor;
 
 layout(location = 0) out vec4 outColor;
 
-//layout(binding = 1) uniform sampler2D albedo;
-//layout(binding = 2) uniform sampler2D roughness;
-//layout(binding = 3) uniform sampler2D normal;
-//layout(binding = 4) uniform sampler2D emissive;
-//layout(binding = 5) uniform sampler2D metallic;
+layout(push_constant) uniform PushConstants {
+	uint albedoIndex;
+	uint metallicRoughnessIndex;
+	uint normalIndex;
+	uint emissiveIndex;
+	uint occlusionIndex;
+} pushConstants;
 
 #extension GL_EXT_nonuniform_qualifier : enable
 
@@ -22,6 +24,6 @@ layout(location = 2) in vec2 inUV1;
 
 void main() {
     int textureIndex = 0;
-    vec4 color = texture(global_textures[nonuniformEXT(textureIndex)], inUV0);
+    vec4 color = texture(global_textures[nonuniformEXT(pushConstants.normalIndex)], inUV0);
     outColor = vec4(color.xyz, 1.0);
 }

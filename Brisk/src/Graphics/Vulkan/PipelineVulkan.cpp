@@ -138,9 +138,15 @@ namespace Brisk
                 descriptorLayouts.push_back(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout);
             }
 
+            VkPushConstantRange pushConstantRange = {};
+            pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;  // Assuming you'll use this in the fragment shader
+            pushConstantRange.offset = 0;  // Starting offset in push constant space
+            pushConstantRange.size = sizeof(PushConstants);  // Size of the push constant data
+
             VkPipelineLayoutCreateInfo m_PipelineLayoutInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
             m_PipelineLayoutInfo.setLayoutCount = 0;
-            m_PipelineLayoutInfo.pushConstantRangeCount = 0;
+            m_PipelineLayoutInfo.pushConstantRangeCount = 1;
+            m_PipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
             m_PipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorLayouts.size());
             m_PipelineLayoutInfo.pSetLayouts = descriptorLayouts.data();
 
@@ -268,6 +274,10 @@ namespace Brisk
 
     void PipelineVulkan::Bind(std::shared_ptr<CommandBuffer> cmd) {
         vkCmdBindPipeline(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
+    }
+
+    void PipelineVulkan::BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data) {
+        vkCmdPushConstants(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), m_PipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, size, data);
     }
 
     void PipelineVulkan::Destroy() {

@@ -89,6 +89,8 @@ namespace Brisk
 
 		entt::registry& Reg() { return m_Registry; }
 		glm::vec3 lightPos = glm::vec3(-2.0f, 4.0f, -1.0f);
+
+		std::vector<MaterialData> mMaterials;
 	private:
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);

@@ -244,11 +244,11 @@ namespace Brisk
 			MaterialData material{};
 			material.doubleSided = mat.doubleSided;
 			if (mat.values.find("baseColorTexture") != mat.values.end()) {
-				material.baseColorTexture = mTextures[mat.values["baseColorTexture"].TextureIndex()];
+				material.baseColorTextureIndex = mat.values["baseColorTexture"].TextureIndex();
 				material.texCoordSets.baseColor = mat.values["baseColorTexture"].TextureTexCoord();
 			}
 			if (mat.values.find("metallicRoughnessTexture") != mat.values.end()) {
-				material.metallicRoughnessTexture = mTextures[mat.values["metallicRoughnessTexture"].TextureIndex()];
+				material.metallicRoughnessTextureIndex = mat.values["metallicRoughnessTexture"].TextureIndex();
 				material.texCoordSets.metallicRoughness = mat.values["metallicRoughnessTexture"].TextureTexCoord();
 			}
 			if (mat.values.find("roughnessFactor") != mat.values.end()) {
@@ -261,15 +261,15 @@ namespace Brisk
 				material.baseColorFactor = glm::make_vec4(mat.values["baseColorFactor"].ColorFactor().data());
 			}
 			if (mat.additionalValues.find("normalTexture") != mat.additionalValues.end()) {
-				material.normalTexture = mTextures[mat.additionalValues["normalTexture"].TextureIndex()];
+				material.normalTextureIndex = mat.additionalValues["normalTexture"].TextureIndex();
 				material.texCoordSets.normal = mat.additionalValues["normalTexture"].TextureTexCoord();
 			}
 			if (mat.additionalValues.find("emissiveTexture") != mat.additionalValues.end()) {
-				material.emissiveTexture = mTextures[mat.additionalValues["emissiveTexture"].TextureIndex()];
+				material.emissiveTextureIndex = mat.additionalValues["emissiveTexture"].TextureIndex();
 				material.texCoordSets.emissive = mat.additionalValues["emissiveTexture"].TextureTexCoord();
 			}
 			if (mat.additionalValues.find("occlusionTexture") != mat.additionalValues.end()) {
-				material.occlusionTexture = mTextures[mat.additionalValues["occlusionTexture"].TextureIndex()];
+				material.occlusionTextureIndex = mat.additionalValues["occlusionTexture"].TextureIndex();
 				material.texCoordSets.occlusion = mat.additionalValues["occlusionTexture"].TextureTexCoord();
 			}
 			if (mat.additionalValues.find("alphaMode") != mat.additionalValues.end()) {
@@ -332,11 +332,11 @@ namespace Brisk
 				}
 			}
 
-			//material.index = static_cast<uint32_t>(m_materials.size());
-			//m_materials.push_back(material);
+			material.index = static_cast<uint32_t>(mMaterials.size());
+			mMaterials.push_back(material);
 		}
 		// Push a default material at the end of the list for meshes with no material assigned
-		//m_materials.push_back(MaterialData());
+		mMaterials.push_back(MaterialData());
 	}
 
 
@@ -439,7 +439,7 @@ namespace Brisk
 		// "../Data/Models/revolver/revolver.gltf"
 		// "../Data/Models/cerberus/cerberus.gltf"
 		// "../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf"
-		LoadGLTFFile("../Data/Models/Cube/Cube.gltf", entity);
+		LoadGLTFFile("../Data/Models/damaged_helmet/DamagedHelmet.gltf", entity);
 
 		entity.AddComponent<MaterialComponent>();
 		//entity.AddComponent<MeshComponent>().pModel = model;

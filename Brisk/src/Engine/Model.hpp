@@ -29,6 +29,13 @@ namespace Brisk
 		float roughnessFactor = 1.0f;
 		glm::vec4 baseColorFactor = glm::vec4(1.0f);
 		glm::vec4 emissiveFactor = glm::vec4(0.0f);
+
+		uint32_t baseColorTextureIndex;
+		uint32_t metallicRoughnessTextureIndex;
+		uint32_t normalTextureIndex;
+		uint32_t occlusionTextureIndex;
+		uint32_t emissiveTextureIndex;
+
 		std::shared_ptr<Texture> baseColorTexture;
 		std::shared_ptr<Texture> metallicRoughnessTexture;
 		std::shared_ptr<Texture> normalTexture;

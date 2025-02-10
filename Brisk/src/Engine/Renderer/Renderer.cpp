@@ -146,6 +146,8 @@ namespace Brisk
 
             mat.pMaterials[0]->Bind(cmd, pipeline);
 
+            pipeline->Bind(cmd);
+
             HandleEntity(entity);
         }
 
@@ -193,6 +195,22 @@ namespace Brisk
     void Renderer::HandleEntity(Entity e) {
         if (e.HasComponent<MeshComponent>()) {
             for (auto& subMesh : e.GetComponent<MeshComponent>().subMeshes) {
+                uint32_t index = subMesh.material_index > -1 ? subMesh.material_index : 0;
+                //materials[index]->Bind(cmd, pipeline);
+
+                PushConstants pushConstantsData = {
+                    SceneManager::pActiveScene->mMaterials[index].baseColorTextureIndex,   // Index for albedo texture 0
+                    SceneManager::pActiveScene->mMaterials[index].metallicRoughnessTextureIndex, // Index for metallic texture1
+                    SceneManager::pActiveScene->mMaterials[index].normalTextureIndex,   // Index for normal texture 4
+                    SceneManager::pActiveScene->mMaterials[index].emissiveTextureIndex,// Index for roughness texture 2
+                    SceneManager::pActiveScene->mMaterials[index].occlusionTextureIndex// Index for emissive texture 3
+                };
+
+                //pushConstantsData.camPos = Engine::s_Application->GetCamera()->GetPosition();
+
+                pipeline->BindPushConstant(cmd, sizeof(PushConstants), &pushConstantsData);
+
+
                 RenderCommand::DrawIndexed(cmd, subMesh.index_count, 1, subMesh.first_index, 0, 0);
             }
         }
@@ -202,31 +220,17 @@ namespace Brisk
     }
 
     void Renderer::DrawNode(const std::shared_ptr<Mesh> model, std::vector<std::shared_ptr<Shader>> materials, GLTF_Node* node) {
-        if (node->mesh) {
-            for (Primitive* primitive : node->mesh->primitives) {
-                //pipeline->Bind(cmd);
-                uint32_t index = primitive->material_index > -1 ? primitive->material_index : 0;
-                //materials[index]->Bind(cmd, pipeline);
+        //if (node->mesh) {
+        //    for (Primitive* primitive : node->mesh->primitives) {
+        //        //pipeline->Bind(cmd);
 
-                PushConstants pushConstantsData = {
-                    SceneManager::pActiveScene->mMaterials[index].baseColorTextureIndex,   // Index for albedo texture
-                    SceneManager::pActiveScene->mMaterials[index].metallicRoughnessTextureIndex, // Index for metallic texture
-                    SceneManager::pActiveScene->mMaterials[index].normalTextureIndex,   // Index for normal texture
-                    SceneManager::pActiveScene->mMaterials[index].emissiveTextureIndex,// Index for roughness texture
-                    SceneManager::pActiveScene->mMaterials[index].occlusionTextureIndex// Index for emissive texture
-                };
-
-                pipeline->BindPushConstant(cmd, sizeof(PushConstants), &pushConstantsData);
-
-                pipeline->Bind(cmd);
-
-                RenderCommand::DrawIndexed(cmd, primitive->index_count, 1, primitive->first_index, 0, 0);
-                //RenderCommand::Draw(cmd, primitive->vertex_count, 0);
-            }
-        }
-        for (auto& child : node->children) {
-            DrawNode(model, materials, child);
-        }
+        //        RenderCommand::DrawIndexed(cmd, primitive->index_count, 1, primitive->first_index, 0, 0);
+        //        //RenderCommand::Draw(cmd, primitive->vertex_count, 0);
+        //    }
+        //}
+        //for (auto& child : node->children) {
+        //    DrawNode(model, materials, child);
+        //}
     }
 
     std::unique_ptr<Renderer> Renderer::Create()

@@ -239,7 +239,7 @@ namespace Brisk
 		}
 	}
 
-	void Scene::LoadMaterials(tinygltf::Model model, std::shared_ptr<RendererableDataRef> ref) {
+	void Scene::LoadMaterials(tinygltf::Model model) {
 		for (tinygltf::Material& mat : model.materials) {
 			MaterialData material{};
 			material.doubleSided = mat.doubleSided;
@@ -384,6 +384,8 @@ namespace Brisk
 			texture->Init(image, texture_sampler);
 			mTextures.push_back(texture);
 		}
+
+		LoadMaterials(model);
 
 		//Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<MeshComponent>();

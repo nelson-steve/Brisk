@@ -60,7 +60,7 @@ namespace Brisk
 		void OnSimulationStop();
 
 		void LoadNode(Entity parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> renderableRef);
-		void LoadMaterials(tinygltf::Model model, std::shared_ptr<RendererableDataRef> ref);
+		void LoadMaterials(tinygltf::Model model);
 
 		//void OnUpdateRuntime(Timestep ts);
 		//void OnUpdateSimulation(Ref<EditorCamera> camera, Timestep ts);

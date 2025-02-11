@@ -16,8 +16,6 @@
 
 namespace Brisk 
 {
-	class BufferVulkan;
-
 	class Renderer {
 	public:
 		void Init();

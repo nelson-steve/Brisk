@@ -3,7 +3,8 @@
 layout(location = 0) in vec2 inUV0;        // Albedo texture UVs
 layout(location = 1) in vec2 inUV1;        // Other texture UVs (metallic-roughness, etc.)
 layout(location = 2) in vec3 WorldPos;     // Fragment position
-layout(location = 3) out vec3 Normal;
+layout(location = 3) in vec3 Normal;
+layout(location = 4) in vec3 CamPos;
 
 layout(location = 0) out vec4 outColor;
 
@@ -81,9 +82,8 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 // ----------------------------------------------------------------------------
 void main()
 {
-    vec3 lightPosition = vec3(0.0, 1.0, 2.0);
-    vec3 lightColor = vec3(1.0, 1.0, 1.0);
-    vec3 camPos = vec3(0.0, 0.0, 0.0);
+    vec3 lightPosition = vec3(0.0, 1.0, 0.0);
+    vec3 lightColor = vec3(2.0, 2.0, 2.0);
 
     vec3 albedo = pow( texture(global_textures[nonuniformEXT(pushConstants.albedoIndex)], inUV0).rgb, vec3(2.2));
     float metallic = texture(global_textures[nonuniformEXT(pushConstants.metallicRoughnessIndex)], inUV0).r;
@@ -96,7 +96,7 @@ void main()
     //float ao        = texture(aoMap, TexCoords).r;
 
     vec3 N = getNormalFromMap();
-    vec3 V = normalize(camPos - WorldPos);
+    vec3 V = normalize(CamPos - WorldPos);
 
     // calculate reflectance at normal incidence; if dia-electric (like plastic) use F0 
     // of 0.04 and if it's a metal, use the albedo color as F0 (metallic workflow)    

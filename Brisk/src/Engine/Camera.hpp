@@ -17,10 +17,11 @@ namespace Brisk
 {
 	class Camera {
 	public:
-		struct MVP {
+		struct alignas(16) MVP {
 			glm::mat4 Model;
 			glm::mat4 View;
 			glm::mat4 Projection;
+			glm::vec3 CamPos;
 		};
 
 		Camera(GLFWwindow* window);

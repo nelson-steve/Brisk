@@ -57,19 +57,16 @@ namespace Brisk
 
 		if (node.translation.size() == 3) {
 			entity.GetComponent<TransformComponent>().Position = glm::make_vec3(node.translation.data());
-			//new_node->translation = glm::make_vec3(node.translation.data());
 		}
 		if (node.rotation.size() == 4) {
 			//new_node->rotation = glm::make_quat(node.rotation.data());
 			entity.GetComponent<TransformComponent>().Rotation = glm::make_vec3(node.rotation.data());
 		}
 		if (node.scale.size() == 4) {
-			//new_node->scale = glm::make_vec3(node.scale.data());
 			entity.GetComponent<TransformComponent>().Scale = glm::make_vec3(node.scale.data());
 		}
 		if (node.matrix.size() == 16) {
-			//new_node->matrix = glm::make_mat4x4(node.matrix.data());
-			//entity.GetComponent<TransformComponent>().Scale = glm::make_vec3(node.scale.data());
+			entity.GetComponent<TransformComponent>().Matrix = glm::make_mat4x4(node.matrix.data());
 		}
 
 		if (node.children.size() > 0) {
@@ -79,7 +76,6 @@ namespace Brisk
 
 		if (node.mesh > -1) {
 			const tinygltf::Mesh mesh = model.meshes[node.mesh];
-			//GLTF_Mesh* new_mesh = new GLTF_Mesh(new_node->matrix);
 			entity.AddComponent<MeshComponent>();
 			for (auto& primitive : mesh.primitives) {
 				uint32_t vertex_start = m_vertex_pos;
@@ -199,20 +195,16 @@ namespace Brisk
 					assert(false);
 				}
 				uint32_t mat_index = primitive.material > -1 ? primitive.material : -1;
-				//Primitive* new_primitive = new Primitive(index_start, index_count, vertex_count, mat_index);
 				SubMesh subMesh{};
 				subMesh.first_index = index_start;
 				subMesh.index_count = index_count;
 				subMesh.vertex_count = vertex_count;
 				subMesh.vertex_count = vertex_count;
 				entity.GetComponent<MeshComponent>().subMeshes.push_back(subMesh);
-				//new_mesh->primitives.push_back(new_primitive);
 			}
-			//new_node->mesh = new_mesh;
 		}
 		if (parent) {
 			parent.GetComponent<TransformComponent>().children.push_back(entity);
-			//parent->children.push_back(new_node);
 		}
 		else {
 			//pNodes.push_back(new_node);
@@ -429,7 +421,7 @@ namespace Brisk
 	Entity Scene::CreateMeshEntity(const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
-		entity.AddComponent<TagComponent>().Tag = "PARENT";
+		//entity.AddComponent<TagComponent>().Tag = "PARENT";
 		std::cout << entity.GetComponent<TagComponent>().Tag << std::endl;
 		//entity.AddComponent<TransformComponent>();
 		//std::shared_ptr<Mesh> model;
@@ -454,8 +446,8 @@ namespace Brisk
 
 		mat.pMaterials[0]->AddTextures(mTextures);
 
-		//auto& tag = entity.AddComponent<TagComponent>();
-		//tag.Tag = name.empty() ? "Entity" : name;
+		auto& tag = entity.AddComponent<TagComponent>();
+		tag.Tag = name.empty() ? "Entity" : name;
 		return entity;
 	}
 

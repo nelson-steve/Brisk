@@ -90,6 +90,7 @@ namespace Brisk
 		mvp.Model = glm::scale(glm::mat4(1.0f), glm::vec3(0.2, 0.2, 0.2));
 		mvp.View = m_ViewMatrix;
 		mvp.Projection = m_Projection;
+		mvp.CamPos = m_Position;
 		//mvp.Projection[1][1] *= -1;
 
 		mMVPBuffer->UpdatePersistantData(sizeof(MVP), &mvp);

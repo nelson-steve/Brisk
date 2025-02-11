@@ -577,8 +577,6 @@ namespace Brisk
         //    }
         //}
 
-        //
-
         VkCommandBuffer blit_cmd;
         VkCommandBufferAllocateInfo allocBlitInfo = {};
         allocBlitInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;

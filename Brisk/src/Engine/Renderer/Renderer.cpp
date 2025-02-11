@@ -55,8 +55,8 @@ namespace Brisk
         vertexLayout.pAttributes = {
             {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Position)},
             {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Normal)},
-            {0, 2, Core::Format::FORMAT_R32G32_SFLOAT, offsetof(MeshData, MeshData::UV0)},
-            {0, 3, Core::Format::FORMAT_R32G32_SFLOAT, offsetof(MeshData, MeshData::UV1)},
+            {0, 2, Core::Format::FORMAT_R32G32_SFLOAT,    offsetof(MeshData, MeshData::UV0)},
+            {0, 3, Core::Format::FORMAT_R32G32_SFLOAT,    offsetof(MeshData, MeshData::UV1)},
             {0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Color)},
         };
         pipelineSpecs.pLayout = vertexLayout;
@@ -195,7 +195,7 @@ namespace Brisk
     void Renderer::HandleEntity(Entity e) {
         if (e.HasComponent<MeshComponent>()) {
             for (auto& subMesh : e.GetComponent<MeshComponent>().subMeshes) {
-                uint32_t index = subMesh.material_index > -1 ? subMesh.material_index : 0;
+                uint32_t index = subMesh.material_index != -1 ? subMesh.material_index : 0;
                 //materials[index]->Bind(cmd, pipeline);
 
                 PushConstants pushConstantsData = {

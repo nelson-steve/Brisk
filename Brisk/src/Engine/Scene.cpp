@@ -200,6 +200,7 @@ namespace Brisk
 				subMesh.index_count = index_count;
 				subMesh.vertex_count = vertex_count;
 				subMesh.vertex_count = vertex_count;
+				subMesh.material_index = mat_index;
 				entity.GetComponent<MeshComponent>().subMeshes.push_back(subMesh);
 			}
 		}
@@ -421,8 +422,6 @@ namespace Brisk
 	Entity Scene::CreateMeshEntity(const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
-		//entity.AddComponent<TagComponent>().Tag = "PARENT";
-		std::cout << entity.GetComponent<TagComponent>().Tag << std::endl;
 		//entity.AddComponent<TransformComponent>();
 		//std::shared_ptr<Mesh> model;
 		//model = std::make_shared<Mesh>();
@@ -433,7 +432,7 @@ namespace Brisk
 		// "../Data/Models/revolver/revolver.gltf"
 		// "../Data/Models/cerberus/cerberus.gltf"
 		// "../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf"
-		LoadGLTFFile("../Data/Models/damaged_helmet/DamagedHelmet.gltf", entity);
+		LoadGLTFFile("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf", entity);
 
 		entity.AddComponent<MaterialComponent>();
 		//entity.AddComponent<MeshComponent>().pModel = model;

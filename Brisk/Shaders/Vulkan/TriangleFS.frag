@@ -82,7 +82,7 @@ vec3 fresnelSchlick(float cosTheta, vec3 F0)
 // ----------------------------------------------------------------------------
 void main()
 {
-    vec3 lightPosition = vec3(0.0, 1.0, 0.0);
+    vec3 lightPosition = vec3(0.0, 5.0, 0.0);
     vec3 lightColor = vec3(2.0, 2.0, 2.0);
 
     vec3 albedo = pow( texture(global_textures[nonuniformEXT(pushConstants.albedoIndex)], inUV0).rgb, vec3(2.2));

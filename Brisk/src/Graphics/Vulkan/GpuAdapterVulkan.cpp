@@ -97,6 +97,79 @@ namespace Brisk
 		CreateLogicalDevice(req);
 
 		AllocatePools();
+
+		/////
+
+		uint32_t width = offscreen_size;
+		uint32_t height = offscreen_size;
+		VkFormat format = VK_FORMAT_R32G32B32A32_SFLOAT;
+		// Cubemap image
+		VkImageUsageFlags usage = VK_IMAGE_USAGE_SAMPLED_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_STORAGE_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+		// Cube map image description
+		VkImageCreateInfo imageCreateInfo = { VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+		imageCreateInfo.imageType = VK_IMAGE_TYPE_2D;
+		imageCreateInfo.format = format;
+		imageCreateInfo.extent = { width, height, 1 };
+		imageCreateInfo.mipLevels = 1;
+		imageCreateInfo.arrayLayers = 6;
+		imageCreateInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageCreateInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageCreateInfo.usage = usage;
+		imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+		imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
+		if (vkCreateImage(m_Device, &imageCreateInfo, nullptr, &m_cubemap.image) != VK_SUCCESS) {
+			assert(false);
+		}
+
+		VkMemoryRequirements memReqs{};
+		vkGetImageMemoryRequirements(m_Device, m_cubemap.image, &memReqs);
+		VkMemoryAllocateInfo memAlloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
+		memAlloc.allocationSize = memReqs.size;
+		memAlloc.memoryTypeIndex = vkUtilities::FindMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_PhysicalDevice);
+
+		if (vkAllocateMemory(m_Device, &memAlloc, nullptr, &m_cubemap.memory) != VK_SUCCESS) {
+			assert(false);
+		}
+		if (vkBindImageMemory(m_Device, m_cubemap.image, m_cubemap.memory, 0) != VK_SUCCESS) {
+			assert(false);
+		}
+
+		m_cubemap.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+		// Create sampler
+		VkSamplerCreateInfo sampler_create_info = { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
+		sampler_create_info.magFilter = VK_FILTER_LINEAR;
+		sampler_create_info.minFilter = VK_FILTER_LINEAR;
+		sampler_create_info.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+		sampler_create_info.addressModeU = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		sampler_create_info.addressModeV = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		sampler_create_info.addressModeW = VK_SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE;
+		sampler_create_info.mipLodBias = 0.0f;
+		sampler_create_info.maxAnisotropy = 1.0f;
+		sampler_create_info.compareOp = VK_COMPARE_OP_NEVER;
+		sampler_create_info.minLod = 0.0f;
+		sampler_create_info.maxLod = 1.0f;
+		sampler_create_info.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+		if (vkCreateSampler(m_Device, &sampler_create_info, nullptr, &m_cubemap.sampler) != VK_SUCCESS) {
+			assert(false);
+		}
+
+		// Create image view
+		VkImageViewCreateInfo view_create_info = { VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+		view_create_info.image = m_cubemap.image;
+		view_create_info.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
+		view_create_info.format = format;
+		view_create_info.components = { VK_COMPONENT_SWIZZLE_R, VK_COMPONENT_SWIZZLE_G, VK_COMPONENT_SWIZZLE_B, VK_COMPONENT_SWIZZLE_A };
+		view_create_info.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		view_create_info.subresourceRange.baseMipLevel = 0;
+		view_create_info.subresourceRange.levelCount = 1;
+		view_create_info.subresourceRange.baseArrayLayer = 0;
+		view_create_info.subresourceRange.layerCount = 6;
+		if (vkCreateImageView(m_Device, &view_create_info, nullptr, &m_cubemap.view) != VK_SUCCESS) {
+			assert(false);
+		}
+
 	}
 
 	void GpuAdapterVulkan::AllocatePools() {

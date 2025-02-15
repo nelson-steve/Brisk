@@ -170,6 +170,58 @@ namespace Brisk
 			assert(false);
 		}
 
+		//
+
+		VkSamplerCreateInfo createInfo = { VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO };
+
+		// Linear, non-anisotropic sampler, wrap address mode (post processing compute shaders)
+		createInfo.minFilter = VK_FILTER_LINEAR;
+		createInfo.magFilter = VK_FILTER_LINEAR;
+		createInfo.borderColor = VK_BORDER_COLOR_FLOAT_TRANSPARENT_BLACK;
+		if (vkCreateSampler(m_device, &createInfo, nullptr, &computeSampler) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create pre-processing sampler");
+		}
+
+		{
+			uint32_t kEnvMapLevels = 1;
+			std::vector<VkDescriptorSetLayoutBinding> descriptorSetLayoutBindings = {
+				{ 0, VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1, VK_SHADER_STAGE_COMPUTE_BIT, &computeSampler },
+				{ 1, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, 1, VK_SHADER_STAGE_COMPUTE_BIT, nullptr },
+				{ 2, VK_DESCRIPTOR_TYPE_STORAGE_IMAGE, kEnvMapLevels - 1, VK_SHADER_STAGE_COMPUTE_BIT, nullptr },
+			};
+
+			VkDescriptorSetLayoutCreateInfo descriptorSetLayoutCI{};
+			descriptorSetLayoutCI.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
+			descriptorSetLayoutCI.pBindings = descriptorSetLayoutBindings.data();
+			descriptorSetLayoutCI.bindingCount = descriptorSetLayoutBindings.size();
+			if (vkCreateDescriptorSetLayout(m_device, &descriptorSetLayoutCI, nullptr, &m_descriptorSetLayouts.compute)) {
+				throw std::runtime_error("Failed to create descriptor pool");
+			}
+
+			VkDescriptorSetAllocateInfo allocateInfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+			allocateInfo.descriptorPool = m_descriptor_pools.scene;
+			allocateInfo.descriptorSetCount = 1;
+			allocateInfo.pSetLayouts = &m_descriptorSetLayouts.compute;
+			if (vkAllocateDescriptorSets(m_device, &allocateInfo, &m_descriptor_sets.compute) != VK_SUCCESS) {
+				throw std::runtime_error("Failed to allocate descriptor set");
+			}
+
+			const std::vector<VkDescriptorSetLayout> pipelineSetLayouts = {
+				m_descriptorSetLayouts.compute,
+			};
+			const std::vector<VkPushConstantRange> pipelinePushConstantRanges = {
+				{ VK_SHADER_STAGE_COMPUTE_BIT, 0, sizeof(SpecularFilterPushConstants) },
+			};
+
+			VkPipelineLayoutCreateInfo pipelineLayoutCI{};
+			pipelineLayoutCI.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
+			pipelineLayoutCI.setLayoutCount = 1;
+			pipelineLayoutCI.pSetLayouts = &m_descriptorSetLayouts.compute;
+			if (vkCreatePipelineLayout(m_device, &pipelineLayoutCI, nullptr, &m_pipeline_layouts.compute) != VK_SUCCESS) {
+				throw std::runtime_error("failed to create pipeline layout!");
+			}
+		}
+
 	}
 
 	void GpuAdapterVulkan::AllocatePools() {

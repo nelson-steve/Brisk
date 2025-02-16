@@ -222,6 +222,25 @@ namespace Brisk
 			}
 		}
 
+		auto compute_shader_code = Utils::File::ReadFile("../shaders/pbr_ibl/equirect_to_cube_cs.spv");
+		VkShaderModule compute_shader_module = vkUtilities::CreateShaderModule(compute_shader_code, m_device);
+
+		const VkPipelineShaderStageCreateInfo shaderStage = {
+			VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO, nullptr, 0, VK_SHADER_STAGE_COMPUTE_BIT, compute_shader_module, "main", nullptr,
+		};
+
+		VkComputePipelineCreateInfo compute_create_Info = { VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO };
+		compute_create_Info.stage = shaderStage;
+		compute_create_Info.layout = m_pipeline_layouts.compute;
+		compute_create_Info.pNext = nullptr;
+		compute_create_Info.basePipelineHandle = VK_NULL_HANDLE;
+
+		if (vkCreateComputePipelines(m_device, VK_NULL_HANDLE, 1, &compute_create_Info, nullptr, &m_pipelines.compute) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create compute pipeline");
+		}
+
+		vkDestroyShaderModule(m_device, compute_shader_module, nullptr);
+
 	}
 
 	void GpuAdapterVulkan::AllocatePools() {

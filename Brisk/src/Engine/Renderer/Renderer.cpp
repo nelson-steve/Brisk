@@ -64,7 +64,7 @@ namespace Brisk
         pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 
         pipelineSpecs.pDescriptorLayouts["material"] = materialLayout;
-        //pipelineSpecs.pDescriptorLayouts["pbr"] = pbrLayout;
+        pipelineSpecs.pDescriptorLayouts["pbr"] = pbrLayout;
 
         pipelineSpecs.pShaderModules.push_back(vertexShaderModule);
         pipelineSpecs.pShaderModules.push_back(fragmentShaderModule);
@@ -209,7 +209,6 @@ namespace Brisk
                 //pushConstantsData.camPos = Engine::s_Application->GetCamera()->GetPosition();
 
                 pipeline->BindPushConstant(cmd, sizeof(PushConstants), &pushConstantsData);
-
 
                 RenderCommand::DrawIndexed(cmd, subMesh.index_count, 1, subMesh.first_index, 0, 0);
             }

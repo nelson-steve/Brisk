@@ -58,6 +58,7 @@ namespace Brisk
         enum ShaderStage {
             VERTEX,
             GEOMETRY,
+            COMPUTE,
             FRAGMENT,
         };
 

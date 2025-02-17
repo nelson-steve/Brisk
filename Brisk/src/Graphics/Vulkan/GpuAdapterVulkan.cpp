@@ -99,7 +99,19 @@ namespace Brisk
 		AllocatePools();
 
 		/////
+		/*
+			IBL maker
 
+			created cubemap
+			takes equirectangular hdr image path
+			turns equirectangular to cubemap 
+
+			copy cubemap to a main texture
+
+			create irradiance and perfiltered and 
+
+			create brdf integration map		
+		*/
 		uint32_t width = offscreen_size;
 		uint32_t height = offscreen_size;
 		VkFormat format = VK_FORMAT_R32G32B32A32_SFLOAT;
@@ -240,7 +252,6 @@ namespace Brisk
 		}
 
 		vkDestroyShaderModule(m_device, compute_shader_module, nullptr);
-
 	}
 
 	void GpuAdapterVulkan::AllocatePools() {

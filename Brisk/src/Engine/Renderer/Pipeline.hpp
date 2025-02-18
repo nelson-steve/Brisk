@@ -62,7 +62,7 @@ namespace Brisk
             FRAGMENT,
         };
 
-        struct PipelineSpecs {
+        struct GraphicsPipelineSpecs {
             VertexDataLayout pLayout;
             bool pDepthClampEnable;
             bool pRasterizationDiscardEnable;
@@ -80,10 +80,14 @@ namespace Brisk
             std::vector<std::shared_ptr<ShaderModule>> pShaderModules;
             std::unordered_map<std::string, std::shared_ptr<DescriptorLayout>> pDescriptorLayouts;
         };
+
+        struct ComputePipelineSpecs {
+
+        };
     public:
         virtual ~Pipeline() = default;
 
-        virtual void Init(const PipelineSpecs& specs) = 0;
+        virtual void InitGraphicsPipeline(const PipelineSpecs& specs) = 0;
 
         virtual void Bind(std::shared_ptr<CommandBuffer> cmd) = 0;
 

@@ -15,21 +15,13 @@ namespace Brisk
         descriptorLayout->AddBindingLayout(2, mapLevel - 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_IMAGE, { GPUResource::ShaderStageAccess::SHADER_STAGE_COMPUTE_BIT });
         descriptorLayout->Init();
 
-		std::shared_ptr<ShaderModule> vertexShaderModule = ShaderModule::Create();
-		vertexShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/EquirectangularToCubemap.spv", Pipeline::ShaderStage::COMPUTE));
+		std::shared_ptr<ShaderModule> computeShaderModule = ShaderModule::Create();
+        computeShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/EquirectangularToCubemap.spv", Pipeline::ShaderStage::COMPUTE));
 
         Pipeline::PipelineSpecs pipelineSpecs{};
 		pipelineSpecs.pDescriptorLayouts["textures"] = descriptorLayout;
 
-        pipelineSpecs.pLayout = descriptorLayout;
-        pipelineSpecs.pRenderPass = RenderPass::Create();
-        pipelineSpecs.pRenderPass->Init(renderPassSpecs);
-
-        pipelineSpecs.pDescriptorLayouts["material"] = materialLayout;
-        pipelineSpecs.pDescriptorLayouts["pbr"] = pbrLayout;
-
-        pipelineSpecs.pShaderModules.push_back(vertexShaderModule);
-        pipelineSpecs.pShaderModules.push_back(fragmentShaderModule);
+        pipelineSpecs.pShaderModules.push_back(computeShaderModule);
 
         pipelineSpecs.pDepthClampEnable = false;
         pipelineSpecs.pRasterizationDiscardEnable = false;

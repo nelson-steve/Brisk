@@ -83,7 +83,7 @@ namespace Brisk
         pipelineSpecs.pStencilTestEnable = false;
 
         pipeline = Pipeline::Create();
-        pipeline->Init(pipelineSpecs);
+        pipeline->InitGraphicsPipeline(pipelineSpecs);
 
         cmd = CommandBuffer::Create();
 

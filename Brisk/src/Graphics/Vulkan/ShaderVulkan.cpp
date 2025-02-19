@@ -13,8 +13,8 @@ namespace Brisk
 		VkDescriptorSetLayout layout{};
 		VkDescriptorSetAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-		if (pipeline->m_Specs.pDescriptorLayouts.find(layoutName) != pipeline->m_Specs.pDescriptorLayouts.end()) {
-			for (const auto& pair : pipeline->m_Specs.pDescriptorLayouts) {
+		if (pipeline->m_GraphicsSpecs.pDescriptorLayouts.find(layoutName) != pipeline->m_GraphicsSpecs.pDescriptorLayouts.end()) {
+			for (const auto& pair : pipeline->m_GraphicsSpecs.pDescriptorLayouts) {
 				layout = std::static_pointer_cast<DescriptorLayoutVulkan>(pair.second)->GetLayout();
 				break;
 			}

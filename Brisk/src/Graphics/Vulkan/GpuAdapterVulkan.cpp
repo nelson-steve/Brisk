@@ -130,22 +130,22 @@ namespace Brisk
 		imageCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 		imageCreateInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 		imageCreateInfo.flags = VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT;
-		if (vkCreateImage(m_Device, &imageCreateInfo, nullptr, &m_cubemap.image) != VK_SUCCESS) {
-			assert(false);
-		}
+		//if (vkCreateImage(m_Device, &imageCreateInfo, nullptr, &m_cubemap.image) != VK_SUCCESS) {
+		//	assert(false);
+		//}
 
 		VkMemoryRequirements memReqs{};
-		vkGetImageMemoryRequirements(m_Device, m_cubemap.image, &memReqs);
+		//vkGetImageMemoryRequirements(m_Device, m_cubemap.image, &memReqs);
 		VkMemoryAllocateInfo memAlloc = { VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO };
 		memAlloc.allocationSize = memReqs.size;
-		memAlloc.memoryTypeIndex = vkUtilities::FindMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_PhysicalDevice);
+		//memAlloc.memoryTypeIndex = vkUtilities::FindMemoryType(memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT, m_PhysicalDevice);
 
-		if (vkAllocateMemory(m_Device, &memAlloc, nullptr, &m_cubemap.memory) != VK_SUCCESS) {
-			assert(false);
-		}
-		if (vkBindImageMemory(m_Device, m_cubemap.image, m_cubemap.memory, 0) != VK_SUCCESS) {
-			assert(false);
-		}
+		//if (vkAllocateMemory(m_Device, &memAlloc, nullptr, &m_cubemap.memory) != VK_SUCCESS) {
+		//	assert(false);
+		//}
+		//if (vkBindImageMemory(m_Device, m_cubemap.image, m_cubemap.memory, 0) != VK_SUCCESS) {
+		//	assert(false);
+		//}
 
 		m_cubemap.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 

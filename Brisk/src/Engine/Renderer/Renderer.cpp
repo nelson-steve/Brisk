@@ -41,7 +41,7 @@ namespace Brisk
         std::shared_ptr<ShaderModule> fragmentShaderModule = ShaderModule::Create();
         fragmentShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
 
-        Pipeline::PipelineSpecs pipelineSpecs{};
+        Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
         RenderPass::RenderPassSpecs renderPassSpecs;
         renderPassSpecs.pAttachments =
             {

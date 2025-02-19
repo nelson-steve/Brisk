@@ -11,8 +11,8 @@
 
 namespace Brisk
 {
-    void PipelineVulkan::Init(const Pipeline::PipelineSpecs& specs) {
-        m_Specs = specs;
+    void PipelineVulkan::Init(const Pipeline::GraphicsPipelineSpecs& specs) {
+        m_GraphicsSpecs = specs;
         //std::vector<VkDescriptorSetLayout> descriptorLayouts;
 
         //for (const auto& pair : specs.pDescriptorLayouts) {

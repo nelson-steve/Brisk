@@ -87,7 +87,8 @@ namespace Brisk
     public:
         virtual ~Pipeline() = default;
 
-        virtual void Init() = 0;
+        virtual void Init(const GraphicsPipelineSpecs& specs) = 0;
+        virtual void Init(const ComputePipelineSpecs& specs) = 0;
 
         virtual void Bind(std::shared_ptr<CommandBuffer> cmd) = 0;
 
@@ -97,6 +98,8 @@ namespace Brisk
 
         static std::shared_ptr<Pipeline> Create();
 
+
+        // TODO: Shouldn't be public
         GraphicsPipelineSpecs m_GraphicsSpecs;
         ComputePipelineSpecs m_ComputeSpecs;
     };

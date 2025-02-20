@@ -83,7 +83,7 @@ namespace Brisk
         pipelineSpecs.pStencilTestEnable = false;
 
         pipeline = Pipeline::Create();
-        pipeline->InitGraphicsPipeline(pipelineSpecs);
+        pipeline->Init(pipelineSpecs);
 
         cmd = CommandBuffer::Create();
 
@@ -127,7 +127,7 @@ namespace Brisk
         m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &imageIndex);
         cmd->Reset();
         cmd->Bind();
-        pipeline->m_Specs.pRenderPass->Begin(cmd, imageIndex);
+        pipeline->m_GraphicsSpecs.pRenderPass->Begin(cmd, imageIndex);
         pipeline->Bind(cmd);
 
         RenderCommand::SetViewport(cmd, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
@@ -171,7 +171,7 @@ namespace Brisk
         //    }
         //}
 
-        pipeline->m_Specs.pRenderPass->End(cmd);
+        pipeline->m_GraphicsSpecs.pRenderPass->End(cmd);
         cmd->UnBind();
 
         Queue::SubmitInfo submitInfo{};

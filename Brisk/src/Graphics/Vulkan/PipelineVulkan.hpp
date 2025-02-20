@@ -20,8 +20,8 @@ namespace Brisk
 
 	class PipelineVulkan : public Pipeline {
 	public:
-		virtual void Init(const GraphicsPipelineSpecs& specs) = 0;
-		virtual void Init(const ComputePipelineSpecs& specs) = 0;
+		virtual void Init(const GraphicsPipelineSpecs& specs) override;
+		virtual void Init(const ComputePipelineSpecs& specs) override;
 
 		virtual void Bind(std::shared_ptr<CommandBuffer> cmd) override;
 

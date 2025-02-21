@@ -139,7 +139,7 @@ namespace Brisk
             }
 
             VkPushConstantRange pushConstantRange = {};
-            pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;  // Assuming you'll use this in the fragment shader
+            pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
             pushConstantRange.offset = 0;  // Starting offset in push constant space
             pushConstantRange.size = sizeof(PushConstants);  // Size of the push constant data
 
@@ -270,6 +270,36 @@ namespace Brisk
                 throw std::runtime_error("failed to create graphics pipeline!");
             }
         }
+    }
+
+    void PipelineVulkan::Init(const ComputePipelineSpecs& specs) {
+        VkPipelineLayoutCreateInfo computePipelineLayoutCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
+        computePipelineLayoutCreateInfo.pNext = nullptr;
+        //computePipelineLayoutCreateInfo.flags;
+        computePipelineLayoutCreateInfo.setLayoutCount = 1;
+        computePipelineLayoutCreateInfo.pSetLayouts;
+        //computePipelineLayoutCreateInfo.pushConstantRangeCount;
+        //computePipelineLayoutCreateInfo.pPushConstantRanges;
+
+        if (vkCreatePipelineLayout(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &computePipelineLayoutCreateInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create pipeline layout!");
+        }
+
+        std::vector<VkDescriptorSetLayout> descriptorLayouts;
+        for (const auto& pair : specs.pDescriptorLayouts) {
+            descriptorLayouts.push_back(std::static_pointer_cast<DescriptorLayoutVulkan>(pair.second)->GetLayout());
+            descriptorLayouts.push_back(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout);
+        }
+
+        VkPipelineShaderStageCreateInfo shaderStage{};
+        shaderStage = std::static_pointer_cast<ShaderModuleVulkan>(specs.pShaderModule)->GetShaderStageInfo();
+        VkComputePipelineCreateInfo pipelineInfo{ VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO };
+        pipelineInfo.pNext = nullptr;
+        //pipelineInfo.flags;
+        pipelineInfo.stage = shaderStage;
+        pipelineInfo.layout = m_PipelineLayout;
+        pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
+        //pipelineInfo.basePipelineIndex;
     }
 
     void PipelineVulkan::Bind(std::shared_ptr<CommandBuffer> cmd) {

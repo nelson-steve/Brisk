@@ -18,26 +18,14 @@ namespace Brisk
 		std::shared_ptr<ShaderModule> computeShaderModule = ShaderModule::Create();
         computeShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/EquirectangularToCubemap.spv", Pipeline::ShaderStage::COMPUTE));
 
-        Pipeline::PipelineSpecs pipelineSpecs{};
+        Pipeline::ComputePipelineSpecs pipelineSpecs{};
 		pipelineSpecs.pDescriptorLayouts["textures"] = descriptorLayout;
-
-        pipelineSpecs.pShaderModules.push_back(computeShaderModule);
-
-        pipelineSpecs.pDepthClampEnable = false;
-        pipelineSpecs.pRasterizationDiscardEnable = false;
-        pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
-        pipelineSpecs.pLineWidth = 1.0f;
-        pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
-        pipelineSpecs.pFrontFace = Pipeline::FrontFace::COUTNER_CLOCKWISE;
-        pipelineSpecs.pDepthBiasEnable = false;
-        pipelineSpecs.pDepthTestEnable = true;
-        pipelineSpecs.pDepthWriteEnable = true;
-        pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS;
-        pipelineSpecs.pDepthBoundsTestEnable = false;
-        pipelineSpecs.pStencilTestEnable = false;
+        pipelineSpecs.pShaderModule = computeShaderModule;
 
         m_ComputePipeline = Pipeline::Create();
         m_ComputePipeline->Init(pipelineSpecs);
+
+
 	}
 
 	void IBLTextureMaker::EquirectangularMapPath(std::string path) {

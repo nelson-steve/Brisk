@@ -25,7 +25,11 @@ namespace Brisk
         m_ComputePipeline = Pipeline::Create();
         m_ComputePipeline->Init(pipelineSpecs);
 
+        Texture InputTexture;
+        Texture OutputTexture;
 
+        m_ComputePipeline->Bind(InputTexture);
+        m_ComputePipeline->Bind(OutputTexture);
 	}
 
 	void IBLTextureMaker::EquirectangularMapPath(std::string path) {

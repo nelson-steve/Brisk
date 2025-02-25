@@ -1,15 +1,20 @@
 #pragma once
 
 #include "IBLTextureMaker.hpp"
-#include <Engine/Model.hpp>
+#include "Engine/Model.hpp"
 
 namespace Brisk
 {
 	void IBLTextureMaker::Init() {
 		m_ComputePipeline = std::make_shared<Pipeline>();
 
+        Texture::TextureSpecification cubemapSpecs;
+        cubemapSpecs.pWidth = 1024;
+        cubemapSpecs.pHeight = 1024;
+        cubemapSpecs.pDepth = 1;
+        cubemapSpecs.pArrayLayers = 6;
         std::shared_ptr<Texture> cubemap;
-        cubemap->Init();
+        cubemap->Init(cubemapSpecs);
 
         int mapLevel = 1;
 		std::shared_ptr<DescriptorLayout> descriptorLayout = DescriptorLayout::Create();

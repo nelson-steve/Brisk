@@ -19,18 +19,16 @@ namespace Brisk
 		VkSampler GetSampler() { return m_Sampler; }
 		VkImage Get() const { return m_Image; }
 
-		virtual uint32_t GetWidth() const override { return m_Width; }
-		virtual uint32_t GetHeight() const override { return m_Height; }
 		virtual void Resize() override {}
 
 		VkDescriptorImageInfo GetDescriptor() const { return m_Descriptor; }
 		const VkDescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
 
 		// virtual void Init(int width, int height) override;
-		virtual void Init() override;
-		virtual void Init(int width, int height, Core::Format format, Type type) override;
-		virtual void Init(tinygltf::Image image, TextureSampler sampler) override;
+		virtual void Init(const TextureSpecification& specs) override;
 		virtual void Init(const std::string &path) override;
+		//virtual void Init(int width, int height, Core::Format format, Type type) override;
+		//virtual void Init(tinygltf::Image image, TextureSampler sampler) override;
 
 		// void Create();
 		////void Create(int width, int height);

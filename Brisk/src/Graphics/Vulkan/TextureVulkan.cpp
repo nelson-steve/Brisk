@@ -4,85 +4,85 @@
 
 namespace Brisk 
 {
-    void TextureVulkan::Init() {
-        assert(m_Width != 0 && m_Height != 0);
-        VkImageCreateInfo imageinfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
-        imageinfo.pNext = nullptr;
-        imageinfo.flags = 0;
-        imageinfo.imageType = VK_IMAGE_TYPE_2D;
-        imageinfo.format = VK_FORMAT_R8G8B8A8_UNORM;
-        imageinfo.extent.width = m_Width;
-        imageinfo.extent.height = m_Height;
-        imageinfo.extent.depth = 1;
-        imageinfo.mipLevels = 1;
-        imageinfo.arrayLayers = 1;
-        imageinfo.samples = VK_SAMPLE_COUNT_1_BIT;
-        imageinfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-        imageinfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
-        imageinfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        imageinfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        if (vkCreateImage(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &imageinfo, nullptr, &m_Image) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create image");
-        }
+    //void TextureVulkan::Init() {
+    //    assert(m_Width != 0 && m_Height != 0);
+    //    VkImageCreateInfo imageinfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
+    //    imageinfo.pNext = nullptr;
+    //    imageinfo.flags = 0;
+    //    imageinfo.imageType = VK_IMAGE_TYPE_2D;
+    //    imageinfo.format = VK_FORMAT_R8G8B8A8_UNORM;
+    //    imageinfo.extent.width = m_Width;
+    //    imageinfo.extent.height = m_Height;
+    //    imageinfo.extent.depth = 1;
+    //    imageinfo.mipLevels = 1;
+    //    imageinfo.arrayLayers = 1;
+    //    imageinfo.samples = VK_SAMPLE_COUNT_1_BIT;
+    //    imageinfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+    //    imageinfo.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
+    //    imageinfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+    //    imageinfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+    //    if (vkCreateImage(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &imageinfo, nullptr, &m_Image) != VK_SUCCESS) {
+    //        throw std::runtime_error("Failed to create image");
+    //    }
 
-        VkMemoryRequirements memRequirements;
-        vkGetImageMemoryRequirements(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Image, &memRequirements);
+    //    VkMemoryRequirements memRequirements;
+    //    vkGetImageMemoryRequirements(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Image, &memRequirements);
 
-        VkMemoryAllocateInfo allocInfo{};
-        allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-        allocInfo.allocationSize = memRequirements.size;
-        allocInfo.memoryTypeIndex = UtilitiesVulkan::FindMemoryType(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+    //    VkMemoryAllocateInfo allocInfo{};
+    //    allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+    //    allocInfo.allocationSize = memRequirements.size;
+    //    allocInfo.memoryTypeIndex = UtilitiesVulkan::FindMemoryType(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
 
-        if (vkAllocateMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfo, nullptr, &m_Memory) != VK_SUCCESS) {
-            throw std::runtime_error("failed to allocate image memory!");
-        }
+    //    if (vkAllocateMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfo, nullptr, &m_Memory) != VK_SUCCESS) {
+    //        throw std::runtime_error("failed to allocate image memory!");
+    //    }
 
-        vkBindImageMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Image, m_Memory, 0);
+    //    vkBindImageMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Image, m_Memory, 0);
 
-        // Image view
-        VkImageViewCreateInfo imageView{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
-        imageView.pNext = nullptr;
-        imageView.flags = 0;
-        imageView.image = m_Image;
-        imageView.viewType = VK_IMAGE_VIEW_TYPE_2D;
-        imageView.format = VK_FORMAT_R8G8B8A8_UNORM;
-        imageView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        imageView.subresourceRange.baseMipLevel = 0;
-        imageView.subresourceRange.levelCount = 1;
-        imageView.subresourceRange.baseArrayLayer = 0;
-        imageView.subresourceRange.layerCount = 1;
+    //    // Image view
+    //    VkImageViewCreateInfo imageView{ VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO };
+    //    imageView.pNext = nullptr;
+    //    imageView.flags = 0;
+    //    imageView.image = m_Image;
+    //    imageView.viewType = VK_IMAGE_VIEW_TYPE_2D;
+    //    imageView.format = VK_FORMAT_R8G8B8A8_UNORM;
+    //    imageView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+    //    imageView.subresourceRange.baseMipLevel = 0;
+    //    imageView.subresourceRange.levelCount = 1;
+    //    imageView.subresourceRange.baseArrayLayer = 0;
+    //    imageView.subresourceRange.layerCount = 1;
 
-        if (vkCreateImageView(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &imageView, nullptr, &m_ImageView) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create descriptor pool!");
-        }
+    //    if (vkCreateImageView(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &imageView, nullptr, &m_ImageView) != VK_SUCCESS) {
+    //        throw std::runtime_error("failed to create descriptor pool!");
+    //    }
 
-        VkSamplerCreateInfo samplerInfo{};
-        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerInfo.magFilter = VK_FILTER_LINEAR;
-        samplerInfo.minFilter = VK_FILTER_LINEAR;
-        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT; // outside image bounds just use border color
-        samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-        samplerInfo.minLod = -1000;
-        samplerInfo.maxLod = 1000;
-        samplerInfo.maxAnisotropy = 1.0f;
-        if (vkCreateSampler(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &samplerInfo, nullptr, &m_Sampler) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create descriptor pool!");
-        }
-    }
+    //    VkSamplerCreateInfo samplerInfo{};
+    //    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+    //    samplerInfo.magFilter = VK_FILTER_LINEAR;
+    //    samplerInfo.minFilter = VK_FILTER_LINEAR;
+    //    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+    //    samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT; // outside image bounds just use border color
+    //    samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    //    samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
+    //    samplerInfo.minLod = -1000;
+    //    samplerInfo.maxLod = 1000;
+    //    samplerInfo.maxAnisotropy = 1.0f;
+    //    if (vkCreateSampler(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &samplerInfo, nullptr, &m_Sampler) != VK_SUCCESS) {
+    //        throw std::runtime_error("failed to create descriptor pool!");
+    //    }
+    //}
 
-    void TextureVulkan::Init(int width, int height, Core::Format format, Type type) {
+    void TextureVulkan::Init(const TextureSpecification& specs) {
         VkImageCreateInfo imageinfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
         imageinfo.pNext = nullptr;
         imageinfo.flags = 0;
         imageinfo.imageType = VK_IMAGE_TYPE_2D;
         imageinfo.format = VK_FORMAT_B8G8R8A8_UNORM;
-        imageinfo.extent.width = width;
-        imageinfo.extent.height = height;
-        imageinfo.extent.depth = 1;
-        imageinfo.mipLevels = 1;
-        imageinfo.arrayLayers = 1;
+        imageinfo.extent.width = specs.pWidth;
+        imageinfo.extent.height = specs.pHeight;
+        imageinfo.extent.depth = specs.pDepth;
+        imageinfo.mipLevels = specs.pMipLevels;
+        imageinfo.arrayLayers = specs.pArrayLayers;
         imageinfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageinfo.tiling = VK_IMAGE_TILING_OPTIMAL;
         imageinfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;

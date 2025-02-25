@@ -9,38 +9,54 @@
 
 namespace Brisk 
 {
-	enum Filter {
-		FILTER_NEAREST = 0,
-		FILTER_LINEAR = 1,
-		FILTER_CUBIC_EXT = 1000015000,
-	};
-
-	enum SamplerAddressMode {
-		SAMPLER_ADDRESS_MODE_REPEAT = 0,
-		SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT = 1,
-		SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE = 2,
-		SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER = 3,
-		SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE = 4,
-	};
-
-	struct TextureSampler {
-		Filter mag_filter;
-		Filter min_filter;
-		SamplerAddressMode address_modeU;
-		SamplerAddressMode address_modeV;
-		SamplerAddressMode address_modeW;
-	};
-
 	class Texture {
 	public:
-		enum Type {
-			TEXTURE2D, TEXTURE3D, TEXTURE_ARRAY, CUBEMAP,
+		enum Filter {
+			FILTER_NEAREST = 0,
+			FILTER_LINEAR = 1,
+			FILTER_CUBIC_EXT = 1000015000,
+		};
+
+		enum SamplerAddressMode {
+			SAMPLER_ADDRESS_MODE_REPEAT = 0,
+			SAMPLER_ADDRESS_MODE_MIRRORED_REPEAT = 1,
+			SAMPLER_ADDRESS_MODE_CLAMP_TO_EDGE = 2,
+			SAMPLER_ADDRESS_MODE_CLAMP_TO_BORDER = 3,
+			SAMPLER_ADDRESS_MODE_MIRROR_CLAMP_TO_EDGE = 4,
+		};
+
+		struct TextureSampler {
+			Filter mag_filter;
+			Filter min_filter;
+			SamplerAddressMode address_modeU;
+			SamplerAddressMode address_modeV;
+			SamplerAddressMode address_modeW;
+		};
+		enum TextureType {
+			TEXTURE2D, TEXTURE3D, TEXTURE_ARRAY
+		};
+		
+		enum Sampling {
+			SAMPLE_COUNT_1_BIT,
+			SAMPLE_COUNT_2_BIT,
+			SAMPLE_COUNT_4_BIT,
+			SAMPLE_COUNT_8_BIT,
+			SAMPLE_COUNT_16_BIT,
+			SAMPLE_COUNT_32_BIT,
+			SAMPLE_COUNT_64_BIT
+		};
+		struct TextureSpecification {
+			TextureType pType;
+			TextureSampler pSampler{};
+			uint32_t pWidth = 1, pHeight = 1, pDepth = 1;
+			uint32_t pMipLevels = 1;
+			uint32_t pArrayLayers = 1;
 		};
 	public:
-		virtual void Init() = 0;
-		virtual void Init(int width, int height, Core::Format format = Core::Format::FORMAT_R8G8B8A8_SRGB, Type type = Type::TEXTURE2D) = 0;
-		virtual void Init(tinygltf::Image image, TextureSampler sampler) = 0;
+		virtual void Init(const TextureSpecification& specs) = 0;
 		virtual void Init(const std::string& path) = 0;
+		//virtual void Init(int width, int height, Core::Format format = Core::Format::FORMAT_R8G8B8A8_SRGB, Type type = Type::TEXTURE2D) = 0;
+		//virtual void Init(tinygltf::Image image, TextureSampler sampler) = 0;
 
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
@@ -87,8 +103,12 @@ namespace Brisk
 
 		static std::shared_ptr<Texture> Create();
 	protected:
-		int m_Width, m_Height;
+		uint32_t GetWidth() const { return m_Width; }
+		uint32_t GetHeight() const { return m_Height; }
+	protected:
+		// Metadata
+		uint32_t m_Width, m_Height;
 		Core::Format m_Format;
-		Type m_TextureType;
+		TextureType m_TextureType;
 	};
 }

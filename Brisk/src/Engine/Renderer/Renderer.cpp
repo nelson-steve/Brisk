@@ -10,7 +10,6 @@
 #include "Graphics/Vulkan/PipelineVulkan.hpp"
 #include "Engine/Component.hpp"
 #include "Engine/SceneManager.hpp"
-#include "Engine/Renderer/Shader.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
 //-----------------------------------------------
 

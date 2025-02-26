@@ -75,8 +75,8 @@ namespace Brisk
     void TextureVulkan::Init(const TextureSpecification& specs) {
         VkImageCreateInfo imageinfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
         imageinfo.pNext = nullptr;
-        imageinfo.flags = 0;
-        imageinfo.imageType = VK_IMAGE_TYPE_2D;
+        imageinfo.flags = specs.pType == Texture::TextureType::CUBEMAP ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0;
+        imageinfo.imageType = specs.pType == Texture::TextureType::TEXTURE3D ? VK_IMAGE_TYPE_3D : VK_IMAGE_TYPE_2D;
         imageinfo.format = VK_FORMAT_B8G8R8A8_UNORM;
         imageinfo.extent.width = specs.pWidth;
         imageinfo.extent.height = specs.pHeight;
@@ -111,13 +111,13 @@ namespace Brisk
         imageView.pNext = nullptr;
         imageView.flags = 0;
         imageView.image = m_Image;
-        imageView.viewType = VK_IMAGE_VIEW_TYPE_2D;
+        imageView.viewType = specs.pType == Texture::TextureType::TEXTURE3D ? VK_IMAGE_VIEW_TYPE_3D : VK_IMAGE_VIEW_TYPE_3D;
         imageView.format = VK_FORMAT_B8G8R8A8_UNORM;
         imageView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         imageView.subresourceRange.baseMipLevel = 0;
         imageView.subresourceRange.levelCount = 1;
         imageView.subresourceRange.baseArrayLayer = 0;
-        imageView.subresourceRange.layerCount = 1;
+        imageView.subresourceRange.layerCount = specs.pArrayLayers;
 
         if (vkCreateImageView(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &imageView, nullptr, &m_ImageView) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor pool!");

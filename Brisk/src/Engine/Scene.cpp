@@ -364,13 +364,13 @@ namespace Brisk
 		for (tinygltf::Texture& tex : model.textures) {
 			tinygltf::Image image = model.images[tex.source];
 
-			TextureSampler texture_sampler{};
+			Texture::TextureSampler texture_sampler{};
 			// No sampler specified, use a default one
-			texture_sampler.min_filter = FILTER_LINEAR;
-			texture_sampler.mag_filter = FILTER_LINEAR;
-			texture_sampler.address_modeU = SAMPLER_ADDRESS_MODE_REPEAT;
-			texture_sampler.address_modeV = SAMPLER_ADDRESS_MODE_REPEAT;
-			texture_sampler.address_modeW = SAMPLER_ADDRESS_MODE_REPEAT;
+			texture_sampler.min_filter = Texture::FILTER_LINEAR;
+			texture_sampler.mag_filter = Texture::FILTER_LINEAR;
+			texture_sampler.address_modeU = Texture::SAMPLER_ADDRESS_MODE_REPEAT;
+			texture_sampler.address_modeV = Texture::SAMPLER_ADDRESS_MODE_REPEAT;
+			texture_sampler.address_modeW = Texture::SAMPLER_ADDRESS_MODE_REPEAT;
 
 			std::shared_ptr<Texture> texture;
 			texture = Texture::Create();

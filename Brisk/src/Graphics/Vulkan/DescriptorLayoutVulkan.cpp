@@ -15,7 +15,7 @@ namespace Brisk
             layoutBinding.binding = m_Layouts[i].p_Binding;
             layoutBinding.descriptorCount = m_Layouts[i].p_DescriptorCount;
             layoutBinding.descriptorType = UtilitiesVulkan::ResourceToDescriptorType(m_Layouts[i].p_Type);
-            layoutBinding.pImmutableSamplers = nullptr;
+            layoutBinding.pImmutableSamplers = nullptr; // TODO : Add ability to use this
             VkShaderStageFlags stageFlags{};
             for (int j = 0; j < m_Layouts[i].pStageAccessFlags.size(); j++) {
                 stageFlags |= UtilitiesVulkan::ShaderStageToVkType(m_Layouts[i].pStageAccessFlags[j]);

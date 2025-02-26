@@ -403,7 +403,7 @@
 //        m_ImGuiCommandBuffer = new CommandBufferVulkan();
 //        m_ImGuiCommandBuffer->Allocate(m_CommandPool);
 //
-//        std::vector<VkDescriptorPoolSize> poolSizes{
+//        std::vector<VkDescriptorPoolSize> poolSizes {
 //            { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 10 },
 //            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER, 1 },
 //        };

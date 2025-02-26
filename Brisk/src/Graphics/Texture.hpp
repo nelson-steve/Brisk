@@ -33,7 +33,7 @@ namespace Brisk
 			SamplerAddressMode address_modeW;
 		};
 		enum TextureType {
-			TEXTURE2D, TEXTURE3D, TEXTURE_ARRAY
+			TEXTURE2D, TEXTURE3D, TEXTURE_ARRAY, CUBEMAP
 		};
 		
 		enum Sampling {
@@ -55,8 +55,8 @@ namespace Brisk
 	public:
 		virtual void Init(const TextureSpecification& specs) = 0;
 		virtual void Init(const std::string& path) = 0;
+		virtual void Init(tinygltf::Image image, TextureSampler sampler) = 0;
 		//virtual void Init(int width, int height, Core::Format format = Core::Format::FORMAT_R8G8B8A8_SRGB, Type type = Type::TEXTURE2D) = 0;
-		//virtual void Init(tinygltf::Image image, TextureSampler sampler) = 0;
 
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;

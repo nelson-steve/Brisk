@@ -15,9 +15,9 @@ namespace Brisk
         m_GraphicsSpecs = specs;
         //std::vector<VkDescriptorSetLayout> descriptorLayouts;
 
-        //for (const auto& pair : specs.pDescriptorLayouts) {
-        //    descriptorLayouts.push_back(std::static_pointer_cast<DescriptorLayoutVulkan>(pair.second)->GetLayout());
-        //}
+        for (const auto& layout : specs.pDescriptorLayouts) {
+            layout->Init();
+        }
 
         //VkPipelineVertexInputStateCreateInfo m_VertexInputInfo{};
         //m_VertexInputInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
@@ -133,8 +133,8 @@ namespace Brisk
         {
             //
             std::vector<VkDescriptorSetLayout> descriptorLayouts;
-            for (const auto& pair : specs.pDescriptorLayouts) {
-                descriptorLayouts.push_back(std::static_pointer_cast<DescriptorLayoutVulkan>(pair.second)->GetLayout());
+            for (const auto& layout : specs.pDescriptorLayouts) {
+                descriptorLayouts.push_back(std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout());
                 descriptorLayouts.push_back(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout);
             }
 

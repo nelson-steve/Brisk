@@ -14,7 +14,7 @@ namespace Brisk
 	class ShaderVulkan : public Shader
 	{
 	public:
-		virtual void Init(std::shared_ptr<Pipeline> pipeline, std::string layoutName) override;
+		virtual void Init(std::shared_ptr<Pipeline> pipeline) override;
 
 		virtual void SetPipeline(std::shared_ptr<Pipeline> pipeline) override;
 		virtual void SetAlbedoTexture(std::shared_ptr<Texture> texture) override;
@@ -35,7 +35,7 @@ namespace Brisk
 		//const VkPipelineShaderStageCreateInfo GetShaderStage() const { return m_ShaderStage; }
 
 	private:
-		VkDescriptorSet m_DescriptorSet;
+		std::vector<VkDescriptorSet> m_DescriptorSets;
 		std::vector<VkWriteDescriptorSet> m_DescriptorWrites;
 	};
 }

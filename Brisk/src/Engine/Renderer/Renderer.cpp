@@ -22,21 +22,8 @@ namespace Brisk
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
-        std::shared_ptr<DescriptorLayout> materialLayout = DescriptorLayout::Create();
-        materialLayout->pName = "material";
-        materialLayout->AddBindingLayout(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_VERTEX_BIT });
-        materialLayout->Init();
-
-        std::shared_ptr<DescriptorLayout> pbrLayout = DescriptorLayout::Create();
-        pbrLayout->pName = "pbr";
-        pbrLayout->AddBindingLayout(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }, GPUResource::LOCAL);
-        pbrLayout->AddBindingLayout(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }, GPUResource::LOCAL);
-        pbrLayout->AddBindingLayout(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }, GPUResource::LOCAL);
-        pbrLayout->Init();
-
         std::shared_ptr<ShaderModule> vertexShaderModule = ShaderModule::Create();
         vertexShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
-
         std::shared_ptr<ShaderModule> fragmentShaderModule = ShaderModule::Create();
         fragmentShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
 
@@ -47,7 +34,6 @@ namespace Brisk
                 {0, Core::Format::FORMAT_B8G8R8A8_UNORM, true, RenderPass::AttachmentType::Swapchain},
                 {1, Core::Format::FORMAT_D32_SFLOAT, true, RenderPass::AttachmentType::Depth}
             };
-
         Pipeline::VertexDataLayout vertexLayout;
         vertexLayout.pBinding = 0;
         vertexLayout.pStride = sizeof(MeshData);
@@ -62,8 +48,20 @@ namespace Brisk
         pipelineSpecs.pRenderPass = RenderPass::Create();
         pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 
-        pipelineSpecs.pDescriptorLayouts["material"] = materialLayout;
-        pipelineSpecs.pDescriptorLayouts["pbr"] = pbrLayout;
+        {
+            std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
+            layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_VERTEX_BIT });
+            layout->SetIsGlobal(true);
+            pipelineSpecs.pDescriptorLayouts.push_back(layout);
+        }
+        {
+            std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
+            layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+            layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+            layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+            pipelineSpecs.pDescriptorLayouts.push_back(layout);
+        }
+        // TODO: Add bindless descriptor
 
         pipelineSpecs.pShaderModules.push_back(vertexShaderModule);
         pipelineSpecs.pShaderModules.push_back(fragmentShaderModule);
@@ -113,6 +111,46 @@ namespace Brisk
         std::static_pointer_cast<CommandBufferVulkan>(cmd)->Allocate(m_CommandPool);
     }
 
+    void Renderer::SetupEntity(Entity e) {
+        if (e.HasComponent<MeshComponent>()) {
+            for (auto& subMesh : e.GetComponent<MeshComponent>().subMeshes) {
+                uint32_t index = subMesh.material_index != -1 ? subMesh.material_index : 0;
+                //materials[index]->Bind(cmd, pipeline);
+
+
+
+                PushConstants pushConstantsData = {
+                    SceneManager::pActiveScene->mMaterials[index].baseColorTextureIndex,   // Index for albedo texture 0
+                    SceneManager::pActiveScene->mMaterials[index].metallicRoughnessTextureIndex, // Index for metallic texture1
+                    SceneManager::pActiveScene->mMaterials[index].normalTextureIndex,   // Index for normal texture 4
+                    SceneManager::pActiveScene->mMaterials[index].emissiveTextureIndex,// Index for roughness texture 2
+                    SceneManager::pActiveScene->mMaterials[index].occlusionTextureIndex// Index for emissive texture 3
+                };
+
+                //pushConstantsData.camPos = Engine::s_Application->GetCamera()->GetPosition();
+
+                pipeline->BindPushConstant(cmd, sizeof(PushConstants), &pushConstantsData);
+
+                RenderCommand::DrawIndexed(cmd, subMesh.index_count, 1, subMesh.first_index, 0, 0);
+            }
+        }
+        for (auto& child : e.GetComponent<TransformComponent>().children) {
+            SetupEntity(child);
+        }
+    }
+
+    void Renderer::PreRenderScene() {
+        // Bind unbound resources
+        if (!SceneManager::pActiveScene) return;
+
+        auto parent = SceneManager::pActiveScene->Reg().view<RootComponent>();
+
+        for (auto e : parent) {
+            Entity entity = { e, SceneManager::pActiveScene.get() };
+            SetupEntity(entity);
+        }
+    }
+
     void Renderer::RenderScene(float deltaTime)
     {
         if (!SceneManager::pActiveScene) return;
@@ -147,7 +185,7 @@ namespace Brisk
 
             pipeline->Bind(cmd);
 
-            HandleEntity(entity);
+            RenderEntity(entity);
         }
 
         //std::cout << "loop ends" << std::endl;
@@ -191,7 +229,7 @@ namespace Brisk
         queue->Present(presentInfo);
     }
 
-    void Renderer::HandleEntity(Entity e) {
+    void Renderer::RenderEntity(Entity e) {
         if (e.HasComponent<MeshComponent>()) {
             for (auto& subMesh : e.GetComponent<MeshComponent>().subMeshes) {
                 uint32_t index = subMesh.material_index != -1 ? subMesh.material_index : 0;
@@ -213,7 +251,7 @@ namespace Brisk
             }
         }
         for (auto& child : e.GetComponent<TransformComponent>().children) {
-            HandleEntity(child);
+            RenderEntity(child);
         }
     }
 

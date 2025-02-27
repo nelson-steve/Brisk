@@ -438,10 +438,10 @@ namespace Brisk
 		//entity.AddComponent<MeshComponent>().pModel = model;
 		auto& mat = entity.GetComponent<MaterialComponent>();
 
-		mat.pMaterials.push_back(Shader::Create());
-		mat.pMaterials[0]->Init(Engine::s_Application->GetRenderer()->pipeline, "material");
-		mat.pMaterials[0]->SetMVPBuffer(Engine::s_Application->GetCamera()->mMVPBuffer);
-		mat.pMaterials[0]->UpdateResources();
+		//mat.pMaterials.push_back(Shader::Create());
+		//mat.pMaterials[0]->Init(Engine::s_Application->GetRenderer()->pipeline, "material");
+		//mat.pMaterials[0]->SetMVPBuffer(Engine::s_Application->GetCamera()->mMVPBuffer);
+		//mat.pMaterials[0]->UpdateResources();
 
 		mat.pMaterials[0]->AddTextures(mTextures);
 

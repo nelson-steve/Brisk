@@ -19,9 +19,11 @@ namespace Brisk
 	class Renderer {
 	public:
 		void Init();
+		void PreRenderScene();
 		void RenderScene(float deltaTime);
 		void DrawNode(const std::shared_ptr<Mesh> model, std::vector<std::shared_ptr<Shader>> materials, GLTF_Node* node);
-		void HandleEntity(Entity e);
+		void RenderEntity(Entity e);
+		void SetupEntity(Entity e);
 
 		static std::shared_ptr<Swapchain> GetSwapchain() { return m_Swapchain; }
 

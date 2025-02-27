@@ -11,11 +11,9 @@
 
 namespace Brisk
 {
-	class GPUResource
-	{
+	class GPUResource {
 	public:
-		enum ResourceType
-		{
+		enum ResourceType {
 			DESCRIPTOR_TYPE_SAMPLER = 0,
 			DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER = 1,
 			DESCRIPTOR_TYPE_SAMPLED_IMAGE = 2,
@@ -34,8 +32,7 @@ namespace Brisk
 			DESCRIPTOR_TYPE_BLOCK_MATCH_IMAGE_QCOM = 1000440001,
 			DESCRIPTOR_TYPE_MUTABLE_EXT = 1000351000,
 		};
-		enum ShaderStageAccess 
-		{
+		enum ShaderStageAccess {
 			SHADER_STAGE_VERTEX_BIT,
 			SHADER_STAGE_TESSELLATION_CONTROL_BIT,
 			SHADER_STAGE_TESSELLATION_EVALUATION_BIT,
@@ -55,12 +52,7 @@ namespace Brisk
 			SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI,
 			SHADER_STAGE_CLUSTER_CULLING_BIT_HUAWEI,
 		};
-		enum ResourceState 
-		{
-			GLOBAL, LOCAL
-		};
-		struct ResourceBinding
-		{
+		struct ResourceBinding {
 			uint32_t binding;
 			std::shared_ptr<Texture> texture;
 			std::shared_ptr<Buffer> buffer;
@@ -73,29 +65,23 @@ namespace Brisk
 		std::vector<ResourceBinding> m_Bindings;
 	};
 
-	class DescriptorLayout
-	{
+	class DescriptorLayout {
 	public:
-		struct Layout
-		{
+		struct Layout {
 			uint32_t p_Binding;
 			uint32_t p_DescriptorCount;
 			GPUResource::ResourceType p_Type;
-			GPUResource::ResourceState p_State;
 			std::vector<GPUResource::ShaderStageAccess> pStageAccessFlags;
 		};
-		void AddBindingLayout(uint32_t binding, uint32_t count, GPUResource::ResourceType type, std::vector<GPUResource::ShaderStageAccess> stages, GPUResource::ResourceState state)
-		{
+		void AddBinding(uint32_t binding, uint32_t count, GPUResource::ResourceType type, std::vector<GPUResource::ShaderStageAccess> stages) {
 			Layout layout{};
 			layout.p_Binding = binding;
 			layout.p_DescriptorCount = count;
 			layout.p_Type = type;
-			layout.p_State = state;
 			layout.pStageAccessFlags = stages;
 			m_Layouts.push_back(layout);
 		}
-		void AddBindingLayout(const std::vector<Layout> layouts)
-		{
+		void AddBindings(const std::vector<Layout> layouts) {
 			for (const Layout &l : layouts)
 			{
 				Layout layout{};
@@ -105,12 +91,12 @@ namespace Brisk
 				m_Layouts.push_back(l);
 			}
 		}
+		void SetIsGlobal(bool isGlobal) { m_IsGlobal = isGlobal; }
 	public:
 		virtual void Init() = 0;
 		static std::shared_ptr<DescriptorLayout> Create();
-	public:
-		std::string pName;
 	protected:
+		bool m_IsGlobal;
 		std::vector<Layout> m_Layouts;
 	};
 }

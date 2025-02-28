@@ -38,6 +38,13 @@ namespace Brisk
         GpuResource::Texture
         GpuResource::Texture
 
+        Vulkan shaderSpecification
+        Pack0
+        Texture::Albedo
+        Texture::Roughness
+        Pack1
+        Buffer::UBO
+
         BindSet();
         */
 
@@ -73,7 +80,7 @@ namespace Brisk
         {
             std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
             layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_VERTEX_BIT });
-            layout->SetIsGlobal(true);
+            layout->SetGlobal(true);
             pipelineSpecs.pDescriptorLayouts.push_back(layout);
         }
         {
@@ -81,6 +88,7 @@ namespace Brisk
             layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
             layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
             layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+            layout->SetGlobal(true);
             pipelineSpecs.pDescriptorLayouts.push_back(layout);
         }
         // TODO: Add bindless descriptor

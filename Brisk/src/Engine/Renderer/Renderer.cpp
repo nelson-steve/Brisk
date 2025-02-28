@@ -19,6 +19,28 @@ namespace Brisk
 
     void Renderer::Init()
     {
+
+        /*
+        * 
+
+        GpuResource
+        {
+            bool isBound = false;
+        }
+
+        Shader speicifation
+        set 0 0 TextureSampler
+        set 0 1 TextureSampler
+        set 0 2 TextureSampler
+
+        Material
+        GpuResource::Texture
+        GpuResource::Texture
+        GpuResource::Texture
+
+        BindSet();
+        */
+
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 

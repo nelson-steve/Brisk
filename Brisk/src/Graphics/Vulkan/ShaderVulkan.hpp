@@ -35,7 +35,8 @@ namespace Brisk
 		//const VkPipelineShaderStageCreateInfo GetShaderStage() const { return m_ShaderStage; }
 
 	private:
-		std::vector<VkDescriptorSet> m_DescriptorSets;
+		static std::vector<VkDescriptorSet> m_GlobalDescriptorSets;
+		std::vector<VkDescriptorSet> m_LocalDescriptorSets;
 		std::vector<VkWriteDescriptorSet> m_DescriptorWrites;
 	};
 }

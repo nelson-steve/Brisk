@@ -91,7 +91,8 @@ namespace Brisk
 				m_Layouts.push_back(l);
 			}
 		}
-		void SetIsGlobal(bool isGlobal) { m_IsGlobal = isGlobal; }
+		void SetGlobal(bool isGlobal) { m_IsGlobal = isGlobal; }
+		bool IsGlobal() const { return m_IsGlobal; }
 	public:
 		virtual void Init() = 0;
 		static std::shared_ptr<DescriptorLayout> Create();

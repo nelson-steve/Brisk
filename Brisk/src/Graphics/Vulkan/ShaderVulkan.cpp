@@ -10,21 +10,32 @@ namespace Brisk
 {
 	void ShaderVulkan::Init(std::shared_ptr<Pipeline> pipeline)
 	{
-		int i = 0;
-		for (const auto& l : pipeline->m_GraphicsSpecs.pDescriptorLayouts) {
-			VkDescriptorSetLayout layout{};
-			VkDescriptorSetAllocateInfo allocInfo{};
-			allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
-			layout = std::static_pointer_cast<DescriptorLayoutVulkan>(l)->GetLayout();
+		{
+			for (const auto& l : pipeline->m_GraphicsSpecs.pDescriptorLayouts) {
+				VkDescriptorSet set;
+				VkDescriptorSetLayout layout{};
+				VkDescriptorSetAllocateInfo allocInfo{};
+				allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+				layout = std::static_pointer_cast<DescriptorLayoutVulkan>(l)->GetLayout();
 
-			allocInfo.descriptorPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDescriptorPool();
-			allocInfo.descriptorSetCount = 1;
-			allocInfo.pSetLayouts = &layout;
-			if (vkAllocateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfo, &m_DescriptorSets[i]) != VK_SUCCESS)
-			{
-				throw std::runtime_error("failed to allocate descriptor sets!");
+				allocInfo.descriptorPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDescriptorPool();
+				allocInfo.descriptorSetCount = 1;
+				allocInfo.pSetLayouts = &layout;
+				if (l->IsGlobal()) {
+					if (vkAllocateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfo, &set) != VK_SUCCESS)
+					{
+						throw std::runtime_error("failed to allocate descriptor sets!");
+					}
+					m_GlobalDescriptorSets.push_back(set);
+				}
+				else {
+					if (vkAllocateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfo, &set) != VK_SUCCESS)
+					{
+						throw std::runtime_error("failed to allocate descriptor sets!");
+					}
+					m_LocalDescriptorSets.push_back(set);
+				}
 			}
-			i++;
 		}
 	}
 
@@ -54,11 +65,10 @@ namespace Brisk
 		//
 	}
 
-	bool firstTime = true;
 	void ShaderVulkan::Bind(std::shared_ptr<CommandBuffer> cmdBuffer, std::shared_ptr<Pipeline> pipeline)
 	{
 		std::vector<VkDescriptorSet> sets;
-		sets.push_back(m_DescriptorSet);
+		sets.push_back(m_GlobalDescriptorSets[0]);
 		sets.push_back(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorSet);
 
 		vkCmdBindDescriptorSets(

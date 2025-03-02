@@ -83,7 +83,7 @@ namespace Brisk
 
         struct ComputePipelineSpecs {
             std::shared_ptr<ShaderModule> pShaderModule;
-            std::unordered_map<std::string, std::shared_ptr<DescriptorLayout>> pDescriptorLayouts;
+            std::vector<std::shared_ptr<DescriptorLayout>> pDescriptorLayouts;
         };
     public:
         virtual ~Pipeline() = default;

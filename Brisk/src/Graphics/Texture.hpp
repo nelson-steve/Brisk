@@ -103,9 +103,6 @@ namespace Brisk
 
 		static std::shared_ptr<Texture> Create();
 	protected:
-		uint32_t GetWidth() const { return m_Width; }
-		uint32_t GetHeight() const { return m_Height; }
-	protected:
 		// Metadata
 		uint32_t m_Width, m_Height;
 		Core::Format m_Format;

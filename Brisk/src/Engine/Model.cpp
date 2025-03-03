@@ -34,36 +34,36 @@ namespace Brisk {
 		size_t vertex_count = 0;
 		size_t index_count = 0;
 		if (file_loaded) {
-			for (tinygltf::Sampler smpl : model.samplers) {
-				TextureSampler texture_sampler{};
-				texture_sampler.min_filter = Texture::GetVkFilterMode(smpl.minFilter);
-				texture_sampler.mag_filter = Texture::GetVkFilterMode(smpl.magFilter);
-				texture_sampler.address_modeU = Texture::GetVkWrapMode(smpl.wrapS);
-				texture_sampler.address_modeV = Texture::GetVkWrapMode(smpl.wrapT);
-				texture_sampler.address_modeW = texture_sampler.address_modeV;
-				m_texture_samplers.push_back(texture_sampler);
-			}
-			for (tinygltf::Texture& tex : model.textures) {
-				tinygltf::Image image = model.images[tex.source];
-				TextureSampler texture_sampler{};
-				if (tex.sampler == -1)
-				{
-					// No sampler specified, use a default one
-					texture_sampler.min_filter = FILTER_LINEAR;
-					texture_sampler.mag_filter = FILTER_LINEAR;
-					texture_sampler.address_modeU = SAMPLER_ADDRESS_MODE_REPEAT;
-					texture_sampler.address_modeV = SAMPLER_ADDRESS_MODE_REPEAT;
-					texture_sampler.address_modeW = SAMPLER_ADDRESS_MODE_REPEAT;
-				}
-				else {
-					texture_sampler = m_texture_samplers[tex.sampler];
-				}
+			//for (tinygltf::Sampler smpl : model.samplers) {
+			//	TextureSampler texture_sampler{};
+			//	texture_sampler.min_filter = Texture::GetVkFilterMode(smpl.minFilter);
+			//	texture_sampler.mag_filter = Texture::GetVkFilterMode(smpl.magFilter);
+			//	texture_sampler.address_modeU = Texture::GetVkWrapMode(smpl.wrapS);
+			//	texture_sampler.address_modeV = Texture::GetVkWrapMode(smpl.wrapT);
+			//	texture_sampler.address_modeW = texture_sampler.address_modeV;
+			//	m_texture_samplers.push_back(texture_sampler);
+			//}
+			//for (tinygltf::Texture& tex : model.textures) {
+			//	tinygltf::Image image = model.images[tex.source];
+			//	TextureSampler texture_sampler{};
+			//	if (tex.sampler == -1)
+			//	{
+			//		// No sampler specified, use a default one
+			//		texture_sampler.min_filter = FILTER_LINEAR;
+			//		texture_sampler.mag_filter = FILTER_LINEAR;
+			//		texture_sampler.address_modeU = SAMPLER_ADDRESS_MODE_REPEAT;
+			//		texture_sampler.address_modeV = SAMPLER_ADDRESS_MODE_REPEAT;
+			//		texture_sampler.address_modeW = SAMPLER_ADDRESS_MODE_REPEAT;
+			//	}
+			//	else {
+			//		texture_sampler = m_texture_samplers[tex.sampler];
+			//	}
 
-				std::shared_ptr<Texture> texture;
-				texture = Texture::Create();
-				texture->Init(image, texture_sampler);
-				m_textures.push_back(texture);
-			}
+			//	std::shared_ptr<Texture> texture;
+			//	texture = Texture::Create();
+			//	texture->Init(image, texture_sampler);
+			//	m_textures.push_back(texture);
+			//}
 			//Load Materials
 			LoadMaterials(model);
 

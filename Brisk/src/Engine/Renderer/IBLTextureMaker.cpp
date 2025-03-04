@@ -39,23 +39,23 @@ namespace Brisk
         std::shared_ptr<CommandBuffer> SingleTimeCommandBuffer;
         SingleTimeCommandBuffer->Bind();
 
-        //m_ComputePipeline->Bind(InputTexture, 0);
-        //m_ComputePipeline->Bind(OutputTexture, 1);
+        m_ComputePipeline->Bind(SingleTimeCommandBuffer, InputTexture, 0);
+        m_ComputePipeline->Bind(SingleTimeCommandBuffer, OutputTexture, 1);
 
-        //InputTexture->BindAs();
+        InputTexture->BindAs();
 
-        //m_ComputePipeline->Bind();
-        //m_Shader->BindResources();
-        //m_ComputePipeline->DisaptchCompute();
+        m_ComputePipeline->Bind();
+        m_Shader->BindResources();
+        m_ComputePipeline->DisaptchCompute(SingleTimeCommandBuffer);
 
-        //OutputTexture->BindAs();
+        OutputTexture->BindAs();
 
-        //SingleTimeCommandBuffer->Execute();
+        SingleTimeCommandBuffer->Execute(SingleTimeCommandBuffer);
 
-        //m_ComputePipeline->Destroy();
+        m_ComputePipeline->Destroy();
 
-        //OutputTexture->BindAs();
-        //EnvTexture->BindAs();
+        OutputTexture->BindAs();
+        EnvTexture->BindAs();
 
         //CopyImage(OutputTexture, EnvTexture);
 

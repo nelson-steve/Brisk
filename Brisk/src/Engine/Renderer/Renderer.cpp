@@ -147,8 +147,6 @@ namespace Brisk
                 uint32_t index = subMesh.material_index != -1 ? subMesh.material_index : 0;
                 //materials[index]->Bind(cmd, pipeline);
 
-
-
                 PushConstants pushConstantsData = {
                     SceneManager::pActiveScene->mMaterials[index].baseColorTextureIndex,   // Index for albedo texture 0
                     SceneManager::pActiveScene->mMaterials[index].metallicRoughnessTextureIndex, // Index for metallic texture1
@@ -218,26 +216,6 @@ namespace Brisk
             RenderEntity(entity);
         }
 
-        //std::cout << "loop ends" << std::endl;
-
-        //for (auto e : view)
-        //{
-        //    Entity entity = { e, SceneManager::pActiveScene.get() };
-        //    auto& mesh = entity.GetComponent<MeshComponent>();
-        //    auto& mat = entity.GetComponent<MaterialComponent>();
-        //    
-        //    RenderCommand::BindVertexBuffer(cmd, { mesh.pModel->GetVertexBuffer() }, 0);
-        //    RenderCommand::BindIndexBuffer(cmd, mesh.pModel->GetIndexBuffer(), 0);
-
-        //    mat.pMaterials[0]->Bind(cmd, pipeline);
-
-        //    pipeline->Bind(cmd);
-
-        //    for (auto& node : mesh.pModel->GetNodes()) {
-        //        DrawNode(mesh.pModel, mat.pMaterials, node);
-        //    }
-        //}
-
         pipeline->m_GraphicsSpecs.pRenderPass->End(cmd);
         cmd->UnBind();
 
@@ -285,19 +263,7 @@ namespace Brisk
         }
     }
 
-    void Renderer::DrawNode(const std::shared_ptr<Mesh> model, std::vector<std::shared_ptr<Shader>> materials, GLTF_Node* node) {
-        //if (node->mesh) {
-        //    for (Primitive* primitive : node->mesh->primitives) {
-        //        //pipeline->Bind(cmd);
-
-        //        RenderCommand::DrawIndexed(cmd, primitive->index_count, 1, primitive->first_index, 0, 0);
-        //        //RenderCommand::Draw(cmd, primitive->vertex_count, 0);
-        //    }
-        //}
-        //for (auto& child : node->children) {
-        //    DrawNode(model, materials, child);
-        //}
-    }
+    void Renderer::DrawNode(const std::shared_ptr<Mesh> model, std::vector<std::shared_ptr<Shader>> materials, GLTF_Node* node) {}
 
     std::unique_ptr<Renderer> Renderer::Create()
     {

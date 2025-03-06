@@ -3,6 +3,7 @@
 #include "IBLTextureMaker.hpp"
 #include "Engine/Model.hpp"
 #include "Shader.hpp"
+#include "ComputeCommand.hpp"
 
 namespace Brisk
 {

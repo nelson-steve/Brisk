@@ -31,4 +31,21 @@ namespace Brisk
 	private:
 		static API s_API;
 	};
+
+	class ComputeAPI
+	{
+	public:
+		enum class API
+		{
+			None = 0, Vulkan = 1
+		};
+	public:
+		virtual ~ComputeAPI() = default;
+		virtual void CmdDispatch(std::shared_ptr<CommandBuffer> cmd, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ) = 0;
+
+		inline static API GetAPI() { return s_API; }
+		static ComputeAPI* Create();
+	private:
+		static API s_API;
+	};
 }

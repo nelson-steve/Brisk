@@ -46,15 +46,42 @@ namespace Brisk
 
             m_ComputeShader->BindTexture(hdr, 0, 0);
             m_ComputeShader->BindTexture(cubemap, 1, 0);
-
-            cubemap->TransitionImageLayout(cmd, );
+            Texture::ImageBarrierParams preComputeBarrier = {
+                cubemap,
+                Texture::ImageLayout::Undefined,
+                Texture::ImageLayout::General,
+                Texture::AccessType::None,
+                Texture::AccessType::ShaderWrite,
+                Texture::PipelineStage::TopOfPipe,
+                Texture::PipelineStage::ComputeShader,
+                Texture::ImageAspectFlags::Color,
+                0,                         // Starting mip level
+                1,                         // Only one mip level
+                0,                         // All layers
+                0// All layers
+            };
+            cubemap->TransitionImageLayout(cmd, preComputeBarrier);
 
             m_ComputePipeline->Bind();
             m_ComputeShader->Bind(cmd, m_ComputePipeline);
             uint32_t texSize = 1024;
             ComputeCommand::CmdDispatch(cmd, texSize / 32, texSize / 32, 6);
 
-            cubemap->TransitionImageLayout(cmd, );
+            Texture::ImageBarrierParams postComputeBarrier = {
+                cubemap,
+                Texture::ImageLayout::Undefined,
+                Texture::ImageLayout::General,
+                Texture::AccessType::None,
+                Texture::AccessType::ShaderWrite,
+                Texture::PipelineStage::TopOfPipe,
+                Texture::PipelineStage::ComputeShader,
+                Texture::ImageAspectFlags::Color,
+                0,                         // Starting mip level
+                1,                         // Only one mip level
+                0,                         // All layers
+                0// All layers
+            };
+            cubemap->TransitionImageLayout(cmd, postComputeBarrier);
 
             cmd->UnBind();
             m_ComputePipeline->Destroy();
@@ -75,7 +102,7 @@ namespace Brisk
         cubemap->TransitionImageLayout(cmd);
         mainEnvTexture->TransitionImageLayout(cmd);
 
-        Texture::CopyImage(cmd, cubemap, mainEnvTexture, 1024);
+        cubemap->CopyImage(cmd, cubemap, mainEnvTexture, 1024);
 
         cubemap->TransitionImageLayout();
         mainEnvTexture->TransitionImageLayout();

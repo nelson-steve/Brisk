@@ -11,6 +11,50 @@ namespace Brisk
 {
 	class Texture {
 	public:
+		enum class ImageLayout {
+			Undefined,
+			General,
+			ShaderReadOnlyOptimal,
+			ColorAttachmentOptimal,
+			DepthStencilAttachmentOptimal,
+		};
+
+		enum class AccessType {
+			None = 0,
+			ShaderRead,
+			ShaderWrite,
+			ColorAttachmentRead,
+			ColorAttachmentWrite,
+		};
+
+		enum class PipelineStage {
+			TopOfPipe,
+			ComputeShader,
+			FragmentShader,
+		};
+
+		typedef enum ImageAspectFlags {
+			Color,
+			Depth,
+			Stencil,
+		};
+
+		struct ImageBarrierParams {
+			std::shared_ptr<Texture> texture;
+			ImageLayout oldLayout;
+			ImageLayout newLayout;
+			AccessType srcAccess;
+			AccessType dstAccess;
+			PipelineStage srcStage;
+			PipelineStage dstStage;
+			ImageAspectFlags aspectFlags;
+			uint32_t baseMipLevel;
+			uint32_t levelCount;
+			uint32_t baseLayer;
+			uint32_t layerCount;
+		};
+
+		///--------------------------------------------------------------------------
 		enum Filter {
 			FILTER_NEAREST = 0,
 			FILTER_LINEAR = 1,
@@ -58,7 +102,8 @@ namespace Brisk
 		virtual void Init(tinygltf::Image image, TextureSampler sampler) = 0;
 		//virtual void Init(int width, int height, Core::Format format = Core::Format::FORMAT_R8G8B8A8_SRGB, Type type = Type::TEXTURE2D) = 0;
 
-		virtual void TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd) = 0;
+		virtual void TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, ImageBarrierParams params) = 0;
+		virtual void CopyImage(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> src, std::shared_ptr<Texture> dest, uint32_t width, uint32_t height) = 0;
 
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;

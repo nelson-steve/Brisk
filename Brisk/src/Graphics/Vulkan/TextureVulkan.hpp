@@ -19,7 +19,8 @@ namespace Brisk
 		VkSampler GetSampler() { return m_Sampler; }
 		VkImage Get() const { return m_Image; }
 
-		virtual void TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd) override;
+		virtual void TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, ImageBarrierParams params) override;
+		virtual void CopyImage(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> src, std::shared_ptr<Texture> dest, uint32_t width, uint32_t height) = 0;
 
 		virtual void Resize() override {}
 

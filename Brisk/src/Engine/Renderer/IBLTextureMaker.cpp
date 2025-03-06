@@ -69,6 +69,18 @@ namespace Brisk
         std::shared_ptr<Texture> mainEnvTexture;
         mainEnvTexture->Init(mainEnvTextureSpecs);
 
+        std::shared_ptr<CommandBuffer> cmd;
+        cmd->Bind();
+
+        cubemap->TransitionImageLayout(cmd);
+        mainEnvTexture->TransitionImageLayout(cmd);
+
+        Texture::CopyImage(cmd, cubemap, mainEnvTexture, 1024);
+
+        cubemap->TransitionImageLayout();
+        mainEnvTexture->TransitionImageLayout();
+
+        cmd->Bind();
 
         //
         {

@@ -2,6 +2,7 @@
 
 #include "IBLTextureMaker.hpp"
 #include "Engine/Model.hpp"
+#include "Shader.hpp"
 
 namespace Brisk
 {
@@ -15,6 +16,8 @@ namespace Brisk
         cubemapSpecs.pArrayLayers = 6;
         std::shared_ptr<Texture> cubemap;
         cubemap->Init(cubemapSpecs);
+        std::shared_ptr<Texture> hdr;
+        hdr->Init("path to hdr skybox");
 
         int mapLevel = 1;
 		std::shared_ptr<DescriptorLayout> descriptorLayout = DescriptorLayout::Create();
@@ -33,33 +36,38 @@ namespace Brisk
         m_ComputePipeline = Pipeline::Create();
         m_ComputePipeline->Init(pipelineSpecs);
 
-        std::shared_ptr<Texture> InputTexture;
-        std::shared_ptr<Texture> OutputTexture;
+        {
+            std::shared_ptr<CommandBuffer> cmd;
+            cmd->Bind();
 
-        std::shared_ptr<CommandBuffer> SingleTimeCommandBuffer;
-        SingleTimeCommandBuffer->Bind();
+            std::shared_ptr<Shader> m_ComputeShader = std::make_shared<Shader>();
+            m_ComputeShader->Init(m_ComputePipeline);
 
-        m_ComputePipeline->Bind(SingleTimeCommandBuffer);
-        m_ComputePipeline->Bind(SingleTimeCommandBuffer);
+            m_ComputeShader->BindTexture(hdr, 0, 0);
+            m_ComputeShader->BindTexture(cubemap, 1, 0);
 
-        InputTexture->BindAs(SingleTimeCommandBuffer);
+            cubemap->TransitionImageLayout(cmd, );
 
-        m_Shader->BindResources(SingleTimeCommandBuffer);
-        m_ComputePipeline->DisaptchCompute(SingleTimeCommandBuffer);
+            m_ComputePipeline->Bind();
+            m_ComputeShader->Bind(cmd, m_ComputePipeline);
+            uint32_t texSize = 1024;
+            ComputeCommand::CmdDispatch(cmd, texSize / 32, texSize / 32, 6);
 
-        OutputTexture->BindAs();
+            cubemap->TransitionImageLayout(cmd, );
 
-        SingleTimeCommandBuffer->Execute(SingleTimeCommandBuffer);
+            cmd->UnBind();
+            m_ComputePipeline->Destroy();
 
-        m_ComputePipeline->Destroy();
+        }
 
-        OutputTexture->BindAs();
-        EnvTexture->BindAs();
+        Texture::TextureSpecification mainEnvTextureSpecs;
+        mainEnvTextureSpecs.pWidth = 1024;
+        mainEnvTextureSpecs.pHeight = 1024;
+        mainEnvTextureSpecs.pDepth = 1;
+        mainEnvTextureSpecs.pArrayLayers = 6;
+        std::shared_ptr<Texture> mainEnvTexture;
+        mainEnvTexture->Init(mainEnvTextureSpecs);
 
-        CopyImage(OutputTexture, EnvTexture);
-
-        OutputTexture->BindAs();
-        EnvTexture->BindAs(); // final cubemap
 
         //
         {

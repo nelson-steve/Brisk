@@ -29,6 +29,8 @@ namespace Brisk
 		virtual void SetEmissiveTexture(std::shared_ptr<Texture> texture) = 0;
 		virtual void SetMVPBuffer(std::shared_ptr<Buffer> buffer) = 0;
 
+		virtual void BindTexture(std::shared_ptr<Texture> texture, uint32_t descriptor, uint32_t binding) = 0;
+
 		virtual void Allocate(std::shared_ptr<CommandBuffer> cmdBuffer, std::shared_ptr<Pipeline> pipeline) = 0;
 		virtual void UpdateResources() = 0;
 		virtual void AddTextures(std::vector<std::shared_ptr<Texture>> textures) = 0;

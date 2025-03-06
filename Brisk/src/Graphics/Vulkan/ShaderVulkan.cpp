@@ -87,12 +87,22 @@ namespace Brisk
 	{
 	}
 
+	void ShaderVulkan::BindTexture(std::shared_ptr<Texture> texture, uint32_t descriptor, uint32_t binding) {
+		VkWriteDescriptorSet writeDescriptorSet = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+		writeDescriptorSet.dstSet = m_descriptor_sets.compute;
+		writeDescriptorSet.dstBinding = 0;
+		writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+		writeDescriptorSet.descriptorCount = 1;
+		writeDescriptorSet.pImageInfo = &inputTexture;
+		vkUpdateDescriptorSets(m_device, 1, &writeDescriptorSet, 0, nullptr);
+	}
+
 	void ShaderVulkan::SetAlbedoTexture(std::shared_ptr<Texture> texture)
 	{
 		VkWriteDescriptorSet descriptorWrite;
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descriptorWrite.dstSet = m_DescriptorSet;
+		//descriptorWrite.dstSet = m_DescriptorSet;
 		descriptorWrite.dstBinding = 0;
 		descriptorWrite.descriptorCount = 1;
 		descriptorWrite.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
@@ -104,7 +114,7 @@ namespace Brisk
 		VkWriteDescriptorSet descriptorWrite;
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descriptorWrite.dstSet = m_DescriptorSet;
+		//descriptorWrite.dstSet = m_DescriptorSet;
 		descriptorWrite.dstBinding = 1;
 		descriptorWrite.descriptorCount = 1;
 		descriptorWrite.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
@@ -116,7 +126,7 @@ namespace Brisk
 		VkWriteDescriptorSet descriptorWrite;
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descriptorWrite.dstSet = m_DescriptorSet;
+		//descriptorWrite.dstSet = m_DescriptorSet;
 		descriptorWrite.dstBinding = 2;
 		descriptorWrite.descriptorCount = 1;
 		descriptorWrite.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
@@ -128,7 +138,7 @@ namespace Brisk
 		VkWriteDescriptorSet descriptorWrite;
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descriptorWrite.dstSet = m_DescriptorSet;
+		//descriptorWrite.dstSet = m_DescriptorSet;
 		descriptorWrite.dstBinding = 3;
 		descriptorWrite.descriptorCount = 1;
 		descriptorWrite.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
@@ -140,7 +150,7 @@ namespace Brisk
 		VkWriteDescriptorSet descriptorWrite;
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-		descriptorWrite.dstSet = m_DescriptorSet;
+		//descriptorWrite.dstSet = m_DescriptorSet;
 		descriptorWrite.dstBinding = 4;
 		descriptorWrite.descriptorCount = 1;
 		descriptorWrite.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
@@ -152,7 +162,7 @@ namespace Brisk
 		VkWriteDescriptorSet descriptorWrite{};
 		descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 		descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-		descriptorWrite.dstSet = m_DescriptorSet;
+		//descriptorWrite.dstSet = m_DescriptorSet;
 		descriptorWrite.dstBinding = 0;
 		descriptorWrite.descriptorCount = 1;
 		descriptorWrite.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();

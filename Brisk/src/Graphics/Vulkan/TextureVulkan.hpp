@@ -19,6 +19,8 @@ namespace Brisk
 		VkSampler GetSampler() { return m_Sampler; }
 		VkImage Get() const { return m_Image; }
 
+		virtual void TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd) override;
+
 		virtual void Resize() override {}
 
 		VkDescriptorImageInfo GetDescriptor() const { return m_Descriptor; }

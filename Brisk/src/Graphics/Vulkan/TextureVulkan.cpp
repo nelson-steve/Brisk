@@ -673,4 +673,8 @@ namespace Brisk
         //vkFreeMemory(m_DeviceCached, stagingMemory, nullptr);
         //vkDestroyBuffer(m_DeviceCached, stagingBuffer, nullptr);
     }
+
+    void TextureVulkan::TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd) {
+
+    }
 }

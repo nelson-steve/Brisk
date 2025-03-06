@@ -58,6 +58,8 @@ namespace Brisk
 		virtual void Init(tinygltf::Image image, TextureSampler sampler) = 0;
 		//virtual void Init(int width, int height, Core::Format format = Core::Format::FORMAT_R8G8B8A8_SRGB, Type type = Type::TEXTURE2D) = 0;
 
+		virtual void TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd) = 0;
+
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
 		virtual void Resize() = 0;

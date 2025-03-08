@@ -99,7 +99,6 @@ namespace Brisk
 
         static std::shared_ptr<Pipeline> Create();
 
-
         // TODO: Shouldn't be public
         GraphicsPipelineSpecs m_GraphicsSpecs;
         ComputePipelineSpecs m_ComputeSpecs;

@@ -2,6 +2,7 @@
 #include "RendererAPI.hpp"
 //-----------------------
 #include "Graphics/Vulkan/RendererAPIVulkan.hpp"
+#include "Graphics/Vulkan/ComputeAPIVulkan.hpp"
 //---------------------------------------------
 
 namespace Brisk 
@@ -10,5 +11,9 @@ namespace Brisk
 
 	RendererAPI* RendererAPI::Create() {
 		return new RendererAPIVulkan();
+	}
+
+	ComputeAPI* ComputeAPI::Create() {
+		return new ComputeAPIVulkan();
 	}
 }

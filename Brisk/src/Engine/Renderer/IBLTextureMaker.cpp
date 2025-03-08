@@ -8,16 +8,16 @@
 namespace Brisk
 {
 	void IBLTextureMaker::Init() {
-		m_ComputePipeline = std::make_shared<Pipeline>();
+        m_ComputePipeline = Pipeline::Create();
 
         Texture::TextureSpecification cubemapSpecs;
         cubemapSpecs.pWidth = 1024;
         cubemapSpecs.pHeight = 1024;
         cubemapSpecs.pDepth = 1;
         cubemapSpecs.pArrayLayers = 6;
-        std::shared_ptr<Texture> cubemap;
+        std::shared_ptr<Texture> cubemap = Texture::Create();
         cubemap->Init(cubemapSpecs);
-        std::shared_ptr<Texture> hdr;
+        std::shared_ptr<Texture> hdr = Texture::Create();
         hdr->Init("path to hdr skybox");
 
         int mapLevel = 1;
@@ -38,10 +38,11 @@ namespace Brisk
         m_ComputePipeline->Init(pipelineSpecs);
 
         {
-            std::shared_ptr<CommandBuffer> cmd;
+            std::shared_ptr<CommandBuffer> cmd = CommandBuffer::Create();
             cmd->Bind();
 
-            std::shared_ptr<Shader> m_ComputeShader = std::make_shared<Shader>();
+            std::shared_ptr<Shader> m_ComputeShader = Shader::Create();
+            //std::shared_ptr<Shader> m_ComputeShader = std::make_shared<Shader>();
             m_ComputeShader->Init(m_ComputePipeline);
 
             m_ComputeShader->BindTexture(hdr, 0, 0);
@@ -234,7 +235,7 @@ namespace Brisk
 	}
 
 	void IBLTextureMaker::EquirectangularMapPath(std::string path) {
-		m_EquirectangularMap = std::make_shared<Texture>();
+		m_EquirectangularMap = Texture::Create();
 		m_EquirectangularMap->Init(path);
 	}
 }

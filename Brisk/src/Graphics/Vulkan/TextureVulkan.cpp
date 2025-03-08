@@ -670,8 +670,8 @@ namespace Brisk
         if (delete_buffer)
             delete[] buffer;
 
-        //vkFreeMemory(m_DeviceCached, stagingMemory, nullptr);
-        //vkDestroyBuffer(m_DeviceCached, stagingBuffer, nullptr);
+        vkFreeMemory(m_DeviceCached, stagingMemory, nullptr);
+        vkDestroyBuffer(m_DeviceCached, stagingBuffer, nullptr);
     }
 
     void TextureVulkan::TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, ImageBarrierParams params) {
@@ -687,20 +687,18 @@ namespace Brisk
         barrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
         barrier.subresourceRange.baseMipLevel = 0;
         barrier.subresourceRange.levelCount = 1;
-        vkCmdPipelineBarrier(layoutCmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+        //vkCmdPipelineBarrier(layoutCmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
     }
 
-    void CopyImage(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> src, std::shared_ptr<Texture> dest, uint32_t width, uint32_t height) {
+    void TextureVulkan::CopyImage(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> src, std::shared_ptr<Texture> dest, uint32_t width, uint32_t height) {
         VkImageCopy copyRegion = {};
-        uint32_t width = width;
-        uint32_t height = height;
         copyRegion.extent = { width, height, 1 };
         copyRegion.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
         copyRegion.srcSubresource.layerCount = 6;
         copyRegion.dstSubresource = copyRegion.srcSubresource;
-        vkCmdCopyImage(layoutCmd,
-            m_cubemap.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
-            m_env_texuture.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
-            1, &copyRegion);
+        //vkCmdCopyImage(layoutCmd,
+        //    m_cubemap.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+        //    m_env_texuture.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
+        //    1, &copyRegion);
     }
 }

@@ -8,6 +8,12 @@
 #include <cstdint>
 //----------------
 
+#define DEFINE_BASE_CLASS_CONSTRUCTOR(className) \
+private: \
+    className() = default; \
+protected: \
+    virtual ~className() = default;
+
 namespace Brisk
 {
 	class Shader

@@ -8,6 +8,8 @@
 
 namespace Brisk
 {
+	std::vector<VkDescriptorSet> ShaderVulkan::m_GlobalDescriptorSets;
+
 	void ShaderVulkan::Init(std::shared_ptr<Pipeline> pipeline)
 	{
 		{
@@ -89,12 +91,12 @@ namespace Brisk
 
 	void ShaderVulkan::BindTexture(std::shared_ptr<Texture> texture, uint32_t descriptor, uint32_t binding) {
 		VkWriteDescriptorSet writeDescriptorSet = { VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
-		writeDescriptorSet.dstSet = m_descriptor_sets.compute;
+		//writeDescriptorSet.dstSet = m_descriptor_sets.compute;
 		writeDescriptorSet.dstBinding = 0;
 		writeDescriptorSet.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 		writeDescriptorSet.descriptorCount = 1;
-		writeDescriptorSet.pImageInfo = &inputTexture;
-		vkUpdateDescriptorSets(m_device, 1, &writeDescriptorSet, 0, nullptr);
+		//writeDescriptorSet.pImageInfo = &inputTexture;
+		//vkUpdateDescriptorSets(m_device, 1, &writeDescriptorSet, 0, nullptr);
 	}
 
 	void ShaderVulkan::SetAlbedoTexture(std::shared_ptr<Texture> texture)

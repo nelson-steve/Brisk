@@ -11,7 +11,7 @@
 
 namespace Brisk
 {
-    void PipelineVulkan::Init(const Pipeline::GraphicsPipelineSpecs& specs) {
+    void PipelineVulkan::Init(const GraphicsPipelineSpecs& specs) {
         m_GraphicsSpecs = specs;
         //std::vector<VkDescriptorSetLayout> descriptorLayouts;
 
@@ -286,8 +286,8 @@ namespace Brisk
         }
 
         std::vector<VkDescriptorSetLayout> descriptorLayouts;
-        for (const auto& pair : specs.pDescriptorLayouts) {
-            descriptorLayouts.push_back(std::static_pointer_cast<DescriptorLayoutVulkan>(pair.second)->GetLayout());
+        for (const auto& layout : specs.pDescriptorLayouts) {
+            descriptorLayouts.push_back(std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout());
             descriptorLayouts.push_back(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout);
         }
 

@@ -66,6 +66,7 @@ namespace Brisk
 	};
 
 	class DescriptorLayout {
+		DEFINE_BASE_CLASS_CONSTRUCTOR(DescriptorLayout)
 	public:
 		struct Layout {
 			uint32_t p_Binding;

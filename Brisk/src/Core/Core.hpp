@@ -13,6 +13,11 @@ namespace Brisk
 	using Ref = std::shared_ptr<T>;
 }
 
+#define DEFINE_BASE_CLASS_CONSTRUCTOR(className) \
+protected: \
+    className() = default; \
+    virtual ~className() = default;
+
 #define BIT(x) (1 << x)
 
 #define BIND_EVENT_FN(x) std::bind(&x, this, std::placeholders::_1)

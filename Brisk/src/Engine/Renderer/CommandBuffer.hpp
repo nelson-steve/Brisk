@@ -1,11 +1,14 @@
 #pragma once
 // INCLUDES
+#include "Core/Core.hpp"
+//-------------------
 #include <memory>
 #include <functional>
 //-------------------
 
 namespace Brisk {
 	class CommandBuffer {
+		DEFINE_BASE_CLASS_CONSTRUCTOR(CommandBuffer)
 	public:
 		virtual void Bind() = 0;
 		void RecordCommand(std::function<void()> command){

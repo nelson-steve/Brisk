@@ -4,6 +4,7 @@
 #include "RenderPass.hpp"
 #include "ShaderModule.hpp"
 #include "Descriptor.hpp"
+#include "Core/Core.hpp"
 //------------------------
 #include <cstdint>
 #include <vector>
@@ -14,6 +15,7 @@
 namespace Brisk
 {
     class Pipeline {
+        DEFINE_BASE_CLASS_CONSTRUCTOR(Pipeline)
     public:
         struct Attribute {
             uint32_t pBinding;
@@ -86,8 +88,6 @@ namespace Brisk
             std::vector<std::shared_ptr<DescriptorLayout>> pDescriptorLayouts;
         };
     public:
-        virtual ~Pipeline() = default;
-
         virtual void Init(const GraphicsPipelineSpecs& specs) = 0;
         virtual void Init(const ComputePipelineSpecs& specs) = 0;
 

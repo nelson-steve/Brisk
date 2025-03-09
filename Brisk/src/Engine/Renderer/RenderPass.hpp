@@ -12,6 +12,7 @@
 namespace Brisk 
 {
     class RenderPass {
+        DEFINE_BASE_CLASS_CONSTRUCTOR(RenderPass)
     public:
         enum AttachmentType {
             Swapchain,
@@ -43,8 +44,6 @@ namespace Brisk
             Compute,
         };
     public:
-        virtual ~RenderPass() = default;
-
         virtual void Init(const RenderPassSpecs& specs) = 0;
         virtual void Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t imageIndex) = 0;
         virtual void End(std::shared_ptr<CommandBuffer> cmd) = 0;

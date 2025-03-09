@@ -13,6 +13,7 @@
 namespace Brisk 
 {
 	class Queue {
+		DEFINE_BASE_CLASS_CONSTRUCTOR(Queue)
 	public:
 		enum WaitStage {
 			PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT

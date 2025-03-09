@@ -1,12 +1,15 @@
 #pragma once
 
 // INCLUDES
+#include "Core/Core.hpp"
+//---------------------
 #include <memory>
 //---------------
 
 namespace Brisk 
 {
     class Fence {
+        DEFINE_BASE_CLASS_CONSTRUCTOR(Fence)
     public:
         virtual void Init() = 0;
 

@@ -12,6 +12,7 @@
 namespace Brisk 
 {
     class Framebuffer {
+        DEFINE_BASE_CLASS_CONSTRUCTOR(Framebuffer)
     public:
         struct FramebufferSpecs {
             uint32_t pWidth;
@@ -22,8 +23,6 @@ namespace Brisk
         };
 
     public:
-        virtual ~Framebuffer() = default;
-
         virtual void Init(const FramebufferSpecs& specs) = 0;
         virtual void Destroy() = 0;
 

@@ -674,7 +674,7 @@ namespace Brisk
         vkDestroyBuffer(m_DeviceCached, stagingBuffer, nullptr);
     }
 
-    void TextureVulkan::TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, ImageBarrierParams params) {
+    void TextureVulkan::TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, std::vector<ImageBarrierParams> params) {
         VkImageMemoryBarrier barrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
         barrier.srcAccessMask = 0;
         barrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;

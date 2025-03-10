@@ -61,7 +61,7 @@ namespace Brisk
                 0,                         // All layers
                 0// All layers
             };
-            cubemap->TransitionImageLayout(cmd, preComputeBarrier);
+            cubemap->TransitionImageLayout(cmd, { preComputeBarrier });
 
             m_ComputePipeline->Bind(cmd);
             m_ComputeShader->Bind(cmd, m_ComputePipeline);
@@ -70,107 +70,104 @@ namespace Brisk
 
             Texture::ImageBarrierParams postComputeBarrier = {
                 cubemap,
-                Texture::ImageLayout::Undefined,
                 Texture::ImageLayout::General,
-                Texture::AccessType::None,
+                Texture::ImageLayout::ShaderReadOnlyOptimal,
                 Texture::AccessType::ShaderWrite,
-                Texture::PipelineStage::TopOfPipe,
+                Texture::AccessType::None,
                 Texture::PipelineStage::ComputeShader,
+                Texture::PipelineStage::BottomOfPipe,
                 Texture::ImageAspectFlags::Color,
                 0,                         // Starting mip level
                 1,                         // Only one mip level
                 0,                         // All layers
                 0// All layers
             };
-            cubemap->TransitionImageLayout(cmd, postComputeBarrier);
+            cubemap->TransitionImageLayout(cmd, { postComputeBarrier });
 
             cmd->UnBind();
             m_ComputePipeline->Destroy();
 
         }
 
-        Texture::TextureSpecification mainEnvTextureSpecs;
-        mainEnvTextureSpecs.pWidth = 1024;
-        mainEnvTextureSpecs.pHeight = 1024;
-        mainEnvTextureSpecs.pDepth = 1;
-        mainEnvTextureSpecs.pArrayLayers = 6;
-        std::shared_ptr<Texture> mainEnvTexture;
-        mainEnvTexture->Init(mainEnvTextureSpecs);
+        {
+            Texture::TextureSpecification mainEnvTextureSpecs;
+            mainEnvTextureSpecs.pWidth = 1024;
+            mainEnvTextureSpecs.pHeight = 1024;
+            mainEnvTextureSpecs.pDepth = 1;
+            mainEnvTextureSpecs.pArrayLayers = 6;
+            std::shared_ptr<Texture> mainEnvTexture;
+            mainEnvTexture->Init(mainEnvTextureSpecs);
 
-        std::shared_ptr<CommandBuffer> cmd;
-        cmd->Bind();
+            std::shared_ptr<CommandBuffer> cmd;
+            cmd->Bind();
 
-        Texture::ImageBarrierParams preCopyBarrierCubemap = {
-            cubemap,
-            Texture::ImageLayout::Undefined,
-            Texture::ImageLayout::General,
-            Texture::AccessType::None,
-            Texture::AccessType::ShaderWrite,
-            Texture::PipelineStage::TopOfPipe,
-            Texture::PipelineStage::ComputeShader,
-            Texture::ImageAspectFlags::Color,
-            0,                         // Starting mip level
-            1,                         // Only one mip level
-            0,                         // All layers
-            0// All layers
-        };
-        cubemap->TransitionImageLayout(cmd, preCopyBarrierCubemap);
+            Texture::ImageBarrierParams preCopyBarrierCubemap = {
+                cubemap,
+                Texture::ImageLayout::ShaderReadOnlyOptimal,
+                Texture::ImageLayout::TransferSrc,
+                Texture::AccessType::None,
+                Texture::AccessType::TransferRead,
+                Texture::PipelineStage::TopOfPipe,
+                Texture::PipelineStage::TransferStage,
+                Texture::ImageAspectFlags::Color,
+                0,                         // Starting mip level
+                1,                         // Only one mip level
+                0,                         // All layers
+                0// All layers
+            };
 
-        Texture::ImageBarrierParams preCopyBarrierEnvTexture = {
-            mainEnvTexture,
-            Texture::ImageLayout::Undefined,
-            Texture::ImageLayout::General,
-            Texture::AccessType::None,
-            Texture::AccessType::ShaderWrite,
-            Texture::PipelineStage::TopOfPipe,
-            Texture::PipelineStage::ComputeShader,
-            Texture::ImageAspectFlags::Color,
-            0,                         // Starting mip level
-            1,                         // Only one mip level
-            0,                         // All layers
-            0// All layers
-        };
-        mainEnvTexture->TransitionImageLayout(cmd, preCopyBarrierEnvTexture);
+            Texture::ImageBarrierParams preCopyBarrierEnvTexture = {
+                mainEnvTexture,
+                Texture::ImageLayout::Undefined,
+                Texture::ImageLayout::TransferDst,
+                Texture::AccessType::None,
+                Texture::AccessType::TransferRead,
+                Texture::PipelineStage::TopOfPipe,
+                Texture::PipelineStage::TransferStage,
+                Texture::ImageAspectFlags::Color,
+                0,                         // Starting mip level
+                1,                         // Only one mip level
+                0,                         // All layers
+                0// All layers
+            };
+            cubemap->TransitionImageLayout(cmd, { preCopyBarrierCubemap, preCopyBarrierEnvTexture });
 
-        cubemap->CopyImage(cmd, cubemap, mainEnvTexture, 1024, 1024);
+            cubemap->CopyImage(cmd, cubemap, mainEnvTexture, 1024, 1024);
 
-        Texture::ImageBarrierParams postCopyBarrierCubemap= {
-            cubemap,
-            Texture::ImageLayout::Undefined,
-            Texture::ImageLayout::General,
-            Texture::AccessType::None,
-            Texture::AccessType::ShaderWrite,
-            Texture::PipelineStage::TopOfPipe,
-            Texture::PipelineStage::ComputeShader,
-            Texture::ImageAspectFlags::Color,
-            0,                         // Starting mip level
-            1,                         // Only one mip level
-            0,                         // All layers
-            0// All layers
-        };
-        cubemap->TransitionImageLayout(cmd, postCopyBarrierCubemap);
+            Texture::ImageBarrierParams postCopyBarrierCubemap = {
+                cubemap,
+                Texture::ImageLayout::TransferSrc,
+                Texture::ImageLayout::ShaderReadOnlyOptimal,
+                Texture::AccessType::TransferRead,
+                Texture::AccessType::None,
+                Texture::PipelineStage::TransferStage,
+                Texture::PipelineStage::BottomOfPipe,
+                Texture::ImageAspectFlags::Color,
+                0,                         // Starting mip level
+                1,                         // Only one mip level
+                0,                         // All layers
+                0// All layers
+            };
 
-        Texture::ImageBarrierParams postCopyBarrierEnvTexture = {
-            mainEnvTexture,
-            Texture::ImageLayout::Undefined,
-            Texture::ImageLayout::General,
-            Texture::AccessType::None,
-            Texture::AccessType::ShaderWrite,
-            Texture::PipelineStage::TopOfPipe,
-            Texture::PipelineStage::ComputeShader,
-            Texture::ImageAspectFlags::Color,
-            0,                         // Starting mip level
-            1,                         // Only one mip level
-            0,                         // All layers
-            0// All layers
-        };
-        mainEnvTexture->TransitionImageLayout(cmd, postCopyBarrierEnvTexture);
+            Texture::ImageBarrierParams postCopyBarrierEnvTexture = {
+                mainEnvTexture,
+                Texture::ImageLayout::TransferDst,
+                Texture::ImageLayout::ShaderReadOnlyOptimal,
+                Texture::AccessType::TransferWrite,
+                Texture::AccessType::None,
+                Texture::PipelineStage::TransferStage,
+                Texture::PipelineStage::BottomOfPipe,
+                Texture::ImageAspectFlags::Color,
+                0,                         // Starting mip level
+                1,                         // Only one mip level
+                0,                         // All layers
+                0// All layers
+            };
+            cubemap->TransitionImageLayout(cmd, { postCopyBarrierCubemap, postCopyBarrierEnvTexture });
 
-        cmd->UnBind();
-
-
-
-        //
+            cmd->UnBind();
+        }
+        //  
         {
             //std::shared_ptr<Texture> _Cubemap;
 

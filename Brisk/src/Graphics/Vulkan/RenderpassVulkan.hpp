@@ -14,6 +14,9 @@ namespace Brisk {
         virtual void Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t imageIndex) override;
         virtual void End(std::shared_ptr<CommandBuffer> cmd) override;
 
+        virtual void AddRenderTarget(std::shared_ptr<Swapchain> swapchain) override;
+        virtual void AddRenderTarget(std::shared_ptr<Texture> texture) override;
+
         //void ReleaseFramebuffers();
         //void CreateNAddFramebuffer(std::vector<VkImageView> attachments, uint32_t width, uint32_t height);
 

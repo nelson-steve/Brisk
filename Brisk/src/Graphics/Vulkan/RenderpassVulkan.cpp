@@ -127,6 +127,13 @@ namespace Brisk
         vkCmdEndRenderPass(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get());
     }
 
+    void RenderPassVulkan::AddRenderTarget(std::shared_ptr<Swapchain> swapchain) {
+
+    }
+    void RenderPassVulkan::AddRenderTarget(std::shared_ptr<Texture> texture) {
+
+    }
+
     //void RenderPassVulkan::Create(std::vector<VkAttachmentDescription> attachments, std::vector<VkSubpassDescription> subpasses, std::vector<VkSubpassDependency> dependencies) {
     //    VkRenderPassCreateInfo renderPassInfo{};
     //    renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;

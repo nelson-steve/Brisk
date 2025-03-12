@@ -2,6 +2,7 @@
 
 // INCLUDES
 #include "CommandBuffer.hpp"
+#include "Graphics/Swapchain.hpp"
 #include "RHI.hpp"
 //---------------
 #include <cstdint>
@@ -15,7 +16,7 @@ namespace Brisk
         DEFINE_BASE_CLASS_CONSTRUCTOR(RenderPass)
     public:
         enum AttachmentType {
-            Swapchain,
+            //Swapchain,
             Depth,
         };
 
@@ -44,10 +45,15 @@ namespace Brisk
             Compute,
         };
     public:
+        virtual void AddRenderTarget(std::shared_ptr<Swapchain> swapchain) = 0;
+        virtual void AddRenderTarget(std::shared_ptr<Texture> texture) = 0;
+        //void AddRenderTarget();
         virtual void Init(const RenderPassSpecs& specs) = 0;
         virtual void Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t imageIndex) = 0;
         virtual void End(std::shared_ptr<CommandBuffer> cmd) = 0;
 
         static std::shared_ptr<RenderPass> Create();
+
+
     };
 };

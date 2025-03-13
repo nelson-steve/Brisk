@@ -4,6 +4,7 @@
 #include "SwapchainVulkan.hpp"
 #include "PipelineVulkan.hpp"
 #include "UtilitiesVulkan.hpp"
+#include "TextureVulkan.hpp"
 
 namespace Brisk 
 {
@@ -85,27 +86,27 @@ namespace Brisk
         if (vkCreateRenderPass(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
             throw std::runtime_error("failed to create render pass!");
         }
+            
+        //for (int i = 0; i < std::static_pointer_cast<SwapchainVulkan>(Renderer::GetSwapchain())->GetSwapchainImageViews().size(); i++) 
+        //{
+        //    std::vector<VkImageView> imageAttachments;
+        //    imageAttachments.push_back(std::static_pointer_cast<SwapchainVulkan>(Renderer::GetSwapchain())->GetSwapchainImageViews()[i]);
+        //    imageAttachments.push_back(std::static_pointer_cast<SwapchainVulkan>(Renderer::GetSwapchain())->GetDepthImageView());
 
-        for (int i = 0; i < std::static_pointer_cast<SwapchainVulkan>(Renderer::GetSwapchain())->GetSwapchainImageViews().size(); i++) 
-        {
-            std::vector<VkImageView> imageAttachments;
-            imageAttachments.push_back(std::static_pointer_cast<SwapchainVulkan>(Renderer::GetSwapchain())->GetSwapchainImageViews()[i]);
-            imageAttachments.push_back(std::static_pointer_cast<SwapchainVulkan>(Renderer::GetSwapchain())->GetDepthImageView());
-
-            VkFramebuffer framebuffer;
-            VkFramebufferCreateInfo framebufferInfo{};
-            framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-            framebufferInfo.renderPass = m_RenderPass;
-            framebufferInfo.attachmentCount = static_cast<uint32_t>(imageAttachments.size());
-            framebufferInfo.pAttachments = imageAttachments.data();
-            framebufferInfo.width = Renderer::GetSwapchain()->GetExtentWidth();
-            framebufferInfo.height = Renderer::GetSwapchain()->GetExtentHeight();
-            framebufferInfo.layers = 1;
-            if (vkCreateFramebuffer(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &framebufferInfo, nullptr, &framebuffer) != VK_SUCCESS) {
-                throw std::runtime_error("failed to create framebuffer!");
-            }
-            m_Framebuffers.push_back(framebuffer);
-        }
+        //    VkFramebuffer framebuffer;
+        //    VkFramebufferCreateInfo framebufferInfo{};
+        //    framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        //    framebufferInfo.renderPass = m_RenderPass;
+        //    framebufferInfo.attachmentCount = static_cast<uint32_t>(imageAttachments.size());
+        //    framebufferInfo.pAttachments = imageAttachments.data();
+        //    framebufferInfo.width = Renderer::GetSwapchain()->GetExtentWidth();
+        //    framebufferInfo.height = Renderer::GetSwapchain()->GetExtentHeight();
+        //    framebufferInfo.layers = 1;
+        //    if (vkCreateFramebuffer(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &framebufferInfo, nullptr, &framebuffer) != VK_SUCCESS) {
+        //        throw std::runtime_error("failed to create framebuffer!");
+        //    }
+        //    m_Framebuffers.push_back(framebuffer);
+        //}
     }
 
     void RenderPassVulkan::Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t imageIndex) {
@@ -128,10 +129,22 @@ namespace Brisk
     }
 
     void RenderPassVulkan::AddRenderTarget(std::shared_ptr<Swapchain> swapchain) {
+        for (int i = 0; i < std::static_pointer_cast<SwapchainVulkan>(Renderer::GetSwapchain())->GetSwapchainImageViews().size(); i++)
+        {
+            std::vector<VkImageView> attachments;
+            attachments.push_back(std::static_pointer_cast<SwapchainVulkan>(Renderer::GetSwapchain())->GetSwapchainImageViews()[i]);
+            attachments.push_back(std::static_pointer_cast<SwapchainVulkan>(Renderer::GetSwapchain())->GetDepthImageView());
+
+            m_ImageAttachments.push_back(attachments);
+        }
 
     }
     void RenderPassVulkan::AddRenderTarget(std::shared_ptr<Texture> texture) {
-
+        if (m_ImageAttachments.size() > 0) {
+            for (auto a : m_ImageAttachments) {
+                a.push_back(std::static_pointer_cast<TextureVulkan>(texture)->GetView());
+            }
+        }
     }
 
     //void RenderPassVulkan::Create(std::vector<VkAttachmentDescription> attachments, std::vector<VkSubpassDescription> subpasses, std::vector<VkSubpassDependency> dependencies) {

@@ -26,10 +26,10 @@ namespace Brisk
 		virtual void BindIndexBuffer(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Buffer> buffer, uint32_t firstBinding) = 0;
 		virtual void BindVertexBuffer(std::shared_ptr<CommandBuffer> cmd, std::vector<std::shared_ptr<Buffer>> buffers, uint32_t firstBinding) = 0;
 
-		inline static API GetAPI() { return s_API; }
+		//inline static API GetAPI() { return s_API; }
 		static RendererAPI* Create();
 	private:
-		static API s_API;
+		//static API s_API;
 	};
 
 	class ComputeAPI

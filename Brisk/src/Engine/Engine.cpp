@@ -5,12 +5,15 @@
 
 namespace Brisk
 {
-	EngineInfo Engine::s_EngineInfo;
+	Engine::EngineSettings Engine::s_EngineSettings;
 	std::unique_ptr<Editor> Engine::s_Editor;
 	std::shared_ptr<Application> Engine::s_Application;
 
 	void Engine::InitSystems() {
 		Log::Init();
+
+		s_EngineSettings.API = Engine::EngineSettings::GraphicsAPI::DirectX12;
+
 		s_Application = std::make_shared<Application>();
 		s_Application->CreateApplication();
 

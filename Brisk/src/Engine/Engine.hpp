@@ -12,10 +12,17 @@
 namespace Brisk
 {
 	/// <summary>
-	/// Main Engine class holding all major systems of the engine
+	/// Engine class holding all major systems of the engine
 	/// </summary>
-	class Engine
-	{
+	class Engine {
+	public:
+		struct EngineSettings {
+			enum class GraphicsAPI {
+				Vulkan,
+				DirectX12
+			};
+			GraphicsAPI API;
+		};
 	public:
 		/// <summary>
 		/// Initialize all engine systems
@@ -38,7 +45,7 @@ namespace Brisk
 		/// <summary>
 		/// Stores basic information about the engine
 		/// </summary>
-		static EngineInfo s_EngineInfo;
+		static EngineSettings s_EngineSettings;
 
 		/// <summary>
 		/// Editor handle

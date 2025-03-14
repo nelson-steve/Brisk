@@ -11,6 +11,8 @@
 #include "Engine/Component.hpp"
 #include "Engine/SceneManager.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
+#include "RenderCommand.hpp"
+#include "ComputeCommand.hpp"
 
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -29,37 +31,8 @@ namespace Brisk
 
     void Renderer::Init()
     {
-
-        ComPtr<IDXGIFactory6> dxgiFactory;
-        CreateDXGIFactory2(0, IID_PPV_ARGS(&dxgiFactory));
-
-        /*
-        * 
-
-        GpuResource
-        {
-            bool isBound = false;
-        }
-
-        Shader speicifation
-        set 0 0 TextureSampler
-        set 0 1 TextureSampler
-        set 0 2 TextureSampler
-
-        Material
-        GpuResource::Texture
-        GpuResource::Texture
-        GpuResource::Texture
-
-        Vulkan shaderSpecification
-        Pack0
-        Texture::Albedo
-        Texture::Roughness
-        Pack1
-        Buffer::UBO
-
-        BindSet();
-        */
+        RenderCommand::s_RendererAPI = RendererAPI::Create();
+        ComputeCommand::s_ComputeAPI = ComputeAPI::Create();
 
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);

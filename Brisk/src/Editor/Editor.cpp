@@ -1,7 +1,5 @@
 #include "Editor.hpp"
 #include "Engine/Engine.hpp"
-#include "Graphics/Vulkan/VulkanRenderer/RendererVulkan.hpp"
-
 #include "AssetsPanel.hpp"
 #include "ConsolePanel.hpp"
 #include "GamePanel.hpp"

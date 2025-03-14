@@ -1,5 +1,4 @@
 #include "ScenePanel.hpp"
-#include "Graphics/Vulkan/VulkanRenderer/RendererVulkan.hpp"
 
 #include "Editor.hpp"
 

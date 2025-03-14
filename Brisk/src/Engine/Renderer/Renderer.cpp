@@ -11,6 +11,16 @@
 #include "Engine/Component.hpp"
 #include "Engine/SceneManager.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
+
+#include <d3d12.h>
+#include <dxgi1_6.h>
+#include <d3dcompiler.h>
+#include <wrl/client.h>
+using Microsoft::WRL::ComPtr;
+
+//#pragma comment(lib, "dxgi.lib")
+//#pragma comment(lib, "D3D12.lib")
+
 //-----------------------------------------------
 
 namespace Brisk
@@ -19,6 +29,9 @@ namespace Brisk
 
     void Renderer::Init()
     {
+
+        ComPtr<IDXGIFactory6> dxgiFactory;
+        CreateDXGIFactory2(0, IID_PPV_ARGS(&dxgiFactory));
 
         /*
         * 
@@ -58,11 +71,11 @@ namespace Brisk
 
         Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
         RenderPass::RenderPassSpecs renderPassSpecs;
-        renderPassSpecs.pAttachments =
-            {
-                {0, Core::Format::FORMAT_B8G8R8A8_UNORM, true, RenderPass::AttachmentType::Swapchain},
-                {1, Core::Format::FORMAT_D32_SFLOAT, true, RenderPass::AttachmentType::Depth}
-            };
+        //renderPassSpecs.pAttachments =
+        //    {
+        //        {0, Core::Format::FORMAT_B8G8R8A8_UNORM, true, RenderPass::AttachmentType::Swapchain},
+        //        {1, Core::Format::FORMAT_D32_SFLOAT, true, RenderPass::AttachmentType::Depth}
+        //    };
         Pipeline::VertexDataLayout vertexLayout;
         vertexLayout.pBinding = 0;
         vertexLayout.pStride = sizeof(MeshData);

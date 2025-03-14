@@ -33,7 +33,7 @@ namespace Brisk
             attachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             attachment.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
 
-            if (specs.pAttachments[i].pType == AttachmentType::Swapchain) {
+            if (true/*specs.pAttachments[i].pType == AttachmentType::Swapchain*/) {
                 attachment.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
                 attachmentRef.attachment = specs.pAttachments[i].pAttachmentIndex;
@@ -140,11 +140,11 @@ namespace Brisk
 
     }
     void RenderPassVulkan::AddRenderTarget(std::shared_ptr<Texture> texture) {
-        if (m_ImageAttachments.size() > 0) {
-            for (auto a : m_ImageAttachments) {
-                a.push_back(std::static_pointer_cast<TextureVulkan>(texture)->GetView());
-            }
-        }
+        //if (m_ImageAttachments.size() > 0) {
+        //    for (auto a : m_ImageAttachments) {
+        //        a.push_back(std::static_pointer_cast<TextureVulkan>(texture)->GetView());
+        //    }
+        //}
     }
 
     //void RenderPassVulkan::Create(std::vector<VkAttachmentDescription> attachments, std::vector<VkSubpassDescription> subpasses, std::vector<VkSubpassDependency> dependencies) {

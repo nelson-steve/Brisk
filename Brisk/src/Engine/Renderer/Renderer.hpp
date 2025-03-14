@@ -22,14 +22,16 @@ namespace Brisk
 		void PreRenderScene();
 		void RenderScene(float deltaTime);
 		void DrawNode(const std::shared_ptr<Mesh> model, std::vector<std::shared_ptr<Shader>> materials, GLTF_Node* node);
-		void RenderEntity(Entity e);
-		void SetupEntity(Entity e);
 
 		static std::shared_ptr<Swapchain> GetSwapchain() { return m_Swapchain; }
 
 		static std::unique_ptr<Renderer> Create();
 
 		std::shared_ptr<Pipeline> pipeline;
+	private:
+		void RenderEntity(Entity e);
+		void SetupEntity(Entity e);
+
 	private:
 		static std::shared_ptr<Swapchain> m_Swapchain;
 		std::shared_ptr<Buffer> m_UniformBuffer;

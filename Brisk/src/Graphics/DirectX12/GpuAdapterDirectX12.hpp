@@ -13,6 +13,8 @@ namespace Brisk
 	class GpuAdapterDirectX12 : public GpuAdapter {
 	public:
 		virtual void Init() override;
+
+		ComPtr<ID3D12Device> GetDevice() const { return m_Device; }
 	private:
 		ComPtr<IDXGIFactory6> m_DxgiFactory;
 		ComPtr<ID3D12Device> m_Device;

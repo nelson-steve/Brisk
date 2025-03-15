@@ -14,6 +14,7 @@ namespace Brisk {
 		void RecordCommand(std::function<void()> command){
 			m_Commands.push_back(command);
 		}
+
 		virtual void UnBind() = 0;
 		virtual void Reset() = 0;
 

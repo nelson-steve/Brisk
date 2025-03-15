@@ -106,7 +106,7 @@ namespace Brisk
 		};
 
 	public:
-		void Init();
+		virtual void Init() override;
 		void AllocatePools();
 		std::vector<VkPhysicalDevice> RetrieveAvailableDevice(VkInstance instance);
 		bool IsDeviceSuitable(VkPhysicalDevice device, const GpuRequirements& requirements);

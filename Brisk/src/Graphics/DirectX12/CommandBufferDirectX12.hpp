@@ -15,7 +15,10 @@ namespace Brisk
 	public:
 		virtual void Bind() override;
 		virtual void UnBind() override;
+
+		void Allocate(ComPtr<ID3D12CommandAllocator> allocator);
 	private:
-		ComPtr<ID3D12CommandQueue> m_CommandQueue;
+		ComPtr<ID3D12CommandAllocator> m_ParentAllocator;
+		ComPtr<ID3D12GraphicsCommandList> m_CommandList;
 	};
 }

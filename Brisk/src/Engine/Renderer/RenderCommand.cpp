@@ -5,4 +5,5 @@
 
 namespace Brisk
 {
+	RendererAPI* RenderCommand::s_RendererAPI;
 }

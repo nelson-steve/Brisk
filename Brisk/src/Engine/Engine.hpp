@@ -22,6 +22,7 @@ namespace Brisk
 				DirectX12
 			};
 			GraphicsAPI API;
+			std::string EngineName;
 		};
 	public:
 		/// <summary>

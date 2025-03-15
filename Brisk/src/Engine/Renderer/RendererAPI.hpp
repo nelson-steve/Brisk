@@ -43,9 +43,9 @@ namespace Brisk
 		virtual ~ComputeAPI() = default;
 		virtual void CmdDispatch(std::shared_ptr<CommandBuffer> cmd, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ) = 0;
 
-		inline static API GetAPI() { return s_API; }
+		//inline static API GetAPI() { return s_API; }
 		static ComputeAPI* Create();
 	private:
-		static API s_API;
+		//static API s_API;
 	};
 }

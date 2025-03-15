@@ -32,7 +32,7 @@ namespace Brisk
 		VkApplicationInfo appInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
 		appInfo.pApplicationName = "Demo";
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
-		appInfo.pEngineName = Engine::s_EngineInfo.EngineName.c_str();
+		appInfo.pEngineName = Engine::s_EngineSettings.EngineName.c_str();
 		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.apiVersion = VK_API_VERSION_1_2;
 

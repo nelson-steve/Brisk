@@ -10,7 +10,7 @@ namespace Brisk {
 	class SwapchainFactory {
 	public:
 		[[nodiscard]] static std::shared_ptr<Swapchain> CreateSwapchain(std::shared_ptr<Window> window) {
-			if (Engine::s_EngineInfo.API == EngineInfo::GraphicsAPI::Vulkan) {
+			if (Engine::s_EngineSettings.API == Engine::EngineSettings::GraphicsAPI::Vulkan) {
 				return std::make_shared<SwapchainVulkan>(window);
 			}
 			else {

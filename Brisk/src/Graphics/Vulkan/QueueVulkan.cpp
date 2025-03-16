@@ -45,7 +45,7 @@ namespace Brisk
 
         VkFence vkFence = fence ? std::static_pointer_cast<FenceVulkan>(fence)->Get() : VK_NULL_HANDLE;
 
-        VkResult result = vkQueueSubmit(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle, 1, &submitInfoVk, vkFence);
+        VkResult result = vkQueueSubmit(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue().Handle, 1, &submitInfoVk, vkFence);
         if (result != VK_SUCCESS) {
             throw std::runtime_error("Failed to submit command buffers to Vulkan queue");
         }
@@ -73,7 +73,7 @@ namespace Brisk
         uint32_t indices = info.pImageIndex;
         presentInfoVk.pImageIndices = &indices;
 
-        VkResult result = vkQueuePresentKHR(std::static_pointer_cast<GpuAdapterVulkan> (Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Handle, &presentInfoVk);
+        VkResult result = vkQueuePresentKHR(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue().Handle, &presentInfoVk);
         if (result != VK_SUCCESS) {
             throw std::runtime_error("Failed to submit command buffers to Vulkan queue");
         }        

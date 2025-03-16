@@ -40,7 +40,7 @@ namespace Brisk
 			FragmentShader,
 		};
 
-		typedef enum ImageAspectFlags {
+		enum ImageAspectFlags {
 			Color,
 			Depth,
 			Stencil,

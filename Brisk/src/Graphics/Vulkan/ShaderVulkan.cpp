@@ -24,14 +24,14 @@ namespace Brisk
 				allocInfo.descriptorSetCount = 1;
 				allocInfo.pSetLayouts = &layout;
 				if (l->IsGlobal()) {
-					if (vkAllocateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfo, &set) != VK_SUCCESS)
+					if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &set) != VK_SUCCESS)
 					{
 						throw std::runtime_error("failed to allocate descriptor sets!");
 					}
 					m_GlobalDescriptorSets.push_back(set);
 				}
 				else {
-					if (vkAllocateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfo, &set) != VK_SUCCESS)
+					if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &set) != VK_SUCCESS)
 					{
 						throw std::runtime_error("failed to allocate descriptor sets!");
 					}
@@ -43,7 +43,7 @@ namespace Brisk
 
 	void ShaderVulkan::UpdateResources()
 	{
-		vkUpdateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), static_cast<uint32_t>(m_DescriptorWrites.size()), m_DescriptorWrites.data(), 0, nullptr);
+		vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), static_cast<uint32_t>(m_DescriptorWrites.size()), m_DescriptorWrites.data(), 0, nullptr);
 	}
 
 	void ShaderVulkan::AddTextures(std::vector<std::shared_ptr<Texture>> textures) {
@@ -60,7 +60,7 @@ namespace Brisk
 			writeDescriptorSet3.pImageInfo = std::static_pointer_cast<TextureVulkan>(textures[i])->GetDescriptor();
 		}
 
-		vkUpdateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), writes.size(), writes.data(), 0, nullptr);
+		vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), writes.size(), writes.data(), 0, nullptr);
 	}
 
 	void ShaderVulkan::Allocate(std::shared_ptr<CommandBuffer> cmdBuffer, std::shared_ptr<Pipeline> pipeline) {

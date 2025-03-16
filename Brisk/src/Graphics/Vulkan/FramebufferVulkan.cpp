@@ -25,7 +25,7 @@ namespace Brisk
         framebufferInfo.height = specs.pHeight;
         framebufferInfo.layers = specs.pLayers;
 
-        if (vkCreateFramebuffer(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffer) != VK_SUCCESS) {
+        if (vkCreateFramebuffer(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffer) != VK_SUCCESS) {
             //throw std::runtime_error("failed to create framebuffer!");
         }
     }

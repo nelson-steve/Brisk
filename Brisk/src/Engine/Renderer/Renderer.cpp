@@ -124,6 +124,9 @@ namespace Brisk
 
         queue = Queue::Create();
 
+        m_MainCmdBufferAllocator = CommandBufferAllocator::Create();
+        m_MainCmdBufferAllocator->Init();
+        cmd = m_MainCmdBufferAllocator->Allocate(cmd);
         std::static_pointer_cast<CommandBufferVulkan>(cmd)->Allocate(m_CommandPool);
     }
 

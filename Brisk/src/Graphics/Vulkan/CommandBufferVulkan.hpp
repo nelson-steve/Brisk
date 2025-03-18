@@ -3,6 +3,7 @@
 #include "Engine/Renderer/CommandBuffer.hpp"
 //------------------------------------------
 #include <Volk/volk.h>
+#include <Engine/Renderer/CommandBufferAllocator.hpp>
 //--------------------
 
 namespace Brisk 
@@ -12,10 +13,10 @@ namespace Brisk
 		virtual void Bind() override;
 		virtual void UnBind() override;
 
+		virtual void SetParentAllocator(std::shared_ptr<CommandBufferAllocator> allocator) override;
+
 		void Allocate(VkCommandPool pool);
 		void Reset() override;
-		//void Begin(VkCommandBufferUsageFlags usageFlags = 0);
-		//void End();
 
 		const VkCommandBuffer& Get() { return m_CommandBuffer; }
 	private:

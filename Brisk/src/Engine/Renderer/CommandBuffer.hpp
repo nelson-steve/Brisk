@@ -18,6 +18,8 @@ namespace Brisk {
 		virtual void UnBind() = 0;
 		virtual void Reset() = 0;
 
+		virtual void SetParentAllocator(std::shared_ptr<CommandBufferAllocator> allocator) = 0;
+
 		static std::shared_ptr<CommandBuffer> Create();
 	protected:
 		std::vector<std::function<void()>> m_Commands;

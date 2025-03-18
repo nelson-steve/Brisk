@@ -12,6 +12,7 @@ namespace Brisk
 	public:
 		template<typename T>
 		std::shared_ptr<T> GetDevice() {
+			//Engine::s_Application->GetGpuAdapter()->GetDevice<T>()->GetDevice();
 			return std::dynamic_pointer_cast<T>(shared_from_this());
 		}
 

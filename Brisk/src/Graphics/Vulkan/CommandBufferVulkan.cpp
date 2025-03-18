@@ -4,6 +4,7 @@
 #include "CommandBufferVulkan.hpp"
 //--------------------------------
 #include <memory>
+#include "CommandBufferAllocatorVulkan.hpp"
 //---------------
 
 namespace Brisk {
@@ -18,6 +19,10 @@ namespace Brisk {
 		if (vkAllocateCommandBuffers(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_CommandBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate command buffers!");
 		}
+	}
+
+	void CommandBufferVulkan::SetParentAllocator(std::shared_ptr<CommandBufferAllocator> allocator) {
+		m_ParentPool = std::static_pointer_cast<CommandBufferAllocatorVulkan>(allocator)->GetAllocator();
 	}
 
 	void CommandBufferVulkan::Reset() {

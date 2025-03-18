@@ -7,23 +7,20 @@
 #include "Engine/Model.hpp"
 #include "ShaderModule.hpp"
 #include "Engine/Entity.hpp"
-#include "Graphics/Vulkan/PipelineVulkan.hpp"
-#include "Engine/Component.hpp"
-#include "Engine/SceneManager.hpp"
-#include "Graphics/Factories/SwapchainFactory.hpp"
 #include "RenderCommand.hpp"
 #include "ComputeCommand.hpp"
-
+#include "Engine/Component.hpp"
+#include "Engine/SceneManager.hpp"
+#include "Graphics/Vulkan/PipelineVulkan.hpp"
+#include "Graphics/Factories/SwapchainFactory.hpp"
+#include "Engine/Renderer/CommandBufferAllocator.hpp"
+//---------------------------------------------------
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <d3dcompiler.h>
 #include <wrl/client.h>
+//----------------------------
 using Microsoft::WRL::ComPtr;
-
-//#pragma comment(lib, "dxgi.lib")
-//#pragma comment(lib, "D3D12.lib")
-
-//-----------------------------------------------
 
 namespace Brisk
 {
@@ -124,10 +121,9 @@ namespace Brisk
 
         queue = Queue::Create();
 
-        //m_MainCmdBufferAllocator = CommandBufferAllocator::Create();
-        //m_MainCmdBufferAllocator->Init();
-        //cmd = m_MainCmdBufferAllocator->Allocate(cmd);
-        std::static_pointer_cast<CommandBufferVulkan>(cmd)->Allocate(m_CommandPool);
+        std::shared_ptr< CommandBufferAllocator> m_MainCmdBufferAllocator = CommandBufferAllocator::Create();
+        m_MainCmdBufferAllocator->Init();
+        m_MainCmdBufferAllocator->Allocate(cmd);
     }
 
     void Renderer::SetupEntity(Entity e) {

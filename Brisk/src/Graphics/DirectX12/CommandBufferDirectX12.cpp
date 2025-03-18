@@ -25,4 +25,4 @@ namespace Brisk
 	void CommandBufferDirectX12::UnBind() {
 		m_CommandList->Close();
 	}
-}
+}	

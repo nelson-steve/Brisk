@@ -1,5 +1,5 @@
-#include "Texture.hpp"
-#include "Vulkan/TextureVulkan.hpp"
+#include "Engine/Renderer/Texture.hpp"
+#include "Graphics/Vulkan/TextureVulkan.hpp"
 
 namespace Brisk 
 {

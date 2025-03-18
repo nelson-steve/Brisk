@@ -1,7 +1,7 @@
 #pragma once
 
 // INCLUDES
-#include "Graphics/Texture.hpp"
+#include "Renderer/Texture.hpp"
 #include "Renderer/Descriptor.hpp"
 //-------------------------------
 #include "tiny_gltf.h"

@@ -1,7 +1,7 @@
 #pragma once
 
 #include "BufferVulkan.hpp"
-#include "Graphics/Texture.hpp"
+#include "Engine/Renderer/Texture.hpp"
 #include "Engine/Application.hpp"
 
 #include <stb_image.h>

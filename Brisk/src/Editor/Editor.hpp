@@ -1,7 +1,7 @@
 #pragma once
 
 #include "IEditorPanel.hpp"
-#include "Graphics/Texture.hpp"
+#include "Engine/Renderer/Texture.hpp"
 
 #include "imgui.h"
 #include "ImGuiBackends/imgui_impl_glfw.h"

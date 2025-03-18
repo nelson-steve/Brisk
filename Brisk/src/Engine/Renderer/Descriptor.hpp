@@ -2,7 +2,7 @@
 
 // INCLUDES
 #include "Engine/Renderer/Buffer.hpp"
-#include "Graphics/Texture.hpp"
+#include "Engine/Renderer/Texture.hpp"
 //----------------------------
 #include <cstdint>
 #include <memory>

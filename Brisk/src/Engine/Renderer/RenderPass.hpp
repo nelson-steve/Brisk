@@ -2,9 +2,9 @@
 
 // INCLUDES
 #include "CommandBuffer.hpp"
-#include "Graphics/Swapchain.hpp"
+#include "Swapchain.hpp"
 #include "RHI.hpp"
-#include "Graphics/Texture.hpp"
+#include "Engine/Renderer/Texture.hpp"
 //---------------
 #include <cstdint>
 #include <vector>

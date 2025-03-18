@@ -1,6 +1,6 @@
 #pragma once
 
-#include "../Engine/Renderer/RHI.hpp"
+#include "Engine/Renderer/RHI.hpp"
 #include "Engine/Renderer/CommandBuffer.hpp"
 
 #include <tiny_gltf.h>

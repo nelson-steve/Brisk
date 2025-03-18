@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Graphics/Texture.hpp"
+#include "Engine/Renderer/Texture.hpp"
 #include "Pipeline.hpp"
 
 #include <memory>

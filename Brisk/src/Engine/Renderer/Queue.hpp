@@ -1,7 +1,7 @@
 #pragma once
 
 // INCLUDES
-#include "Graphics/Swapchain.hpp"
+#include "Swapchain.hpp"
 #include "CommandBuffer.hpp"
 #include "Semaphore.hpp"
 #include "Fence.hpp"

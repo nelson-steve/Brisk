@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Graphics/Swapchain.hpp"
+#include "Engine/Renderer/Swapchain.hpp"
 #include "Graphics/Vulkan/GpuAdapterVulkan.hpp"
 
 namespace Brisk 

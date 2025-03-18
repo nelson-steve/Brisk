@@ -9,7 +9,8 @@ namespace Brisk
 			return std::make_shared<CommandBufferAllocatorVulkan>();
 		}
 		else if (Engine::s_EngineSettings.API == Engine::EngineSettings::GraphicsAPI::DirectX12) {
-			return std::make_shared<CommandBufferAllocatorDirectX12>();
+			//return std::make_shared<CommandBufferAllocatorDirectX12>();
+			return nullptr;
 		}
 	}
 }

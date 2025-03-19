@@ -22,7 +22,9 @@ namespace Brisk
 
 		std::static_pointer_cast<CommandBufferVulkan>(cmd)->SetParentAllocator(m_CommandPool);
 
-		if (vkAllocateCommandBuffers(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &commandBuffer) != VK_SUCCESS) {
+		if (vkAllocateCommandBuffers(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 
+			&allocInfo, 
+			&std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get()) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to allocate command buffer!");
 		}
 	}

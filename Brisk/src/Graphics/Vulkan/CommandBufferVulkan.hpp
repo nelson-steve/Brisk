@@ -13,12 +13,12 @@ namespace Brisk
 		virtual void Bind() override;
 		virtual void UnBind() override;
 
-		virtual void SetParentAllocator(std::shared_ptr<CommandBufferAllocator> allocator) override;
+		void SetParentAllocator(VkCommandPool allocator);
 
 		void Allocate(VkCommandPool pool);
 		void Reset() override;
 
-		const VkCommandBuffer& Get() { return m_CommandBuffer; }
+		VkCommandBuffer& Get() { return m_CommandBuffer; }
 	private:
 		VkCommandPool m_ParentPool;
 		VkCommandBuffer m_CommandBuffer;

@@ -21,8 +21,8 @@ namespace Brisk {
 		}
 	}
 
-	void CommandBufferVulkan::SetParentAllocator(std::shared_ptr<CommandBufferAllocator> allocator) {
-		m_ParentPool = std::static_pointer_cast<CommandBufferAllocatorVulkan>(allocator)->GetAllocator();
+	void CommandBufferVulkan::SetParentAllocator(VkCommandPool allocator) {
+		m_ParentPool = allocator;
 	}
 
 	void CommandBufferVulkan::Reset() {

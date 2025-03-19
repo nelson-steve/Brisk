@@ -12,4 +12,8 @@ namespace Brisk
 	void CommandBufferDirectX12::UnBind() {
 		m_CommandList->Close();
 	}
+
+	void CommandBufferDirectX12::SetParentAlloator(std::shared_ptr<CommandBufferAllocator> allocator) {
+
+	}
 }	

@@ -11,6 +11,7 @@ namespace Brisk {
 	class WindowsWindow : public Window {
 	public:
 		WindowsWindow(int width, int height);
+		virtual void* GetHWNDWindowHandle() override;
 		virtual void* GetWindowHandle() override { return m_Window; }
 		/// <summary>
 		/// Cleanly destroys the window

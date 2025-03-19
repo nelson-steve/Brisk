@@ -15,6 +15,7 @@ namespace Brisk
 		virtual void Init() override;
 
 		ComPtr<ID3D12Device> GetDevice() const { return m_Device; }
+		ComPtr<IDXGIFactory6> GetDXGIFactory() const { return m_DxgiFactory; }
 	private:
 		ComPtr<IDXGIFactory6> m_DxgiFactory;
 		ComPtr<ID3D12Device> m_Device;

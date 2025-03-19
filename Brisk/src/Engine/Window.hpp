@@ -17,6 +17,7 @@ namespace Brisk
 	public:
 		using EventCallBackFn = std::function<void(Event&)>;
 
+		virtual void* GetHWNDWindowHandle() = 0;
 		virtual void* GetWindowHandle() = 0;
 		/// <summary>
 		/// Cleanly destroys the window

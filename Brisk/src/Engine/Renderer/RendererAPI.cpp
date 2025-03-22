@@ -3,6 +3,7 @@
 //-----------------------
 #include "Graphics/Vulkan/RendererAPIVulkan.hpp"
 #include "Graphics/Vulkan/ComputeAPIVulkan.hpp"
+#include "Graphics/DirectX12/RendererAPIDirectX12.hpp"
 //---------------------------------------------
 
 namespace Brisk 
@@ -14,8 +15,8 @@ namespace Brisk
 		{
 			case Engine::EngineSettings::GraphicsAPI::Vulkan:
 				return new RendererAPIVulkan();
-			//case Engine::EngineSettings::GraphicsAPI::DirectX12:
-				//return new RendererAPIDirectX12();
+			case Engine::EngineSettings::GraphicsAPI::DirectX12:
+				return new RendererAPIDirectX12();
 		}
 	}
 

@@ -17,6 +17,8 @@ namespace Brisk
 		virtual void Bind() override;
 		virtual void UnBind() override;
 
+		ComPtr<ID3D12GraphicsCommandList> Get() { return m_CommandList; }
+
 		void SetParentAlloator(std::shared_ptr<CommandBufferAllocator> allocator);
 	private:
 		ComPtr<ID3D12CommandAllocator> m_ParentAllocator;

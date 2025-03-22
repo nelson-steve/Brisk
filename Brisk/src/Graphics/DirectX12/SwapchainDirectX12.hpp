@@ -5,12 +5,12 @@
 
 namespace Brisk
 {
-	class SwapchainVulkan : public Swapchain {
+	class SwapchainDirectX12 : public Swapchain {
 	public:
 		virtual void Create(Mode mode) override;
 		virtual void Release() override;
 
-		SwapchainVulkan(std::shared_ptr<Window> window);
+		SwapchainDirectX12(std::shared_ptr<Window> window);
 	private:
 		ComPtr<IDXGISwapChain4> swapChain;
 

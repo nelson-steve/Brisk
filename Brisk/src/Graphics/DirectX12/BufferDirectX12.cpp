@@ -27,7 +27,7 @@ namespace Brisk
         }
     }
 
-    void BufferVulkan::UpdatePersistantData(uint64_t size, void* data) {
+    void BufferVulkan::UpdatePersistantData(uint32_t size, void* data) {
         if (m_MapPersistent && m_MappedPointer) {
             memcpy(m_MappedPointer, data, size);
         }
@@ -58,7 +58,7 @@ namespace Brisk
         );
 
         if (FAILED(hr)) {
-            throw std::runtime_error("Failed to create DirectX 12 buffer.");
+            throw std::runtime_error("Failed to create DirectX12 buffer.");
         }
 
         if (m_MapPersistent) {

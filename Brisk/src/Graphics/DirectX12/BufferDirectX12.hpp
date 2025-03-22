@@ -20,7 +20,7 @@ namespace Brisk
 			std::vector<Core::MemoryProperty> memoryProperty,
 			bool mapPersistant) override;
 		virtual void Release() override;
-		virtual void UpdatePersistantData(uint64_t size, void* data) override;
+		virtual void UpdatePersistantData(uint32_t size, void* data) override;
 		inline ID3D12Resource* Get() const {
 			return m_Buffer.Get();
 		}

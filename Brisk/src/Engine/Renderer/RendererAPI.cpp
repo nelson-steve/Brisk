@@ -8,8 +8,6 @@
 
 namespace Brisk 
 {
-	//RendererAPI::API RendererAPI::s_API = RendererAPI::API::Vulkan;
-
 	RendererAPI* RendererAPI::Create() {
 		switch (Engine::s_EngineSettings.API)
 		{

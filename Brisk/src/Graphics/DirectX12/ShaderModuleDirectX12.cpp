@@ -36,5 +36,4 @@ namespace Brisk
             throw std::runtime_error("Shader compilation failed!");
         }
     }
-
 }

@@ -35,9 +35,9 @@ namespace Brisk
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
         std::shared_ptr<ShaderModule> vertexShaderModule = ShaderModule::Create();
-        vertexShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
+        vertexShaderModule->Init("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX);
         std::shared_ptr<ShaderModule> fragmentShaderModule = ShaderModule::Create();
-        fragmentShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
+        fragmentShaderModule->Init("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT);
 
         Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
         RenderPass::RenderPassSpecs renderPassSpecs;

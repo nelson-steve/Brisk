@@ -42,7 +42,6 @@ namespace Brisk
 		std::shared_ptr<Fence> fence;
 		uint32_t imageIndex;
 		std::shared_ptr<CommandBuffer> cmd;
-		VkCommandPool m_CommandPool;
 		RenderCommand command;
 
 		std::shared_ptr<Queue> queue;

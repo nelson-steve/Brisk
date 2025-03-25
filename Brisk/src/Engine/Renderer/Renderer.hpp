@@ -1,15 +1,15 @@
 #pragma once
 
 // INCLUDES
-#include "Pipeline.hpp"
-#include "CommandBuffer.hpp"
-#include "Swapchain.hpp"
+#include "Queue.hpp"
 #include "Buffer.hpp"
+#include "Pipeline.hpp"
+#include "Swapchain.hpp"
 #include "Engine/Scene.hpp"
 #include "Engine/Model.hpp"
+#include "CommandBuffer.hpp"
 #include "RenderCommand.hpp"
-#include "Queue.hpp"
-#include "Graphics/Vulkan/CommandBufferVulkan.hpp"
+#include "Engine/Renderer/CommandBufferAllocator.hpp"
 //------------------------
 #include <memory>
 //---------------
@@ -27,23 +27,25 @@ namespace Brisk
 
 		static std::unique_ptr<Renderer> Create();
 
-		std::shared_ptr<Pipeline> pipeline;
 	private:
 		void RenderEntity(Entity e);
 		void SetupEntity(Entity e);
 
 	private:
 		static std::shared_ptr<Swapchain> m_Swapchain;
-		std::shared_ptr<Buffer> m_UniformBuffer;
 
-
+		// Synchronization objects
 		std::shared_ptr<Semaphore> ImageAvailableSemaphore;
 		std::shared_ptr<Semaphore> RenderFinishedSemaphore;
-		std::shared_ptr<Fence> fence;
-		uint32_t imageIndex;
-		std::shared_ptr<CommandBuffer> cmd;
-		RenderCommand command;
+		std::shared_ptr<Fence> m_Fence;
+		std::shared_ptr<Queue> m_Queue;
+		//-
 
-		std::shared_ptr<Queue> queue;
+		std::shared_ptr<CommandBufferAllocator> m_MainCmdBufferAllocator;
+		std::shared_ptr<Pipeline> m_Pipeline;
+		std::shared_ptr<Buffer> m_UniformBuffer;
+		std::shared_ptr<CommandBuffer> m_MainCmdBuffer;
+		RenderCommand m_RenderCommand;
+		uint32_t m_ImageIndex;
 	};
 }

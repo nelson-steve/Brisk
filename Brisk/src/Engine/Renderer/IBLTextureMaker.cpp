@@ -28,7 +28,7 @@ namespace Brisk
         descriptorLayout->Init();
 
 		std::shared_ptr<ShaderModule> computeShaderModule = ShaderModule::Create();
-        computeShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/EquirectangularToCubemap.spv", Pipeline::ShaderStage::COMPUTE));
+        computeShaderModule->Init("Shaders/Vulkan/Compiled/EquirectangularToCubemap.spv", Pipeline::ShaderStage::COMPUTE);
 
         Pipeline::ComputePipelineSpecs pipelineSpecs{};
         pipelineSpecs.pDescriptorLayouts.push_back(descriptorLayout);
@@ -180,10 +180,10 @@ namespace Brisk
             pbrLayout->Init();
 
             std::shared_ptr<ShaderModule> vertexShaderModule = ShaderModule::Create();
-            vertexShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX));
+            vertexShaderModule->Init("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX);
 
             std::shared_ptr<ShaderModule> fragmentShaderModule = ShaderModule::Create();
-            fragmentShaderModule->Init(std::make_pair("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT));
+            fragmentShaderModule->Init("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT);
 
             Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
             RenderPass::RenderPassSpecs renderPassSpecs;

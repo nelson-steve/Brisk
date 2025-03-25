@@ -1,5 +1,6 @@
 #include "CommandBufferAllocatorVulkan.hpp"
 #include "GpuAdapterVulkan.hpp"
+#include "CommandBufferVulkan.hpp"
 
 namespace Brisk 
 {

@@ -4,12 +4,12 @@
 
 namespace Brisk
 {
-	void ShaderModuleVulkan::Init(std::string path, Pipeline::ShaderStage type) {
+	void ShaderModuleVulkan::Init(std::string path, int type) {
 		m_Module = UtilitiesVulkan::CreateShaderModule(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), path);
 		m_ShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		if (type == Pipeline::ShaderStage::VERTEX)
+		if ((Pipeline::ShaderStage)type == Pipeline::ShaderStage::VERTEX)
 			m_ShaderStage.stage = VK_SHADER_STAGE_VERTEX_BIT;
-		else if (type == Pipeline::ShaderStage::FRAGMENT)
+		else if ((Pipeline::ShaderStage)type == Pipeline::ShaderStage::FRAGMENT)
 			m_ShaderStage.stage = VK_SHADER_STAGE_FRAGMENT_BIT;
 		else
 			std::cout << "Wrong shader type";

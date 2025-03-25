@@ -1,14 +1,21 @@
 #include "ShaderModuleDirectX12.hpp"
 #include <stdexcept>
 #include <string>
-#include <locale>
-#include <codecvt>
+
+#include <Windows.h>
 
 namespace Brisk
 {
-    void ShaderModuleDirectX12::Init(std::string path, Pipeline::ShaderStage type) {
-        std::wstring_convert<std::codecvt_utf8<wchar_t>> converter;
-        const std::wstring& shaderPath = converter.from_bytes(path);
+    std::wstring StringToWString(const std::string& str)
+    {
+        int size_needed = MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), NULL, 0);
+        std::wstring wstr(size_needed, 0);
+        MultiByteToWideChar(CP_UTF8, 0, str.c_str(), (int)str.length(), &wstr[0], size_needed);
+        return wstr;
+    }
+
+    void ShaderModuleDirectX12::Init(std::string path, int type) {
+        const std::wstring& shaderPath = StringToWString(path);
         const std::string& entryPoint = "main";
 
         UINT compileFlags = D3DCOMPILE_ENABLE_STRICTNESS;

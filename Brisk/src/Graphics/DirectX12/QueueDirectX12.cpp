@@ -3,12 +3,12 @@
 namespace Brisk
 {
     void QueueDirectX12::Submit(SubmitInfo submitInfo, std::shared_ptr<Fence> fence) {
-        ID3D12CommandList* commandLists[] = { submitInfo.pCmdBuffers[0]->Get()};
+        //ID3D12CommandList* commandLists[] = { submitInfo.pCmdBuffers[0]->Get()};
 
-        m_CommandQueue->ExecuteCommandLists(1, commandLists);
+        //m_CommandQueue->ExecuteCommandLists(1, commandLists);
 
         if (fence) {
-            m_CommandQueue->Signal(fence->Get(), fence->GetValue());
+            //m_CommandQueue->Signal(fence->Get(), fence->GetValue());
         }
     }
 

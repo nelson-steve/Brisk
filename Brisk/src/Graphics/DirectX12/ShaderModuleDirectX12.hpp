@@ -12,7 +12,7 @@ namespace Brisk
 {
     class ShaderModuleDirectX12 : public ShaderModule {
     public:
-        virtual void Init(std::string path, Pipeline::ShaderStage type) override;
+        virtual void Init(std::string path, int type) override;
 
         ID3DBlob* GetShaderBlob() { return m_ShaderBlob.Get(); }
         D3D12_SHADER_BYTECODE GetShaderBytecode() { return { m_ShaderBlob->GetBufferPointer(), m_ShaderBlob->GetBufferSize() }; }

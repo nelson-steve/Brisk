@@ -13,14 +13,6 @@
 #include "Engine/SceneManager.hpp"
 #include "Graphics/Vulkan/PipelineVulkan.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
-#include "Engine/Renderer/CommandBufferAllocator.hpp"
-//---------------------------------------------------
-#include <d3d12.h>
-#include <dxgi1_6.h>
-#include <d3dcompiler.h>
-#include <wrl/client.h>
-//----------------------------
-using Microsoft::WRL::ComPtr;
 
 namespace Brisk
 {
@@ -92,16 +84,13 @@ namespace Brisk
         pipelineSpecs.pDepthBoundsTestEnable = false;
         pipelineSpecs.pStencilTestEnable = false;
 
-        pipeline = Pipeline::Create();
-        pipeline->Init(pipelineSpecs);
+        m_Pipeline = Pipeline::Create();
+        m_Pipeline->Init(pipelineSpecs);
 
-        cmd = CommandBuffer::Create();
+        m_MainCmdBuffer = CommandBuffer::Create();
 
-        VkSemaphoreCreateInfo semaphoreInfo{};
-        semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
-
-        fence = Fence::Create();
-        fence->Init();
+        m_Fence = Fence::Create();
+        m_Fence->Init();
 
         ImageAvailableSemaphore = Semaphore::Create();
         ImageAvailableSemaphore->Init();
@@ -114,18 +103,18 @@ namespace Brisk
         poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
         poolInfo.queueFamilyIndex = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().FamilyIndex;
 
-        queue = Queue::Create();
+        m_Queue = Queue::Create();
 
-        std::shared_ptr< CommandBufferAllocator> m_MainCmdBufferAllocator = CommandBufferAllocator::Create();
+        m_MainCmdBufferAllocator = CommandBufferAllocator::Create();
         m_MainCmdBufferAllocator->Init();
-        m_MainCmdBufferAllocator->Allocate(cmd);
+        m_MainCmdBufferAllocator->Allocate(m_MainCmdBuffer);
     }
 
     void Renderer::SetupEntity(Entity e) {
         if (e.HasComponent<MeshComponent>()) {
             for (auto& subMesh : e.GetComponent<MeshComponent>().subMeshes) {
                 uint32_t index = subMesh.material_index != -1 ? subMesh.material_index : 0;
-                //materials[index]->Bind(cmd, pipeline);
+                //materials[index]->Bind(m_MainCmdBuffer, m_Pipeline);
 
                 PushConstants pushConstantsData = {
                     SceneManager::pActiveScene->mMaterials[index].baseColorTextureIndex,   // Index for albedo texture 0
@@ -137,9 +126,9 @@ namespace Brisk
 
                 //pushConstantsData.camPos = Engine::s_Application->GetCamera()->GetPosition();
 
-                pipeline->BindPushConstant(cmd, sizeof(PushConstants), &pushConstantsData);
+                m_Pipeline->BindPushConstant(m_MainCmdBuffer, sizeof(PushConstants), &pushConstantsData);
 
-                RenderCommand::DrawIndexed(cmd, subMesh.index_count, 1, subMesh.first_index, 0, 0);
+                RenderCommand::DrawIndexed(m_MainCmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
             }
         }
         for (auto& child : e.GetComponent<TransformComponent>().children) {
@@ -166,17 +155,17 @@ namespace Brisk
         //auto view = SceneManager::pActiveScene->Reg().view<MeshComponent, MaterialComponent>();
         auto parent = SceneManager::pActiveScene->Reg().view<RootComponent>();
 
-        fence->Wait();
-        fence->Reset();
+        m_Fence->Wait();
+        m_Fence->Reset();
 
-        m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &imageIndex);
-        cmd->Reset();
-        cmd->Bind();
-        pipeline->m_GraphicsSpecs.pRenderPass->Begin(cmd, imageIndex);
-        pipeline->Bind(cmd);
+        m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &m_ImageIndex);
+        m_MainCmdBuffer->Reset();
+        m_MainCmdBuffer->Bind();
+        m_Pipeline->m_GraphicsSpecs.pRenderPass->Begin(m_MainCmdBuffer, m_ImageIndex);
+        m_Pipeline->Bind(m_MainCmdBuffer);
 
-        RenderCommand::SetViewport(cmd, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
-        RenderCommand::SetScissor(cmd, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+        RenderCommand::SetViewport(m_MainCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
+        RenderCommand::SetScissor(m_MainCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
 
         for (auto e : parent) {
             Entity entity = { e, SceneManager::pActiveScene.get() };
@@ -186,42 +175,42 @@ namespace Brisk
             auto& root = entity.GetComponent<RootComponent>();
             auto& mat = entity.GetComponent<MaterialComponent>();
 
-            RenderCommand::BindVertexBuffer(cmd, { root.m_VertexBuffer }, 0);
-            RenderCommand::BindIndexBuffer(cmd, root.m_IndexBuffer, 0);
+            RenderCommand::BindVertexBuffer(m_MainCmdBuffer, { root.m_VertexBuffer }, 0);
+            RenderCommand::BindIndexBuffer(m_MainCmdBuffer, root.m_IndexBuffer, 0);
 
-            mat.pMaterials[0]->Bind(cmd, pipeline);
+            mat.pMaterials[0]->Bind(m_MainCmdBuffer, m_Pipeline);
 
-            pipeline->Bind(cmd);
+            m_Pipeline->Bind(m_MainCmdBuffer);
 
             RenderEntity(entity);
         }
 
-        pipeline->m_GraphicsSpecs.pRenderPass->End(cmd);
-        cmd->UnBind();
+        m_Pipeline->m_GraphicsSpecs.pRenderPass->End(m_MainCmdBuffer);
+        m_MainCmdBuffer->UnBind();
 
         Queue::SubmitInfo submitInfo{};
         submitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
         submitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore);
         submitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-        submitInfo.pCmdBuffers.push_back(cmd);
+        submitInfo.pCmdBuffers.push_back(m_MainCmdBuffer);
 
-        // Submit queue
-        queue->Submit(submitInfo, fence);
+        // Submit m_Queue
+        m_Queue->Submit(submitInfo, m_Fence);
 
         Queue::PresentInfo presentInfo{};
         presentInfo.pWaitSemaphores.push_back(RenderFinishedSemaphore);
         presentInfo.pSwapchains.push_back(m_Swapchain);
-        presentInfo.pImageIndex = imageIndex;
+        presentInfo.pImageIndex = m_ImageIndex;
 
         // Present
-        queue->Present(presentInfo);
+        m_Queue->Present(presentInfo);
     }
 
     void Renderer::RenderEntity(Entity e) {
         if (e.HasComponent<MeshComponent>()) {
             for (auto& subMesh : e.GetComponent<MeshComponent>().subMeshes) {
                 uint32_t index = subMesh.material_index != -1 ? subMesh.material_index : 0;
-                //materials[index]->Bind(cmd, pipeline);
+                //materials[index]->Bind(m_MainCmdBuffer, m_Pipeline);
 
                 PushConstants pushConstantsData = {
                     SceneManager::pActiveScene->mMaterials[index].baseColorTextureIndex,   // Index for albedo texture 0
@@ -233,9 +222,9 @@ namespace Brisk
 
                 //pushConstantsData.camPos = Engine::s_Application->GetCamera()->GetPosition();
 
-                pipeline->BindPushConstant(cmd, sizeof(PushConstants), &pushConstantsData);
+                m_Pipeline->BindPushConstant(m_MainCmdBuffer, sizeof(PushConstants), &pushConstantsData);
 
-                RenderCommand::DrawIndexed(cmd, subMesh.index_count, 1, subMesh.first_index, 0, 0);
+                RenderCommand::DrawIndexed(m_MainCmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
             }
         }
         for (auto& child : e.GetComponent<TransformComponent>().children) {

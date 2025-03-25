@@ -5,7 +5,7 @@
 
 namespace Brisk
 {
-    void BufferVulkan::Init(uint64_t size,
+    void BufferDirectX12::Init(uint64_t size,
         void* data,
         std::vector<Core::BufferUsage> usageFlags,
         std::vector<Core::MemoryProperty> memoryProperty,
@@ -20,20 +20,20 @@ namespace Brisk
         }
     }
 
-    void BufferVulkan::Release() {
+    void BufferDirectX12::Release() {
         if (m_Buffer) {
             m_Buffer->Release();
             m_Buffer = nullptr;
         }
     }
 
-    void BufferVulkan::UpdatePersistantData(uint32_t size, void* data) {
+    void BufferDirectX12::UpdatePersistantData(uint32_t size, void* data) {
         if (m_MapPersistent && m_MappedPointer) {
             memcpy(m_MappedPointer, data, size);
         }
     }
 
-    void BufferVulkan::Create(uint64_t size) {
+    void BufferDirectX12::Create(uint64_t size) {
         D3D12_HEAP_PROPERTIES heapProps = {};
         heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
 

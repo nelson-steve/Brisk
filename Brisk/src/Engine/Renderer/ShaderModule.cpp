@@ -2,7 +2,7 @@
 #include "ShaderModule.hpp"
 #include "Graphics/Vulkan/ShaderModuleVulkan.hpp"
 #include "Engine/Engine.hpp"
-#include "Graphics/DirectX12/ShaderModuleDirecx12.hpp"
+#include "Graphics/DirectX12/ShaderModuleDirectX12.hpp"
 //-----------------------------------------------
 
 namespace Brisk 

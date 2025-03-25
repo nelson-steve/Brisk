@@ -36,4 +36,8 @@ namespace Brisk
         // Convert to IDXGISwapChain4 for modern features
         tempSwapChain.As(&swapChain);
 	}
+
+    void SwapchainDirectX12::Release() {
+        swapChain.Reset();
+    }
 }

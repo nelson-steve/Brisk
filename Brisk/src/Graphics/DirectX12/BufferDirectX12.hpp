@@ -12,7 +12,7 @@ using Microsoft::WRL::ComPtr;
 
 namespace Brisk 
 {
-	class BufferVulkan : public Buffer {
+	class BufferDirectX12 : public Buffer {
 	public:
 		virtual void Init(uint64_t size,
 			void* data,

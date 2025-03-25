@@ -1,7 +1,8 @@
 #pragma once
 
 // INCLUDES
-#include "Graphics/DirectX12/CommandBufferDirectX12.hpp"
+#include "CommandBufferDirectX12.hpp"
+#include "BufferDirectX12.hpp"
 //---------------------------------------------------------------
 #include <d3d12.h>
 #include <dxgi1_6.h>
@@ -48,8 +49,8 @@ namespace Brisk
         virtual void BindIndexBuffer(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Buffer> buffer, uint32_t firstBinding) override {
             auto dxBuffer = std::static_pointer_cast<BufferDirectX12>(buffer);
             D3D12_INDEX_BUFFER_VIEW indexBufferView{};
-            indexBufferView.BufferLocation = dxBuffer->GetGPUVirtualAddress();
-            indexBufferView.SizeInBytes = dxBuffer->GetSize();
+            //indexBufferView.BufferLocation = dxBuffer->GetGPUVirtualAddress();
+            //indexBufferView.SizeInBytes = dxBuffer->GetSize();
             indexBufferView.Format = DXGI_FORMAT_R32_UINT;
 
             std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->IASetIndexBuffer(&indexBufferView);
@@ -60,9 +61,9 @@ namespace Brisk
             for (const auto& buffer : buffers) {
                 auto dxBuffer = std::static_pointer_cast<BufferDirectX12>(buffer);
                 D3D12_VERTEX_BUFFER_VIEW vbv{};
-                vbv.BufferLocation = dxBuffer->GetGPUVirtualAddress();
-                vbv.SizeInBytes = dxBuffer->GetSize();
-                vbv.StrideInBytes = dxBuffer->GetStride();
+                //vbv.BufferLocation = dxBuffer->GetGPUVirtualAddress();
+                //vbv.SizeInBytes = dxBuffer->GetSize();
+                //vbv.StrideInBytes = dxBuffer->GetStride();
                 vertexBufferViews.push_back(vbv);
             }
 

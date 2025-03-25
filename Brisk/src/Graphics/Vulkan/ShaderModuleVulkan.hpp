@@ -8,7 +8,7 @@ namespace Brisk
 {
 	class ShaderModuleVulkan : public ShaderModule {
 	public:
-		virtual void Init(std::string path, Pipeline::ShaderStage type) override;
+		virtual void Init(std::string path, int type) override;
 
 		VkShaderModule GetModule() { return m_Module; }
 		VkPipelineShaderStageCreateInfo GetShaderStageInfo() { return m_ShaderStage; }

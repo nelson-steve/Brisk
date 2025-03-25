@@ -2,6 +2,7 @@
 
 // INCLUDES
 #include "Engine/Renderer/CommandBuffer.hpp"
+#include "Engine/Renderer/CommandBufferAllocator.hpp"
 //------------------------------------------
 #include <d3d12.h>
 #include <dxgi1_6.h>

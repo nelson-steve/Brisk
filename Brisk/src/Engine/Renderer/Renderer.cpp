@@ -59,7 +59,7 @@ namespace Brisk
             pipelineSpecs.pDescriptorLayouts.push_back(layout);
         }
         {
-            std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
+            std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();  
             layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
             layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
             layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });

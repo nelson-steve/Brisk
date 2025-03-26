@@ -36,8 +36,8 @@ namespace Brisk
         // create pipeline state
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
         psoDesc.pRootSignature = m_RootSignature.Get();
-        //psoDesc.VS = { vertexShaderBytecode, vertexShaderSize };
-        //psoDesc.PS = { pixelShaderBytecode, pixelShaderSize };
+        psoDesc.VS = { vertexShaderBytecode, vertexShaderSize };
+        psoDesc.PS = { pixelShaderBytecode, pixelShaderSize };
         psoDesc.InputLayout = { inputLayout, _countof(inputLayout) };
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -48,8 +48,8 @@ namespace Brisk
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
         psoDesc.pRootSignature = m_RootSignature.Get();
         psoDesc.InputLayout = { inputLayout, _countof(inputLayout) };
-        //psoDesc.VS = CD3DX12_SHADER_BYTECODE(pbrVS.Get());
-        //psoDesc.PS = CD3DX12_SHADER_BYTECODE(pbrPS.Get());
+        psoDesc.VS = CD3DX12_SHADER_BYTECODE(pbrVS.Get());
+        psoDesc.PS = CD3DX12_SHADER_BYTECODE(pbrPS.Get());
         psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
         psoDesc.RasterizerState.FrontCounterClockwise = true;
         psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);

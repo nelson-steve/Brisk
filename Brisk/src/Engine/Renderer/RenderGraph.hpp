@@ -4,6 +4,7 @@
 #include <functional>
 #include <memory>
 #include <string>
+#include <queue>
 
 struct VulkanResource;
 struct DX12Resource;
@@ -28,33 +29,55 @@ public:
         std::unique_ptr<RenderPass> pass;
         std::vector<ResourceHandle> inputs;
         std::vector<ResourceHandle> outputs;
+        int dependencyCount = 0; // Tracks unresolved dependencies
+        std::vector<PassNode*> dependents; // Passes that depend on this one
     };
 
     void AddPass(const std::string& name, std::unique_ptr<RenderPass> pass,
         const std::vector<ResourceHandle>& inputs,
         const std::vector<ResourceHandle>& outputs) {
-        PassNode node{ name, std::move(pass), inputs, outputs };
-        passes.push_back(std::move(node));
+        PassNode node{ name, std::move(pass), inputs, outputs, 0, {} };
+        passMap[name] = &passes.emplace_back(std::move(node));
+    }
+
+    void BuildExecutionOrder() {
+        std::unordered_map<ResourceHandle, PassNode*> resourceProducers;
+        for (auto& pass : passes) {
+            for (const auto& output : pass.outputs) {
+                resourceProducers[output] = &pass;
+            }
+        }
+        for (auto& pass : passes) {
+            for (const auto& input : pass.inputs) {
+                if (resourceProducers.count(input)) {
+                    PassNode* producer = resourceProducers[input];
+                    producer->dependents.push_back(&pass);
+                    pass.dependencyCount++;
+                }
+            }
+        }
     }
 
     void Execute() {
-        for (auto& node : passes) {
-            node.pass->Execute();
+        std::queue<PassNode*> readyPasses;
+        for (auto& pass : passes) {
+            if (pass.dependencyCount == 0) {
+                readyPasses.push(&pass);
+            }
+        }
+        while (!readyPasses.empty()) {
+            PassNode* node = readyPasses.front();
+            readyPasses.pop();
+            node->pass->Execute();
+            for (PassNode* dependent : node->dependents) {
+                if (--dependent->dependencyCount == 0) {
+                    readyPasses.push(dependent);
+                }
+            }
         }
     }
 
 private:
     std::vector<PassNode> passes;
-};
-
-class VulkanRenderPass : public RenderPass {
-public:
-    void Execute() override {
-    }
-};
-
-class DX12RenderPass : public RenderPass {
-public:
-    void Execute() override {
-    }
+    std::unordered_map<std::string, PassNode*> passMap;
 };

@@ -81,3 +81,22 @@ private:
     std::vector<PassNode> passes;
     std::unordered_map<std::string, PassNode*> passMap;
 };
+
+class RenderGraphBuilder {
+    public:
+        RenderGraphBuilder(RenderGraph& graph) : graph(graph) {}
+    
+        RenderGraphBuilder& AddPass(const std::string& name, std::unique_ptr<RenderPass> pass, 
+                                    const std::vector<ResourceHandle>& inputs = {},
+                                    const std::vector<ResourceHandle>& outputs = {}) {
+            graph.AddPass(name, std::move(pass), inputs, outputs);
+            return *this;
+        }
+    
+        void Build() {
+            graph.BuildExecutionOrder();
+        }
+    
+    private:
+        RenderGraph& graph;
+    };

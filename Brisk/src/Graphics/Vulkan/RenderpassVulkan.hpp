@@ -5,35 +5,46 @@
 
 #include <Volk/volk.h>
 
-#include <vector>
-
-namespace Brisk {
+namespace Brisk 
+{
+    // API-Specific Implementations
     class RenderPassVulkan : public RenderPass {
     public:
-        virtual void Init(const RenderPassSpecs& specs) override;
-        virtual void Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t imageIndex) override;
-        virtual void End(std::shared_ptr<CommandBuffer> cmd) override;
+        virtual void Execute() override {
+            std::cout << "Executing VulkanRenderPass\n";
+        }
+    };
 
-        virtual void AddRenderTarget(std::shared_ptr<Swapchain> swapchain) override;
-        virtual void AddRenderTarget(std::shared_ptr<Texture> texture) override;
+    // Deferred Renderer Passes for Vulkan
+    class GBufferPass : public RenderPassVulkan {
+    public:
+        GBufferPass(VkDevice device, VkRenderPass renderPass, VkFramebuffer framebuffer, VkCommandBuffer commandBuffer)
+            : device(device), renderPass(renderPass), framebuffer(framebuffer), commandBuffer(commandBuffer) {
+        }
 
-        //void ReleaseFramebuffers();
-        //void CreateNAddFramebuffer(std::vector<VkImageView> attachments, uint32_t width, uint32_t height);
-
-        //void BindPipeline(void* pipeline);
-        //void BeginRenderPass(CommandBufferVulkan* commandBuffer, int imageIndex) {}
-        //void EndRenderPass(CommandBufferVulkan* commandBuffer, bool endCmdBuffer = true) {}
-
-        VkRenderPass GetRenderPass() const { return m_RenderPass; }  
-        const std::vector<VkFramebuffer> GetFramebuffers() const { return m_Framebuffers; }
-
+        void Execute() override;
     private:
-        VkRenderPass m_RenderPass;
-        std::vector<VkFramebuffer> m_Framebuffers;
-        std::vector<std::vector<VkImageView>> m_ImageAttachments;
-        //std::vector<VkAttachmentDescription> m_Attachments;
-        //std::vector<VkSubpassDescription> m_Subpasses;
-        //std::vector<VkSubpassDependency> m_Dependencies;
+        VkDevice device;
+        VkRenderPass renderPass;
+        VkFramebuffer framebuffer;
+        VkCommandBuffer commandBuffer;
+    };
 
+    class LightingPass : public RenderPassVulkan {
+    public:
+        void Execute() override {
+        }
+    };
+
+    class CompositionPass : public RenderPassVulkan {
+    public:
+        void Execute() override {
+        }
+    };
+
+    class PostProcessingPass : public RenderPassVulkan {
+    public:
+        void Execute() override {
+        }
     };
 }

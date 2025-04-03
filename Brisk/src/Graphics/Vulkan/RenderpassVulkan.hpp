@@ -4,24 +4,16 @@
 #include "Engine/Renderer/RenderPass.hpp"
 
 #include <Volk/volk.h>
+#include <iostream>
 
 namespace Brisk 
 {
-    // API-Specific Implementations
-    class RenderPassVulkan : public RenderPass {
+    class GBufferPassVulkan : public GBufferPass {
     public:
-        virtual void Execute() override {
-            std::cout << "Executing VulkanRenderPass\n";
-        }
-    };
-
-    // Deferred Renderer Passes for Vulkan
-    class GBufferPass : public RenderPassVulkan {
-    public:
-        GBufferPass(VkDevice device, VkRenderPass renderPass, VkFramebuffer framebuffer, VkCommandBuffer commandBuffer)
+        GBufferPassVulkan(VkDevice device, VkRenderPass renderPass, VkFramebuffer framebuffer, VkCommandBuffer commandBuffer)
             : device(device), renderPass(renderPass), framebuffer(framebuffer), commandBuffer(commandBuffer) {
         }
-
+        virtual ~GBufferPassVulkan() = 0;
         void Execute() override;
     private:
         VkDevice device;
@@ -30,21 +22,18 @@ namespace Brisk
         VkCommandBuffer commandBuffer;
     };
 
-    class LightingPass : public RenderPassVulkan {
+    class LightingPassVulkan : public LightingPass {
     public:
-        void Execute() override {
-        }
+        virtual ~LightingPassVulkan() = 0;
     };
 
-    class CompositionPass : public RenderPassVulkan {
+    class CompositionPassVulkan : public CompositionPass {
     public:
-        void Execute() override {
-        }
+        virtual ~CompositionPassVulkan() = 0;
     };
 
-    class PostProcessingPass : public RenderPassVulkan {
+    class PostProcessingPassVulkan : public PostProcessingPass {
     public:
-        void Execute() override {
-        }
+        virtual ~PostProcessingPassVulkan() = 0;
     };
 }

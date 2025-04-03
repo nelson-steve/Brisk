@@ -5,7 +5,15 @@
 
 namespace Brisk 
 {
-	std::shared_ptr<RenderPass> RenderPass::Create() {
-		return std::make_shared<RenderPassVulkan>();
-	}
+    GBufferPass::~GBufferPass() {
+    }
+
+    LightingPass::~LightingPass() {
+    }
+
+    CompositionPass::~CompositionPass() {
+    }
+
+    PostProcessingPass::~PostProcessingPass() {
+    }
 }

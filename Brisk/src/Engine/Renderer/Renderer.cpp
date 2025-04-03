@@ -13,6 +13,7 @@
 #include "Engine/SceneManager.hpp"
 #include "Graphics/Vulkan/PipelineVulkan.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
+#include <Graphics/Vulkan/RenderpassVulkan.hpp>
 
 namespace Brisk
 {
@@ -30,6 +31,36 @@ namespace Brisk
         vertexShaderModule->Init("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX);
         std::shared_ptr<ShaderModule> fragmentShaderModule = ShaderModule::Create();
         fragmentShaderModule->Init("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT);
+
+        m_RenderGraph = std::make_shared<RenderGraph>();
+        m_RenderGraph->AddPass();
+
+        ResourceHandle gPosition = ResourceHandle(1);
+        ResourceHandle gNormal = ResourceHandle(2);
+        ResourceHandle gAlbedo = ResourceHandle(3);
+        ResourceHandle gSpecular = ResourceHandle(4);
+
+        // Define resources for lighting pass (inputs will be from G-buffer)
+        ResourceHandle lightingOutput = ResourceHandle(5);
+
+        // Create the RenderGraphBuilder
+        RenderGraphBuilder builder(*m_RenderGraph.get());
+
+        // Add G-buffer pass
+        builder.AddPass("GBufferPass", std::make_unique<GBufferPass>(), {},
+            { gPosition, gNormal, gAlbedo, gSpecular });
+
+        // Add Lighting pass (inputs from G-buffer outputs)
+        builder.AddPass("LightingPass", std::make_unique<LightingPass>(),
+            { gPosition, gNormal, gAlbedo, gSpecular },
+            { lightingOutput });
+
+        // Add PostProcessing pass
+        builder.AddPass("PostProcessingPass", std::make_unique<PostProcessingPass>(),
+            { lightingOutput }, {});
+
+        // Build the execution order
+        builder.Build();
 
         Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
         RenderPass::RenderPassSpecs renderPassSpecs;

@@ -9,6 +9,7 @@
 #include "Engine/Model.hpp"
 #include "CommandBuffer.hpp"
 #include "RenderCommand.hpp"
+#include "RenderGraph.hpp"
 #include "Engine/Renderer/CommandBufferAllocator.hpp"
 //------------------------
 #include <memory>
@@ -33,6 +34,8 @@ namespace Brisk
 
 	private:
 		static std::shared_ptr<Swapchain> m_Swapchain;
+
+		std::shared_ptr<RenderGraph> m_RenderGraph;
 
 		// Synchronization objects
 		std::shared_ptr<Semaphore> ImageAvailableSemaphore;

@@ -33,7 +33,6 @@ namespace Brisk
         fragmentShaderModule->Init("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT);
 
         m_RenderGraph = std::make_shared<RenderGraph>();
-        m_RenderGraph->AddPass();
 
         ResourceHandle gPosition = ResourceHandle(1);
         ResourceHandle gNormal = ResourceHandle(2);
@@ -47,23 +46,23 @@ namespace Brisk
         RenderGraphBuilder builder(*m_RenderGraph.get());
 
         // Add G-buffer pass
-        builder.AddPass("GBufferPass", std::make_unique<GBufferPass>(), {},
+        builder.AddPass("GBufferPass", GBufferPass::Get(), {},
             { gPosition, gNormal, gAlbedo, gSpecular });
 
         // Add Lighting pass (inputs from G-buffer outputs)
-        builder.AddPass("LightingPass", std::make_unique<LightingPass>(),
+        builder.AddPass("LightingPass", LightingPass::Get(),
             { gPosition, gNormal, gAlbedo, gSpecular },
             { lightingOutput });
 
         // Add PostProcessing pass
-        builder.AddPass("PostProcessingPass", std::make_unique<PostProcessingPass>(),
+        builder.AddPass("PostProcessingPass", PostProcessingPass::Get(),
             { lightingOutput }, {});
 
         // Build the execution order
         builder.Build();
 
         Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
-        RenderPass::RenderPassSpecs renderPassSpecs;
+        //RenderPass::RenderPassSpecs renderPassSpecs;
         //renderPassSpecs.pAttachments =
         //    {
         //        {0, Core::Format::FORMAT_B8G8R8A8_UNORM, true, RenderPass::AttachmentType::Swapchain},
@@ -80,8 +79,8 @@ namespace Brisk
             {0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Color)},
         };
         pipelineSpecs.pLayout = vertexLayout;
-        pipelineSpecs.pRenderPass = RenderPass::Create();
-        pipelineSpecs.pRenderPass->Init(renderPassSpecs);
+        //pipelineSpecs.pRenderPass = RenderPass::Create();
+        //pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 
         {
             std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
@@ -192,7 +191,7 @@ namespace Brisk
         m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &m_ImageIndex);
         m_MainCmdBuffer->Reset();
         m_MainCmdBuffer->Bind();
-        m_Pipeline->m_GraphicsSpecs.pRenderPass->Begin(m_MainCmdBuffer, m_ImageIndex);
+        //m_Pipeline->m_GraphicsSpecs.pRenderPass->Begin(m_MainCmdBuffer, m_ImageIndex);
         m_Pipeline->Bind(m_MainCmdBuffer);
 
         RenderCommand::SetViewport(m_MainCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
@@ -216,7 +215,7 @@ namespace Brisk
             RenderEntity(entity);
         }
 
-        m_Pipeline->m_GraphicsSpecs.pRenderPass->End(m_MainCmdBuffer);
+        //m_Pipeline->m_GraphicsSpecs.pRenderPass->End(m_MainCmdBuffer);
         m_MainCmdBuffer->UnBind();
 
         Queue::SubmitInfo submitInfo{};

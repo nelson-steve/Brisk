@@ -18,7 +18,7 @@ namespace Brisk
 
         VkFramebufferCreateInfo framebufferInfo{};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
-        framebufferInfo.renderPass = std::static_pointer_cast<RenderPassVulkan>(specs.pRenderPass)->GetRenderPass();
+        //framebufferInfo.renderPass = std::static_pointer_cast<RenderPassVulkan>(specs.pRenderPass)->GetRenderPass();
         //framebufferInfo.attachmentCount = static_cast<uint32_t>(specs.pAttachments.size());
         //framebufferInfo.pAttachments = specs.pAttachments.data();
         framebufferInfo.width = specs.pWidth;

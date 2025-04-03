@@ -186,7 +186,7 @@ namespace Brisk
             fragmentShaderModule->Init("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT);
 
             Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
-            RenderPass::RenderPassSpecs renderPassSpecs;
+            //RenderPass::RenderPassSpecs renderPassSpecs;
             //renderPassSpecs.pAttachments =
             //{
             //    {0, Core::Format::FORMAT_B8G8R8A8_UNORM, true, RenderPass::AttachmentType::Swapchain},
@@ -200,8 +200,8 @@ namespace Brisk
                 {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Position)},
             };
             pipelineSpecs.pLayout = vertexLayout;
-            pipelineSpecs.pRenderPass = RenderPass::Create();
-            pipelineSpecs.pRenderPass->Init(renderPassSpecs);
+            //pipelineSpecs.pRenderPass = RenderPass::Create();
+            //pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 
             pipelineSpecs.pDescriptorLayouts.push_back(materialLayout);
 

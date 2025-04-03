@@ -7,8 +7,8 @@ namespace Brisk
 
         D3D12_RESOURCE_DESC rtDesc = {};
         rtDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-        rtDesc.Width = specs.Width;
-        rtDesc.Height = specs.Height;
+        //rtDesc.Width = specs.Width;
+        //rtDesc.Height = specs.Height;
         rtDesc.DepthOrArraySize = 1;
         rtDesc.MipLevels = 1;
         rtDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -26,23 +26,23 @@ namespace Brisk
         clearValue.Color[2] = 0.0f;
         clearValue.Color[3] = 1.0f;
 
-        device->CreateCommittedResource(
-            &heapProps,
-            D3D12_HEAP_FLAG_NONE,
-            &rtDesc,
-            D3D12_RESOURCE_STATE_RENDER_TARGET,
-            &clearValue,
-            IID_PPV_ARGS(&m_RenderTarget)
-        );
+        //device->CreateCommittedResource(
+        //    &heapProps,
+        //    D3D12_HEAP_FLAG_NONE,
+        //    &rtDesc,
+        //    D3D12_RESOURCE_STATE_RENDER_TARGET,
+        //    &clearValue,
+        //    IID_PPV_ARGS(&m_RenderTarget)
+        //);
 
         D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
         heapDesc.NumDescriptors = 1;
         heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
         heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
-        device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_RTVHeap));
+        //device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_RTVHeap));
 
         m_RTVHandle = m_RTVHeap->GetCPUDescriptorHandleForHeapStart();
-        device->CreateRenderTargetView(m_RenderTarget.Get(), nullptr, m_RTVHandle);
+        //device->CreateRenderTargetView(m_RenderTarget.Get(), nullptr, m_RTVHandle);
     }
 
     void FramebufferDirectX12::Destroy() {
@@ -52,6 +52,6 @@ namespace Brisk
 
     void FramebufferDirectX12::Bind() {
         //ID3D12GraphicsCommandList* commandList =;
-        commandList->OMSetRenderTargets(1, &m_RTVHandle, FALSE, nullptr);
+        //commandList->OMSetRenderTargets(1, &m_RTVHandle, FALSE, nullptr);
     }
 }

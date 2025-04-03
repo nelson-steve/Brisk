@@ -358,7 +358,7 @@ namespace Brisk
 		queuePrioritiesList.clear();
 		for (QueueFamily queue : QueuFamilies) {
 			for (QueueType type : queue.SupportedTypes) {
-				int i = 0;
+				uint32_t i = 0;
 				if (type == QUEUE_GRAPHICS_BIT) {
 					vkGetDeviceQueue(m_Device, queue.Index, i++, &m_GraphicsQueue.Handle);
 					if (i >= queue.QueueCount) break;

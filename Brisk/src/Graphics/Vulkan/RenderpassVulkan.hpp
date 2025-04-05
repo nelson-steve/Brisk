@@ -25,15 +25,30 @@ namespace Brisk
     class LightingPassVulkan : public LightingPass {
     public:
         void Execute() override;
+    private:
+        VkDevice device;
+        VkRenderPass renderPass;
+        VkFramebuffer framebuffer;
+        VkCommandBuffer commandBuffer;
     };
 
     class CompositionPassVulkan : public CompositionPass {
     public:
         void Execute() override;
+    private:
+        VkDevice device;
+        VkRenderPass renderPass;
+        VkFramebuffer framebuffer;
+        VkCommandBuffer commandBuffer;
     };
 
     class PostProcessingPassVulkan : public PostProcessingPass {
     public:
         void Execute() override;
+    private:
+        VkDevice device;
+        VkRenderPass renderPass;
+        VkFramebuffer framebuffer;
+        VkCommandBuffer commandBuffer;
     };
 }

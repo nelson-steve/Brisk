@@ -45,17 +45,16 @@ namespace Brisk
         // Create the RenderGraphBuilder
         RenderGraphBuilder builder(*m_RenderGraph.get());
 
-        // Add G-buffer pass
-        builder.AddPass("GBufferPass", GBufferPass::Get(), {},
-            { gPosition, gNormal, gAlbedo, gSpecular });
-
-        // Add Lighting pass (inputs from G-buffer outputs)
-        builder.AddPass("LightingPass", LightingPass::Get(),
+        builder
+            // Add G-buffer pass
+            .AddPass("GBufferPass", GBufferPass::Get(), {},
+            { gPosition, gNormal, gAlbedo, gSpecular })
+            // Add Lighting pass (inputs from G-buffer outputs)
+            .AddPass("LightingPass", LightingPass::Get(),
             { gPosition, gNormal, gAlbedo, gSpecular },
-            { lightingOutput });
-
-        // Add PostProcessing pass
-        builder.AddPass("PostProcessingPass", PostProcessingPass::Get(),
+            { lightingOutput })
+            // Add PostProcessing pass
+            .AddPass("PostProcessingPass", PostProcessingPass::Get(),
             { lightingOutput }, {});
 
         // Build the execution order

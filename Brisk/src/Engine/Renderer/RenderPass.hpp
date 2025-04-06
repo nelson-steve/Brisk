@@ -1,42 +1,17 @@
 #pragma once
 
 #include <memory>
+#include <string>
 
 namespace Brisk 
 {
-    class RenderPass {
-    public:
-        virtual void Execute() = 0;
-        virtual ~RenderPass() = default;
-    };
+    //struct RenderTarget {
+    //    std::string p_Name;
+    //};
 
-    //-------------------------------------------------
-
-    class GBufferPass : public RenderPass {
-    public:
-        virtual ~GBufferPass() = 0;
-
-        static std::unique_ptr<RenderPass> Get();
-    };
-
-    class LightingPass : public RenderPass {
-    public:
-        virtual ~LightingPass() = 0;
-
-        static std::unique_ptr<RenderPass> Get();
-    };
-
-    class CompositionPass : public RenderPass {
-    public:
-        virtual ~CompositionPass() = 0;
-
-        static std::unique_ptr<RenderPass> Get();
-    };
-
-    class PostProcessingPass : public RenderPass {
-    public:
-        virtual ~PostProcessingPass() = 0;
-
-        static std::unique_ptr<RenderPass> Get();
-    };
+    //struct RenderPass {
+    //    std::string p_Name;
+    //    std::vector<RenderTarget> p_Inputs;
+    //    std::vector<RenderTarget> p_Outputs;
+    //};
 };

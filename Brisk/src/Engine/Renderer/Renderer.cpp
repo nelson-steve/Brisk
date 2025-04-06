@@ -34,10 +34,10 @@ namespace Brisk
 
         m_RenderGraph = std::make_shared<RenderGraph>();
 
-        ResourceHandle gPosition = ResourceHandle(1);
-        ResourceHandle gNormal = ResourceHandle(2);
-        ResourceHandle gAlbedo = ResourceHandle(3);
-        ResourceHandle gSpecular = ResourceHandle(4);
+        ResourceHandle gPosition = ResourceHandle(1, Core::Format::FORMAT_R32G32B32A32_SFLOAT);
+        ResourceHandle gNormal = ResourceHandle(2, Core::Format::FORMAT_R32G32B32A32_SFLOAT);
+        ResourceHandle gAlbedo = ResourceHandle(3, Core::Format::FORMAT_R32G32B32A32_SFLOAT);
+        ResourceHandle gSpecular = ResourceHandle(4, Core::Format::FORMAT_R32G32B32A32_SFLOAT);
 
         // Define resources for lighting pass (inputs will be from G-buffer)
         ResourceHandle lightingOutput = ResourceHandle(5);
@@ -47,14 +47,14 @@ namespace Brisk
 
         builder
             // Add G-buffer pass
-            .AddPass("GBufferPass", GBufferPass::Get(), {},
+            .AddPass("GBufferPass", {},
             { gPosition, gNormal, gAlbedo, gSpecular })
             // Add Lighting pass (inputs from G-buffer outputs)
-            .AddPass("LightingPass", LightingPass::Get(),
+            .AddPass("LightingPass",
             { gPosition, gNormal, gAlbedo, gSpecular },
             { lightingOutput })
             // Add PostProcessing pass
-            .AddPass("PostProcessingPass", PostProcessingPass::Get(),
+            .AddPass("PostProcessingPass",
             { lightingOutput }, {});
 
         // Build the execution order

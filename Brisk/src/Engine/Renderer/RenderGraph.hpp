@@ -25,17 +25,16 @@ namespace Brisk
     public:
         struct PassNode {
             std::string name;
-            std::unique_ptr<RenderPass> pass;
             std::vector<ResourceHandle> inputs;
             std::vector<ResourceHandle> outputs;
             int dependencyCount = 0; // Tracks unresolved dependencies
             std::vector<PassNode*> dependents; // Passes that depend on this one
         };
 
-        void AddPass(const std::string& name, std::unique_ptr<RenderPass> pass,
+        void AddPass(const std::string& name,
             const std::vector<ResourceHandle>& inputs,
             const std::vector<ResourceHandle>& outputs) {
-            PassNode node{ name, std::move(pass), inputs, outputs, 0, {} };
+            PassNode node{ name, inputs, outputs, 0, {} };
             passMap[name] = &passes.emplace_back(std::move(node));
         }
 
@@ -85,10 +84,10 @@ namespace Brisk
     public:
         RenderGraphBuilder(RenderGraph& graph) : graph(graph) {}
 
-        RenderGraphBuilder& AddPass(const std::string& name, std::unique_ptr<RenderPass> pass,
+        RenderGraphBuilder& AddPass(const std::string& name,
             const std::vector<ResourceHandle>& inputs = {},
             const std::vector<ResourceHandle>& outputs = {}) {
-            graph.AddPass(name, std::move(pass), inputs, outputs);
+            graph.AddPass(name, inputs, outputs);
             return *this;
         }
 

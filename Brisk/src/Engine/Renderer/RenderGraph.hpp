@@ -1,6 +1,7 @@
 #pragma once
 
 #include "RenderPass.hpp"
+#include "RHI.hpp"
 
 #include <vector>
 #include <unordered_map>
@@ -16,6 +17,7 @@ namespace Brisk
 
     struct ResourceHandle {
         uint32_t id;
+        Core::Format format;
         ResourceHandle() : id(0) {}
         explicit ResourceHandle(uint32_t _id) : id(_id) {}
         bool operator==(const ResourceHandle& other) const { return id == other.id; }

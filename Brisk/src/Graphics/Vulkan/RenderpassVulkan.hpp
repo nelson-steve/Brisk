@@ -8,43 +8,13 @@
 
 namespace Brisk 
 {
-    class GBufferPassVulkan : public GBufferPass {
+    class RenderPassVulkan {
     public:
-        GBufferPassVulkan() = default;
-        GBufferPassVulkan(VkDevice device, VkRenderPass renderPass, VkFramebuffer framebuffer, VkCommandBuffer commandBuffer)
+        RenderPassVulkan() = default;
+        RenderPassVulkan(VkDevice device, VkRenderPass renderPass, VkFramebuffer framebuffer, VkCommandBuffer commandBuffer)
             : device(device), renderPass(renderPass), framebuffer(framebuffer), commandBuffer(commandBuffer) {
         }
-        void Execute() override;
-    private:
-        VkDevice device;
-        VkRenderPass renderPass;
-        VkFramebuffer framebuffer;
-        VkCommandBuffer commandBuffer;
-    };
-
-    class LightingPassVulkan : public LightingPass {
-    public:
-        void Execute() override;
-    private:
-        VkDevice device;
-        VkRenderPass renderPass;
-        VkFramebuffer framebuffer;
-        VkCommandBuffer commandBuffer;
-    };
-
-    class CompositionPassVulkan : public CompositionPass {
-    public:
-        void Execute() override;
-    private:
-        VkDevice device;
-        VkRenderPass renderPass;
-        VkFramebuffer framebuffer;
-        VkCommandBuffer commandBuffer;
-    };
-
-    class PostProcessingPassVulkan : public PostProcessingPass {
-    public:
-        void Execute() override;
+        void Execute();
     private:
         VkDevice device;
         VkRenderPass renderPass;

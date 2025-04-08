@@ -19,7 +19,7 @@ namespace Brisk
         uint32_t id;
         Core::Format format;
         ResourceHandle() : id(0) {}
-        explicit ResourceHandle(uint32_t _id) : id(_id) {}
+        explicit ResourceHandle(uint32_t _id, Core::Format f) : id(_id), format(f) {}
         bool operator==(const ResourceHandle& other) const { return id == other.id; }
     };
 

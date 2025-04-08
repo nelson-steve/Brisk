@@ -39,10 +39,8 @@ namespace Brisk
         ResourceHandle gAlbedo = ResourceHandle(3, Core::Format::FORMAT_R32G32B32A32_SFLOAT);
         ResourceHandle gSpecular = ResourceHandle(4, Core::Format::FORMAT_R32G32B32A32_SFLOAT);
 
-        // Define resources for lighting pass (inputs will be from G-buffer)
-        ResourceHandle lightingOutput = ResourceHandle(5);
+        ResourceHandle lightingOutput = ResourceHandle(5, Core::Format::FORMAT_R32G32B32A32_SFLOAT);
 
-        // Create the RenderGraphBuilder
         RenderGraphBuilder builder(*m_RenderGraph.get());
 
         builder

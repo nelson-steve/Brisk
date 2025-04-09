@@ -33,23 +33,47 @@ namespace Brisk
         fragmentShaderModule->Init("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT);
 
         m_RenderGraph = std::make_shared<RenderGraph>();
+            
+        std::shared_ptr<Texture> gPos = Texture::Create();
+        std::shared_ptr<Texture> gNormal = Texture::Create();
+        std::shared_ptr<Texture> gAlbedo= Texture::Create();
+        std::shared_ptr<Texture> gDepth = Texture::Create();
 
-        ResourceHandle gPosition = ResourceHandle(1, Core::Format::FORMAT_R32G32B32A32_SFLOAT);
-        ResourceHandle gNormal = ResourceHandle(2, Core::Format::FORMAT_R32G32B32A32_SFLOAT);
-        ResourceHandle gAlbedo = ResourceHandle(3, Core::Format::FORMAT_R32G32B32A32_SFLOAT);
-        ResourceHandle gSpecular = ResourceHandle(4, Core::Format::FORMAT_R32G32B32A32_SFLOAT);
+        {
+            Texture::TextureSpecification specs{};
+            specs.pWidth = 1920;
+            specs.pHeight = 1080;
+            specs.format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
+            gPos->Init(specs);
 
-        ResourceHandle lightingOutput = ResourceHandle(5, Core::Format::FORMAT_R32G32B32A32_SFLOAT);
+            gNormal->Init(specs);
+
+            specs.format = Core::Format::FORMAT_R8G8B8A8_UNORM;
+            gAlbedo->Init(specs);
+
+            specs.format = Core::Format::FORMAT_D16_UNORM;
+            gDepth->Init(specs);
+        }
+
+        std::shared_ptr<Texture> lightingOutput = Texture::Create();
+        {
+            Texture::TextureSpecification specs{};
+            specs.pWidth = 1920;
+            specs.pHeight = 1080;
+            specs.format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
+            lightingOutput->Init(specs);
+        }
 
         RenderGraphBuilder builder(*m_RenderGraph.get());
 
         builder
             // Add G-buffer pass
-            .AddPass("GBufferPass", {},
-            { gPosition, gNormal, gAlbedo, gSpecular })
+            .AddPass("GBufferPass", 
+            {},
+            { gPos, gNormal, gAlbedo, gDepth })
             // Add Lighting pass (inputs from G-buffer outputs)
             .AddPass("LightingPass",
-            { gPosition, gNormal, gAlbedo, gSpecular },
+            { gPos, gNormal, gAlbedo },
             { lightingOutput })
             // Add PostProcessing pass
             .AddPass("PostProcessingPass",

@@ -99,6 +99,7 @@ namespace Brisk
 		struct TextureSpecification {
 			TextureType pType;
 			TextureSampler pSampler{};
+			Core::Format format;
 			uint32_t pWidth = 1, pHeight = 1, pDepth = 1;
 			uint32_t pMipLevels = 1;
 			uint32_t pArrayLayers = 1;

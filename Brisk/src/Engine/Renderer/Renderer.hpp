@@ -27,7 +27,6 @@ namespace Brisk
 		static std::shared_ptr<Swapchain> GetSwapchain() { return m_Swapchain; }
 
 		static std::unique_ptr<Renderer> Create();
-
 	private:
 		void RenderEntity(Entity e);
 		void SetupEntity(Entity e);

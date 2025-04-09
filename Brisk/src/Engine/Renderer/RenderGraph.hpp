@@ -12,17 +12,6 @@
 
 namespace Brisk
 {
-    struct VulkanResource;
-    struct DX12Resource;
-
-    struct ResourceHandle {
-        uint32_t id;
-        Core::Format format;
-        ResourceHandle() : id(0) {}
-        explicit ResourceHandle(uint32_t _id, Core::Format f) : id(_id), format(f) {}
-        bool operator==(const ResourceHandle& other) const { return id == other.id; }
-    };
-
     class RenderGraph {
     public:
         struct PassNode {
@@ -87,9 +76,9 @@ namespace Brisk
         RenderGraphBuilder(RenderGraph& graph) : graph(graph) {}
 
         RenderGraphBuilder& AddPass(const std::string& name,
-            const std::vector<ResourceHandle>& inputs = {},
-            const std::vector<ResourceHandle>& outputs = {}) {
-            graph.AddPass(name, inputs, outputs);
+            const std::vector<std::shared_ptr<Texture>> inputs = {},
+            const std::vector<std::shared_ptr<Texture>> outputs = {}) {
+            //graph.AddPass(name, inputs, outputs);
             return *this;
         }
 

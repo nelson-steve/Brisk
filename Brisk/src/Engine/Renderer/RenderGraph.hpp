@@ -16,21 +16,25 @@ namespace Brisk
     public:
         struct PassNode {
             std::string name;
-            std::vector<ResourceHandle> inputs;
-            std::vector<ResourceHandle> outputs;
+            std::vector<std::shared_ptr<Texture>> inputs;
+            std::vector<std::shared_ptr<Texture>> outputs;
             int dependencyCount = 0; // Tracks unresolved dependencies
             std::vector<PassNode*> dependents; // Passes that depend on this one
+            std::shared_ptr<RenderPass> renderPass;
         };
 
         void AddPass(const std::string& name,
-            const std::vector<ResourceHandle>& inputs,
-            const std::vector<ResourceHandle>& outputs) {
+            const std::vector<std::shared_ptr<Texture>> inputs,
+            const std::vector<std::shared_ptr<Texture>> outputs) {
             PassNode node{ name, inputs, outputs, 0, {} };
             passMap[name] = &passes.emplace_back(std::move(node));
+
+            node.renderPass = RenderPass::Create();
+            node.renderPass->Init(node.inputs, node.outputs);
         }
 
         void BuildExecutionOrder() {
-            std::unordered_map<ResourceHandle, PassNode*> resourceProducers;
+            std::unordered_map<std::shared_ptr<Texture>, PassNode*> resourceProducers;
             for (auto& pass : passes) {
                 for (const auto& output : pass.outputs) {
                     resourceProducers[output] = &pass;

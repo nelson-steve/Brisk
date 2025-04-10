@@ -8,16 +8,14 @@
 
 namespace Brisk 
 {
-    class RenderPassVulkan {
+    class RenderPassVulkan : public RenderPass {
     public:
         RenderPassVulkan() = default;
-        RenderPassVulkan(VkDevice device, VkRenderPass renderPass, VkFramebuffer framebuffer, VkCommandBuffer commandBuffer)
-            : device(device), renderPass(renderPass), framebuffer(framebuffer), commandBuffer(commandBuffer) {
-        }
-        void Execute();
+        virtual void Init(std::vector<std::shared_ptr<Texture>> inputs, std::vector<std::shared_ptr<Texture>> outputs) override;
+        virtual void Bind() override;
     private:
-        VkDevice device;
         VkRenderPass renderPass;
+        VkDevice device;
         VkFramebuffer framebuffer;
         VkCommandBuffer commandBuffer;
     };

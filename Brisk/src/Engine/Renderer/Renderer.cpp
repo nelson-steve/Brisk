@@ -24,6 +24,63 @@ namespace Brisk
         RenderCommand::s_RendererAPI = RendererAPI::Create();
         ComputeCommand::s_ComputeAPI = ComputeAPI::Create();
 
+        // Renderpasses
+        {
+            //----------------------------------------------------------------------------------------------------
+            std::shared_ptr<Texture> gPos = Texture::Create();
+            std::shared_ptr<Texture> gNormal = Texture::Create();
+            std::shared_ptr<Texture> gAlbedo = Texture::Create();
+            std::shared_ptr<Texture> gDepth = Texture::Create();
+
+            {
+                Texture::TextureSpecification specs{};
+                specs.pWidth = 1920;
+                specs.pHeight = 1080;
+                specs.format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
+                gPos->Init(specs);
+
+                gNormal->Init(specs);
+
+                specs.format = Core::Format::FORMAT_R8G8B8A8_UNORM;
+                gAlbedo->Init(specs);
+
+                specs.format = Core::Format::FORMAT_D16_UNORM;
+                gDepth->Init(specs);
+            }
+
+            std::shared_ptr<RenderPass> gBufferPass;
+            gBufferPass->AddOutputAttachment(RenderPassAttachment{ 0, AttachmentType::Color, gPos });
+            gBufferPass->AddOutputAttachment(RenderPassAttachment{ 1, AttachmentType::Color, gNormal });
+            gBufferPass->AddOutputAttachment(RenderPassAttachment{ 2, AttachmentType::Color, gAlbedo });
+            gBufferPass->AddOutputAttachment(RenderPassAttachment{ 3, AttachmentType::Depth, gDepth });
+            gBufferPass->Init();
+            //----------------------------------------------------------------------------------------------------
+
+            // Lighting pass
+            //----------------------------------------------------------------------------------------------------
+            std::shared_ptr<Texture> lightingOutput = Texture::Create();
+
+            {
+                Texture::TextureSpecification specs{};
+                specs.pWidth = 1920;
+                specs.pHeight = 1080;
+                specs.format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
+                lightingOutput->Init(specs);
+            }
+
+            std::shared_ptr<RenderPass> gBufferPass;
+            gBufferPass->AddInputAttachment(RenderPassAttachment{ 0, AttachmentType::Color, gPos });
+            gBufferPass->AddInputAttachment(RenderPassAttachment{ 1, AttachmentType::Color, gNormal });
+            gBufferPass->AddInputAttachment(RenderPassAttachment{ 2, AttachmentType::Color, gAlbedo });
+            gBufferPass->AddInputAttachment(RenderPassAttachment{ 3, AttachmentType::Depth, gDepth });
+
+            gBufferPass->AddOutputAttachment(RenderPassAttachment{ 3, AttachmentType::Depth, lightingOutput });
+
+            gBufferPass->Init();
+            //----------------------------------------------------------------------------------------------------
+        }
+
+
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
@@ -31,57 +88,7 @@ namespace Brisk
         vertexShaderModule->Init("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX);
         std::shared_ptr<ShaderModule> fragmentShaderModule = ShaderModule::Create();
         fragmentShaderModule->Init("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT);
-
-        m_RenderGraph = std::make_shared<RenderGraph>();
             
-        std::shared_ptr<Texture> gPos = Texture::Create();
-        std::shared_ptr<Texture> gNormal = Texture::Create();
-        std::shared_ptr<Texture> gAlbedo= Texture::Create();
-        std::shared_ptr<Texture> gDepth = Texture::Create();
-
-        {
-            Texture::TextureSpecification specs{};
-            specs.pWidth = 1920;
-            specs.pHeight = 1080;
-            specs.format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
-            gPos->Init(specs);
-
-            gNormal->Init(specs);
-
-            specs.format = Core::Format::FORMAT_R8G8B8A8_UNORM;
-            gAlbedo->Init(specs);
-
-            specs.format = Core::Format::FORMAT_D16_UNORM;
-            gDepth->Init(specs);
-        }
-
-        std::shared_ptr<Texture> lightingOutput = Texture::Create();
-        {
-            Texture::TextureSpecification specs{};
-            specs.pWidth = 1920;
-            specs.pHeight = 1080;
-            specs.format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
-            lightingOutput->Init(specs);
-        }
-
-        RenderGraphBuilder builder(*m_RenderGraph.get());
-
-        builder
-            // Add G-buffer pass
-            .AddPass("GBufferPass", 
-            {},
-            { gPos, gNormal, gAlbedo, gDepth })
-            // Add Lighting pass (inputs from G-buffer outputs)
-            .AddPass("LightingPass",
-            { gPos, gNormal, gAlbedo },
-            { lightingOutput })
-            // Add PostProcessing pass
-            .AddPass("PostProcessingPass",
-            { lightingOutput }, {});
-
-        // Build the execution order
-        builder.Build();
-
         Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
         //RenderPass::RenderPassSpecs renderPassSpecs;
         //renderPassSpecs.pAttachments =

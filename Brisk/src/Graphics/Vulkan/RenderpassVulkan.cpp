@@ -8,7 +8,56 @@
 
 namespace Brisk 
 {
-	void RenderPassVulkan::Init(std::vector<std::shared_ptr<Texture>> inputs, std::vector<std::shared_ptr<Texture>> outputs) {
+    void RenderPassVulkan::AddInputAttachment(RenderPassAttachment attachment) {
+        VkAttachmentDescription colorAttachment{};
+        colorAttachment.format = VK_FORMAT_R8G8B8A8_UNORM;
+        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+        m_ColorAttachments.push_back(colorAttachment);
+    }
+
+    void RenderPassVulkan::AddOutputAttachment(RenderPassAttachment attachment) {
+
+    }
+
+    void RenderPassVulkan::Init() {
+
+    }
+
+    void RenderPassVulkan::Init() {
+        std::vector<VkAttachmentReference> colorRefs;
+        for (int i = 0; i < m_ColorAttachments.size(); i++) { 
+            VkAttachmentReference colorAttachmentRef{};
+            colorAttachmentRef.attachment = i;
+            colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            colorRefs.push_back(colorAttachmentRef);
+        }
+
+        VkAttachmentReference depthAttachmentRef{};
+        depthAttachmentRef.attachment = colorRefs.size() + 1;
+        depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+        VkSubpassDescription subpass{};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = colorRefs.size();
+        subpass.pColorAttachments = colorRefs.data();
+        subpass.pDepthStencilAttachment = &depthAttachmentRef;
+
+        VkRenderPassCreateInfo renderPassInfo{};
+        renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO;
+        renderPassInfo.attachmentCount = 1;
+        renderPassInfo.pAttachments = &m_ColorAttachments;
+        renderPassInfo.subpassCount = 1;
+        renderPassInfo.pSubpasses = &subpass;
+
+        vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass);
+    }
+
+	void Init(std::vector<std::shared_ptr<Texture>> inputs, std::vector<std::shared_ptr<Texture>> outputs) {
         std::vector<VkAttachmentDescription> attachmentDescriptions;
         std::vector<VkAttachmentReference> colorAttachmentRefs;
 
@@ -83,9 +132,5 @@ namespace Brisk
         if (vkCreateRenderPass(device, &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create render pass.");
         }
-	}
-
-	void RenderPassVulkan::Bind() {
-
 	}
 }

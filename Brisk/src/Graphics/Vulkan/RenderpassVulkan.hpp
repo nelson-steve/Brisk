@@ -11,9 +11,13 @@ namespace Brisk
     class RenderPassVulkan : public RenderPass {
     public:
         RenderPassVulkan() = default;
-        virtual void Init(std::vector<std::shared_ptr<Texture>> inputs, std::vector<std::shared_ptr<Texture>> outputs) override;
-        virtual void Bind() override;
+        virtual void AddInputAttachment(RenderPassAttachment attachment) override;
+        virtual void AddOutputAttachment(RenderPassAttachment attachment)  override;
+        virtual void Init() override;
     private:
+        std::vector<VkAttachmentDescription> m_ColorAttachments;
+        VkAttachmentDescription m_DepthAttachment;
+
         VkRenderPass renderPass;
         VkDevice device;
         VkFramebuffer framebuffer;

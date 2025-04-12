@@ -17,8 +17,10 @@ namespace Brisk
 		VkImageView GetView() { return m_ImageView; }
 		VkImage		GetImage() { return m_Image; }
 		VkSampler	GetSampler() { return m_Sampler; }
+		VkFormat	GetFormat() { return m_Format; }
 		VkDescriptorImageInfo GetDescriptor() const { return m_Descriptor; }
 		const VkDescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
+
 
 		virtual void TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, std::vector<ImageBarrierParams> params) override;
 		virtual void CopyImage(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> src, std::shared_ptr<Texture> dest, uint32_t width, uint32_t height) override;
@@ -36,6 +38,7 @@ namespace Brisk
 		VkImageView m_ImageView;
 		VkDeviceMemory m_Memory;
 		VkSampler m_Sampler;
+		VkFormat m_Format;
 
 		VkDevice m_DeviceCached;
 	};

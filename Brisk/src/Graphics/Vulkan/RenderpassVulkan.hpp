@@ -18,7 +18,7 @@ namespace Brisk
         std::vector<VkAttachmentDescription> m_ColorAttachments;
         VkAttachmentDescription m_DepthAttachment;
 
-        VkRenderPass renderPass;
+        VkRenderPass m_RenderPass;
         VkDevice device;
         VkFramebuffer framebuffer;
         VkCommandBuffer commandBuffer;

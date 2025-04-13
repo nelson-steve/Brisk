@@ -56,6 +56,8 @@ namespace Brisk
             gBufferPass->Init();
             //----------------------------------------------------------------------------------------------------
 
+            // TODO:  Handle transitions
+
             // Lighting pass
             //----------------------------------------------------------------------------------------------------
             std::shared_ptr<Texture> lightingOutput = Texture::Create();
@@ -74,7 +76,7 @@ namespace Brisk
             gBufferPass->AddInputAttachment(RenderPassAttachment{ 2, AttachmentType::Color, gAlbedo });
             gBufferPass->AddInputAttachment(RenderPassAttachment{ 3, AttachmentType::Depth, gDepth });
 
-            gBufferPass->AddOutputAttachment(RenderPassAttachment{ 3, AttachmentType::Depth, lightingOutput });
+            gBufferPass->AddOutputAttachment(RenderPassAttachment{ 0, AttachmentType::Depth, lightingOutput });
 
             gBufferPass->Init();
             //----------------------------------------------------------------------------------------------------

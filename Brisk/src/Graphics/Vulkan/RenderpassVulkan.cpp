@@ -21,11 +21,15 @@ namespace Brisk
     }
 
     void RenderPassVulkan::AddOutputAttachment(RenderPassAttachment attachment) {
+        VkAttachmentDescription colorAttachment{};
+        colorAttachment.format = VK_FORMAT_R8G8B8A8_UNORM;
+        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
+        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-    }
-
-    void RenderPassVulkan::Init() {
-
+        m_ColorAttachments.push_back(colorAttachment);
     }
 
     void RenderPassVulkan::Init() {
@@ -54,7 +58,7 @@ namespace Brisk
         renderPassInfo.subpassCount = 1;
         renderPassInfo.pSubpasses = &subpass;
 
-        vkCreateRenderPass(device, &renderPassInfo, nullptr, &renderPass);
+        vkCreateRenderPass(device, &renderPassInfo, nullptr, &m_RenderPass);
     }
 
 	void Init(std::vector<std::shared_ptr<Texture>> inputs, std::vector<std::shared_ptr<Texture>> outputs) {

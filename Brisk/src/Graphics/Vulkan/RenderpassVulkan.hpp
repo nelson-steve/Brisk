@@ -14,6 +14,9 @@ namespace Brisk
         virtual void AddInputAttachment(RenderPassAttachment attachment) override;
         virtual void AddOutputAttachment(RenderPassAttachment attachment)  override;
         virtual void Init() override;
+
+        virtual void Begin() override;
+        virtual void End() override;
     private:
         std::vector<VkAttachmentDescription> m_ColorAttachments;
         VkAttachmentDescription m_DepthAttachment;

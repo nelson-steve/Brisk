@@ -11,6 +11,7 @@
 #include "RenderCommand.hpp"
 #include "RenderGraph.hpp"
 #include "Engine/Renderer/CommandBufferAllocator.hpp"
+#include "Engine/Renderer/RenderPass.hpp"
 //------------------------
 #include <memory>
 //---------------

@@ -11,9 +11,7 @@
 #include "ComputeCommand.hpp"
 #include "Engine/Component.hpp"
 #include "Engine/SceneManager.hpp"
-#include "Graphics/Vulkan/PipelineVulkan.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
-#include <Graphics/Vulkan/RenderpassVulkan.hpp>
 
 namespace Brisk
 {
@@ -51,12 +49,11 @@ namespace Brisk
                 gDepth->Init(specs);
             }
 
-            std::shared_ptr<RenderPass> gBufferPass;
-            gBufferPass->AddOutputAttachment(RenderPassAttachment{ 0, AttachmentType::Color, gPos });
-            gBufferPass->AddOutputAttachment(RenderPassAttachment{ 1, AttachmentType::Color, gNormal });
-            gBufferPass->AddOutputAttachment(RenderPassAttachment{ 2, AttachmentType::Color, gAlbedo });
-            gBufferPass->AddOutputAttachment(RenderPassAttachment{ 3, AttachmentType::Depth, gDepth });
-            gBufferPass->Init();
+            m_GeometryBufferPass->AddOutputAttachment(RenderPassAttachment{ 0, AttachmentType::Color, gPos });
+            m_GeometryBufferPass->AddOutputAttachment(RenderPassAttachment{ 1, AttachmentType::Color, gNormal });
+            m_GeometryBufferPass->AddOutputAttachment(RenderPassAttachment{ 2, AttachmentType::Color, gAlbedo });
+            m_GeometryBufferPass->AddOutputAttachment(RenderPassAttachment{ 3, AttachmentType::Depth, gDepth });
+            m_GeometryBufferPass->Init();
             //----------------------------------------------------------------------------------------------------
 
             // TODO:  Handle transitions
@@ -73,7 +70,6 @@ namespace Brisk
                 lightingOutput->Init(specs);
             }
 
-            std::shared_ptr<RenderPass> m_LightingPass;
             m_LightingPass->AddInputAttachment(RenderPassAttachment{ 0, AttachmentType::Color, gPos });
             m_LightingPass->AddInputAttachment(RenderPassAttachment{ 1, AttachmentType::Color, gNormal });
             m_LightingPass->AddInputAttachment(RenderPassAttachment{ 2, AttachmentType::Color, gAlbedo });

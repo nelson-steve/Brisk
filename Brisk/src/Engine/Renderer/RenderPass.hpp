@@ -25,8 +25,8 @@ namespace Brisk
 		virtual void AddOutputAttachment(RenderPassAttachment attachment) = 0;
 		virtual void Init() = 0;
 
-		virtual void Begin() = 0;
-		virtual void End() = 0;
+		virtual void Begin(std::shared_ptr<CommandBuffer> cmd) = 0;
+		virtual void End(std::shared_ptr<CommandBuffer> cmd) = 0;
 
 		static std::shared_ptr<RenderPass> Create();
 	};

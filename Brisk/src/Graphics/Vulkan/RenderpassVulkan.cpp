@@ -61,7 +61,7 @@ namespace Brisk
         vkCreateRenderPass(device, &renderPassInfo, nullptr, &m_RenderPass);
     }
 
-    void RenderPassVulkan::Begin() {
+    void RenderPassVulkan::Begin(std::shared_ptr<CommandBuffer> cmd) {
         std::vector<VkClearValue> clearValues;
         clearValues.resize(m_ColorAttachments.size());
         for (auto& clear : clearValues) {
@@ -78,11 +78,11 @@ namespace Brisk
         renderPassInfo.clearValueCount = 2;
         renderPassInfo.pClearValues = clearValues.data();
 
-        vkCmdBeginRenderPass(cmd->Get(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
+        vkCmdBeginRenderPass(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);
     }
 
-    void RenderPassVulkan::End() {
-        vkCmdEndRenderPass(cmd->Get());
+    void RenderPassVulkan::End(std::shared_ptr<CommandBuffer> cmd) {
+        vkCmdEndRenderPass(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get());
     }
 
 	//void Init(std::vector<std::shared_ptr<Texture>> inputs, std::vector<std::shared_ptr<Texture>> outputs) {

@@ -35,8 +35,6 @@ namespace Brisk
 	private:
 		static std::shared_ptr<Swapchain> m_Swapchain;
 
-		std::shared_ptr<RenderGraph> m_RenderGraph;
-
 		// Synchronization objects
 		std::shared_ptr<Semaphore> ImageAvailableSemaphore;
 		std::shared_ptr<Semaphore> RenderFinishedSemaphore;

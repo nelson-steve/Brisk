@@ -17,20 +17,59 @@ namespace Brisk
         colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-        m_ColorAttachments.push_back(colorAttachment);
+        m_ColorAttachmentsDescription.push_back(colorAttachment);
     }
 
-    void RenderPassVulkan::AddOutputAttachment(RenderPassAttachment attachment) {
-        VkAttachmentDescription colorAttachment{};
-        colorAttachment.format = VK_FORMAT_R8G8B8A8_UNORM;
-        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+    void RenderPassVulkan::AddOutputAttachments(const std::vector<RenderPassAttachment>& attachments) {
+        // Clear previous attachment descriptions
+        m_ColorAttachmentsDescription.clear();
 
-        m_ColorAttachments.push_back(colorAttachment);
+        for (const auto& attachment : attachments) {
+            VkAttachmentDescription attachmentDescription{};
+            attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
+
+            if (attachment.pAttachmentType == AttachmentType::Color) {
+                attachmentDescription.format = std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetFormat();
+                attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD; 
+                attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+                attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
+                m_ColorAttachmentsDescription.push_back(attachmentDescription);
+            }
+            else if (attachment.pAttachmentType == AttachmentType::Depth) {
+                attachmentDescription.format = std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetFormat();
+                attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+                attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+                attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+
+                m_DepthAttachmentDescription = attachmentDescription;
+            }
+        }
+
+        VkFramebufferCreateInfo framebufferInfo{};
+        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferInfo.renderPass = m_RenderPass;
+        framebufferInfo.attachmentCount = static_cast<uint32_t>(m_ColorAttachmentsDescription.size() + m_DepthAttachmentDescription.size());
+
+        // Combine color and depth attachments into a single array for the framebuffer
+        std::vector<VkImageView> allAttachments;
+        for (const auto& attachment : attachments) {
+            allAttachments.push_back(std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetView());
+        }
+
+        framebufferInfo.pAttachments = allAttachments.data();
+        framebufferInfo.width = specs.pWidth;
+        framebufferInfo.height = specs.pHeight;
+        framebufferInfo.layers = specs.pLayers;
+
+        // Create the framebuffer
+        if (vkCreateFramebuffer(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffer) != VK_SUCCESS) {
+            throw std::runtime_error("failed to create framebuffer!");
+        }
     }
+
 
     void RenderPassVulkan::Init() {
         std::vector<VkAttachmentReference> colorRefs;
@@ -59,6 +98,24 @@ namespace Brisk
         renderPassInfo.pSubpasses = &subpass;
 
         vkCreateRenderPass(device, &renderPassInfo, nullptr, &m_RenderPass);
+
+        VkFramebufferCreateInfo framebufferInfo = {};
+        framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+        framebufferInfo.renderPass = m_RenderPass; // The render pass associated with this framebuffer
+        framebufferInfo.attachmentCount = 4; // Number of attachments (position, normal, albedo, specular)
+        framebufferInfo.pAttachments = new VkImageView[4]{
+            m_ColorAttachments[0],   // G-buffer attachment for position
+            normalImageView,     // G-buffer attachment for normal
+            albedoImageView,     // G-buffer attachment for albedo (base color)
+            specularImageView    // G-buffer attachment for specular (optional)
+        };
+        framebufferInfo.width = swapchainExtent.width;  // Width of the framebuffer
+        framebufferInfo.height = swapchainExtent.height; // Height of the framebuffer
+        framebufferInfo.layers = 1; // Only one layer for this pass (this is a 2D framebuffer)
+
+        VkFramebuffer framebuffer;
+        vkCreateFramebuffer(device, &framebufferInfo, nullptr, &framebuffer);
+
     }
 
     void RenderPassVulkan::Begin(std::shared_ptr<CommandBuffer> cmd) {

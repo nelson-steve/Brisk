@@ -56,7 +56,13 @@ namespace Brisk
             m_GeometryBufferPass->Init();
             //----------------------------------------------------------------------------------------------------
 
-            // TODO:  Handle transitions
+            // Handle transitions
+            {
+                gPos->TransitionImageLayout(Core::ImageLayout::COLOR_ATTACHMENT_OPTIMAL, Core::ImageLayout::SHADER_READ_ONLY_OPTIMAL);
+                gNormal->TransitionImageLayout(Core::ImageLayout::COLOR_ATTACHMENT_OPTIMAL, Core::ImageLayout::SHADER_READ_ONLY_OPTIMAL);
+                gAlbedo->TransitionImageLayout(Core::ImageLayout::COLOR_ATTACHMENT_OPTIMAL, Core::ImageLayout::SHADER_READ_ONLY_OPTIMAL);
+                gDepth->TransitionImageLayout(Core::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL, Core::ImageLayout::DEPTH_STENCIL_READ_ONLY_OPTIMAL);
+            }
 
             // Lighting pass
             //----------------------------------------------------------------------------------------------------

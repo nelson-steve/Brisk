@@ -2,6 +2,7 @@
 
 #include "Texture.hpp"
 
+#include <vector>
 #include <memory>
 
 namespace Brisk 
@@ -11,10 +12,15 @@ namespace Brisk
 		Depth,
 	};
 
+	enum TargetType {
+		Input,
+		Output,
+	};
+
 	struct RenderPassAttachment {
 		uint32_t pBinding;
-		//Core::Format pFormat;
 		AttachmentType pAttachmentType;
+		TargetType ptarget;
 		std::shared_ptr<Texture> pImage;
 	};
 
@@ -22,7 +28,7 @@ namespace Brisk
 		DEFINE_BASE_CLASS_CONSTRUCTOR(RenderPass)
 	public:
 		virtual void AddInputAttachment(RenderPassAttachment attachment) = 0;
-		virtual void AddOutputAttachment(RenderPassAttachment attachment) = 0;
+		virtual void AddOutputAttachments(const std::vector<RenderPassAttachment>& attachments) = 0;
 		virtual void Init() = 0;
 
 		virtual void Begin(std::shared_ptr<CommandBuffer> cmd) = 0;

@@ -15,7 +15,7 @@
 
 namespace Brisk
 {
-    std::shared_ptr<Swapchain> Renderer::m_Swapchain;
+    std::shared_ptr<Swapchain> m_Swapchain;
 
     void Renderer::Init()
     {

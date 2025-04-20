@@ -11,10 +11,8 @@ namespace Brisk
     class RenderPassVulkan : public RenderPass {
     public:
         RenderPassVulkan() = default;
-        virtual void AddInputAttachment(RenderPassAttachment attachment) override;
-        virtual void AddOutputAttachments(const std::vector<RenderPassAttachment>& attachments) override;
 
-        virtual void Init() override;
+        virtual void Init(const std::vector<RenderPassAttachment>& inputs, const std::vector<RenderPassAttachment>& outputs) override;
 
         virtual void Begin(std::shared_ptr<CommandBuffer> cmd) override;
         virtual void End(std::shared_ptr<CommandBuffer> cmd) override;

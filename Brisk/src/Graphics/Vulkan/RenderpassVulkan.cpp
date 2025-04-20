@@ -8,7 +8,7 @@
 
 namespace Brisk 
 {
-    void RenderPassVulkan::AddInputAttachment(RenderPassAttachment attachment) {
+    void RenderPassVulkan::Init(const std::vector<RenderPassAttachment>& inputs, const std::vector<RenderPassAttachment>& outputs) {
         VkAttachmentDescription colorAttachment{};
         colorAttachment.format = VK_FORMAT_R8G8B8A8_UNORM;
         colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
@@ -18,10 +18,8 @@ namespace Brisk
         colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
         m_ColorAttachmentsDescription.push_back(colorAttachment);
-    }
 
-    void RenderPassVulkan::AddOutputAttachments(const std::vector<RenderPassAttachment>& attachments) {
-        // Clear previous attachment descriptions
+
         m_ColorAttachmentsDescription.clear();
 
         for (const auto& attachment : attachments) {
@@ -30,7 +28,7 @@ namespace Brisk
 
             if (attachment.pAttachmentType == AttachmentType::Color) {
                 attachmentDescription.format = std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetFormat();
-                attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD; 
+                attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
                 attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
                 attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
                 attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -68,10 +66,8 @@ namespace Brisk
         if (vkCreateFramebuffer(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffer) != VK_SUCCESS) {
             throw std::runtime_error("failed to create framebuffer!");
         }
-    }
 
 
-    void RenderPassVulkan::Init() {
         std::vector<VkAttachmentReference> colorRefs;
         for (int i = 0; i < m_ColorAttachments.size(); i++) { 
             VkAttachmentReference colorAttachmentRef{};

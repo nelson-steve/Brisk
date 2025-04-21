@@ -9,42 +9,47 @@
 namespace Brisk 
 {
     void RenderPassVulkan::Init(const std::vector<RenderPassAttachment>& inputs, const std::vector<RenderPassAttachment>& outputs) {
-        VkAttachmentDescription colorAttachment{};
-        colorAttachment.format = VK_FORMAT_R8G8B8A8_UNORM;
-        colorAttachment.samples = VK_SAMPLE_COUNT_1_BIT;
-        colorAttachment.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-        colorAttachment.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-        colorAttachment.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        colorAttachment.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        int index = 0;
+        std::vector<VkAttachmentReference> refs;
+        VkAttachmentReference depthRef;
+        bool isDepth = false;
+        for (const auto& attachment : outputs) {
+            VkAttachmentDescription colorAttachmentDesc{};
+            colorAttachmentDesc.format = std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetFormat();
+            colorAttachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
+            colorAttachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+            colorAttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            colorAttachmentDesc.initialLayout = std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetCurrentLayout();
+            colorAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            m_ColorAttachmentsDescription.push_back(colorAttachmentDesc);
 
-        m_ColorAttachmentsDescription.push_back(colorAttachment);
+            VkAttachmentReference colorAttachmentRef{};
+            colorAttachmentRef.attachment = index;
+            colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            refs.push_back(colorAttachmentRef);
 
+            if (isDepth) {
+                VkAttachmentDescription depthAttachmentDesc{};
+                depthAttachmentDesc.format = std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetFormat();
+                depthAttachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
+                depthAttachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+                depthAttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+                depthAttachmentDesc.initialLayout = std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetCurrentLayout();
+                depthAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                m_DepthAttachmentDescription = depthAttachmentDesc;
 
-        m_ColorAttachmentsDescription.clear();
-
-        for (const auto& attachment : attachments) {
-            VkAttachmentDescription attachmentDescription{};
-            attachmentDescription.samples = VK_SAMPLE_COUNT_1_BIT;
-
-            if (attachment.pAttachmentType == AttachmentType::Color) {
-                attachmentDescription.format = std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetFormat();
-                attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-                attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-                attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
-                m_ColorAttachmentsDescription.push_back(attachmentDescription);
-            }
-            else if (attachment.pAttachmentType == AttachmentType::Depth) {
-                attachmentDescription.format = std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetFormat();
-                attachmentDescription.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-                attachmentDescription.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-                attachmentDescription.initialLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-                attachmentDescription.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-
-                m_DepthAttachmentDescription = attachmentDescription;
+                VkAttachmentReference depthAttachmentRef{};
+                depthAttachmentRef.attachment = index;
+                depthAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                refs.push_back(depthAttachmentRef);
             }
         }
+
+        VkSubpassDescription subpass{};
+        subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        subpass.colorAttachmentCount = m_ColorAttachmentsDescription.size();
+        subpass.pColorAttachments = refs.data();
+        subpass.pDepthStencilAttachment = &depthRef;
 
         VkFramebufferCreateInfo framebufferInfo{};
         framebufferInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;

@@ -9,116 +9,99 @@
 namespace Brisk
 {
     void RenderPassVulkan::Init(const std::vector<RenderPassAttachment>& inputs, const std::vector<RenderPassAttachment>& outputs) {
-        int index = 0;
-        std::vector<VkAttachmentReference> colorRefs;
-        VkAttachmentReference depthRef;
-        bool isDepth = false;
-        for (const auto& attachment : outputs) {
-            VkAttachmentDescription colorAttachmentDesc{};
-            colorAttachmentDesc.format = std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetFormat();
-            colorAttachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
-            colorAttachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-            colorAttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            //colorAttachmentDesc.initialLayout = std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetCurrentLayout();
-            colorAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            m_AttachmentsDescriptions.push_back(colorAttachmentDesc);
+        std::vector<VkAttachmentDescription> attachments;
+        std::vector<VkAttachmentReference> colorAttachmentRefs;
+        std::vector<VkAttachmentReference> inputAttachmentRefs;
+        VkAttachmentReference depthAttachmentRef{};
+        bool hasDepth = false;
 
-            VkAttachmentReference colorAttachmentRef{};
-            colorAttachmentRef.attachment = index;
-            colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            colorRefs.push_back(colorAttachmentRef);
+        uint32_t attachmentIndex = 0;
+        std::vector<VkImageView> imageViews;
+        uint32_t width = 0, height = 0;
 
-            // TODO: Check if it is depth or not
-            if (isDepth) {
-                VkAttachmentDescription depthAttachmentDesc{};
-                depthAttachmentDesc.format = std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetFormat();
-                depthAttachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
-                depthAttachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-                depthAttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-                //depthAttachmentDesc.initialLayout = std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetCurrentLayout();
-                depthAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                m_AttachmentsDescriptions.push_back(depthAttachmentDesc);
+        auto processAttachment = [&](const RenderPassAttachment& attachment, bool isInput) {
+            auto texture = std::static_pointer_cast<TextureVulkan>(attachment.pImage);
+            VkAttachmentDescription desc{};
+            desc.format = texture->GetFormat();
+            desc.samples = VK_SAMPLE_COUNT_1_BIT;
+            desc.loadOp = isInput ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
+            desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+            desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            desc.finalLayout = isInput ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-                VkAttachmentReference depthAttachmentRef{};
-                depthAttachmentRef.attachment = index;
-                depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
-                depthRef = depthAttachmentRef;
+            attachments.push_back(desc);
+            imageViews.push_back(texture->GetView());
+
+            if (width == 0 && height == 0) {
+                width = texture->GetWidth();
+                height = texture->GetHeight();
             }
-        }
 
-        std::vector<VkAttachmentReference> inputRefs;
-        for (const auto& attachment : inputs) {
-            VkAttachmentDescription colorAttachmentDesc{};
-            colorAttachmentDesc.format = std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetFormat();
-            colorAttachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
-            colorAttachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-            colorAttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            //colorAttachmentDesc.initialLayout = std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetCurrentLayout();
-            colorAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            m_AttachmentsDescriptions.push_back(colorAttachmentDesc);
+            VkAttachmentReference ref{};
+            ref.attachment = attachmentIndex;
 
-            VkAttachmentReference colorAttachmentRef{};
-            colorAttachmentRef.attachment = index;
-            colorAttachmentRef.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-            colorRefs.push_back(colorAttachmentRef);
-
-            // TODO: Check if it is depth or not
-            if (isDepth) {
-                VkAttachmentDescription depthAttachmentDesc{};
-                depthAttachmentDesc.format = std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetFormat();
-                depthAttachmentDesc.samples = VK_SAMPLE_COUNT_1_BIT;
-                depthAttachmentDesc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-                depthAttachmentDesc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-                //depthAttachmentDesc.initialLayout = std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetCurrentLayout();
-                depthAttachmentDesc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                m_AttachmentsDescriptions.push_back(depthAttachmentDesc);
-
-                VkAttachmentReference depthAttachmentRef{};
-                depthAttachmentRef.attachment = index;
-                depthAttachmentRef.layout = VK_IMAGE_LAYOUT_DEPTH_ATTACHMENT_OPTIMAL;
-                depthRef = depthAttachmentRef;
+            if (attachment.pAttachmentType == AttachmentType::Color && !isInput) {
+                ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+                colorAttachmentRefs.push_back(ref);
             }
-        }
+            else if (attachment.pAttachmentType == AttachmentType::Depth && !isInput) {
+                ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+                depthAttachmentRef = ref;
+                hasDepth = true;
+            }
+            else if (isInput) {
+                ref.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                inputAttachmentRefs.push_back(ref);
+            }
+
+            ++attachmentIndex;
+            };
+
+        for (const auto& in : inputs) processAttachment(in, true);
+        for (const auto& out : outputs) processAttachment(out, false);
 
         VkSubpassDescription subpass{};
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        subpass.colorAttachmentCount = colorRefs.size();
-        subpass.pColorAttachments = colorRefs.data();
-        subpass.pDepthStencilAttachment = &depthRef;
-        subpass.pInputAttachments = ;
-        subpass.inputAttachmentCount = ;
+        subpass.colorAttachmentCount = static_cast<uint32_t>(colorAttachmentRefs.size());
+        subpass.pColorAttachments = colorAttachmentRefs.data();
+        subpass.inputAttachmentCount = static_cast<uint32_t>(inputAttachmentRefs.size());
+        subpass.pInputAttachments = inputAttachmentRefs.data();
+        if (hasDepth)
+            subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
         VkSubpassDependency dependency{};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependency.dstSubpass = 0;
-        dependency.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependency.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        dependency.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         dependency.srcAccessMask = 0;
-        dependency.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        dependency.dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
-        VkRenderPassCreateInfo renderPassCreateInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
-        renderPassCreateInfo.attachmentCount = m_AttachmentsDescriptions.size();
-        renderPassCreateInfo.pAttachments = m_AttachmentsDescriptions.data();
-        renderPassCreateInfo.subpassCount = 1;
-        renderPassCreateInfo.pSubpasses = &subpass;
-        renderPassCreateInfo.dependencyCount = 1;
-        renderPassCreateInfo.pDependencies = &dependency;
+        VkRenderPassCreateInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
+        renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
+        renderPassInfo.pAttachments = attachments.data();
+        renderPassInfo.subpassCount = 1;
+        renderPassInfo.pSubpasses = &subpass;
+        renderPassInfo.dependencyCount = 1;
+        renderPassInfo.pDependencies = &dependency;
 
-        std::vector<VkImageView> views;
-        for (auto& image : outputs) {
-            views.push_back(std::static_pointer_cast<TextureVulkan>(image.pImage)->GetView());
+        if (vkCreateRenderPass(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create Vulkan render pass");
         }
 
         VkFramebufferCreateInfo framebufferInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
         framebufferInfo.renderPass = m_RenderPass;
-        framebufferInfo.attachmentCount = views.size();
-        framebufferInfo.pAttachments = views.data();
-        framebufferInfo.width = 1920;
-        framebufferInfo.height = 1080;
+        framebufferInfo.attachmentCount = static_cast<uint32_t>(imageViews.size());
+        framebufferInfo.pAttachments = imageViews.data();
+        framebufferInfo.width = width;
+        framebufferInfo.height = height;
         framebufferInfo.layers = 1;
 
-        vkCreateFramebuffer(device, &framebufferInfo, nullptr, &m_Framebuffer);
-
+        if (vkCreateFramebuffer(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffer) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create Vulkan framebuffer");
+        }
     }
 
     void RenderPassVulkan::Begin(std::shared_ptr<CommandBuffer> cmd) {

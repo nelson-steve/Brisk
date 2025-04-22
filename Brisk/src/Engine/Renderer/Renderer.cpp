@@ -49,12 +49,15 @@ namespace Brisk
                 gDepth->Init(specs);
             }
 
-            m_GeometryBufferPass->AddOutputAttachment(RenderPassAttachment{ 0, AttachmentType::Color, gPos });
-            m_GeometryBufferPass->AddOutputAttachment(RenderPassAttachment{ 1, AttachmentType::Color, gNormal });
-            m_GeometryBufferPass->AddOutputAttachment(RenderPassAttachment{ 2, AttachmentType::Color, gAlbedo });
-            m_GeometryBufferPass->AddOutputAttachment(RenderPassAttachment{ 3, AttachmentType::Depth, gDepth });
-            m_GeometryBufferPass->Init();
+            // Geometry pass
             //----------------------------------------------------------------------------------------------------
+            m_GeometryBufferPass->Init(
+                {},
+                {   RenderPassAttachment{ 0, AttachmentType::Color, gPos    },
+                    RenderPassAttachment{ 1, AttachmentType::Color, gNormal },
+                    RenderPassAttachment{ 2, AttachmentType::Color, gAlbedo },
+                    RenderPassAttachment{ 3, AttachmentType::Depth, gDepth  } }
+            );
 
             // Handle transitions
             {
@@ -76,15 +79,13 @@ namespace Brisk
                 lightingOutput->Init(specs);
             }
 
-            m_LightingPass->AddInputAttachment(RenderPassAttachment{ 0, AttachmentType::Color, gPos });
-            m_LightingPass->AddInputAttachment(RenderPassAttachment{ 1, AttachmentType::Color, gNormal });
-            m_LightingPass->AddInputAttachment(RenderPassAttachment{ 2, AttachmentType::Color, gAlbedo });
-            m_LightingPass->AddInputAttachment(RenderPassAttachment{ 3, AttachmentType::Depth, gDepth });
-
-            m_LightingPass->AddOutputAttachment(RenderPassAttachment{ 0, AttachmentType::Depth, lightingOutput });
-
-            m_LightingPass->Init();
-            //----------------------------------------------------------------------------------------------------
+            m_LightingPass->Init(
+                { RenderPassAttachment{ 0, AttachmentType::Color, gPos    },
+                    RenderPassAttachment{ 1, AttachmentType::Color, gNormal },
+                    RenderPassAttachment{ 2, AttachmentType::Color, gAlbedo },
+                    RenderPassAttachment{ 3, AttachmentType::Depth, gDepth  } },
+                { RenderPassAttachment{ 0, AttachmentType::Depth, lightingOutput } }
+            );
         }
 
         // Pipelines

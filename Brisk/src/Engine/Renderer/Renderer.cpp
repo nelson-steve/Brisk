@@ -90,67 +90,6 @@ namespace Brisk
 
         // Pipelines
         {
-            // Simple Triangle pipeline
-            // TODO: Probably should be discarded
-            //----------------------------------------------------------------------------------------------------
-            {
-                std::shared_ptr<ShaderModule> vertexShaderModule = ShaderModule::Create();
-                vertexShaderModule->Init("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX);
-                std::shared_ptr<ShaderModule> fragmentShaderModule = ShaderModule::Create();
-                fragmentShaderModule->Init("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT);
-
-                Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
-                Pipeline::VertexDataLayout vertexLayout;
-                vertexLayout.pBinding = 0;
-                vertexLayout.pStride = sizeof(MeshData);
-                vertexLayout.pAttributes = {
-                    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Position)},
-                    {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Normal)},
-                    {0, 2, Core::Format::FORMAT_R32G32_SFLOAT,    offsetof(MeshData, MeshData::UV0)},
-                    {0, 3, Core::Format::FORMAT_R32G32_SFLOAT,    offsetof(MeshData, MeshData::UV1)},
-                    {0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Color)},
-                };
-                pipelineSpecs.pLayout = vertexLayout;
-                //pipelineSpecs.pRenderPass = RenderPass::Create();
-                //pipelineSpecs.pRenderPass->Init(renderPassSpecs);
-
-                {
-                    std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
-                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_VERTEX_BIT });
-                    layout->SetGlobal(true);
-                    pipelineSpecs.pDescriptorLayouts.push_back(layout);
-                }
-                {
-                    std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
-                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-                    layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-                    layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-                    layout->SetGlobal(true);
-                    pipelineSpecs.pDescriptorLayouts.push_back(layout);
-                }
-                // TODO: Add bindless descriptor
-
-                pipelineSpecs.pShaderModules.push_back(vertexShaderModule);
-                pipelineSpecs.pShaderModules.push_back(fragmentShaderModule);
-
-                pipelineSpecs.pDepthClampEnable = false;
-                pipelineSpecs.pRasterizationDiscardEnable = false;
-                pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
-                pipelineSpecs.pLineWidth = 1.0f;
-                pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
-                pipelineSpecs.pFrontFace = Pipeline::FrontFace::COUTNER_CLOCKWISE;
-                pipelineSpecs.pDepthBiasEnable = false;
-                pipelineSpecs.pDepthTestEnable = true;
-                pipelineSpecs.pDepthWriteEnable = true;
-                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS;
-                pipelineSpecs.pDepthBoundsTestEnable = false;
-                pipelineSpecs.pStencilTestEnable = false;
-
-                m_Pipeline = Pipeline::Create();
-                m_Pipeline->Init(pipelineSpecs);
-            }
-            //----------------------------------------------------------------------------------------------------
-
             // Geometry pass pipeline
             //----------------------------------------------------------------------------------------------------
             {
@@ -196,8 +135,8 @@ namespace Brisk
                 pipelineSpecs.pDepthBoundsTestEnable = false;
                 pipelineSpecs.pStencilTestEnable = false;
 
-                m_Pipeline = Pipeline::Create();
-                m_Pipeline->Init(pipelineSpecs);
+                m_GBufferPipeline = Pipeline::Create();
+                m_GBufferPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
 
@@ -243,8 +182,8 @@ namespace Brisk
                 pipelineSpecs.pDepthBoundsTestEnable = false;
                 pipelineSpecs.pStencilTestEnable = false;
 
-                m_Pipeline = Pipeline::Create();
-                m_Pipeline->Init(pipelineSpecs);
+                m_LightingPipeline = Pipeline::Create();
+                m_LightingPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
 
@@ -260,11 +199,6 @@ namespace Brisk
 
         RenderFinishedSemaphore = Semaphore::Create();
         RenderFinishedSemaphore->Init();
-
-        VkCommandPoolCreateInfo poolInfo{};
-        poolInfo.sType = VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO;
-        poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-        poolInfo.queueFamilyIndex = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().FamilyIndex;
 
         m_Queue = Queue::Create();
 
@@ -325,7 +259,9 @@ namespace Brisk
         m_MainCmdBuffer->Reset();
         m_MainCmdBuffer->Bind();
         //m_Pipeline->m_GraphicsSpecs.pRenderPass->Begin(m_MainCmdBuffer, m_ImageIndex);
-        m_Pipeline->Bind(m_MainCmdBuffer);
+        m_GBufferPipeline->Bind(m_MainCmdBuffer);
+
+        m_GeometryBufferPass->Begin(m_MainCmdBuffer);
 
         RenderCommand::SetViewport(m_MainCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
         RenderCommand::SetScissor(m_MainCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());

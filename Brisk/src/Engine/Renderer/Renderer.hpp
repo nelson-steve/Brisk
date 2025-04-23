@@ -47,7 +47,8 @@ namespace Brisk
 		std::shared_ptr<RenderPass> m_LightingPass;
 
 		std::shared_ptr<CommandBufferAllocator> m_MainCmdBufferAllocator;
-		std::shared_ptr<Pipeline> m_Pipeline;
+		std::shared_ptr<Pipeline> m_GBufferPipeline;
+		std::shared_ptr<Pipeline> m_LightingPipeline;
 		std::shared_ptr<Buffer> m_UniformBuffer;
 		std::shared_ptr<CommandBuffer> m_MainCmdBuffer;
 		RenderCommand m_RenderCommand;

@@ -277,13 +277,14 @@ namespace Brisk
             RenderCommand::BindVertexBuffer(m_MainCmdBuffer, { root.m_VertexBuffer }, 0);
             RenderCommand::BindIndexBuffer(m_MainCmdBuffer, root.m_IndexBuffer, 0);
 
-            mat.pMaterials[0]->Bind(m_MainCmdBuffer, m_Pipeline);
+            //mat.pMaterials[0]->Bind(m_MainCmdBuffer, m_Pipeline);
 
-            m_Pipeline->Bind(m_MainCmdBuffer);
+            //m_Pipeline->Bind(m_MainCmdBuffer);
 
             RenderEntity(entity);
         }
 
+        m_GeometryBufferPass->End(m_MainCmdBuffer);
         //m_Pipeline->m_GraphicsSpecs.pRenderPass->End(m_MainCmdBuffer);
         m_MainCmdBuffer->UnBind();
 

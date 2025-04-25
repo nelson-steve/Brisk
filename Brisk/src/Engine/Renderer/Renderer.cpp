@@ -80,11 +80,11 @@ namespace Brisk
             }
 
             m_LightingPass->Init(
-                { RenderPassAttachment{ 0, AttachmentType::Color, gPos    },
+                {   RenderPassAttachment{ 0, AttachmentType::Color, gPos    },
                     RenderPassAttachment{ 1, AttachmentType::Color, gNormal },
                     RenderPassAttachment{ 2, AttachmentType::Color, gAlbedo },
                     RenderPassAttachment{ 3, AttachmentType::Depth, gDepth  } },
-                { RenderPassAttachment{ 0, AttachmentType::Depth, lightingOutput } }
+                {   RenderPassAttachment{ 0, AttachmentType::Depth, lightingOutput } }
             );
         }
 

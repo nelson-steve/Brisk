@@ -64,13 +64,20 @@ namespace Brisk
 
         VkSubpassDescription subpass{};
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
-        subpass.colorAttachmentCount = static_cast<uint32_t>(colorAttachmentRefs.size());
-        subpass.pColorAttachments = colorAttachmentRefs.data();
-        subpass.inputAttachmentCount = static_cast<uint32_t>(inputAttachmentRefs.size());
-        subpass.pInputAttachments = inputAttachmentRefs.data();
+        if (colorAttachmentRefs.size() > 0) {
+            subpass.colorAttachmentCount = static_cast<uint32_t>(colorAttachmentRefs.size());
+            subpass.pColorAttachments = colorAttachmentRefs.data();
+        }
+        if (inputAttachmentRefs.size() > 0) {
+            subpass.inputAttachmentCount = static_cast<uint32_t>(inputAttachmentRefs.size());
+            subpass.pInputAttachments = inputAttachmentRefs.data();
+        }
         if (hasDepth)
             subpass.pDepthStencilAttachment = &depthAttachmentRef;
 
+        if (outputs) {
+
+        }
         VkSubpassDependency dependency{};
         dependency.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependency.dstSubpass = 0;

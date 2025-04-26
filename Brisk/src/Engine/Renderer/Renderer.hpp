@@ -42,6 +42,13 @@ namespace Brisk
 		std::shared_ptr<Queue> m_Queue;
 		//-
 
+		// Attachments
+		std::shared_ptr<Texture> g_Pos;
+		std::shared_ptr<Texture> g_Normal;
+		std::shared_ptr<Texture> g_Albedo;
+		std::shared_ptr<Texture> g_Depth;
+		std::shared_ptr<Texture> g_lightingOutput;
+
 		// RenderPasses
 		std::shared_ptr<RenderPass> m_GeometryBufferPass;
 		std::shared_ptr<RenderPass> m_LightingPass;

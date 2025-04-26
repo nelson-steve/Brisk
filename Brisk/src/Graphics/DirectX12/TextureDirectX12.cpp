@@ -6,6 +6,8 @@
 #include <directx/d3dx12_core.h>
 #include <directx/d3dx12_barriers.h>
 
+#include <stb_image.h>
+
 namespace Brisk
 {
     void TextureDirectX12::Init(const TextureSpecification& specs)
@@ -76,8 +78,8 @@ namespace Brisk
             barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
             barrier.Transition.pResource = m_Texture.Get();
             barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-            barrier.Transition.StateBefore = param.oldLayout;
-            barrier.Transition.StateAfter = param.newLayout;
+            //barrier.Transition.StateBefore = param.oldLayout;
+            //barrier.Transition.StateAfter = param.newLayout;
             barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 
             barriers.push_back(barrier);
@@ -124,33 +126,33 @@ namespace Brisk
         textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
         CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_DEFAULT);
-        if (FAILED(m_Device->CreateCommittedResource(
-            &heapProperties,
-            D3D12_HEAP_FLAG_NONE,
-            &textureDesc,
-            D3D12_RESOURCE_STATE_COPY_DEST,
-            nullptr,
-            IID_PPV_ARGS(&m_Texture))
-        )) {
-            throw std::runtime_error("Failed to create texture resource!");
-        }
+        //if (FAILED(m_Device->CreateCommittedResource(
+        //    &heapProperties,
+        //    D3D12_HEAP_FLAG_NONE,
+        //    &textureDesc,
+        //    D3D12_RESOURCE_STATE_COPY_DEST,
+        //    nullptr,
+        //    IID_PPV_ARGS(&m_Texture))
+        //)) {
+        //    throw std::runtime_error("Failed to create texture resource!");
+        //}
 
         UINT64 uploadBufferSize;
-        m_Device->GetCopyableFootprints(&textureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &uploadBufferSize);
+        //m_Device->GetCopyableFootprints(&textureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &uploadBufferSize);
 
         CD3DX12_HEAP_PROPERTIES uploadHeapProps(D3D12_HEAP_TYPE_UPLOAD);
-        CD3DX12_RESOURCE_DESC uploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
+        //CD3DX12_RESOURCE_DESC uploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
         ComPtr<ID3D12Resource> uploadBuffer;
-        if (FAILED(m_Device->CreateCommittedResource(
-            &uploadHeapProps,
-            D3D12_HEAP_FLAG_NONE,
-            &uploadBufferDesc,
-            D3D12_RESOURCE_STATE_GENERIC_READ,
-            nullptr,
-            IID_PPV_ARGS(&uploadBuffer))
-        )) {
-            throw std::runtime_error("Failed to create upload buffer!");
-        }
+        //if (FAILED(m_Device->CreateCommittedResource(
+        //    &uploadHeapProps,
+        //    D3D12_HEAP_FLAG_NONE,
+        //    &uploadBufferDesc,
+        //    D3D12_RESOURCE_STATE_GENERIC_READ,
+        //    nullptr,
+        //    IID_PPV_ARGS(&uploadBuffer))
+        //)) {
+        //    throw std::runtime_error("Failed to create upload buffer!");
+        //}
 
         D3D12_SUBRESOURCE_DATA textureData = {};
         textureData.pData = pixels;
@@ -158,19 +160,19 @@ namespace Brisk
         textureData.SlicePitch = textureData.RowPitch * texHeight;
 
         ComPtr<ID3D12GraphicsCommandList> commandList;
-        m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList));
+        //m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList));
 
-        UpdateSubresources(commandList.Get(), m_Texture.Get(), uploadBuffer.Get(), 0, 0, 1, &textureData);
+        //UpdateSubresources(commandList.Get(), m_Texture.Get(), uploadBuffer.Get(), 0, 0, 1, &textureData);
         CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_Texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
         commandList->ResourceBarrier(1, &barrier);
 
         commandList->Close();
 
         ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
-        m_CommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+        //m_CommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
         // Wait for upload to finish
-        WaitForGPU();
+        //WaitForGPU();
 
         stbi_image_free(pixels);
     }

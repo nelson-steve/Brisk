@@ -15,7 +15,7 @@
 
 namespace Brisk
 {
-    std::shared_ptr<Swapchain> m_Swapchain;
+    std::shared_ptr<Swapchain> Renderer::m_Swapchain;
 
     void Renderer::Init()
     {
@@ -28,63 +28,55 @@ namespace Brisk
         // Renderpasses
         {
             //----------------------------------------------------------------------------------------------------
-            std::shared_ptr<Texture> gPos = Texture::Create();
-            std::shared_ptr<Texture> gNormal = Texture::Create();
-            std::shared_ptr<Texture> gAlbedo = Texture::Create();
-            std::shared_ptr<Texture> gDepth = Texture::Create();
+            g_Pos = Texture::Create();
+            g_Normal = Texture::Create();
+            g_Albedo = Texture::Create();
+            g_Depth = Texture::Create();
 
             {
                 Texture::TextureSpecification specs{};
                 specs.pWidth = 1920;
                 specs.pHeight = 1080;
                 specs.format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
-                gPos->Init(specs);
+                g_Pos->Init(specs);
 
-                gNormal->Init(specs);
+                g_Normal->Init(specs);
 
                 specs.format = Core::Format::FORMAT_R8G8B8A8_UNORM;
-                gAlbedo->Init(specs);
+                g_Albedo->Init(specs);
 
                 specs.format = Core::Format::FORMAT_D16_UNORM;
-                gDepth->Init(specs);
+                g_Depth->Init(specs);
             }
 
             // Geometry pass
             //----------------------------------------------------------------------------------------------------
             m_GeometryBufferPass->Init(
                 {},
-                {   RenderPassAttachment{ 0, AttachmentType::Color, gPos    },
-                    RenderPassAttachment{ 1, AttachmentType::Color, gNormal },
-                    RenderPassAttachment{ 2, AttachmentType::Color, gAlbedo },
-                    RenderPassAttachment{ 3, AttachmentType::Depth, gDepth  } }
+                {   RenderPassAttachment{ 0, AttachmentType::Color, g_Pos    },
+                    RenderPassAttachment{ 1, AttachmentType::Color, g_Normal },
+                    RenderPassAttachment{ 2, AttachmentType::Color, g_Albedo },
+                    RenderPassAttachment{ 3, AttachmentType::Depth, g_Depth  } }
             );
-
-            // Handle transitions
-            {
-                gPos->TransitionImageLayout(Core::ImageLayout::COLOR_ATTACHMENT_OPTIMAL, Core::ImageLayout::SHADER_READ_ONLY_OPTIMAL);
-                gNormal->TransitionImageLayout(Core::ImageLayout::COLOR_ATTACHMENT_OPTIMAL, Core::ImageLayout::SHADER_READ_ONLY_OPTIMAL);
-                gAlbedo->TransitionImageLayout(Core::ImageLayout::COLOR_ATTACHMENT_OPTIMAL, Core::ImageLayout::SHADER_READ_ONLY_OPTIMAL);
-                gDepth->TransitionImageLayout(Core::ImageLayout::DEPTH_STENCIL_ATTACHMENT_OPTIMAL, Core::ImageLayout::DEPTH_STENCIL_READ_ONLY_OPTIMAL);
-            }
 
             // Lighting pass
             //----------------------------------------------------------------------------------------------------
-            std::shared_ptr<Texture> lightingOutput = Texture::Create();
+            g_lightingOutput = Texture::Create();
 
             {
                 Texture::TextureSpecification specs{};
                 specs.pWidth = 1920;
                 specs.pHeight = 1080;
                 specs.format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
-                lightingOutput->Init(specs);
+                g_lightingOutput->Init(specs);
             }
 
             m_LightingPass->Init(
-                {   RenderPassAttachment{ 0, AttachmentType::Color, gPos    },
-                    RenderPassAttachment{ 1, AttachmentType::Color, gNormal },
-                    RenderPassAttachment{ 2, AttachmentType::Color, gAlbedo },
-                    RenderPassAttachment{ 3, AttachmentType::Depth, gDepth  } },
-                {   RenderPassAttachment{ 0, AttachmentType::Depth, lightingOutput } }
+                {   RenderPassAttachment{ 0, AttachmentType::Color, g_Pos    },
+                    RenderPassAttachment{ 1, AttachmentType::Color, g_Normal },
+                    RenderPassAttachment{ 2, AttachmentType::Color, g_Albedo },
+                    RenderPassAttachment{ 3, AttachmentType::Depth, g_Depth  } },
+                {   RenderPassAttachment{ 0, AttachmentType::Depth, g_lightingOutput } }
             );
         }
 
@@ -114,7 +106,7 @@ namespace Brisk
 
                 {
                     std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
-                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_VERTEX_BIT });
+
                     layout->SetGlobal(true);
                     pipelineSpecs.pDescriptorLayouts.push_back(layout);
                 }
@@ -158,6 +150,12 @@ namespace Brisk
 
                 {
                     std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
+
+                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_SAMPLED_IMAGE, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+                    layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_SAMPLED_IMAGE, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+                    layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_SAMPLED_IMAGE, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+                    layout->AddBinding(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_SAMPLED_IMAGE, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+
                     layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
                     layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
                     layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
@@ -213,17 +211,17 @@ namespace Brisk
                 uint32_t index = subMesh.material_index != -1 ? subMesh.material_index : 0;
                 //materials[index]->Bind(m_MainCmdBuffer, m_Pipeline);
 
-                PushConstants pushConstantsData = {
-                    SceneManager::pActiveScene->mMaterials[index].baseColorTextureIndex,   // Index for albedo texture 0
-                    SceneManager::pActiveScene->mMaterials[index].metallicRoughnessTextureIndex, // Index for metallic texture1
-                    SceneManager::pActiveScene->mMaterials[index].normalTextureIndex,   // Index for normal texture 4
-                    SceneManager::pActiveScene->mMaterials[index].emissiveTextureIndex,// Index for roughness texture 2
-                    SceneManager::pActiveScene->mMaterials[index].occlusionTextureIndex// Index for emissive texture 3
-                };
+                //PushConstants pushConstantsData = {
+                //    SceneManager::pActiveScene->mMaterials[index].baseColorTextureIndex,   // Index for albedo texture 0
+                //    SceneManager::pActiveScene->mMaterials[index].metallicRoughnessTextureIndex, // Index for metallic texture1
+                //    SceneManager::pActiveScene->mMaterials[index].normalTextureIndex,   // Index for normal texture 4
+                //    SceneManager::pActiveScene->mMaterials[index].emissiveTextureIndex,// Index for roughness texture 2
+                //    SceneManager::pActiveScene->mMaterials[index].occlusionTextureIndex// Index for emissive texture 3
+                //};
 
                 //pushConstantsData.camPos = Engine::s_Application->GetCamera()->GetPosition();
 
-                m_Pipeline->BindPushConstant(m_MainCmdBuffer, sizeof(PushConstants), &pushConstantsData);
+                //m_Pipeline->BindPushConstant(m_MainCmdBuffer, sizeof(PushConstants), &pushConstantsData);
 
                 RenderCommand::DrawIndexed(m_MainCmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
             }
@@ -312,17 +310,17 @@ namespace Brisk
                 uint32_t index = subMesh.material_index != -1 ? subMesh.material_index : 0;
                 //materials[index]->Bind(m_MainCmdBuffer, m_Pipeline);
 
-                PushConstants pushConstantsData = {
-                    SceneManager::pActiveScene->mMaterials[index].baseColorTextureIndex,   // Index for albedo texture 0
-                    SceneManager::pActiveScene->mMaterials[index].metallicRoughnessTextureIndex, // Index for metallic texture1
-                    SceneManager::pActiveScene->mMaterials[index].normalTextureIndex,   // Index for normal texture 4
-                    SceneManager::pActiveScene->mMaterials[index].emissiveTextureIndex,// Index for roughness texture 2
-                    SceneManager::pActiveScene->mMaterials[index].occlusionTextureIndex// Index for emissive texture 3
-                };
+                //PushConstants pushConstantsData = {
+                //    SceneManager::pActiveScene->mMaterials[index].baseColorTextureIndex,   // Index for albedo texture 0
+                //    SceneManager::pActiveScene->mMaterials[index].metallicRoughnessTextureIndex, // Index for metallic texture1
+                //    SceneManager::pActiveScene->mMaterials[index].normalTextureIndex,   // Index for normal texture 4
+                //    SceneManager::pActiveScene->mMaterials[index].emissiveTextureIndex,// Index for roughness texture 2
+                //    SceneManager::pActiveScene->mMaterials[index].occlusionTextureIndex// Index for emissive texture 3
+                //};
 
                 //pushConstantsData.camPos = Engine::s_Application->GetCamera()->GetPosition();
 
-                m_Pipeline->BindPushConstant(m_MainCmdBuffer, sizeof(PushConstants), &pushConstantsData);
+                //m_Pipeline->BindPushConstant(m_MainCmdBuffer, sizeof(PushConstants), &pushConstantsData);
 
                 RenderCommand::DrawIndexed(m_MainCmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
             }

@@ -3,9 +3,9 @@
 int allocatedSize = 0;
 int deallocatedSize = 0;
 
+#include <windows.h>
 #include <d3d12.h>
 #include <string>
-#include <windows.h>
 
 //#ifdef _WIN32
 #ifdef dddd

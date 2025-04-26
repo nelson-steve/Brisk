@@ -2,7 +2,7 @@
 #include "Semaphore.hpp"
 #include "Graphics/Vulkan/SemaphoreVulkan.hpp"
 #include "Engine/Engine.hpp"
-#include "Graphics/DirectX12/ShaderModuleDirectX12.hpp"
+#include "Graphics/DirectX12/SemaphoreDirectX12.hpp"
 //-------------------------------------------
 
 namespace Brisk 
@@ -12,7 +12,7 @@ namespace Brisk
 			return std::make_shared<SemaphoreVulkan>();
 		}
 		else if (Engine::s_EngineSettings.API == Engine::EngineSettings::GraphicsAPI::DirectX12) {
-			return std::make_shared<ShaderModuleDirectX12>();
+			return std::make_shared<SemaphoreDirectX12>();
 		}
     }
 }

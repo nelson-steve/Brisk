@@ -2,7 +2,6 @@
 #include <stdexcept>
 #include <string>
 
-#include <Windows.h>
 
 namespace Brisk
 {
@@ -24,23 +23,23 @@ namespace Brisk
 #endif
 
         Microsoft::WRL::ComPtr<ID3DBlob> errorBlob;
-        HRESULT hr = D3DCompileFromFile(
-            shaderPath.c_str(),
-            nullptr,
-            nullptr,
-            entryPoint.c_str(),
-            "vs_5_1",
-            compileFlags,
-            0,
-            &m_ShaderBlob,
-            &errorBlob
-        );
+        //HRESULT hr = D3DCompileFromFile(
+        //    shaderPath.c_str(),
+        //    nullptr,
+        //    nullptr,
+        //    entryPoint.c_str(),
+        //    "vs_5_1",
+        //    compileFlags,
+        //    0,
+        //    &m_ShaderBlob,
+        //    &errorBlob
+        //);
 
-        if (FAILED(hr)) {
-            if (errorBlob) {
-                OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-            }
-            throw std::runtime_error("Shader compilation failed!");
-        }
+        //if (FAILED(hr)) {
+        //    if (errorBlob) {
+        //        OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+        //    }
+        //    throw std::runtime_error("Shader compilation failed!");
+        //}
     }
 }

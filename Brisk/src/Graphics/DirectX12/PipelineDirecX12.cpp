@@ -1,6 +1,7 @@
 #include "PipelineDirectX12.hpp"
 #include "GpuAdapterDirectX12.hpp"
 #include "Engine/Engine.hpp"
+#include <directx/d3dx12_core.h>
 
 namespace Brisk
 {
@@ -46,8 +47,8 @@ namespace Brisk
         //D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
         //psoDesc.pRootSignature = m_RootSignature.Get();
         //psoDesc.InputLayout = { inputLayout, _countof(inputLayout) };
-        //psoDesc.VS = CD3DX12_SHADER_BYTECODE(pbrVS.Get());
-        //psoDesc.PS = CD3DX12_SHADER_BYTECODE(pbrPS.Get());
+        ////psoDesc.VS = CD3DX12_SHADER_BYTECODE(pbrVS.Get());
+        ////psoDesc.PS = CD3DX12_SHADER_BYTECODE(pbrPS.Get());
         //psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
         //psoDesc.RasterizerState.FrontCounterClockwise = true;
         //psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);

@@ -2,7 +2,6 @@
 #include <stdexcept>
 #include <string>
 
-
 namespace Brisk
 {
     std::wstring StringToWString(const std::string& str)

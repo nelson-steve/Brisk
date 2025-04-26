@@ -27,6 +27,11 @@ namespace Brisk
 		virtual void Begin(std::shared_ptr<CommandBuffer> cmd) = 0;
 		virtual void End(std::shared_ptr<CommandBuffer> cmd) = 0;
 
+		virtual std::vector<RenderPassAttachment> GetAttachments() { return m_Attachments; }
+
 		static std::shared_ptr<RenderPass> Create();
+
+	protected:
+		std::vector<RenderPassAttachment> m_Attachments;
 	};
 };

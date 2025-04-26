@@ -16,6 +16,8 @@ namespace Brisk
 
         virtual void Begin(std::shared_ptr<CommandBuffer> cmd) override;
         virtual void End(std::shared_ptr<CommandBuffer> cmd) override;
+
+        virtual VkRenderPass GetRenderPass() { return m_RenderPass; }
     private:
         std::vector<VkAttachmentDescription> m_AttachmentsDescriptions;
         //VkAttachmentDescription m_DepthAttachmentDescription;

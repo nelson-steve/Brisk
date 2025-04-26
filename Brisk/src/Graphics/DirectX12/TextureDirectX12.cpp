@@ -12,8 +12,8 @@ namespace Brisk
 {
     void TextureDirectX12::Init(const TextureSpecification& specs)
     {
-        m_Width = specs.pWidth;
-        m_Height = specs.pHeight;
+        m_Width = specs.p_Width;
+        m_Height = specs.p_Height;
 
         D3D12_HEAP_PROPERTIES heapProps = {};
         heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;

@@ -35,22 +35,25 @@ namespace Brisk
 
             {
                 Texture::TextureSpecification specs{};
-                specs.pWidth = 1920;
-                specs.pHeight = 1080;
-                specs.format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
+                specs.p_Width = 1920;
+                specs.p_Height = 1080;
+                specs.p_Type = Texture::TextureType::TEXTURE2D;
+                specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
                 g_Pos->Init(specs);
 
                 g_Normal->Init(specs);
 
-                specs.format = Core::Format::FORMAT_R8G8B8A8_UNORM;
+                specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
                 g_Albedo->Init(specs);
 
-                specs.format = Core::Format::FORMAT_D16_UNORM;
+                specs.p_Format = Core::Format::FORMAT_D16_UNORM;
+                specs.p_IsDepth = true;
                 g_Depth->Init(specs);
             }
 
             // Geometry pass
             //----------------------------------------------------------------------------------------------------
+            m_GeometryBufferPass = RenderPass::Create();
             m_GeometryBufferPass->Init(
                 {},
                 {   RenderPassAttachment{ 0, AttachmentType::Color, g_Pos    },
@@ -65,18 +68,16 @@ namespace Brisk
 
             {
                 Texture::TextureSpecification specs{};
-                specs.pWidth = 1920;
-                specs.pHeight = 1080;
-                specs.format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
+                specs.p_Width = 1920;
+                specs.p_Height = 1080;
+                specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
                 g_lightingOutput->Init(specs);
             }
 
+            m_LightingPass = RenderPass::Create();
             m_LightingPass->Init(
-                {   RenderPassAttachment{ 0, AttachmentType::Color, g_Pos    },
-                    RenderPassAttachment{ 1, AttachmentType::Color, g_Normal },
-                    RenderPassAttachment{ 2, AttachmentType::Color, g_Albedo },
-                    RenderPassAttachment{ 3, AttachmentType::Depth, g_Depth  } },
-                {   RenderPassAttachment{ 0, AttachmentType::Depth, g_lightingOutput } }
+                {},
+                {   RenderPassAttachment{ 0, AttachmentType::Color, g_lightingOutput } }
             );
         }
 
@@ -86,9 +87,9 @@ namespace Brisk
             //----------------------------------------------------------------------------------------------------
             {
                 std::shared_ptr<ShaderModule> vertexShaderModule = ShaderModule::Create();
-                vertexShaderModule->Init("Shaders/Vulkan/DeferredRenderer/Compiled/Geometry.spv", Pipeline::ShaderStage::VERTEX);
+                vertexShaderModule->Init("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryVS.spv", Pipeline::ShaderStage::VERTEX);
                 std::shared_ptr<ShaderModule> fragmentShaderModule = ShaderModule::Create();
-                fragmentShaderModule->Init("Shaders/Vulkan/DeferredRenderer/Compiled/Geometry.spv", Pipeline::ShaderStage::FRAGMENT);
+                fragmentShaderModule->Init("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryFS.spv", Pipeline::ShaderStage::FRAGMENT);
 
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
                 Pipeline::VertexDataLayout vertexLayout;
@@ -136,9 +137,9 @@ namespace Brisk
             //----------------------------------------------------------------------------------------------------
             {
                 std::shared_ptr<ShaderModule> vertexShaderModule = ShaderModule::Create();
-                vertexShaderModule->Init("Shaders/Vulkan/DeferredRenderer/Compiled/Lighting.spv", Pipeline::ShaderStage::VERTEX);
+                vertexShaderModule->Init("Shaders/Vulkan/DeferredRenderer/Compiled/LightingVS.spv", Pipeline::ShaderStage::VERTEX);
                 std::shared_ptr<ShaderModule> fragmentShaderModule = ShaderModule::Create();
-                fragmentShaderModule->Init("Shaders/Vulkan/DeferredRenderer/Compiled/Lighting.spv", Pipeline::ShaderStage::FRAGMENT);
+                fragmentShaderModule->Init("Shaders/Vulkan/DeferredRenderer/Compiled/LightingFS.spv", Pipeline::ShaderStage::FRAGMENT);
 
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
                 Pipeline::VertexDataLayout vertexLayout;

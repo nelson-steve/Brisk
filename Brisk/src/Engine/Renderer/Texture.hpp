@@ -97,12 +97,13 @@ namespace Brisk
 			SAMPLE_COUNT_64_BIT
 		};
 		struct TextureSpecification {
-			TextureType pType;
-			TextureSampler pSampler{};
-			Core::Format format;
-			uint32_t pWidth = 1, pHeight = 1, pDepth = 1;
-			uint32_t pMipLevels = 1;
-			uint32_t pArrayLayers = 1;
+			TextureType p_Type;
+			TextureSampler p_Sampler{};
+			Core::Format p_Format;
+			bool p_IsDepth;
+			uint32_t p_Width = 1, p_Height = 1, p_Depth = 1;
+			uint32_t p_MipLevels = 1;
+			uint32_t p_ArrayLayers = 1;
 		};
 	public:
 		virtual void Init(const TextureSpecification& specs) = 0;
@@ -114,6 +115,7 @@ namespace Brisk
 
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
+		virtual bool IsDepth() { return m_IsDepth; }
 		virtual void Resize() = 0;
 
 
@@ -159,6 +161,7 @@ namespace Brisk
 	protected:
 		// Metadata
 		uint32_t m_Width, m_Height;
+		bool m_IsDepth;
 		Core::Format m_Format;
 		TextureType m_TextureType;
 	};

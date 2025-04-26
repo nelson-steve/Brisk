@@ -11,10 +11,10 @@ namespace Brisk
         m_ComputePipeline = Pipeline::Create();
 
         Texture::TextureSpecification cubemapSpecs;
-        cubemapSpecs.pWidth = 1024;
-        cubemapSpecs.pHeight = 1024;
-        cubemapSpecs.pDepth = 1;
-        cubemapSpecs.pArrayLayers = 6;
+        cubemapSpecs.p_Width = 1024;
+        cubemapSpecs.p_Height = 1024;
+        cubemapSpecs.p_Depth = 1;
+        cubemapSpecs.p_ArrayLayers = 6;
         std::shared_ptr<Texture> cubemap = Texture::Create();
         cubemap->Init(cubemapSpecs);
         std::shared_ptr<Texture> hdr = Texture::Create();
@@ -91,10 +91,10 @@ namespace Brisk
 
         {
             Texture::TextureSpecification mainEnvTextureSpecs;
-            mainEnvTextureSpecs.pWidth = 1024;
-            mainEnvTextureSpecs.pHeight = 1024;
-            mainEnvTextureSpecs.pDepth = 1;
-            mainEnvTextureSpecs.pArrayLayers = 6;
+            mainEnvTextureSpecs.p_Width = 1024;
+            mainEnvTextureSpecs.p_Height = 1024;
+            mainEnvTextureSpecs.p_Depth = 1;
+            mainEnvTextureSpecs.p_ArrayLayers = 6;
             std::shared_ptr<Texture> mainEnvTexture;
             mainEnvTexture->Init(mainEnvTextureSpecs);
 

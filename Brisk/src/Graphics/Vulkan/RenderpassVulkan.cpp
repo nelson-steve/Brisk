@@ -20,6 +20,8 @@ namespace Brisk
         uint32_t width = 0, height = 0;
 
         auto processAttachment = [&](const RenderPassAttachment& attachment, bool isInput) {
+            if(!isInput && !attachment.pImage->IsDepth())
+                m_Attachments.push_back(attachment);
             auto texture = std::static_pointer_cast<TextureVulkan>(attachment.pImage);
             VkAttachmentDescription desc{};
             desc.format = texture->GetFormat();
@@ -81,7 +83,7 @@ namespace Brisk
         dependency1.srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
         dependency1.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         dependency1.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-        dependency1.dstAccessMask = VK_ACCESS_INPUT_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        dependency1.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
         dependency1.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
         VkSubpassDependency dependency2{};

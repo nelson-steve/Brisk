@@ -73,19 +73,23 @@ namespace Brisk
     //}
 
     void TextureVulkan::Init(const TextureSpecification& specs) {
+        m_Width = specs.p_Width;
+        m_Height = specs.p_Height;
+        m_IsDepth = specs.p_IsDepth;
         VkImageCreateInfo imageinfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
         imageinfo.pNext = nullptr;
-        imageinfo.flags = specs.pType == Texture::TextureType::CUBEMAP ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0;
-        imageinfo.imageType = specs.pType == Texture::TextureType::TEXTURE3D ? VK_IMAGE_TYPE_3D : VK_IMAGE_TYPE_2D;
-        imageinfo.format = VK_FORMAT_B8G8R8A8_UNORM;
-        imageinfo.extent.width = specs.pWidth;
-        imageinfo.extent.height = specs.pHeight;
-        imageinfo.extent.depth = specs.pDepth;
-        imageinfo.mipLevels = specs.pMipLevels;
-        imageinfo.arrayLayers = specs.pArrayLayers;
+        imageinfo.flags = specs.p_Type == Texture::TextureType::CUBEMAP ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0;
+        imageinfo.imageType = specs.p_Type == Texture::TextureType::TEXTURE3D ? VK_IMAGE_TYPE_3D : VK_IMAGE_TYPE_2D;
+        m_Format = UtilitiesVulkan::FormatToVkFormat(specs.p_Format);
+        imageinfo.format = m_Format;
+        imageinfo.extent.width = specs.p_Width;
+        imageinfo.extent.height = specs.p_Height;
+        imageinfo.extent.depth = specs.p_Depth;
+        imageinfo.mipLevels = specs.p_MipLevels;
+        imageinfo.arrayLayers = specs.p_ArrayLayers;
         imageinfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageinfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-        imageinfo.usage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+        imageinfo.usage = specs.p_IsDepth ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
         imageinfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         imageinfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         if (vkCreateImage(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &imageinfo, nullptr, &m_Image) != VK_SUCCESS) {
@@ -111,13 +115,13 @@ namespace Brisk
         imageView.pNext = nullptr;
         imageView.flags = 0;
         imageView.image = m_Image;
-        imageView.viewType = specs.pType == Texture::TextureType::TEXTURE3D ? VK_IMAGE_VIEW_TYPE_3D : VK_IMAGE_VIEW_TYPE_3D;
-        imageView.format = VK_FORMAT_B8G8R8A8_UNORM;
-        imageView.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        imageView.viewType = specs.p_Type == Texture::TextureType::TEXTURE3D ? VK_IMAGE_VIEW_TYPE_3D : VK_IMAGE_VIEW_TYPE_2D;
+        imageView.format = m_Format;
+        imageView.subresourceRange.aspectMask = specs.p_IsDepth ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
         imageView.subresourceRange.baseMipLevel = 0;
         imageView.subresourceRange.levelCount = 1;
         imageView.subresourceRange.baseArrayLayer = 0;
-        imageView.subresourceRange.layerCount = specs.pArrayLayers;
+        imageView.subresourceRange.layerCount = specs.p_ArrayLayers;
 
         if (vkCreateImageView(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &imageView, nullptr, &m_ImageView) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor pool!");

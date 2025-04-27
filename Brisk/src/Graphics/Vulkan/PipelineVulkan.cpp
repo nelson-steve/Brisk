@@ -135,7 +135,7 @@ namespace Brisk
             std::vector<VkDescriptorSetLayout> descriptorLayouts;
             for (const auto& layout : specs.pDescriptorLayouts) {
                 descriptorLayouts.push_back(std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout());
-                descriptorLayouts.push_back(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout);
+                //descriptorLayouts.push_back(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout);
             }
 
             VkPushConstantRange pushConstantRange = {};
@@ -144,7 +144,6 @@ namespace Brisk
             pushConstantRange.size = sizeof(PushConstants);  // Size of the push constant data
 
             VkPipelineLayoutCreateInfo m_PipelineLayoutInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
-            m_PipelineLayoutInfo.setLayoutCount = 0;
             m_PipelineLayoutInfo.pushConstantRangeCount = 1;
             m_PipelineLayoutInfo.pPushConstantRanges = &pushConstantRange;
             m_PipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorLayouts.size());

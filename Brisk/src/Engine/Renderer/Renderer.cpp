@@ -99,16 +99,23 @@ namespace Brisk
                     {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Position)},
                     {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Normal)},
                     {0, 2, Core::Format::FORMAT_R32G32_SFLOAT,    offsetof(MeshData, MeshData::UV0)},
-                    {0, 3, Core::Format::FORMAT_R32G32_SFLOAT,    offsetof(MeshData, MeshData::UV1)},
-                    {0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Color)},
+                    //{0, 3, Core::Format::FORMAT_R32G32_SFLOAT,    offsetof(MeshData, MeshData::UV1)},
+                    //{0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Color)},
                 };
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_GeometryBufferPass;
 
                 {
                     std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
-
+                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_VERTEX_BIT });
+                    //layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
                     layout->SetGlobal(true);
+                    pipelineSpecs.pDescriptorLayouts.push_back(layout);
+                }
+
+                {
+                    std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
+                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
                     pipelineSpecs.pDescriptorLayouts.push_back(layout);
                 }
 
@@ -151,18 +158,19 @@ namespace Brisk
 
                 {
                     std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
-
-                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_SAMPLED_IMAGE, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-                    layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_SAMPLED_IMAGE, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-                    layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_SAMPLED_IMAGE, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-                    layout->AddBinding(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_SAMPLED_IMAGE, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-
                     layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
                     layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
                     layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+                    pipelineSpecs.pDescriptorLayouts.push_back(layout);
+                }
+
+                {
+                    std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
+                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
                     layout->SetGlobal(true);
                     pipelineSpecs.pDescriptorLayouts.push_back(layout);
                 }
+
                 // TODO: Add bindless descriptor
 
                 pipelineSpecs.pShaderModules.push_back(vertexShaderModule);

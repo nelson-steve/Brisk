@@ -443,7 +443,7 @@ namespace Brisk
 		//mat.pMaterials[0]->SetMVPBuffer(Engine::s_Application->GetCamera()->mMVPBuffer);
 		//mat.pMaterials[0]->UpdateResources();
 
-		mat.pMaterials[0]->AddTextures(mTextures);
+		//mat.pMaterials[0]->AddTextures(mTextures);
 
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;

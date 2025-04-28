@@ -55,10 +55,10 @@ namespace Brisk
 			PipelineStage srcStage;
 			PipelineStage dstStage;
 			ImageAspectFlags aspectFlags;
-			uint32_t baseMipLevel;
-			uint32_t levelCount;
-			uint32_t baseLayer;
-			uint32_t layerCount;
+			uint32_t baseMipLevel = 0;
+			uint32_t levelCount = 1;
+			uint32_t baseLayer = 0;
+			uint32_t layerCount = 1;
 		};
 
 		///--------------------------------------------------------------------------

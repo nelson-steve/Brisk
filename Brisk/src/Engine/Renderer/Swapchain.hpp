@@ -31,6 +31,7 @@ namespace Brisk
 		Swapchain& operator=(const Swapchain&&) = delete;
 
 		virtual void AquireNextImage(uint64_t timeout, std::shared_ptr<Semaphore> semaphore, std::shared_ptr<Fence> fence, uint32_t* pImageIndex) = 0;
+		virtual void TransitionCurrentImage(std::shared_ptr<CommandBuffer> cmd, Texture::ImageBarrierParams params) = 0;
 		uint32_t GetImageCount() const { return m_ImageCount; }
 
 		virtual uint32_t GetExtentWidth() const = 0;

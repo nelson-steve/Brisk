@@ -292,6 +292,50 @@ namespace Brisk
         }
 
         m_GeometryBufferPass->End(m_MainCmdBuffer);
+
+        // Prepare lighting output to be copyable
+        {
+            Brisk::Texture::ImageBarrierParams params{};
+            params.texture = g_lightingOutput;
+            params.oldLayout = Texture::ImageLayout::ColorAttachmentOptimal;
+            params.newLayout = Texture::ImageLayout::TransferSrc;
+            params.srcAccess = Texture::AccessType::ColorAttachmentWrite;
+            params.srcAccess = Texture::AccessType::TransferRead;
+            //params.srcStage = Texture::PipelineStage::ColorAttachmentOutput;
+            params.srcStage = Texture::PipelineStage::TransferStage;
+
+            g_lightingOutput->TransitionImageLayout(m_MainCmdBuffer, { params });
+        }
+
+        // Prepare to be writeable
+        {
+            Brisk::Texture::ImageBarrierParams params{};
+            params.oldLayout = Texture::ImageLayout::ColorAttachmentOptimal;
+            params.newLayout = Texture::ImageLayout::TransferSrc;
+            params.srcAccess = Texture::AccessType::ColorAttachmentWrite;
+            params.srcAccess = Texture::AccessType::TransferRead;
+            //params.srcStage = Texture::PipelineStage::ColorAttachmentOutput;
+            params.srcStage = Texture::PipelineStage::TransferStage;
+
+            m_Swapchain->TransitionCurrentImage(m_MainCmdBuffer, params);
+        }
+
+        // Blit the lighting output to swapchain image
+        m_Swapchain->Blit(m_MainCmdBuffer, g_lightingOutput);
+
+        // Prepare to be presentable
+        {
+            Brisk::Texture::ImageBarrierParams params{};
+            params.oldLayout = Texture::ImageLayout::ColorAttachmentOptimal;
+            params.newLayout = Texture::ImageLayout::TransferSrc;
+            params.srcAccess = Texture::AccessType::ColorAttachmentWrite;
+            params.srcAccess = Texture::AccessType::TransferRead;
+            //params.srcStage = Texture::PipelineStage::ColorAttachmentOutput;
+            params.srcStage = Texture::PipelineStage::TransferStage;
+
+            m_Swapchain->TransitionCurrentImage(m_MainCmdBuffer, params);
+        }
+
         //m_Pipeline->m_GraphicsSpecs.pRenderPass->End(m_MainCmdBuffer);
         m_MainCmdBuffer->UnBind();
 

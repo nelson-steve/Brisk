@@ -317,11 +317,11 @@ namespace Brisk
             //params.srcStage = Texture::PipelineStage::ColorAttachmentOutput;
             params.srcStage = Texture::PipelineStage::TransferStage;
 
-            m_Swapchain->TransitionCurrentImage(m_MainCmdBuffer, params);
+            m_Swapchain->TransitionCurrentImage(m_MainCmdBuffer, params, m_ImageIndex);
         }
 
         // Blit the lighting output to swapchain image
-        m_Swapchain->Blit(m_MainCmdBuffer, g_lightingOutput);
+        m_Swapchain->Blit(m_MainCmdBuffer, g_lightingOutput, m_ImageIndex);
 
         // Prepare to be presentable
         {
@@ -333,7 +333,7 @@ namespace Brisk
             //params.srcStage = Texture::PipelineStage::ColorAttachmentOutput;
             params.srcStage = Texture::PipelineStage::TransferStage;
 
-            m_Swapchain->TransitionCurrentImage(m_MainCmdBuffer, params);
+            m_Swapchain->TransitionCurrentImage(m_MainCmdBuffer, params, m_ImageIndex);
         }
 
         //m_Pipeline->m_GraphicsSpecs.pRenderPass->End(m_MainCmdBuffer);

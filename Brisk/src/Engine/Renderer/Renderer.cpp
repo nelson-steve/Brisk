@@ -108,7 +108,6 @@ namespace Brisk
                 {
                     std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
                     layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_VERTEX_BIT });
-                    //layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
                     layout->SetGlobal(true);
                     pipelineSpecs.pDescriptorLayouts.push_back(layout);
                 }
@@ -230,7 +229,7 @@ namespace Brisk
 
                 //pushConstantsData.camPos = Engine::s_Application->GetCamera()->GetPosition();
 
-                //m_Pipeline->BindPushConstant(m_MainCmdBuffer, sizeof(PushConstants), &pushConstantsData);
+                //m_LightingPipeline->BindPushConstant(m_MainCmdBuffer, sizeof(PushConstants), &pushConstantsData);
 
                 RenderCommand::DrawIndexed(m_MainCmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
             }

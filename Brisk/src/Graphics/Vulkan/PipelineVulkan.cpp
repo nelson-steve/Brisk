@@ -89,16 +89,12 @@ namespace Brisk
         depthStencil.front = depthStencil.back;
 
         std::vector<VkPipelineColorBlendAttachmentState> colorAttachments;
-        for (auto& attachment : specs.pRenderPass->GetAttachments()) {
+        for (int i = 0; i < specs.pRenderPass->GetColorAttachmentCount(); i++) {
             VkPipelineColorBlendAttachmentState colorBlendAttachment{};
             colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
             colorBlendAttachment.blendEnable = VK_FALSE;
             colorAttachments.push_back(colorBlendAttachment);
         }
-
-        //VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-        //colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-        //colorBlendAttachment.blendEnable = VK_FALSE;
 
         VkPipelineColorBlendStateCreateInfo colorBlending{ VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
         colorBlending.logicOpEnable = VK_FALSE;

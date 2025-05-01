@@ -20,8 +20,14 @@ namespace Brisk
         uint32_t width = 0, height = 0;
 
         auto processAttachment = [&](const RenderPassAttachment& attachment, bool isInput) {
-            if(!isInput && !attachment.pImage->IsDepth())
-                m_Attachments.push_back(attachment);
+            if (!isInput /*&& !attachment.pImage->IsDepth()*/) {
+                m_ClearCount++;
+                //m_Attachments.push_back(attachment);
+            }
+            if (!isInput && !attachment.pImage->IsDepth()) {
+                m_ColorAttachmentCount++;
+                //m_Attachments.push_back(attachment);
+            }
             auto texture = std::static_pointer_cast<TextureVulkan>(attachment.pImage);
             VkAttachmentDescription desc{};
             desc.format = texture->GetFormat();
@@ -123,7 +129,7 @@ namespace Brisk
 
     void RenderPassVulkan::Begin(std::shared_ptr<CommandBuffer> cmd) {
         std::vector<VkClearValue> clearValues;
-        clearValues.resize(m_AttachmentsDescriptions.size());
+        clearValues.resize(m_ClearCount);
         for (auto& clear : clearValues) {
             clear.color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
             clear.depthStencil = { 1.0f, 0 };

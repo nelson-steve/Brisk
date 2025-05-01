@@ -307,5 +307,18 @@ namespace Brisk
 			}
 			assert(false);
 		}
+
+		static VkImageUsageFlags ImageUsageToVulkanType(Texture::TextureUsage usage) {
+			VkImageUsageFlags flags = 0;
+
+			if ((usage & Texture::TextureUsage::ImageUsageTransferSrc) != Texture::TextureUsage::Undefined)            flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+			if ((usage & Texture::TextureUsage::ImageUsageTransferDst) != Texture::TextureUsage::Undefined)            flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+			if ((usage & Texture::TextureUsage::ImageUsageSampled) != Texture::TextureUsage::Undefined)                flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
+			if ((usage & Texture::TextureUsage::ImageUsageStorage) != Texture::TextureUsage::Undefined)                flags |= VK_IMAGE_USAGE_STORAGE_BIT;
+			if ((usage & Texture::TextureUsage::ImageUsageColorAttachment) != Texture::TextureUsage::Undefined)        flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			if ((usage & Texture::TextureUsage::ImageUsageDepthStencilAttachment) != Texture::TextureUsage::Undefined) flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+
+			return flags;
+		}
 	};
 }

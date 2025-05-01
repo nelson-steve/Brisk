@@ -38,7 +38,7 @@ namespace Brisk
                 specs.p_Width = 1920;
                 specs.p_Height = 1080;
                 specs.p_Type = Texture::TextureType::TEXTURE2D;
-                specs.p_Usage = Texture::TextureUsage::ImageUsageColorAttachment;
+                specs.p_Usage = Texture::TextureUsage::ImageUsageColorAttachment | Texture::TextureUsage::ImageUsageSampled;
                 specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
                 g_Pos->Init(specs);
 

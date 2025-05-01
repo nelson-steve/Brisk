@@ -3,6 +3,7 @@
 #include "Scene.hpp"
 #include "Core/Core.hpp"
 #include "Events/Event.hpp"
+#include <Graphics/Vulkan/GpuAdapterVulkan.hpp>
 //------------------------
 namespace Brisk
 {
@@ -55,6 +56,17 @@ namespace Brisk
 		m_EditorCamera->MouseMoved();
 		m_EditorCamera->OnMouseScroll(e.GetYOffset());
 		return false;
+	}
+
+	void* Application::GetNativeDevice() {
+		if (Engine::s_EngineSettings.API == Engine::EngineSettings::GraphicsAPI::Vulkan) {
+			return reinterpret_cast<void*>(m_Adapter->GetDevice<GpuAdapterVulkan>()->GetDevice());
+		}
+		//else {
+		//	m_Adapter->GetDevice<GpuAdapterDirectX12>()->GetDevice()
+		//}
+		assert(false);
+		return nullptr;
 	}
 
 	void Application::Close() {

@@ -2,6 +2,7 @@
 #include "GpuAdapterVulkan.hpp"
 #include "Engine/Window.hpp"
 #include "Core/Log.hpp"
+#include "Engine/Renderer/Texture.hpp"
 
 #include <glfw3.h>
 

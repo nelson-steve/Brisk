@@ -47,12 +47,13 @@ namespace Brisk
 		};
 
 		enum class TextureUsage : uint32_t {
-			ImageUsageTransferSrc			 = 0,
-			ImageUsageTransferDst			 = 1 << 0,
-			ImageUsageSampled				 = 1 << 1,
-			ImageUsageStorage				 = 1 << 2,
-			ImageUsageColorAttachment		 = 1 << 3,
-			ImageUsageDepthStencilAttachment = 1 << 4,
+			Undefined			 = 0,
+			ImageUsageTransferSrc			 = 1 << 1,
+			ImageUsageTransferDst			 = 1 << 2,
+			ImageUsageSampled				 = 1 << 3,
+			ImageUsageStorage				 = 1 << 4,
+			ImageUsageColorAttachment		 = 1 << 5,
+			ImageUsageDepthStencilAttachment = 1 << 6,
 		};
 
 		struct ImageBarrierParams {
@@ -176,4 +177,20 @@ namespace Brisk
 		Core::Format m_Format;
 		TextureType m_TextureType;
 	};
+
+	// Texture Usage 
+	inline Texture::TextureUsage operator|(Texture::TextureUsage a, Texture::TextureUsage b) {
+		return static_cast<Texture::TextureUsage>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+	}
+
+	inline Texture::TextureUsage operator&(Texture::TextureUsage a, Texture::TextureUsage b) {
+		return static_cast<Texture::TextureUsage>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+	}
+
+	inline Texture::TextureUsage& operator|=(Texture::TextureUsage& a, Texture::TextureUsage b) {
+		a = a | b;
+		return a;
+	}
+
+	// 
 }

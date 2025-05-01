@@ -89,7 +89,7 @@ namespace Brisk
         imageinfo.arrayLayers = specs.p_ArrayLayers; 
         imageinfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageinfo.tiling = VK_IMAGE_TILING_OPTIMAL;
-        imageinfo.usage = specs.p_IsDepth ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+        imageinfo.usage = UtilitiesVulkan::ImageUsageToVulkanType(specs.p_Usage);
         imageinfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         imageinfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
         if (vkCreateImage(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &imageinfo, nullptr, &m_Image) != VK_SUCCESS) {
@@ -98,6 +98,7 @@ namespace Brisk
 
         VkMemoryRequirements memRequirements;
         vkGetImageMemoryRequirements(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_Image, &memRequirements);
+        //vkGetImageMemoryRequirements(static_cast<VkDevice>(Engine::s_Application->GetNativeDevice()), m_Image, &memRequirements);
 
         VkMemoryAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;

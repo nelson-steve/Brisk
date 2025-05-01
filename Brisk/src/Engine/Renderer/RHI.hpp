@@ -9,7 +9,7 @@ namespace Brisk {
             FORMAT_B4G4R4A4_UNORM_PACK16 = 3,
             FORMAT_R5G6B5_UNORM_PACK16 = 4,
             FORMAT_B5G6R5_UNORM_PACK16 = 5,
-            FORMAT_R5G5B5A1_UNORM_PACK16 = 6,
+            FORMAT_R5G5B5A1_UNORM_PACK16 = 6,   
             FORMAT_B5G5R5A1_UNORM_PACK16 = 7,
             FORMAT_A1R5G5B5_UNORM_PACK16 = 8,
             FORMAT_R8_UNORM = 9,

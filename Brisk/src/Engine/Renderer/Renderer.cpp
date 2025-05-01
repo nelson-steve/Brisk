@@ -38,6 +38,7 @@ namespace Brisk
                 specs.p_Width = 1920;
                 specs.p_Height = 1080;
                 specs.p_Type = Texture::TextureType::TEXTURE2D;
+                specs.p_Usage = Texture::TextureUsage::ImageUsageColorAttachment;
                 specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
                 g_Pos->Init(specs);
 
@@ -56,10 +57,12 @@ namespace Brisk
             m_GeometryBufferPass = RenderPass::Create();
             m_GeometryBufferPass->Init(
                 {},
-                {   RenderPassAttachment{ 0, AttachmentType::Color, g_Pos    },
+                {   
+                    RenderPassAttachment{ 0, AttachmentType::Color, g_Pos    },
                     RenderPassAttachment{ 1, AttachmentType::Color, g_Normal },
                     RenderPassAttachment{ 2, AttachmentType::Color, g_Albedo },
-                    RenderPassAttachment{ 3, AttachmentType::Depth, g_Depth  } }
+                    RenderPassAttachment{ 3, AttachmentType::Depth, g_Depth  } 
+                }
             );
 
             // Lighting pass
@@ -77,7 +80,9 @@ namespace Brisk
             m_LightingPass = RenderPass::Create();
             m_LightingPass->Init(
                 {},
-                {   RenderPassAttachment{ 0, AttachmentType::Color, g_lightingOutput } }
+                {  
+                    RenderPassAttachment{ 0, AttachmentType::Color, g_lightingOutput } 
+                }
             );
         }
 

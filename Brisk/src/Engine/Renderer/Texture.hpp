@@ -12,38 +12,47 @@ namespace Brisk
 {
 	class Texture {
 	public:
-		enum class ImageLayout {
-			Undefined,
-			General,
-			ShaderReadOnlyOptimal,
-			TransferSrc,
-			TransferDst,
-			ColorAttachmentOptimal,
-			DepthStencilAttachmentOptimal,
+		enum class ImageLayout : uint32_t {
+			Undefined					  = 0,
+			General						  = 1 << 0,
+			ShaderReadOnlyOptimal		  = 1 << 1,
+			TransferSrc					  = 1 << 2,
+			TransferDst					  = 1 << 3,
+			ColorAttachmentOptimal		  = 1 << 4,
+			DepthStencilAttachmentOptimal = 1 << 5,
 		};
 
-		enum class AccessType {
-			None = 0,
-			ShaderRead,
-			ShaderWrite,
-			TransferRead,
-			TransferWrite,
-			ColorAttachmentRead,
-			ColorAttachmentWrite,
+		enum class AccessType : uint32_t {
+			None				 = 0,
+			ShaderRead			 = 1 << 0,
+			ShaderWrite			 = 1 << 1,
+			TransferRead	     = 1 << 2,
+			TransferWrite		 = 1 << 3,
+			ColorAttachmentRead  = 1 << 4,
+			ColorAttachmentWrite = 1 << 5,
 		};
 
-		enum class PipelineStage {
-			TopOfPipe,
-			BottomOfPipe,
-			TransferStage,
-			ComputeShader,
-			FragmentShader,
+		enum class PipelineStage : uint32_t {
+			TopOfPipe	   = 0,
+			BottomOfPipe   = 1 << 0,
+			TransferStage  = 1 << 1,
+			ComputeShader  = 1 << 2,
+			FragmentShader = 1 << 3,
 		};
 
-		enum ImageAspectFlags {
-			Color,
-			Depth,
-			Stencil,
+		enum class ImageAspectFlags : uint32_t {
+			Color   = 0,
+			Depth   = 1 << 0,
+			Stencil = 1 << 0,
+		};
+
+		enum class TextureUsage : uint32_t {
+			ImageUsageTransferSrc			 = 0,
+			ImageUsageTransferDst			 = 1 << 0,
+			ImageUsageSampled				 = 1 << 1,
+			ImageUsageStorage				 = 1 << 2,
+			ImageUsageColorAttachment		 = 1 << 3,
+			ImageUsageDepthStencilAttachment = 1 << 4,
 		};
 
 		struct ImageBarrierParams {
@@ -83,6 +92,7 @@ namespace Brisk
 			SamplerAddressMode address_modeV;
 			SamplerAddressMode address_modeW;
 		};
+
 		enum TextureType {
 			TEXTURE2D, TEXTURE3D, TEXTURE_ARRAY, CUBEMAP
 		};
@@ -99,6 +109,7 @@ namespace Brisk
 		struct TextureSpecification {
 			TextureType p_Type;
 			TextureSampler p_Sampler{};
+			TextureUsage p_Usage{};
 			Core::Format p_Format;
 			bool p_IsDepth;
 			uint32_t p_Width = 1, p_Height = 1, p_Depth = 1;

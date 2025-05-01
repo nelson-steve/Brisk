@@ -86,7 +86,7 @@ namespace Brisk
         imageinfo.extent.height = specs.p_Height;
         imageinfo.extent.depth = specs.p_Depth;
         imageinfo.mipLevels = specs.p_MipLevels;
-        imageinfo.arrayLayers = specs.p_ArrayLayers;
+        imageinfo.arrayLayers = specs.p_ArrayLayers; 
         imageinfo.samples = VK_SAMPLE_COUNT_1_BIT;
         imageinfo.tiling = VK_IMAGE_TILING_OPTIMAL;
         imageinfo.usage = specs.p_IsDepth ? VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT : VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;

@@ -25,8 +25,8 @@ namespace Brisk
 		virtual void TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, std::vector<ImageBarrierParams> params) override;
 		virtual void CopyImage(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> src, std::shared_ptr<Texture> dest, uint32_t width, uint32_t height) override;
 
-		virtual uint32_t GetWidth() const { return m_Width; }
-		virtual uint32_t GetHeight() const { return m_Height; }
+		virtual uint32_t GetWidth() const { return m_Specs.p_Width; }
+		virtual uint32_t GetHeight() const { return m_Specs.p_Height; }
 		virtual void Resize() override { assert(false); }
 
 		virtual void Init(const TextureSpecification& specs) override;

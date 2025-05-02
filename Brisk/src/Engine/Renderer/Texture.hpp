@@ -33,12 +33,19 @@ namespace Brisk
 		};
 
 		enum class PipelineStage : uint32_t {
-			TopOfPipe	   = 0,
-			BottomOfPipe   = 1 << 0,
-			TransferStage  = 1 << 1,
-			ComputeShader  = 1 << 2,
+			TopOfPipe = 0,
+			BottomOfPipe = 1 << 0,
+			TransferStage = 1 << 1,
+			ComputeShader = 1 << 2,
 			FragmentShader = 1 << 3,
+			VertexShader = 1 << 4,
+			ColorAttachment = 1 << 5,
+			EarlyFragmentTest = 1 << 6,
+			LateFragmentTest = 1 << 7,
+			AllGraphics = 1 << 8,
+			AllCommands = 1 << 9,
 		};
+
 
 		enum class ImageAspectFlags : uint32_t {
 			Color   = 0,
@@ -112,7 +119,7 @@ namespace Brisk
 			TextureSampler p_Sampler{};
 			TextureUsage p_Usage{};
 			Core::Format p_Format;
-			bool p_IsDepth;
+			bool p_IsDepth = false;
 			uint32_t p_Width = 1, p_Height = 1, p_Depth = 1;
 			uint32_t p_MipLevels = 1;
 			uint32_t p_ArrayLayers = 1;
@@ -124,10 +131,10 @@ namespace Brisk
 
 		virtual void TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, std::vector<ImageBarrierParams> params) = 0;
 		virtual void CopyImage(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> src, std::shared_ptr<Texture> dest, uint32_t width, uint32_t height) = 0;
-
+		TextureSpecification GetSpecs() const { return m_Specs; }
 		virtual uint32_t GetWidth() const = 0;
 		virtual uint32_t GetHeight() const = 0;
-		virtual bool IsDepth() { return m_IsDepth; }
+		virtual bool IsDepth() { return m_Specs.p_IsDepth; }
 		virtual void Resize() = 0;
 
 
@@ -171,11 +178,7 @@ namespace Brisk
 
 		static std::shared_ptr<Texture> Create();
 	protected:
-		// Metadata
-		uint32_t m_Width, m_Height;
-		bool m_IsDepth;
-		Core::Format m_Format;
-		TextureType m_TextureType;
+		TextureSpecification m_Specs;
 	};
 
 	// Texture Usage 
@@ -192,5 +195,56 @@ namespace Brisk
 		return a;
 	}
 
-	// 
+	// Texture Layout
+	inline Texture::ImageLayout operator|(Texture::ImageLayout a, Texture::ImageLayout b) {
+		return static_cast<Texture::ImageLayout>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+	}
+
+	inline Texture::ImageLayout operator&(Texture::ImageLayout a, Texture::ImageLayout b) {
+		return static_cast<Texture::ImageLayout>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+	}
+
+	inline Texture::ImageLayout& operator|=(Texture::ImageLayout& a, Texture::ImageLayout b) {
+		a = a | b;
+		return a;
+	}
+
+	// Access Type
+	inline Texture::AccessType operator|(Texture::AccessType a, Texture::AccessType b) {
+		return static_cast<Texture::AccessType>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+	}
+
+	inline Texture::AccessType operator&(Texture::AccessType a, Texture::AccessType b) {
+		return static_cast<Texture::AccessType>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+	}
+
+	inline Texture::AccessType& operator|=(Texture::AccessType& a, Texture::AccessType b) {
+		a = a | b;
+		return a;
+	}
+
+	inline Texture::AccessType& operator&=(Texture::AccessType& a, Texture::AccessType b) {
+		a = a & b;
+		return a;
+	}
+
+	// Pipeline stage
+	inline Texture::PipelineStage operator|(Texture::PipelineStage a, Texture::PipelineStage b) {
+		return static_cast<Texture::PipelineStage>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+	}
+
+	inline Texture::PipelineStage operator&(Texture::PipelineStage a, Texture::PipelineStage b) {
+		return static_cast<Texture::PipelineStage>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+	}
+
+	inline Texture::PipelineStage& operator|=(Texture::PipelineStage& a, Texture::PipelineStage b) {
+		a = a | b;
+		return a;
+	}
+
+	inline Texture::PipelineStage& operator&=(Texture::PipelineStage& a, Texture::PipelineStage b) {
+		a = a & b;
+		return a;
+	}
+
 }

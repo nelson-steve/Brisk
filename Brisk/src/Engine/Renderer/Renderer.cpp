@@ -37,6 +37,7 @@ namespace Brisk
                 Texture::TextureSpecification specs{};
                 specs.p_Width = 1920;
                 specs.p_Height = 1080;
+                specs.p_IsDepth = false;
                 specs.p_Type = Texture::TextureType::TEXTURE2D;
                 specs.p_Usage = Texture::TextureUsage::ImageUsageColorAttachment | Texture::TextureUsage::ImageUsageSampled;
                 specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
@@ -47,6 +48,7 @@ namespace Brisk
                 specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
                 g_Albedo->Init(specs);
 
+                specs.p_Usage = Texture::TextureUsage::ImageUsageDepthStencilAttachment | Texture::TextureUsage::ImageUsageSampled;
                 specs.p_Format = Core::Format::FORMAT_D16_UNORM;
                 specs.p_IsDepth = true;
                 g_Depth->Init(specs);
@@ -73,6 +75,7 @@ namespace Brisk
                 Texture::TextureSpecification specs{};
                 specs.p_Width = 1920;
                 specs.p_Height = 1080;
+                specs.p_Usage = Texture::TextureUsage::ImageUsageColorAttachment | Texture::TextureUsage::ImageUsageTransferSrc;
                 specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
                 g_lightingOutput->Init(specs);
             }
@@ -304,9 +307,9 @@ namespace Brisk
             params.oldLayout = Texture::ImageLayout::ColorAttachmentOptimal;
             params.newLayout = Texture::ImageLayout::TransferSrc;
             params.srcAccess = Texture::AccessType::ColorAttachmentWrite;
-            params.srcAccess = Texture::AccessType::TransferRead;
-            //params.srcStage = Texture::PipelineStage::ColorAttachmentOutput;
-            params.srcStage = Texture::PipelineStage::TransferStage;
+            params.dstAccess = Texture::AccessType::TransferRead;
+            params.srcStage = Texture::PipelineStage::ColorAttachment;
+            params.dstStage = Texture::PipelineStage::TransferStage;
 
             g_lightingOutput->TransitionImageLayout(m_MainCmdBuffer, { params });
         }
@@ -317,9 +320,9 @@ namespace Brisk
             params.oldLayout = Texture::ImageLayout::ColorAttachmentOptimal;
             params.newLayout = Texture::ImageLayout::TransferSrc;
             params.srcAccess = Texture::AccessType::ColorAttachmentWrite;
-            params.srcAccess = Texture::AccessType::TransferRead;
-            //params.srcStage = Texture::PipelineStage::ColorAttachmentOutput;
-            params.srcStage = Texture::PipelineStage::TransferStage;
+            params.dstAccess = Texture::AccessType::TransferRead;
+            params.srcStage = Texture::PipelineStage::ColorAttachment;
+            params.dstStage = Texture::PipelineStage::TransferStage;
 
             m_Swapchain->TransitionCurrentImage(m_MainCmdBuffer, params, m_ImageIndex);
         }
@@ -334,7 +337,7 @@ namespace Brisk
             params.newLayout = Texture::ImageLayout::TransferSrc;
             params.srcAccess = Texture::AccessType::ColorAttachmentWrite;
             params.srcAccess = Texture::AccessType::TransferRead;
-            //params.srcStage = Texture::PipelineStage::ColorAttachmentOutput;
+            params.srcStage = Texture::PipelineStage::ColorAttachment;
             params.srcStage = Texture::PipelineStage::TransferStage;
 
             m_Swapchain->TransitionCurrentImage(m_MainCmdBuffer, params, m_ImageIndex);

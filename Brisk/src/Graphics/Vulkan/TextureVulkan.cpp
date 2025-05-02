@@ -1,6 +1,7 @@
 #include "TextureVulkan.hpp"
 #include "UtilitiesVulkan.hpp"
 #include "GpuAdapterVulkan.hpp"
+#include "CommandBufferVulkan.hpp"
 
 namespace Brisk 
 {
@@ -73,9 +74,7 @@ namespace Brisk
     //}
 
     void TextureVulkan::Init(const TextureSpecification& specs) {
-        m_Width = specs.p_Width;
-        m_Height = specs.p_Height;
-        m_IsDepth = specs.p_IsDepth;
+        m_Specs = specs;
         VkImageCreateInfo imageinfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
         imageinfo.pNext = nullptr;
         imageinfo.flags = specs.p_Type == Texture::TextureType::CUBEMAP ? VK_IMAGE_CREATE_CUBE_COMPATIBLE_BIT : 0;
@@ -155,8 +154,8 @@ namespace Brisk
         if (!pixels) {
             throw std::runtime_error("failed to load texture image!");
         }
-        m_Width = texWidth;
-        m_Height = texHeight;
+        m_Specs.p_Width = texWidth;
+        m_Specs.p_Width = texHeight;
 
         BufferVulkan stagingBuffer;
         //stagingBuffer.Init(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
@@ -370,8 +369,8 @@ namespace Brisk
 
         VkFormatProperties formatProperties;
 
-        m_Width = image.width;
-        m_Height = image.height;
+        m_Specs.p_Width = image.width;
+        m_Specs.p_Height = image.height;
         //m_mip_levels = static_cast<uint32_t>(floor(log2(std::max(m_width, m_height))) + 1.0);
 
         vkGetPhysicalDeviceFormatProperties(physicalDevice, format, &formatProperties);
@@ -422,8 +421,8 @@ namespace Brisk
         image_create_info.usage = VK_IMAGE_USAGE_SAMPLED_BIT;
         image_create_info.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
         image_create_info.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        image_create_info.extent.width = m_Width;
-        image_create_info.extent.height = m_Height;
+        image_create_info.extent.width = m_Specs.p_Width;
+        image_create_info.extent.height = m_Specs.p_Height;
         image_create_info.extent.depth = 1;
         image_create_info.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
         if (vkCreateImage(m_DeviceCached, &image_create_info, nullptr, &m_Image)) {
@@ -493,8 +492,8 @@ namespace Brisk
         buffer_copy_region.imageSubresource.mipLevel = 0;
         buffer_copy_region.imageSubresource.baseArrayLayer = 0;
         buffer_copy_region.imageSubresource.layerCount = 1;
-        buffer_copy_region.imageExtent.width = m_Width;
-        buffer_copy_region.imageExtent.height = m_Height;
+        buffer_copy_region.imageExtent.width = m_Specs.p_Width;
+        buffer_copy_region.imageExtent.height = m_Specs.p_Height;
         buffer_copy_region.imageExtent.depth = 1;
 
         vkCmdCopyBufferToImage(copy_cmd, stagingBuffer, m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &buffer_copy_region);
@@ -680,19 +679,31 @@ namespace Brisk
     }
 
     void TextureVulkan::TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, std::vector<ImageBarrierParams> params) {
-        VkImageMemoryBarrier barrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
-        barrier.srcAccessMask = 0;
-        barrier.dstAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-        barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-        barrier.newLayout = VK_IMAGE_LAYOUT_GENERAL;
-        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-        barrier.image = m_Image;
-        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-        barrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
-        barrier.subresourceRange.baseMipLevel = 0;
-        barrier.subresourceRange.levelCount = 1;
-        //vkCmdPipelineBarrier(layoutCmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+        VkPipelineStageFlags srcFlag = UtilitiesVulkan::PipelineStageToVkPipelineStageFlags(params[0].srcStage);
+        VkPipelineStageFlags dstFlag = UtilitiesVulkan::PipelineStageToVkPipelineStageFlags(params[0].dstStage);
+        std::vector<VkImageMemoryBarrier> barriers;
+        for (auto& p : params) {
+            VkImageMemoryBarrier barrier = { VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER };
+            barrier.srcAccessMask = UtilitiesVulkan::AccessTypeToVkAccessFlags(p.srcAccess);
+            barrier.dstAccessMask = UtilitiesVulkan::AccessTypeToVkAccessFlags(p.dstAccess);
+            barrier.oldLayout = UtilitiesVulkan::ImageLayoutToVkImageLayout(p.oldLayout);
+            barrier.newLayout = UtilitiesVulkan::ImageLayoutToVkImageLayout(p.newLayout);
+            barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+            barrier.image = std::static_pointer_cast<TextureVulkan>(p.texture)->GetImage();
+            barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+            barrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
+            barrier.subresourceRange.baseMipLevel = 0;
+            barrier.subresourceRange.levelCount = 1;
+
+            barriers.push_back(barrier);
+        }
+
+        vkCmdPipelineBarrier(
+            std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 
+            srcFlag,
+            dstFlag,
+            0, 0, nullptr, 0, nullptr, barriers.size(), barriers.data());
     }
 
     void TextureVulkan::CopyImage(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> src, std::shared_ptr<Texture> dest, uint32_t width, uint32_t height) {

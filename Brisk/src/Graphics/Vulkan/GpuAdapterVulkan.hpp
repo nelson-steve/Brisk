@@ -13,6 +13,13 @@
 
 namespace Brisk 
 {
+	// Predefined descriptor set values
+	constexpr uint32_t SET_MVP = 0;
+	constexpr uint32_t SET_LIGHTS = 1;
+	constexpr uint32_t SET_TEXTURES = 2;
+	constexpr uint32_t SET_BINDLESS = 3;
+	//
+
 	class GpuAdapterVulkan : public GpuAdapter {
 	public:
 		enum QueueType {
@@ -119,22 +126,36 @@ namespace Brisk
 		const Queue GetTransferQueue() const { return m_TransferQueue; }
 		const VkDescriptorPool GetDescriptorPool() const { return m_DescriptorPool; }
 
+
+
 		std::shared_ptr<SurfaceVulkan> GetSurface() { return m_Surface; }
 
 	public:
-		VkDescriptorPool m_BindlessDescriptorPool;
 		VkDescriptorSetLayout m_BindlessDescriptorLayout;
-		VkDescriptorSet m_BindlessDescriptorSet;
 	private:
-		// Pools
-		VkDescriptorPool m_DescriptorPool;
-
 		VkPhysicalDevice m_PhysicalDevice;
 		VkDevice m_Device;
 		Queue m_TransferQueue;
 		Queue m_ComputeQueue;
 		Queue m_GraphicsQueue;
 		std::vector<std::vector<float>> m_QueueFamiliesPriorities;
+
+		// Descriptor stuff ------------------------------------//
+		VkDescriptorPool m_DescriptorPool;						//
+		VkDescriptorPool m_BindlessDescriptorPool;				//
+																//
+		// Projection Matrix									//
+		// View Matrix											//
+		// Camera Position Matrix								//
+		VkDescriptorSet m_MVPUBOSet;							//
+		// Scene Lights											//
+		VkDescriptorSet m_SceneLightsSet;						//
+		// Textures												//
+		// Shadow map, 											//
+		VkDescriptorSet m_TexturesSet;							//
+		// Bindless textures									//
+		VkDescriptorSet m_BindlessTexturesSet;					//
+		//------------------------------------------------------//
 
 		///
 		/// <summary>

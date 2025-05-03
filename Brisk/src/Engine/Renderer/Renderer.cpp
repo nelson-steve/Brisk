@@ -19,6 +19,19 @@ namespace Brisk
 
     void Renderer::Init()
     {
+        /*
+        Global stuff
+        Lights 
+        MVPCamPos
+        Textures
+   
+        Binding locations
+        Set 0 Projection View CamPos
+        Set 1 Light buffer
+        Set 2 ObjectData - Model texture indexes texture count
+        Set 3 Bindless textures
+        */
+
         RenderCommand::s_RendererAPI = RendererAPI::Create();
         ComputeCommand::s_ComputeAPI = ComputeAPI::Create();
 
@@ -272,7 +285,6 @@ namespace Brisk
         m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &m_ImageIndex);
         m_MainCmdBuffer->Reset();
         m_MainCmdBuffer->Bind();
-        //m_Pipeline->m_GraphicsSpecs.pRenderPass->Begin(m_MainCmdBuffer, m_ImageIndex);
         m_GBufferPipeline->Bind(m_MainCmdBuffer);
 
         m_GeometryBufferPass->Begin(m_MainCmdBuffer);
@@ -283,8 +295,8 @@ namespace Brisk
         for (auto e : parent) {
             Entity entity = { e, SceneManager::pActiveScene.get() };
             
-            //std::cout << entity.GetComponent<TagComponent>().Tag << std::endl;
-            //auto& mesh = entity.GetComponent<MeshComponent>();
+            std::cout << entity.GetComponent<TagComponent>().Tag << std::endl;
+            auto& mesh = entity.GetComponent<MeshComponent>();
             auto& root = entity.GetComponent<RootComponent>();
             auto& mat = entity.GetComponent<MaterialComponent>();
 

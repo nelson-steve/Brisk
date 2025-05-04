@@ -8,7 +8,7 @@
 #include <iostream>
 //-----------------
 
-namespace Brisk 
+namespace Brisk
 {
 	std::vector<VkPhysicalDevice> GpuAdapterVulkan::RetrieveAvailableDevice(VkInstance instance) {
 		uint32_t device_count = 0;
@@ -58,7 +58,7 @@ namespace Brisk
 		createInfo.pNext = &s_DebugCreateInfo;
 #endif
 		if ((vkCreateInstance(&createInfo, nullptr, &m_Instance) != VK_SUCCESS)) {
-			std::cout<<"Failed to create Vulkan instance";
+			std::cout << "Failed to create Vulkan instance";
 		}
 
 		volkLoadInstance(m_Instance);
@@ -101,30 +101,30 @@ namespace Brisk
 
 	void GpuAdapterVulkan::AllocatePools() {
 
-		std::vector<VkDescriptorPoolSize> poolSizes {
-            { VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1024 },
-            { VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,		 1024 },
-            { VK_DESCRIPTOR_TYPE_SAMPLER,				 1024 },
-            { VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,		 1024 },
-            { VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,		 1024 },
-            { VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,			 1024 },
+		std::vector<VkDescriptorPoolSize> poolSizes{
+			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1024 },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,		 1024 },
+			{ VK_DESCRIPTOR_TYPE_SAMPLER,				 1024 },
+			{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,		 1024 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,		 1024 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,			 1024 },
 			{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,			 1024 },
 			{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,   1024 },
 			{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,   1024 },
 			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1024 },
 			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1024 },
-        };
+		};
 
 		VkDescriptorPoolCreateInfo poolInfo{};
-        poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
-        poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
-        poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
-        poolInfo.pPoolSizes = poolSizes.data();
+		poolInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_POOL_CREATE_INFO;
+		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
+		poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
+		poolInfo.pPoolSizes = poolSizes.data();
 		poolInfo.maxSets = 32;
 
-        if (vkCreateDescriptorPool(m_Device, &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS) {
-            throw std::runtime_error("failed to create descriptor pool!");
-        }
+		if (vkCreateDescriptorPool(m_Device, &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create descriptor pool!");
+		}
 
 		{
 			uint32_t maxBindessResources = 1024;
@@ -142,16 +142,16 @@ namespace Brisk
 			if (vkCreateDescriptorPool(m_Device, &poolInfo, nullptr, &m_BindlessDescriptorPool) != VK_SUCCESS) {
 				throw std::runtime_error("failed to create bindless descriptor pool!");
 			}
-			
+
 			std::vector<VkDescriptorSetLayoutBinding> bindings;
 
-			VkDescriptorSetLayoutBinding image_sampler_binding{};
-			image_sampler_binding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			image_sampler_binding.descriptorCount = maxBindessResources;
-			image_sampler_binding.binding = SET_BINDLESS;
-			image_sampler_binding.stageFlags = VK_SHADER_STAGE_ALL;
-			image_sampler_binding.pImmutableSamplers = nullptr;
-			bindings.push_back(image_sampler_binding);
+			VkDescriptorSetLayoutBinding imageSamplerBinding{};
+			imageSamplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			imageSamplerBinding.descriptorCount = maxBindessResources;
+			imageSamplerBinding.binding = SET_BINDLESS;
+			imageSamplerBinding.stageFlags = VK_SHADER_STAGE_ALL;
+			imageSamplerBinding.pImmutableSamplers = nullptr;
+			bindings.push_back(imageSamplerBinding);
 
 			//VkDescriptorSetLayoutBinding storage_image_binding{};
 			//storage_image_binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
@@ -461,5 +461,13 @@ namespace Brisk
 
 		// Device is suitable!
 		return true;
+	}
+
+	void GpuAdapterVulkan::AddResource(GpuResourceType type, std::shared_ptr<Texture> texture) {
+
+	}
+
+	void GpuAdapterVulkan::AddResource(GpuResourceType type, std::shared_ptr<Buffer> buffer) {
+
 	}
 }

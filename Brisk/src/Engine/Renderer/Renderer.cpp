@@ -1,17 +1,11 @@
 // INCLUDES
-#include "RHI.hpp"
-#include "Shader.hpp"
 #include "Renderer.hpp"
 #include "RenderPass.hpp"
-#include "RendererAPI.hpp"
-#include "Engine/Model.hpp"
-#include "ShaderModule.hpp"
-#include "Engine/Entity.hpp"
 #include "RenderCommand.hpp"
 #include "ComputeCommand.hpp"
 #include "Engine/Component.hpp"
-#include "Engine/SceneManager.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
+//------------------------------------------------
 
 namespace Brisk
 {
@@ -275,6 +269,7 @@ namespace Brisk
     void Renderer::RenderScene(float deltaTime)
     {
         if (!SceneManager::pActiveScene) return;
+
 
         //auto view = SceneManager::pActiveScene->Reg().view<MeshComponent, MaterialComponent>();
         auto parent = SceneManager::pActiveScene->Reg().view<RootComponent>();

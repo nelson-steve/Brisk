@@ -16,6 +16,9 @@ namespace Brisk
 
 		ComPtr<ID3D12Device> GetDevice() const { return m_Device; }
 		ComPtr<IDXGIFactory6> GetDXGIFactory() const { return m_DxgiFactory; }
+
+		virtual void AddResource(GpuResourceType type, std::shared_ptr<Texture> texture) { assert(false); }
+		virtual void AddResource(GpuResourceType type, std::shared_ptr<Buffer> buffer) { assert(false); }
 	private:
 		ComPtr<IDXGIFactory6> m_DxgiFactory;
 		ComPtr<ID3D12Device> m_Device;

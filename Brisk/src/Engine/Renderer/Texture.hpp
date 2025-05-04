@@ -10,6 +10,8 @@
 
 namespace Brisk 
 {
+
+
 	class Texture {
 	public:
 		enum class ImageLayout : uint32_t {

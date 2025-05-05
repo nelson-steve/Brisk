@@ -41,12 +41,8 @@ namespace Brisk
             std::shared_ptr<CommandBuffer> cmd = CommandBuffer::Create();
             cmd->Bind();
 
-            std::shared_ptr<Shader> m_ComputeShader = Shader::Create();
+            //std::shared_ptr<Shader> m_ComputeShader = Shader::Create();
             //std::shared_ptr<Shader> m_ComputeShader = std::make_shared<Shader>();
-            m_ComputeShader->Init(m_ComputePipeline);
-
-            m_ComputeShader->BindTexture(hdr, 0, 0);
-            m_ComputeShader->BindTexture(cubemap, 1, 0);
             Texture::ImageBarrierParams preComputeBarrier = {
                 cubemap,
                 Texture::ImageLayout::Undefined,

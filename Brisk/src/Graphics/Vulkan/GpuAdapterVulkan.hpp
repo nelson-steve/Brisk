@@ -126,8 +126,8 @@ namespace Brisk
 		const Queue GetTransferQueue() const { return m_TransferQueue; }
 		const VkDescriptorPool GetDescriptorPool() const { return m_DescriptorPool; }
 
-		virtual void AddResource(GpuResourceType type, std::shared_ptr<Texture> texture) override;
-		virtual void AddResource(GpuResourceType type, std::shared_ptr<Buffer> buffer) override;
+		virtual void SetupDescriptorSets(std::vector<std::shared_ptr<DescriptorLayout>> descriptorLayouts) override;
+		virtual void AddResource(GpuDescriptorResourceType type, std::shared_ptr<Texture> texture, std::shared_ptr<Buffer> buffer, int bindingIndex) override;
 
 		std::shared_ptr<SurfaceVulkan> GetSurface() { return m_Surface; }
 

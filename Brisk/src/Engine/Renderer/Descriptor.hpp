@@ -11,6 +11,8 @@
 
 namespace Brisk
 {
+	enum GpuDescriptorResourceType;
+
 	class GPUResource {
 	public:
 		enum ResourceType {
@@ -74,6 +76,10 @@ namespace Brisk
 			GPUResource::ResourceType p_Type;
 			std::vector<GPUResource::ShaderStageAccess> pStageAccessFlags;
 		};
+
+		void SetDescriptorType(GpuDescriptorResourceType type);
+		GpuDescriptorResourceType GetDescriptorType();
+
 		void AddBinding(uint32_t binding, uint32_t count, GPUResource::ResourceType type, std::vector<GPUResource::ShaderStageAccess> stages) {
 			Layout layout{};
 			layout.p_Binding = binding;
@@ -92,13 +98,11 @@ namespace Brisk
 				m_Layouts.push_back(l);
 			}
 		}
-		void SetGlobal(bool isGlobal) { m_IsGlobal = isGlobal; }
-		bool IsGlobal() const { return m_IsGlobal; }
 	public:
 		virtual void Init() = 0;
 		static std::shared_ptr<DescriptorLayout> Create();
 	protected:
-		bool m_IsGlobal;
 		std::vector<Layout> m_Layouts;
+		GpuDescriptorResourceType m_Type;
 	};
 }

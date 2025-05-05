@@ -127,14 +127,15 @@ namespace Brisk
 
                 {
                     std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
+                    layout->SetDescriptorType(GpuDescriptorResourceType::MVPUBO);
                     layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_VERTEX_BIT });
-                    layout->SetGlobal(true);
                     pipelineSpecs.pDescriptorLayouts.push_back(layout);
                 }
 
                 {
                     std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
-                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+                    layout->SetDescriptorType(GpuDescriptorResourceType::SceneTextures);
+                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
                     pipelineSpecs.pDescriptorLayouts.push_back(layout);
                 }
 
@@ -177,16 +178,17 @@ namespace Brisk
 
                 {
                     std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
-                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-                    layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-                    layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+                    layout->SetDescriptorType(GpuDescriptorResourceType::SceneTextures);
+                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // g_Position
+                    layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // g_Normal
+                    layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // g_Albedo
                     pipelineSpecs.pDescriptorLayouts.push_back(layout);
                 }
 
                 {
                     std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
-                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-                    layout->SetGlobal(true);
+                    layout->SetDescriptorType(GpuDescriptorResourceType::SceneLightsUBO);
+                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lights UBO
                     pipelineSpecs.pDescriptorLayouts.push_back(layout);
                 }
 

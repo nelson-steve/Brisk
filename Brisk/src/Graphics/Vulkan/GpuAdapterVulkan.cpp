@@ -6,6 +6,8 @@
 //--------------------------------------------
 #include <set>
 #include <iostream>
+#include "TextureVulkan.hpp"
+#include "DescriptorLayoutVulkan.hpp"
 //-----------------
 
 namespace Brisk
@@ -181,19 +183,19 @@ namespace Brisk
 				throw std::runtime_error("failed to create bindless descriptor pool!");
 			}
 
-			VkDescriptorSetAllocateInfo alloc_info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
-			alloc_info.descriptorPool = m_BindlessDescriptorPool;
-			alloc_info.descriptorSetCount = 1;
-			alloc_info.pSetLayouts = &m_BindlessDescriptorLayout;
+			VkDescriptorSetAllocateInfo allocInfo { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
+			allocInfo.descriptorPool = m_BindlessDescriptorPool;
+			allocInfo.descriptorSetCount = 1;
+			allocInfo.pSetLayouts = &m_BindlessDescriptorLayout;
 
 			VkDescriptorSetVariableDescriptorCountAllocateInfoEXT countInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT };
 			uint32_t maxBinding = maxBindessResources - 1;
 			countInfo.descriptorSetCount = 1;
 			// This number is the max allocatable count
 			countInfo.pDescriptorCounts = &maxBinding;
-			//alloc_info.pNext = &count_info;
+			allocInfo.pNext = &countInfo;
 
-			if (vkAllocateDescriptorSets(m_Device, &alloc_info, &m_BindlessTexturesSet) != VK_SUCCESS) {
+			if (vkAllocateDescriptorSets(m_Device, &allocInfo, &m_BindlessTexturesSet) != VK_SUCCESS) {
 				throw std::runtime_error("failed to create bindless descriptor pool!");
 			}
 		}
@@ -463,11 +465,106 @@ namespace Brisk
 		return true;
 	}
 
-	void GpuAdapterVulkan::AddResource(GpuResourceType type, std::shared_ptr<Texture> texture) {
+	void GpuAdapterVulkan::SetupDescriptorSets(std::vector<std::shared_ptr<DescriptorLayout>> descriptorLayouts) {
+		for (const auto& l : descriptorLayouts) {
+			VkDescriptorSetAllocateInfo allocInfo{};
+			allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
+			VkDescriptorSetLayout layout = std::static_pointer_cast<DescriptorLayoutVulkan>(l)->GetLayout();
 
+			allocInfo.descriptorPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDescriptorPool();
+			allocInfo.descriptorSetCount = 1;
+			allocInfo.pSetLayouts = &layout;
+			switch (l->GetDescriptorType())
+			{
+			case Brisk::MVPUBO:
+			{
+				if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_MVPUBOSet) != VK_SUCCESS)
+				{
+					throw std::runtime_error("failed to allocate descriptor sets!");
+				}
+			}
+			case Brisk::BindlessTextures:
+			{
+				// Already allocated
+			}
+			case Brisk::SceneLightsUBO:
+			{
+				if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_SceneLightsSet) != VK_SUCCESS)
+				{
+					throw std::runtime_error("failed to allocate descriptor sets!");
+				}
+			}
+			case Brisk::SceneTextures:
+			{
+				if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_TexturesSet) != VK_SUCCESS)
+				{
+					throw std::runtime_error("failed to allocate descriptor sets!");
+				}
+			}
+			default:
+				BRISK_CORE_ERROR("Not implemented yet");
+				break;
+			}
+		}
 	}
 
-	void GpuAdapterVulkan::AddResource(GpuResourceType type, std::shared_ptr<Buffer> buffer) {
+	void GpuAdapterVulkan::AddResource(GpuDescriptorResourceType type, std::shared_ptr<Texture> texture, std::shared_ptr<Buffer> buffer, int bindingIndex) {
+		switch (type)
+		{
+		case Brisk::MVPUBO:
+		{
+			VkWriteDescriptorSet write{};
+			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			write.dstSet = m_MVPUBOSet;
+			write.dstBinding = bindingIndex;
+			write.descriptorCount = 1;
+			write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
+			vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+			break;
+		}
+		case Brisk::SceneLightsUBO:
+		{
+			VkWriteDescriptorSet write{};
+			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+			write.dstSet = m_SceneLightsSet;
+			write.dstBinding = bindingIndex;
+			write.descriptorCount = 1;
+			write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
+			vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+			break;
+		}
+		case Brisk::SceneTextures:
+		{
+			VkWriteDescriptorSet write;
+			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessTexturesSet;
+			write.dstBinding = 0;
+			write.dstArrayElement = bindingIndex;
+			write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			write.descriptorCount = 1;
+			write.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
 
+			vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+			break;
+		}
+		case Brisk::BindlessTextures:
+		{
+			VkWriteDescriptorSet write;
+			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+			write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessTexturesSet;
+			write.dstBinding = 0;
+			write.dstArrayElement = bindingIndex;
+			write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+			write.descriptorCount = 1;
+			write.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
+
+			vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+			break;
+		}
+		default:
+			break;
+		}
 	}
 }

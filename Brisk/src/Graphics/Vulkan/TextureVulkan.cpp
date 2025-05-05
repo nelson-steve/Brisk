@@ -95,6 +95,15 @@ namespace Brisk
             throw std::runtime_error("Failed to create image");
         }
 
+        VkDebugUtilsObjectNameInfoEXT nameInfo = {};
+        nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+        nameInfo.objectType = VK_OBJECT_TYPE_IMAGE;
+        nameInfo.objectHandle = (uint64_t)m_Image;
+        nameInfo.pObjectName = specs.p_DebugName.c_str();
+
+        vkSetDebugUtilsObjectNameEXT(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
+
+
         VkMemoryRequirements memRequirements;
         vkGetImageMemoryRequirements(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_Image, &memRequirements);
         //vkGetImageMemoryRequirements(static_cast<VkDevice>(Engine::s_Application->GetNativeDevice()), m_Image, &memRequirements);
@@ -690,7 +699,13 @@ namespace Brisk
             barrier.newLayout = UtilitiesVulkan::ImageLayoutToVkImageLayout(p.newLayout);
             barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
             barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
-            barrier.image = std::static_pointer_cast<TextureVulkan>(p.texture)->GetImage();
+            if (p.texture == nullptr) {
+                BRISK_APP_INFO("No special image found for transition");
+                barrier.image = m_Image;
+            }
+            else {
+                barrier.image = std::static_pointer_cast<TextureVulkan>(p.texture)->GetImage();
+            }
             barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
             barrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
             barrier.subresourceRange.baseMipLevel = 0;

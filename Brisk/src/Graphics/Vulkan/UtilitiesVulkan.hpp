@@ -2,6 +2,7 @@
 
 #include "Engine/Renderer/RHI.hpp"
 #include "Engine/Renderer/Pipeline.hpp"
+#include "Core/Log.hpp"
 
 #include <Volk/volk.h>
 #define GLFW_INCLUDE_VULKAN
@@ -305,7 +306,7 @@ namespace Brisk
 				case GPUResource::ShaderStageAccess::SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI: return VK_SHADER_STAGE_SUBPASS_SHADING_BIT_HUAWEI;
 				case GPUResource::ShaderStageAccess::SHADER_STAGE_CLUSTER_CULLING_BIT_HUAWEI: return VK_SHADER_STAGE_CLUSTER_CULLING_BIT_HUAWEI;
 			}
-			assert(false);
+			BRISK_CORE_ERROR("Invalid shader stage parameter");
 		}
 
 		static VkImageUsageFlags ImageUsageToVulkanType(Texture::TextureUsage usage) {
@@ -340,8 +341,21 @@ namespace Brisk
 			if ((layout & Texture::ImageLayout::General) == Texture::ImageLayout::General)
 				return VK_IMAGE_LAYOUT_GENERAL;
 
+			if ((layout & Texture::ImageLayout::DepthStencilReadOnlyOptimal) == Texture::ImageLayout::DepthStencilReadOnlyOptimal)
+				return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+
+			if ((layout & Texture::ImageLayout::PresentSrc) == Texture::ImageLayout::PresentSrc)
+				return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+
+			if ((layout & Texture::ImageLayout::ComputeShaderWrite) == Texture::ImageLayout::ComputeShaderWrite)
+				return VK_IMAGE_LAYOUT_GENERAL;
+
+			if ((layout & Texture::ImageLayout::AttachmentFeedbackLoopOptimal) == Texture::ImageLayout::AttachmentFeedbackLoopOptimal)
+				return VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT;
+
 			return VK_IMAGE_LAYOUT_UNDEFINED;
 		}
+
 
 		static VkAccessFlags AccessTypeToVkAccessFlags(Texture::AccessType access) {
 			VkAccessFlags flags = 0;
@@ -364,8 +378,39 @@ namespace Brisk
 			if ((access & Texture::AccessType::ColorAttachmentWrite) == Texture::AccessType::ColorAttachmentWrite)
 				flags |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
+			if ((access & Texture::AccessType::DepthStencilRead) == Texture::AccessType::DepthStencilRead)
+				flags |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
+
+			if ((access & Texture::AccessType::DepthStencilWrite) == Texture::AccessType::DepthStencilWrite)
+				flags |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+
+			if ((access & Texture::AccessType::HostRead) == Texture::AccessType::HostRead)
+				flags |= VK_ACCESS_HOST_READ_BIT;
+
+			if ((access & Texture::AccessType::HostWrite) == Texture::AccessType::HostWrite)
+				flags |= VK_ACCESS_HOST_WRITE_BIT;
+
+			if ((access & Texture::AccessType::MemoryRead) == Texture::AccessType::MemoryRead)
+				flags |= VK_ACCESS_MEMORY_READ_BIT;
+
+			if ((access & Texture::AccessType::MemoryWrite) == Texture::AccessType::MemoryWrite)
+				flags |= VK_ACCESS_MEMORY_WRITE_BIT;
+
+			if ((access & Texture::AccessType::InputAttachmentRead) == Texture::AccessType::InputAttachmentRead)
+				flags |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
+
+			if ((access & Texture::AccessType::IndirectCommandRead) == Texture::AccessType::IndirectCommandRead)
+				flags |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
+
+			if ((access & Texture::AccessType::VertexAttributeRead) == Texture::AccessType::VertexAttributeRead)
+				flags |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
+
+			if ((access & Texture::AccessType::UniformRead) == Texture::AccessType::UniformRead)
+				flags |= VK_ACCESS_UNIFORM_READ_BIT;
+
 			return flags;
 		}
+
 
 		static VkPipelineStageFlags PipelineStageToVkPipelineStageFlags(Texture::PipelineStage stage) {
 			VkPipelineStageFlags flags = 0;

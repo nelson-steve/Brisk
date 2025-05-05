@@ -45,16 +45,20 @@ namespace Brisk
                 specs.p_Width = 1920;
                 specs.p_Height = 1080;
                 specs.p_IsDepth = false;
+                specs.p_DebugName = "g_Pos";
                 specs.p_Type = Texture::TextureType::TEXTURE2D;
                 specs.p_Usage = Texture::TextureUsage::ImageUsageColorAttachment | Texture::TextureUsage::ImageUsageSampled;
                 specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
                 g_Pos->Init(specs);
 
+                specs.p_DebugName = "g_Normal";
                 g_Normal->Init(specs);
 
+                specs.p_DebugName = "g_Albedo";
                 specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
                 g_Albedo->Init(specs);
 
+                specs.p_DebugName = "g_Depth";
                 specs.p_Usage = Texture::TextureUsage::ImageUsageDepthStencilAttachment | Texture::TextureUsage::ImageUsageSampled;
                 specs.p_Format = Core::Format::FORMAT_D16_UNORM;
                 specs.p_IsDepth = true;
@@ -82,6 +86,7 @@ namespace Brisk
                 Texture::TextureSpecification specs{};
                 specs.p_Width = 1920;
                 specs.p_Height = 1080;
+                specs.p_DebugName = "g_Lighting";
                 specs.p_Usage = Texture::TextureUsage::ImageUsageColorAttachment | Texture::TextureUsage::ImageUsageTransferSrc;
                 specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
                 g_lightingOutput->Init(specs);
@@ -307,6 +312,19 @@ namespace Brisk
 
         m_GeometryBufferPass->End(m_MainCmdBuffer);
 
+        {
+            Brisk::Texture::ImageBarrierParams params{};
+            params.texture = g_lightingOutput; // replace with your actual image handle
+            params.oldLayout = Texture::ImageLayout::Undefined;
+            params.newLayout = Texture::ImageLayout::ColorAttachmentOptimal;
+            params.srcAccess = Texture::AccessType::None; // No access yet, since image is undefined
+            params.dstAccess = Texture::AccessType::ColorAttachmentWrite;
+            params.srcStage = Texture::PipelineStage::TopOfPipe;
+            params.dstStage = Texture::PipelineStage::ColorAttachment;
+
+            g_lightingOutput->TransitionImageLayout(m_MainCmdBuffer, { params });
+        }
+
         // Prepare lighting output to be copyable
         {
             Brisk::Texture::ImageBarrierParams params{};
@@ -324,11 +342,11 @@ namespace Brisk
         // Prepare to be writeable
         {
             Brisk::Texture::ImageBarrierParams params{};
-            params.oldLayout = Texture::ImageLayout::ColorAttachmentOptimal;
-            params.newLayout = Texture::ImageLayout::TransferSrc;
-            params.srcAccess = Texture::AccessType::ColorAttachmentWrite;
-            params.dstAccess = Texture::AccessType::TransferRead;
-            params.srcStage = Texture::PipelineStage::ColorAttachment;
+            params.oldLayout = Texture::ImageLayout::Undefined;
+            params.newLayout = Texture::ImageLayout::TransferDst;
+            params.srcAccess = Texture::AccessType::None;
+            params.dstAccess = Texture::AccessType::TransferWrite;
+            params.srcStage = Texture::PipelineStage::TopOfPipe;
             params.dstStage = Texture::PipelineStage::TransferStage;
 
             m_Swapchain->TransitionCurrentImage(m_MainCmdBuffer, params, m_ImageIndex);
@@ -340,12 +358,12 @@ namespace Brisk
         // Prepare to be presentable
         {
             Brisk::Texture::ImageBarrierParams params{};
-            params.oldLayout = Texture::ImageLayout::ColorAttachmentOptimal;
-            params.newLayout = Texture::ImageLayout::TransferSrc;
-            params.srcAccess = Texture::AccessType::ColorAttachmentWrite;
-            params.srcAccess = Texture::AccessType::TransferRead;
-            params.srcStage = Texture::PipelineStage::ColorAttachment;
+            params.oldLayout = Texture::ImageLayout::TransferDst;
+            params.newLayout = Texture::ImageLayout::PresentSrc;
+            params.srcAccess = Texture::AccessType::TransferWrite;
+            params.dstAccess = Texture::AccessType::MemoryRead;
             params.srcStage = Texture::PipelineStage::TransferStage;
+            params.dstStage = Texture::PipelineStage::BottomOfPipe;
 
             m_Swapchain->TransitionCurrentImage(m_MainCmdBuffer, params, m_ImageIndex);
         }

@@ -22,16 +22,30 @@ namespace Brisk
 			TransferDst					  = 1 << 3,
 			ColorAttachmentOptimal		  = 1 << 4,
 			DepthStencilAttachmentOptimal = 1 << 5,
+			DepthStencilReadOnlyOptimal = 1 << 6,
+			PresentSrc = 1 << 7,
+			ComputeShaderWrite = 1 << 8,
+			AttachmentFeedbackLoopOptimal = 1 << 9,
 		};
 
 		enum class AccessType : uint32_t {
 			None				 = 0,
 			ShaderRead			 = 1 << 0,
 			ShaderWrite			 = 1 << 1,
-			TransferRead	     = 1 << 2,
+			TransferRead		 = 1 << 2,
 			TransferWrite		 = 1 << 3,
-			ColorAttachmentRead  = 1 << 4,
+			ColorAttachmentRead	 = 1 << 4,
 			ColorAttachmentWrite = 1 << 5,
+			DepthStencilRead	 = 1 << 6,
+			DepthStencilWrite	 = 1 << 7,
+			HostRead			 = 1 << 8,
+			HostWrite			 = 1 << 9,
+			MemoryRead			 = 1 << 10,
+			MemoryWrite			 = 1 << 11,
+			InputAttachmentRead	 = 1 << 12,
+			IndirectCommandRead	 = 1 << 13,
+			VertexAttributeRead	 = 1 << 14,
+			UniformRead			 = 1 << 15,
 		};
 
 		enum class PipelineStage : uint32_t {
@@ -121,6 +135,7 @@ namespace Brisk
 			TextureSampler p_Sampler{};
 			TextureUsage p_Usage{};
 			Core::Format p_Format;
+			std::string p_DebugName = "Default";
 			bool p_IsDepth = false;
 			uint32_t p_Width = 1, p_Height = 1, p_Depth = 1;
 			uint32_t p_MipLevels = 1;

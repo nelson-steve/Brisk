@@ -10,6 +10,8 @@
 #include "DescriptorLayoutVulkan.hpp"
 //-----------------
 
+#include <vulkan/vulkan_core.h>
+
 namespace Brisk
 {
 	std::vector<VkPhysicalDevice> GpuAdapterVulkan::RetrieveAvailableDevice(VkInstance instance) {
@@ -99,6 +101,34 @@ namespace Brisk
 		CreateLogicalDevice(req);
 
 		AllocatePools();
+
+		std::vector<std::shared_ptr<DescriptorLayout>> descriptorLayouts;
+		{
+			std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
+			layout->SetDescriptorType(GpuDescriptorResourceType::MVPUBO);
+			layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_VERTEX_BIT });
+			descriptorLayouts.push_back(layout);
+		}
+
+		{
+			std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
+			layout->SetDescriptorType(GpuDescriptorResourceType::SceneLightsUBO);
+			layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
+			descriptorLayouts.push_back(layout);
+		}
+
+		{
+			std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
+			layout->SetDescriptorType(GpuDescriptorResourceType::SceneTextures);
+			layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
+			descriptorLayouts.push_back(layout);
+		}
+
+		for (const auto& layout : descriptorLayouts) {
+			std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->Init();
+		}
+
+		SetupDescriptorSets(descriptorLayouts);
 	}
 
 	void GpuAdapterVulkan::AllocatePools() {
@@ -150,7 +180,7 @@ namespace Brisk
 			VkDescriptorSetLayoutBinding imageSamplerBinding{};
 			imageSamplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			imageSamplerBinding.descriptorCount = maxBindessResources;
-			imageSamplerBinding.binding = SET_BINDLESS;
+			imageSamplerBinding.binding = 0;
 			imageSamplerBinding.stageFlags = VK_SHADER_STAGE_ALL;
 			imageSamplerBinding.pImmutableSamplers = nullptr;
 			bindings.push_back(imageSamplerBinding);
@@ -277,7 +307,7 @@ namespace Brisk
 		deviceFeatures.independentBlend = requirements.pFeatures.pIndependentBlend ? VK_TRUE : VK_FALSE;
 		deviceFeatures.geometryShader = requirements.pFeatures.pGeometryShader ? VK_TRUE : VK_FALSE;
 		deviceFeatures.tessellationShader = requirements.pFeatures.pTessellationShader ? VK_TRUE : VK_FALSE;
-		deviceFeatures.sampleRateShading = requirements.pFeatures.pSamplerAnisotropy ? VK_TRUE : VK_FALSE;
+		deviceFeatures.sampleRateShading = requirements.pFeatures.pSampleRateShading ? VK_TRUE : VK_FALSE;
 		deviceFeatures.dualSrcBlend = requirements.pFeatures.pDualSrcBlend ? VK_TRUE : VK_FALSE;
 		deviceFeatures.logicOp = requirements.pFeatures.pLogicOp ? VK_TRUE : VK_FALSE;
 		deviceFeatures.multiDrawIndirect = requirements.pFeatures.pMultiDrawIndirect ? VK_TRUE : VK_FALSE;
@@ -290,7 +320,6 @@ namespace Brisk
 		deviceFeatures.largePoints = requirements.pFeatures.pLargePoints ? VK_TRUE : VK_FALSE;
 		deviceFeatures.alphaToOne = requirements.pFeatures.pAlphaToOne ? VK_TRUE : VK_FALSE;
 		deviceFeatures.multiViewport = requirements.pFeatures.pMultiViewport ? VK_TRUE : VK_FALSE;
-		deviceFeatures.samplerAnisotropy = requirements.pFeatures.pSamplerAnisotropy ? VK_TRUE : VK_FALSE;
 		deviceFeatures.textureCompressionETC2 = requirements.pFeatures.pTextureCompressionETC2 ? VK_TRUE : VK_FALSE;
 		deviceFeatures.textureCompressionASTC_LDR = requirements.pFeatures.pTextureCompressionASTC_LDR ? VK_TRUE : VK_FALSE;
 		deviceFeatures.textureCompressionBC = requirements.pFeatures.pTextureCompressionBC ? VK_TRUE : VK_FALSE;
@@ -338,6 +367,7 @@ namespace Brisk
 		VkPhysicalDeviceDescriptorIndexingFeatures indexing_features{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_DESCRIPTOR_INDEXING_FEATURES, nullptr };
 		VkPhysicalDeviceFeatures2 physical_features2{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2,&indexing_features };
 		vkGetPhysicalDeviceFeatures2(m_PhysicalDevice, &physical_features2);
+		physical_features2.features.robustBufferAccess = VK_FALSE;
 
 		deviceCreateInfo.pNext = &physical_features2;
 		physical_features2.pNext = &indexing_features;
@@ -543,7 +573,7 @@ namespace Brisk
 		{
 			VkWriteDescriptorSet write;
 			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessTexturesSet;
+			write.dstSet = m_TexturesSet;
 			write.dstBinding = 0;
 			write.dstArrayElement = bindingIndex;
 			write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
@@ -555,9 +585,9 @@ namespace Brisk
 		}
 		case Brisk::BindlessTextures:
 		{
-			VkWriteDescriptorSet write;
+			VkWriteDescriptorSet write{};
 			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessTexturesSet;
+			write.dstSet = m_BindlessTexturesSet;
 			write.dstBinding = 0;
 			write.dstArrayElement = bindingIndex;
 			write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;

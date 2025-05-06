@@ -133,13 +133,6 @@ namespace Brisk
 
 	public:
 		VkDescriptorSetLayout m_BindlessDescriptorLayout;
-	private:
-		VkPhysicalDevice m_PhysicalDevice;
-		VkDevice m_Device;
-		Queue m_TransferQueue;
-		Queue m_ComputeQueue;
-		Queue m_GraphicsQueue;
-		std::vector<std::vector<float>> m_QueueFamiliesPriorities;
 
 		// Descriptor stuff ------------------------------------//
 		VkDescriptorPool m_DescriptorPool;						//
@@ -158,6 +151,14 @@ namespace Brisk
 		// Bindless textures									//
 		VkDescriptorSet m_BindlessTexturesSet;					//
 		//------------------------------------------------------//
+
+	private:
+		VkPhysicalDevice m_PhysicalDevice;
+		VkDevice m_Device;
+		Queue m_TransferQueue;
+		Queue m_ComputeQueue;
+		Queue m_GraphicsQueue;
+		std::vector<std::vector<float>> m_QueueFamiliesPriorities;
 
 		///
 		/// <summary>

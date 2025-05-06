@@ -22,8 +22,8 @@ namespace Brisk
         std::vector<VkDescriptorSetLayout> descriptorLayouts;
         for (const auto& layout : specs.pDescriptorLayouts) {
             descriptorLayouts.push_back(std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout());
-            //descriptorLayouts.push_back(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout);
         }
+        descriptorLayouts.push_back(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout);
 
         VkPushConstantRange pushConstantRange = {};
         pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
@@ -172,6 +172,71 @@ namespace Brisk
 
     void PipelineVulkan::Bind(std::shared_ptr<CommandBuffer> cmd) {
         vkCmdBindPipeline(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
+
+        for (auto& layout : m_GraphicsSpecs.pDescriptorLayouts)
+        {
+            switch (layout->GetDescriptorType())
+            {
+                case GpuDescriptorResourceType::MVPUBO:
+                {
+                    vkCmdBindDescriptorSets(
+                        std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(),
+                        VK_PIPELINE_BIND_POINT_GRAPHICS,
+                        m_PipelineLayout,
+                        SET_MVP,
+                        1,
+                        &std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_MVPUBOSet,
+                        0,
+                        nullptr
+                    );
+                    break;
+                }
+                case GpuDescriptorResourceType::SceneLightsUBO:
+                {
+                    vkCmdBindDescriptorSets(
+                        std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(),
+                        VK_PIPELINE_BIND_POINT_GRAPHICS,
+                        m_PipelineLayout,
+                        SET_LIGHTS,
+                        1,
+                        &std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_SceneLightsSet,
+                        0,
+                        nullptr
+                    );
+                    break;
+                }
+                case GpuDescriptorResourceType::SceneTextures:
+                {
+                    vkCmdBindDescriptorSets(
+                        std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(),
+                        VK_PIPELINE_BIND_POINT_GRAPHICS,
+                        m_PipelineLayout,
+                        SET_TEXTURES,
+                        1,
+                        &std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_TexturesSet,
+                        0,
+                        nullptr
+                    );
+                    break;
+                }
+                case GpuDescriptorResourceType::BindlessTextures:
+                {
+                    vkCmdBindDescriptorSets(
+                        std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(),
+                        VK_PIPELINE_BIND_POINT_GRAPHICS,
+                        m_PipelineLayout,
+                        SET_BINDLESS,
+                        1,
+                        &std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessTexturesSet,
+                        0,
+                        nullptr
+                    );
+                    break;
+                }
+                default:
+                    break;
+            }
+        }
     }
 
     void PipelineVulkan::BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data) {

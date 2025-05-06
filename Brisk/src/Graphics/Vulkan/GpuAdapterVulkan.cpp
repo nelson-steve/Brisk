@@ -482,10 +482,12 @@ namespace Brisk
 				{
 					throw std::runtime_error("failed to allocate descriptor sets!");
 				}
+				break;
 			}
 			case Brisk::BindlessTextures:
 			{
 				// Already allocated
+				break;
 			}
 			case Brisk::SceneLightsUBO:
 			{
@@ -493,6 +495,7 @@ namespace Brisk
 				{
 					throw std::runtime_error("failed to allocate descriptor sets!");
 				}
+				break;
 			}
 			case Brisk::SceneTextures:
 			{
@@ -500,6 +503,7 @@ namespace Brisk
 				{
 					throw std::runtime_error("failed to allocate descriptor sets!");
 				}
+				break;
 			}
 			default:
 				BRISK_CORE_ERROR("Not implemented yet");

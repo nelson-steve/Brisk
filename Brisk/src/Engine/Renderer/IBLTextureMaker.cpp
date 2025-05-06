@@ -60,7 +60,7 @@ namespace Brisk
             cubemap->TransitionImageLayout(cmd, { preComputeBarrier });
 
             m_ComputePipeline->Bind(cmd);
-            m_ComputeShader->Bind(cmd, m_ComputePipeline);
+            //m_ComputeShader->Bind(cmd, m_ComputePipeline);
             uint32_t texSize = 1024;
             ComputeCommand::CmdDispatch(cmd, texSize / 32, texSize / 32, 6);
 

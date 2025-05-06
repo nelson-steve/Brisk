@@ -361,6 +361,7 @@ namespace Brisk
 
 		if (!file_loaded) return; // TODO: Handle the error
 
+		int textureIndex = 0;
 		for (tinygltf::Texture& tex : model.textures) {
 			tinygltf::Image image = model.images[tex.source];
 
@@ -376,6 +377,9 @@ namespace Brisk
 			texture = Texture::Create();
 			texture->Init(image, texture_sampler);
 			mTextures.push_back(texture);
+
+			Engine::s_Application->GetGpuAdapter()->AddResource(Brisk::BindlessTextures, texture, nullptr, textureIndex);
+			textureIndex++;
 		}
 
 		LoadMaterials(model);

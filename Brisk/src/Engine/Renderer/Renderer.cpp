@@ -143,6 +143,9 @@ namespace Brisk
                     std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
                     layout->SetDescriptorType(GpuDescriptorResourceType::SceneTextures);
                     layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
+                    layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
+                    layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
+                    layout->AddBinding(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
                     pipelineSpecs.pDescriptorLayouts.push_back(layout);
                 }
 
@@ -201,9 +204,10 @@ namespace Brisk
                     // set 2
                     std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
                     layout->SetDescriptorType(GpuDescriptorResourceType::SceneTextures);
-                    layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-                    layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-                    layout->AddBinding(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
+                    layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
+                    layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
+                    layout->AddBinding(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
                     pipelineSpecs.pDescriptorLayouts.push_back(layout);
                 }
 
@@ -231,6 +235,10 @@ namespace Brisk
             //----------------------------------------------------------------------------------------------------
 
         }
+
+        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::SceneTextures, g_Pos, nullptr, 1);
+        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::SceneTextures, g_Normal, nullptr, 2);
+        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::SceneTextures, g_Albedo, nullptr, 3);
 
         m_MainCmdBuffer = CommandBuffer::Create();
 
@@ -292,8 +300,6 @@ namespace Brisk
     {
         if (!SceneManager::pActiveScene) return;
 
-
-        //auto view = SceneManager::pActiveScene->Reg().view<MeshComponent, MaterialComponent>();
         auto parent = SceneManager::pActiveScene->Reg().view<RootComponent>();
 
         m_Fence->Wait();
@@ -312,17 +318,11 @@ namespace Brisk
         for (auto e : parent) {
             Entity entity = { e, SceneManager::pActiveScene.get() };
             
-            //std::cout << entity.GetComponent<TagComponent>().Tag << std::endl;
             auto& mesh = entity.GetComponent<MeshComponent>();
             auto& root = entity.GetComponent<RootComponent>();
-            auto& mat = entity.GetComponent<MaterialComponent>();
 
             RenderCommand::BindVertexBuffer(m_MainCmdBuffer, { root.m_VertexBuffer }, 0);
             RenderCommand::BindIndexBuffer(m_MainCmdBuffer, root.m_IndexBuffer, 0);
-
-            //mat.pMaterials[0]->Bind(m_MainCmdBuffer, m_Pipeline);
-
-            //m_Pipeline->Bind(m_MainCmdBuffer);
 
             RenderEntity(entity);
         }

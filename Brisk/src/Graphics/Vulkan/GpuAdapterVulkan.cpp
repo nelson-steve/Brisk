@@ -121,6 +121,9 @@ namespace Brisk
 			std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
 			layout->SetDescriptorType(GpuDescriptorResourceType::SceneTextures);
 			layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
+			layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
+			layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
+			layout->AddBinding(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
 			descriptorLayouts.push_back(layout);
 		}
 
@@ -572,11 +575,10 @@ namespace Brisk
 		}
 		case Brisk::SceneTextures:
 		{
-			VkWriteDescriptorSet write;
+			VkWriteDescriptorSet write{};
 			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
 			write.dstSet = m_TexturesSet;
-			write.dstBinding = 0;
-			write.dstArrayElement = bindingIndex;
+			write.dstBinding = bindingIndex;
 			write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 			write.descriptorCount = 1;
 			write.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();

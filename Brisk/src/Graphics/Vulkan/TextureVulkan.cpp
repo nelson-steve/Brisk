@@ -153,6 +153,11 @@ namespace Brisk
                 throw std::runtime_error("failed to create descriptor pool!");
             }
         }
+
+        m_Descriptor.sampler = m_Sampler;
+        m_Descriptor.imageView = m_ImageView;
+        m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+
     }
 
     void TextureVulkan::Init(const std::string& path) {

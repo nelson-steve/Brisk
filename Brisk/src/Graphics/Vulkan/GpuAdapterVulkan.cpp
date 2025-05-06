@@ -369,6 +369,7 @@ namespace Brisk
 		vkGetPhysicalDeviceFeatures2(m_PhysicalDevice, &physical_features2);
 		physical_features2.features.robustBufferAccess = VK_FALSE;
 
+
 		deviceCreateInfo.pNext = &physical_features2;
 		physical_features2.pNext = &indexing_features;
 

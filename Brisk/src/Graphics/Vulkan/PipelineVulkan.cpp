@@ -15,13 +15,18 @@ namespace Brisk
         m_GraphicsSpecs = specs;
 
         for (const auto& layout : specs.pDescriptorLayouts) {
-            std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->Init();
+            if(layout != nullptr)
+                std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->Init();
             //descriptorLayouts.push_back(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout);
         }
 
         std::vector<VkDescriptorSetLayout> descriptorLayouts;
         for (const auto& layout : specs.pDescriptorLayouts) {
-            descriptorLayouts.push_back(std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout());
+            if (layout != nullptr)
+                descriptorLayouts.push_back(std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout());
+            else
+                descriptorLayouts.push_back(nullptr);
+
         }
         descriptorLayouts.push_back(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout);
 

@@ -1,5 +1,6 @@
 // INCLUDES
 #include "Camera.hpp"
+#include "Engine/Engine.hpp"
 //-------------------
 #include "glfw3.h"
 //----------------
@@ -22,6 +23,8 @@ namespace Brisk
 			},
 			false
 		);
+
+		Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::MVPUBO, nullptr, mMVPBuffer, 0);
 	}
 
 	Camera::Camera(float fov, float aspectRatio, float nearClip, float farClip, GLFWwindow* window)

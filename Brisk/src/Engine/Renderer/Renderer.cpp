@@ -134,6 +134,13 @@ namespace Brisk
 
                 {
                     std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
+                    layout->SetDescriptorType(GpuDescriptorResourceType::SceneLightsUBO);
+                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
+                    pipelineSpecs.pDescriptorLayouts.push_back(layout);
+                }
+
+                {
+                    std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
                     layout->SetDescriptorType(GpuDescriptorResourceType::SceneTextures);
                     layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
                     pipelineSpecs.pDescriptorLayouts.push_back(layout);
@@ -177,18 +184,26 @@ namespace Brisk
                 pipelineSpecs.pRenderPass = m_LightingPass;
 
                 {
+                    // skipping 0 set
                     std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
-                    layout->SetDescriptorType(GpuDescriptorResourceType::SceneTextures);
-                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // g_Position
-                    layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // g_Normal
-                    layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // g_Albedo
                     pipelineSpecs.pDescriptorLayouts.push_back(layout);
                 }
 
                 {
+                    // set 1
                     std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
                     layout->SetDescriptorType(GpuDescriptorResourceType::SceneLightsUBO);
-                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lights UBO
+                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
+                    pipelineSpecs.pDescriptorLayouts.push_back(layout);
+                }
+
+                {
+                    // set 2
+                    std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
+                    layout->SetDescriptorType(GpuDescriptorResourceType::SceneTextures);
+                    layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+                    layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+                    layout->AddBinding(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
                     pipelineSpecs.pDescriptorLayouts.push_back(layout);
                 }
 
@@ -297,7 +312,7 @@ namespace Brisk
         for (auto e : parent) {
             Entity entity = { e, SceneManager::pActiveScene.get() };
             
-            std::cout << entity.GetComponent<TagComponent>().Tag << std::endl;
+            //std::cout << entity.GetComponent<TagComponent>().Tag << std::endl;
             auto& mesh = entity.GetComponent<MeshComponent>();
             auto& root = entity.GetComponent<RootComponent>();
             auto& mat = entity.GetComponent<MaterialComponent>();

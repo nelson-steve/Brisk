@@ -44,11 +44,11 @@ namespace Brisk
             else if ((attachment.pImage->GetSpecs().p_Usage & Texture::TextureUsage::ImageUsageDepthStencilAttachment) != Texture::TextureUsage::Undefined) {
                 desc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
             }
-            //else if ((attachment.pImage->GetSpecs().p_Usage & Texture::TextureUsage::ImageUsageColorAttachment) != Texture::TextureUsage::Undefined) {
-            //    desc.finalLayout = isInput ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            //}
+            else if ((attachment.pImage->GetSpecs().p_Usage & Texture::TextureUsage::ImageUsageColorAttachment) != Texture::TextureUsage::Undefined) {
+                desc.finalLayout = isInput ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            }
 
-            //desc.finalLayout = isInput ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+            desc.finalLayout = isInput ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
             attachments.push_back(desc);
             imageViews.push_back(texture->GetView());
@@ -142,7 +142,8 @@ namespace Brisk
         std::vector<VkClearValue> clearValues;
         clearValues.resize(m_ClearCount);
         for (auto& clear : clearValues) {
-            clear.color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
+            //clear.color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
+            clear.color = { { 1.0f, 1.0f, 1.0f, 1.0f } };
             clear.depthStencil = { 1.0f, 0 };
         }
 

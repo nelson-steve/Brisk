@@ -205,6 +205,36 @@ namespace Brisk
 			semaphore ? std::static_pointer_cast<SemaphoreVulkan>(semaphore)->Get() : VK_NULL_HANDLE,
 			fence ? std::static_pointer_cast<FenceVulkan>(fence)->Get() : VK_NULL_HANDLE,
 			pImageIndex);
+		switch (result) {
+		case VK_SUCCESS:
+			// Acquired successfully.
+			break;
+
+		case VK_SUBOPTIMAL_KHR:
+			BRISK_CORE_ERROR("resized");
+			break;
+
+		case VK_ERROR_OUT_OF_DATE_KHR:
+			BRISK_CORE_ERROR("swapchain out of date");
+			return;
+
+		case VK_TIMEOUT:
+			BRISK_CORE_ERROR("swapchain timeout");
+			return;
+
+		case VK_NOT_READY:
+			BRISK_CORE_ERROR("not ready");
+			return;
+
+		case VK_ERROR_DEVICE_LOST:
+			BRISK_CORE_ERROR("swapchain device lost");
+			return;
+
+		default:
+			// Unexpected error
+			throw std::runtime_error("Failed to acquire next image: " + std::to_string(result));
+		}
+
 		//return result;
 	}
 
@@ -225,7 +255,7 @@ namespace Brisk
 		barrier.subresourceRange.layerCount = 1;
 		barrier.srcAccessMask = UtilitiesVulkan::AccessTypeToVkAccessFlags(params.srcAccess);
 		barrier.dstAccessMask = UtilitiesVulkan::AccessTypeToVkAccessFlags(params.dstAccess);
-		vkCmdPipelineBarrier(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &barrier);
+		vkCmdPipelineBarrier(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), srcFlag, dstFlag, 0, 0, nullptr, 0, nullptr, 1, &barrier);
 	}
 
 	void SwapchainVulkan::Blit(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> image, int imageIndex) {

@@ -17,23 +17,18 @@ namespace Brisk
         for (const auto& layout : specs.pDescriptorLayouts) {
             if(layout != nullptr)
                 std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->Init();
-            //descriptorLayouts.push_back(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout);
         }
 
         std::vector<VkDescriptorSetLayout> descriptorLayouts;
         for (const auto& layout : specs.pDescriptorLayouts) {
-            if (layout != nullptr)
-                descriptorLayouts.push_back(std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout());
-            else
-                descriptorLayouts.push_back(nullptr);
-
+            descriptorLayouts.push_back(std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout());
         }
         descriptorLayouts.push_back(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout);
 
-        VkPushConstantRange pushConstantRange = {};
-        pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
-        pushConstantRange.offset = 0;
-        pushConstantRange.size = sizeof(PushConstants);
+        //VkPushConstantRange pushConstantRange = {};
+        //pushConstantRange.stageFlags = VK_SHADER_STAGE_FRAGMENT_BIT;
+        //pushConstantRange.offset = 0;
+        //pushConstantRange.size = sizeof(PushConstants);
 
         VkPipelineLayoutCreateInfo m_PipelineLayoutInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
         m_PipelineLayoutInfo.pushConstantRangeCount = 0;

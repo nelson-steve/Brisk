@@ -359,11 +359,11 @@ namespace Brisk
         // Prepare to be writeable
         {
             Brisk::Texture::ImageBarrierParams params{};
-            params.oldLayout = Texture::ImageLayout::Undefined;
+            params.oldLayout = Texture::ImageLayout::PresentSrc;
             params.newLayout = Texture::ImageLayout::TransferDst;
-            params.srcAccess = Texture::AccessType::None;
+            params.srcAccess = Texture::AccessType::MemoryRead;
             params.dstAccess = Texture::AccessType::TransferWrite;
-            params.srcStage = Texture::PipelineStage::TopOfPipe;
+            params.srcStage = Texture::PipelineStage::BottomOfPipe;
             params.dstStage = Texture::PipelineStage::TransferStage;
 
             m_Swapchain->TransitionCurrentImage(m_MainCmdBuffer, params, m_ImageIndex);

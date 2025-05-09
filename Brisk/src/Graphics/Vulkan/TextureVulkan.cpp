@@ -156,7 +156,7 @@ namespace Brisk
 
         m_Descriptor.sampler = m_Sampler;
         m_Descriptor.imageView = m_ImageView;
-        m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
     }
 

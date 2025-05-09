@@ -34,8 +34,8 @@ namespace Brisk
             desc.samples = VK_SAMPLE_COUNT_1_BIT;
             desc.loadOp = isInput ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
             desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-            desc.stencilLoadOp = attachment.pImage->IsDepth() ? VK_ATTACHMENT_LOAD_OP_CLEAR : VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-            desc.stencilStoreOp = attachment.pImage->IsDepth() ? VK_ATTACHMENT_STORE_OP_STORE: VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+            desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
             desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
 
             if ((attachment.pImage->GetSpecs().p_Usage & Texture::TextureUsage::ImageUsageColorAttachment) != Texture::TextureUsage::Undefined) {
@@ -44,15 +44,6 @@ namespace Brisk
             else if (attachment.pImage->IsDepth()) {
                 desc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
             }
-
-            //else if ((attachment.pImage->GetSpecs().p_Usage & Texture::TextureUsage::ImageUsageDepthStencilAttachment) != Texture::TextureUsage::Undefined) {
-            //    desc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-            //}
-            //else if ((attachment.pImage->GetSpecs().p_Usage & Texture::TextureUsage::ImageUsageColorAttachment) != Texture::TextureUsage::Undefined) {
-            //    desc.finalLayout = isInput ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-            //}
-
-            //desc.finalLayout = isInput ? VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
             attachments.push_back(desc);
             imageViews.push_back(texture->GetView());
@@ -63,7 +54,7 @@ namespace Brisk
             }
 
             VkAttachmentReference ref{};
-            ref.attachment = attachmentIndex;
+            ref.attachment = attachment.pBinding;
 
             if (attachment.pAttachmentType == AttachmentType::Color && !isInput) {
                 ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
@@ -80,7 +71,7 @@ namespace Brisk
             }
 
             ++attachmentIndex;
-            };
+        };
 
         for (const auto& in : inputs) processAttachment(in, true);
         for (const auto& out : outputs) processAttachment(out, false);

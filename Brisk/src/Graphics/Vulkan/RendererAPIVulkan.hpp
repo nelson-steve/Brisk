@@ -32,7 +32,7 @@ namespace Brisk
 		}
 
 		virtual void Draw(std::shared_ptr<CommandBuffer> cmd, uint32_t vertexCount, uint32_t firstVertex) override {
-			vkCmdDraw(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), vertexCount, 1, 0, 0);
+			vkCmdDraw(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), vertexCount, 1, firstVertex, 0);
 		}
 
 		virtual void DrawIndexed(std::shared_ptr<CommandBuffer> cmd, uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance) override {

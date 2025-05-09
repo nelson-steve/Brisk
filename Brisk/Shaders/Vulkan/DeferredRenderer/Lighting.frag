@@ -4,15 +4,15 @@ layout(location = 0) in vec2 uv;
 
 layout(location = 0) out vec4 outColor;
 
-layout(set = 2, binding = 1) uniform sampler2D gPosition;
-layout(set = 2, binding = 2) uniform sampler2D gNormal;
-layout(set = 2, binding = 3) uniform sampler2D gAlbedo;
-
 layout(set = 1, binding = 0) uniform Light {
     vec3 lightPos;
     vec3 lightColor;
     vec3 viewPos;
 } light;
+
+layout(set = 2, binding = 1) uniform sampler2D gPosition;
+layout(set = 2, binding = 2) uniform sampler2D gNormal;
+layout(set = 2, binding = 3) uniform sampler2D gAlbedo;
 
 void main() {
     vec3 pos = texture(gPosition, uv).rgb;

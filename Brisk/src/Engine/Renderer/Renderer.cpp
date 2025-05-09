@@ -13,19 +13,6 @@ namespace Brisk
 
     void Renderer::Init()
     {
-        /*
-        Global stuff
-        Lights 
-        MVPCamPos
-        Textures
-   
-        Binding locations
-        Set 0 Projection View CamPos
-        Set 1 Light buffer
-        Set 2 ObjectData - Model texture indexes texture count
-        Set 3 Bindless textures
-        */
-
         RenderCommand::s_RendererAPI = RendererAPI::Create();
         ComputeCommand::s_ComputeAPI = ComputeAPI::Create();
 
@@ -296,6 +283,7 @@ namespace Brisk
         }
     }
 
+    bool firstTime = true;
     void Renderer::RenderScene(float deltaTime)
     {
         if (!SceneManager::pActiveScene) return;
@@ -329,12 +317,28 @@ namespace Brisk
 
         m_GeometryBufferPass->End(m_MainCmdBuffer);
 
+
+        // --- LIGHTING PASS ---------------------------
+        
+        m_LightingPass->Begin(m_MainCmdBuffer);
+        m_LightingPipeline->Bind(m_MainCmdBuffer);
+
+        RenderCommand::SetViewport(m_MainCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
+        RenderCommand::SetScissor(m_MainCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+
+        RenderCommand::Draw(m_MainCmdBuffer, 3, 0);
+
+        m_LightingPass->End(m_MainCmdBuffer);
+
+        // ------------------------------
+
+
         {
             Brisk::Texture::ImageBarrierParams params{};
-            params.texture = g_lightingOutput; // replace with your actual image handle
+            params.texture = g_lightingOutput;
             params.oldLayout = Texture::ImageLayout::Undefined;
             params.newLayout = Texture::ImageLayout::ColorAttachmentOptimal;
-            params.srcAccess = Texture::AccessType::None; // No access yet, since image is undefined
+            params.srcAccess = Texture::AccessType::None;
             params.dstAccess = Texture::AccessType::ColorAttachmentWrite;
             params.srcStage = Texture::PipelineStage::TopOfPipe;
             params.dstStage = Texture::PipelineStage::ColorAttachment;

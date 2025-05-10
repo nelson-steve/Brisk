@@ -16,7 +16,7 @@ namespace Brisk
 		uint32_t pBinding;
 		AttachmentType pAttachmentType;
 		std::shared_ptr<Texture> pImage;
-		Core::Format pFormat;
+		//Core::Format pFormat;
 	};
 
 	class RenderPass {

@@ -378,7 +378,7 @@ namespace Brisk
 			texture->Init(image, texture_sampler);
 			mTextures.push_back(texture);
 
-			Engine::s_Application->GetGpuAdapter()->AddResource(Brisk::BindlessTextures, texture, nullptr, textureIndex);
+			//Engine::s_Application->GetGpuAdapter()->AddResource(Brisk::BindlessTextures, texture, nullptr, textureIndex);
 			textureIndex++;
 		}
 

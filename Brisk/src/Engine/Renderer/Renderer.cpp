@@ -75,7 +75,7 @@ namespace Brisk
                 specs.p_Height = 1080;
                 specs.p_DebugName = "g_Lighting";
                 specs.p_Usage = Texture::TextureUsage::ImageUsageColorAttachment | Texture::TextureUsage::ImageUsageTransferSrc;
-                specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
+                specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
                 g_lightingOutput->Init(specs);
             }
 
@@ -112,29 +112,8 @@ namespace Brisk
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_GeometryBufferPass;
 
-                {
-                    std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
-                    layout->SetDescriptorType(GpuDescriptorResourceType::MVPUBO);
-                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_VERTEX_BIT });
-                    pipelineSpecs.pDescriptorLayouts.push_back(layout);
-                }
-
-                {
-                    std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
-                    layout->SetDescriptorType(GpuDescriptorResourceType::SceneLightsUBO);
-                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
-                    pipelineSpecs.pDescriptorLayouts.push_back(layout);
-                }
-
-                //{
-                //    std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
-                //    layout->SetDescriptorType(GpuDescriptorResourceType::SceneTextures);
-                //    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
-                //    layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
-                //    layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
-                //    layout->AddBinding(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
-                //    pipelineSpecs.pDescriptorLayouts.push_back(layout);
-                //}
+                pipelineSpecs.p_ResourceTypes.push_back(GpuDescriptorResourceType::MVPUBO);
+                pipelineSpecs.p_ResourceTypes.push_back(GpuDescriptorResourceType::BindlessTextures);
 
                 pipelineSpecs.pShaderModules.push_back(vertexShaderModule);
                 pipelineSpecs.pShaderModules.push_back(fragmentShaderModule);
@@ -173,32 +152,7 @@ namespace Brisk
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_LightingPass;
 
-                {
-                    // skipping 0 set
-                    std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
-                    pipelineSpecs.pDescriptorLayouts.push_back(layout);
-                }
-
-                {
-                    // set 1
-                    std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
-                    layout->SetDescriptorType(GpuDescriptorResourceType::SceneLightsUBO);
-                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
-                    pipelineSpecs.pDescriptorLayouts.push_back(layout);
-                }
-
-                {
-                    // set 2
-                    std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
-                    layout->SetDescriptorType(GpuDescriptorResourceType::SceneTextures);
-                    layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
-                    layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
-                    layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
-                    layout->AddBinding(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT }); // Lighting input
-                    pipelineSpecs.pDescriptorLayouts.push_back(layout);
-                }
-
-                // TODO: Add bindless descriptor
+                pipelineSpecs.p_ResourceTypes.push_back(GpuDescriptorResourceType::DeferredTextures);
 
                 pipelineSpecs.pShaderModules.push_back(vertexShaderModule);
                 pipelineSpecs.pShaderModules.push_back(fragmentShaderModule);
@@ -223,17 +177,21 @@ namespace Brisk
 
         }
 
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::SceneTextures, g_Pos, nullptr, 1);
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::SceneTextures, g_Normal, nullptr, 2);
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::SceneTextures, g_Albedo, nullptr, 3);
+        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Pos, nullptr, 0);
+        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Normal, nullptr, 1);
+        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Albedo, nullptr, 2);
 
-        m_MainCmdBuffer = CommandBuffer::Create();
+        m_GBufferCmdBuffer = CommandBuffer::Create();
+        m_LightingCmdBuffer = CommandBuffer::Create();
 
         m_Fence = Fence::Create();
         m_Fence->Init();
 
         ImageAvailableSemaphore = Semaphore::Create();
-        ImageAvailableSemaphore->Init();
+        ImageAvailableSemaphore->Init();        
+        
+        DeferredRenderingFinishedSemaphore = Semaphore::Create();
+        DeferredRenderingFinishedSemaphore->Init();
 
         RenderFinishedSemaphore = Semaphore::Create();
         RenderFinishedSemaphore->Init();
@@ -242,7 +200,8 @@ namespace Brisk
 
         m_MainCmdBufferAllocator = CommandBufferAllocator::Create();
         m_MainCmdBufferAllocator->Init();
-        m_MainCmdBufferAllocator->Allocate(m_MainCmdBuffer);
+        m_MainCmdBufferAllocator->Allocate(m_GBufferCmdBuffer);
+        m_MainCmdBufferAllocator->Allocate(m_LightingCmdBuffer);
     }
 
     void Renderer::SetupEntity(Entity e) {
@@ -263,7 +222,7 @@ namespace Brisk
 
                 //m_LightingPipeline->BindPushConstant(m_MainCmdBuffer, sizeof(PushConstants), &pushConstantsData);
 
-                RenderCommand::DrawIndexed(m_MainCmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
+                RenderCommand::DrawIndexed(m_GBufferCmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
             }
         }
         for (auto& child : e.GetComponent<TransformComponent>().children) {
@@ -283,7 +242,7 @@ namespace Brisk
         }
     }
 
-    bool firstTime = true;
+    int times = 0;
     void Renderer::RenderScene(float deltaTime)
     {
         if (!SceneManager::pActiveScene) return;
@@ -294,14 +253,13 @@ namespace Brisk
         m_Fence->Reset();
 
         m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &m_ImageIndex);
-        m_MainCmdBuffer->Reset();
-        m_MainCmdBuffer->Bind();
-        m_GBufferPipeline->Bind(m_MainCmdBuffer);
+        m_GBufferCmdBuffer->Bind();
+        m_GBufferPipeline->Bind(m_GBufferCmdBuffer);
 
-        m_GeometryBufferPass->Begin(m_MainCmdBuffer);
+        m_GeometryBufferPass->Begin(m_GBufferCmdBuffer);
 
-        RenderCommand::SetViewport(m_MainCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
-        RenderCommand::SetScissor(m_MainCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+        RenderCommand::SetViewport(m_GBufferCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
+        RenderCommand::SetScissor(m_GBufferCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
 
         for (auto e : parent) {
             Entity entity = { e, SceneManager::pActiveScene.get() };
@@ -309,30 +267,30 @@ namespace Brisk
             auto& mesh = entity.GetComponent<MeshComponent>();
             auto& root = entity.GetComponent<RootComponent>();
 
-            RenderCommand::BindVertexBuffer(m_MainCmdBuffer, { root.m_VertexBuffer }, 0);
-            RenderCommand::BindIndexBuffer(m_MainCmdBuffer, root.m_IndexBuffer, 0);
+            RenderCommand::BindVertexBuffer(m_GBufferCmdBuffer, { root.m_VertexBuffer }, 0);
+            RenderCommand::BindIndexBuffer(m_GBufferCmdBuffer, root.m_IndexBuffer, 0);
 
             RenderEntity(entity);
         }
 
-        m_GeometryBufferPass->End(m_MainCmdBuffer);
+        m_GeometryBufferPass->End(m_GBufferCmdBuffer);
+        m_GBufferCmdBuffer->UnBind();
 
 
         // --- LIGHTING PASS ---------------------------
-        
-        m_LightingPass->Begin(m_MainCmdBuffer);
-        m_LightingPipeline->Bind(m_MainCmdBuffer);
 
-        RenderCommand::SetViewport(m_MainCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
-        RenderCommand::SetScissor(m_MainCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+        m_LightingCmdBuffer->Bind();
+        m_LightingPass->Begin(m_LightingCmdBuffer);
+        m_LightingPipeline->Bind(m_LightingCmdBuffer);
 
-        RenderCommand::Draw(m_MainCmdBuffer, 3, 0);
+        RenderCommand::SetViewport(m_LightingCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
+        RenderCommand::SetScissor(m_LightingCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
 
-        m_LightingPass->End(m_MainCmdBuffer);
+        RenderCommand::Draw(m_LightingCmdBuffer, 3, 0);
 
-        // ------------------------------
+        m_LightingPass->End(m_LightingCmdBuffer);
 
-
+        // --------------------------------------------
         {
             Brisk::Texture::ImageBarrierParams params{};
             params.texture = g_lightingOutput;
@@ -343,7 +301,7 @@ namespace Brisk
             params.srcStage = Texture::PipelineStage::TopOfPipe;
             params.dstStage = Texture::PipelineStage::ColorAttachment;
 
-            g_lightingOutput->TransitionImageLayout(m_MainCmdBuffer, { params });
+            g_lightingOutput->TransitionImageLayout(m_LightingCmdBuffer, { params });
         }
 
         // Prepare lighting output to be copyable
@@ -357,24 +315,38 @@ namespace Brisk
             params.srcStage = Texture::PipelineStage::ColorAttachment;
             params.dstStage = Texture::PipelineStage::TransferStage;
 
-            g_lightingOutput->TransitionImageLayout(m_MainCmdBuffer, { params });
+            g_lightingOutput->TransitionImageLayout(m_LightingCmdBuffer, { params });
         }
 
-        // Prepare to be writeable
-        {
+        if (times < 2) {
+            times++;
             Brisk::Texture::ImageBarrierParams params{};
-            params.oldLayout = Texture::ImageLayout::PresentSrc;
+            params.oldLayout = Texture::ImageLayout::Undefined; 
             params.newLayout = Texture::ImageLayout::TransferDst;
-            params.srcAccess = Texture::AccessType::MemoryRead;
+            params.srcAccess = Texture::AccessType::None;
             params.dstAccess = Texture::AccessType::TransferWrite;
-            params.srcStage = Texture::PipelineStage::BottomOfPipe;
+            params.srcStage = Texture::PipelineStage::TopOfPipe;
             params.dstStage = Texture::PipelineStage::TransferStage;
 
-            m_Swapchain->TransitionCurrentImage(m_MainCmdBuffer, params, m_ImageIndex);
+            m_Swapchain->TransitionCurrentImage(m_LightingCmdBuffer, params, m_ImageIndex);
+        }
+        else {
+            // Prepare to be writeable
+            {
+                Brisk::Texture::ImageBarrierParams params{};
+                params.oldLayout = Texture::ImageLayout::PresentSrc;
+                params.newLayout = Texture::ImageLayout::TransferDst;
+                params.srcAccess = Texture::AccessType::MemoryRead;
+                params.dstAccess = Texture::AccessType::TransferWrite;
+                params.srcStage = Texture::PipelineStage::BottomOfPipe;
+                params.dstStage = Texture::PipelineStage::TransferStage;
+
+                m_Swapchain->TransitionCurrentImage(m_LightingCmdBuffer, params, m_ImageIndex);
+            }
         }
 
         // Blit the lighting output to swapchain image
-        m_Swapchain->Blit(m_MainCmdBuffer, g_lightingOutput, m_ImageIndex);
+        m_Swapchain->Blit(m_LightingCmdBuffer, g_lightingOutput, m_ImageIndex);
 
         // Prepare to be presentable
         {
@@ -386,20 +358,26 @@ namespace Brisk
             params.srcStage = Texture::PipelineStage::TransferStage;
             params.dstStage = Texture::PipelineStage::BottomOfPipe;
 
-            m_Swapchain->TransitionCurrentImage(m_MainCmdBuffer, params, m_ImageIndex);
+            m_Swapchain->TransitionCurrentImage(m_LightingCmdBuffer, params, m_ImageIndex);
         }
 
-        //m_Pipeline->m_GraphicsSpecs.pRenderPass->End(m_MainCmdBuffer);
-        m_MainCmdBuffer->UnBind();
+        m_LightingCmdBuffer->UnBind();
 
-        Queue::SubmitInfo submitInfo{};
-        submitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
-        submitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore);
-        submitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-        submitInfo.pCmdBuffers.push_back(m_MainCmdBuffer);
+        Queue::SubmitInfo deferredSubmitInfo{};
+        deferredSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
+        deferredSubmitInfo.pSignalSemaphores.push_back(DeferredRenderingFinishedSemaphore);
+        deferredSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+        deferredSubmitInfo.pCmdBuffers.push_back(m_GBufferCmdBuffer);
 
-        // Submit m_Queue
-        m_Queue->Submit(submitInfo, m_Fence);
+        m_Queue->Submit(deferredSubmitInfo, nullptr);
+
+        Queue::SubmitInfo lightingSubmitInfo{};
+        lightingSubmitInfo.pWaitSemaphores.push_back(DeferredRenderingFinishedSemaphore);
+        lightingSubmitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore);
+        lightingSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+        lightingSubmitInfo.pCmdBuffers.push_back(m_LightingCmdBuffer);
+
+        m_Queue->Submit(lightingSubmitInfo, m_Fence);
 
         Queue::PresentInfo presentInfo{};
         presentInfo.pWaitSemaphores.push_back(RenderFinishedSemaphore);
@@ -428,7 +406,7 @@ namespace Brisk
 
                 //m_Pipeline->BindPushConstant(m_MainCmdBuffer, sizeof(PushConstants), &pushConstantsData);
 
-                RenderCommand::DrawIndexed(m_MainCmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
+                RenderCommand::DrawIndexed(m_GBufferCmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
             }
         }
         for (auto& child : e.GetComponent<TransformComponent>().children) {

@@ -41,7 +41,10 @@ namespace Brisk
             if ((attachment.pImage->GetSpecs().p_Usage & Texture::TextureUsage::ImageUsageColorAttachment) != Texture::TextureUsage::Undefined) {
                 desc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             }
-            else if (attachment.pImage->IsDepth()) {
+            if ((attachment.pImage->GetSpecs().p_Usage & Texture::TextureUsage::ImageUsageTransferSrc) != Texture::TextureUsage::Undefined) {
+                desc.finalLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            }
+            if (attachment.pImage->IsDepth()) {
                 desc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
             }
 
@@ -92,11 +95,21 @@ namespace Brisk
         VkSubpassDependency dependency1{};
         dependency1.srcSubpass = VK_SUBPASS_EXTERNAL;
         dependency1.dstSubpass = 0;
-        dependency1.srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-        dependency1.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependency1.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
-        dependency1.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        dependency1.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency1.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency1.srcAccessMask = 0;
+        dependency1.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
         dependency1.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+
+        //VkSubpassDependency dependency1{};
+        //dependency1.srcSubpass = VK_SUBPASS_EXTERNAL;
+        //dependency1.dstSubpass = 0;
+        //dependency1.srcStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
+        //dependency1.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        //dependency1.srcAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+        //dependency1.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        //dependency1.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
         VkSubpassDependency dependency2{};
         dependency2.srcSubpass = 0;
@@ -107,7 +120,17 @@ namespace Brisk
         dependency2.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
         dependency2.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
-        std::array<VkSubpassDependency, 2> dependencies{ dependency1, dependency2 };
+        VkSubpassDependency dependencyDepth{};
+        dependencyDepth.srcSubpass = 0;
+        dependencyDepth.dstSubpass = VK_SUBPASS_EXTERNAL;
+        dependencyDepth.srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
+        dependencyDepth.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        dependencyDepth.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        dependencyDepth.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        dependencyDepth.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+
+        std::array<VkSubpassDependency, 3> dependencies{ dependency1, dependency2, dependencyDepth };
         VkRenderPassCreateInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
         renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
         renderPassInfo.pAttachments = attachments.data();
@@ -138,7 +161,7 @@ namespace Brisk
         clearValues.resize(m_ClearCount);
         for (auto& clear : clearValues) {
             //clear.color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
-            clear.color = { { 1.0f, 1.0f, 1.0f, 1.0f } };
+            clear.color = { { 0.0f, 1.0f, 1.0f, 1.0f } };
             clear.depthStencil = { 1.0f, 0 };
         }
 
@@ -147,7 +170,7 @@ namespace Brisk
         renderPassInfo.renderPass = m_RenderPass;
         renderPassInfo.framebuffer = m_Framebuffer;
         renderPassInfo.renderArea.offset = { 0, 0 };
-        VkExtent2D extent{ 1020, 1080 };
+        VkExtent2D extent{ 1920, 1080 };
         renderPassInfo.renderArea.extent = extent;
         renderPassInfo.clearValueCount = clearValues.size();
         renderPassInfo.pClearValues = clearValues.data();

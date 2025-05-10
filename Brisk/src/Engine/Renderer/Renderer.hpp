@@ -38,6 +38,7 @@ namespace Brisk
 		// Synchronization objects
 		std::shared_ptr<Semaphore> ImageAvailableSemaphore;
 		std::shared_ptr<Semaphore> RenderFinishedSemaphore;
+		std::shared_ptr<Semaphore> DeferredRenderingFinishedSemaphore;
 		std::shared_ptr<Fence> m_Fence;
 		std::shared_ptr<Queue> m_Queue;
 		//-
@@ -57,7 +58,8 @@ namespace Brisk
 		std::shared_ptr<Pipeline> m_GBufferPipeline;
 		std::shared_ptr<Pipeline> m_LightingPipeline;
 		std::shared_ptr<Buffer> m_UniformBuffer;
-		std::shared_ptr<CommandBuffer> m_MainCmdBuffer;
+		std::shared_ptr<CommandBuffer> m_GBufferCmdBuffer;
+		std::shared_ptr<CommandBuffer> m_LightingCmdBuffer;
 		RenderCommand m_RenderCommand;
 		uint32_t m_ImageIndex;
 	};

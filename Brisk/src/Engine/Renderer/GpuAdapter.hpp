@@ -13,7 +13,7 @@ namespace Brisk
 	enum GpuDescriptorResourceType {
 		MVPUBO,
 		SceneLightsUBO,
-		SceneTextures,
+		DeferredTextures,
 		BindlessTextures,
 	};
 
@@ -25,7 +25,6 @@ namespace Brisk
 			//Engine::s_Application->GetGpuAdapter()->GetDevice<T>()->GetDevice();
 			return std::dynamic_pointer_cast<T>(shared_from_this());
 		}
-		virtual void SetupDescriptorSets(std::vector<std::shared_ptr<DescriptorLayout>> descriptorLayouts) = 0;
 		virtual void AddResource(GpuDescriptorResourceType type, std::shared_ptr<Texture> texture, std::shared_ptr<Buffer> buffer, int bindingIndex) = 0;
 
 		virtual void Init() = 0;

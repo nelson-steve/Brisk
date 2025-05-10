@@ -16,7 +16,7 @@ namespace Brisk
 	// Predefined descriptor set values
 	constexpr uint32_t SET_MVP = 0;
 	constexpr uint32_t SET_LIGHTS = 1;
-	constexpr uint32_t SET_TEXTURES = 2;
+	constexpr uint32_t SET_DEFERRED_TEXTURES = 2;
 	constexpr uint32_t SET_BINDLESS = 3;
 	//
 
@@ -126,12 +126,15 @@ namespace Brisk
 		const Queue GetTransferQueue() const { return m_TransferQueue; }
 		const VkDescriptorPool GetDescriptorPool() const { return m_DescriptorPool; }
 
-		virtual void SetupDescriptorSets(std::vector<std::shared_ptr<DescriptorLayout>> descriptorLayouts) override;
 		virtual void AddResource(GpuDescriptorResourceType type, std::shared_ptr<Texture> texture, std::shared_ptr<Buffer> buffer, int bindingIndex) override;
 
 		std::shared_ptr<SurfaceVulkan> GetSurface() { return m_Surface; }
 
 	public:
+		VkDescriptorSetLayout m_DummyDescriptorLayout;
+		VkDescriptorSetLayout m_MVPDescriptorLayout;
+		VkDescriptorSetLayout m_LightsDescriptorLayout;
+		VkDescriptorSetLayout m_DeferredTexturesDescriptorLayout;
 		VkDescriptorSetLayout m_BindlessDescriptorLayout;
 
 		// Descriptor stuff ------------------------------------//
@@ -147,7 +150,7 @@ namespace Brisk
 		// Textures												//
 		// Shadow map, 											//
 		// Deferred textures, 									//
-		VkDescriptorSet m_TexturesSet;							//
+		VkDescriptorSet m_DeferredTexturesSet;					//
 		// Bindless textures									//
 		VkDescriptorSet m_BindlessTexturesSet;					//
 		//------------------------------------------------------//

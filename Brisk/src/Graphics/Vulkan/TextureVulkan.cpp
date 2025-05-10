@@ -156,8 +156,13 @@ namespace Brisk
 
         m_Descriptor.sampler = m_Sampler;
         m_Descriptor.imageView = m_ImageView;
-        m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-
+/*        if ((specs.p_Usage & Texture::TextureUsage::ImageUsageColorAttachment) != Texture::TextureUsage::Undefined) {
+            m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        }
+        else */
+        if ((specs.p_Usage & Texture::TextureUsage::ImageUsageSampled) != Texture::TextureUsage::Undefined) {
+            m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        }
     }
 
     void TextureVulkan::Init(const std::string& path) {
@@ -717,6 +722,8 @@ namespace Brisk
             barrier.subresourceRange.levelCount = 1;
 
             barriers.push_back(barrier);
+
+            m_Descriptor.imageLayout = UtilitiesVulkan::ImageLayoutToVkImageLayout(p.newLayout);
         }
 
         vkCmdPipelineBarrier(

@@ -5,6 +5,7 @@
 #include "ShaderModule.hpp"
 #include "Descriptor.hpp"
 #include "Core/Core.hpp"
+#include "GpuAdapter.hpp"
 //------------------------
 #include <cstdint>
 #include <vector>
@@ -80,7 +81,8 @@ namespace Brisk
             bool pStencilTestEnable;
             std::shared_ptr<RenderPass> pRenderPass;
             std::vector<std::shared_ptr<ShaderModule>> pShaderModules;
-            std::vector<std::shared_ptr<DescriptorLayout>> pDescriptorLayouts;
+            //std::vector<std::shared_ptr<DescriptorLayout>> pDescriptorLayouts;
+            std::vector<GpuDescriptorResourceType> p_ResourceTypes;
         };
 
         struct ComputePipelineSpecs {

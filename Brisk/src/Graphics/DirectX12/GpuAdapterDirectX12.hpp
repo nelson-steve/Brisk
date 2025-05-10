@@ -17,7 +17,6 @@ namespace Brisk
 		ComPtr<ID3D12Device> GetDevice() const { return m_Device; }
 		ComPtr<IDXGIFactory6> GetDXGIFactory() const { return m_DxgiFactory; }
 
-		virtual void SetupDescriptorSets(std::vector<std::shared_ptr<DescriptorLayout>> descriptorLayouts) override { assert(false); }
 		virtual void AddResource(GpuDescriptorResourceType type, std::shared_ptr<Texture> texture, std::shared_ptr<Buffer> buffer, int bindingIndex) override { assert(false); }
 	private:
 		ComPtr<IDXGIFactory6> m_DxgiFactory;

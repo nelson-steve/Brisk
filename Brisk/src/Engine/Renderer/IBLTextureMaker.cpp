@@ -199,7 +199,7 @@ namespace Brisk
             //pipelineSpecs.pRenderPass = RenderPass::Create();
             //pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 
-            pipelineSpecs.pDescriptorLayouts.push_back(materialLayout);
+            //pipelineSpecs.pDescriptorLayouts.push_back(materialLayout);
 
             pipelineSpecs.pShaderModules.push_back(vertexShaderModule);
             pipelineSpecs.pShaderModules.push_back(fragmentShaderModule);

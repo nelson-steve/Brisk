@@ -5,6 +5,7 @@
 #include "Engine/Engine.hpp"
 #include "PipelineVulkan.hpp"
 #include "Engine/Renderer/Buffer.hpp"
+#include "Engine/Camera.hpp"
 //-----------------------------------
 #include <Volk/volk.h>
 //--------------------
@@ -26,7 +27,7 @@ namespace Brisk {
 		const VkDescriptorBufferInfo* GetDescriptor() {
 			bufferInfo.buffer = m_Handle;
 			bufferInfo.offset = 0;
-			bufferInfo.range = sizeof(MeshData);
+			bufferInfo.range = VK_WHOLE_SIZE;
 			return &bufferInfo;
 		}
 	private:

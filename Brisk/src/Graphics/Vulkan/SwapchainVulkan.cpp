@@ -277,8 +277,7 @@ namespace Brisk
 		// Blit from lighting output to swapchain image
 		vkCmdBlitImage(
 			std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(),
-			std::static_pointer_cast<TextureVulkan>(image)->GetImage(),
-			VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
+			std::static_pointer_cast<TextureVulkan>(image)->GetImage(), VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
 			m_SwapchainImages[imageIndex], VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
 			1, &blit,
 			VK_FILTER_NEAREST // or VK_FILTER_LINEAR if you want smooth scaling

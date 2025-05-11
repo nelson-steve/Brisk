@@ -49,18 +49,20 @@ namespace Brisk
 		};
 
 		enum class PipelineStage : uint32_t {
-			TopOfPipe = 0,
-			BottomOfPipe = 1 << 0,
-			TransferStage = 1 << 1,
-			ComputeShader = 1 << 2,
-			FragmentShader = 1 << 3,
-			VertexShader = 1 << 4,
-			ColorAttachment = 1 << 5,
-			EarlyFragmentTest = 1 << 6,
-			LateFragmentTest = 1 << 7,
-			AllGraphics = 1 << 8,
-			AllCommands = 1 << 9,
+			None = 0,
+			TopOfPipe = 1 << 0,
+			BottomOfPipe = 1 << 1,
+			TransferStage = 1 << 2,
+			ComputeShader = 1 << 3,
+			FragmentShader = 1 << 4,
+			VertexShader = 1 << 5,
+			ColorAttachment = 1 << 6,
+			EarlyFragmentTest = 1 << 7,
+			LateFragmentTest = 1 << 8,
+			AllGraphics = 1 << 9,
+			AllCommands = 1 << 10,
 		};
+
 
 
 		enum class ImageAspectFlags : uint32_t {

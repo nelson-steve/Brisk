@@ -325,6 +325,26 @@ namespace Brisk
 			queueCreateInfos.push_back(queueCreateInfo);
 		}
 
+		VkFormatProperties formatProps;
+		vkGetPhysicalDeviceFormatProperties(m_PhysicalDevice, VK_FORMAT_R8G8B8A8_UNORM, &formatProps);
+		if (!(formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT)) {
+			BRISK_CORE_WARN("Device does not support blitting from optimal tiled images");
+		}
+		else {
+			BRISK_CORE_INFO("Device does supports blitting from optimal tiled images");
+		}
+
+		if (!(formatProps.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT)) {
+			BRISK_CORE_WARN("Device does not support blitting to optimal tiled images");
+		}
+		else {
+			BRISK_CORE_INFO("Device does supports blitting to optimal tiled images");
+		}
+
+		//if (!(formatProps.linearTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT)) {
+		//	BRISK_CORE_WARN("Device does not support blitting to linear tiled images");
+		//}
+
 		VkPhysicalDeviceFeatures deviceFeatures{};
 		deviceFeatures.samplerAnisotropy = requirements.pFeatures.pSamplerAnisotropy ? VK_TRUE : VK_FALSE;
 		deviceFeatures.robustBufferAccess = requirements.pFeatures.pRobustBufferAccess ? VK_TRUE : VK_FALSE;

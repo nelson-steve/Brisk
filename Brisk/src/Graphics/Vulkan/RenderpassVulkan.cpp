@@ -41,9 +41,9 @@ namespace Brisk
             if ((attachment.pImage->GetSpecs().p_Usage & Texture::TextureUsage::ImageUsageColorAttachment) != Texture::TextureUsage::Undefined) {
                 desc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             }
-            //if ((attachment.pImage->GetSpecs().p_Usage & Texture::TextureUsage::ImageUsageTransferSrc) != Texture::TextureUsage::Undefined) {
-            //    desc.finalLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-            //}
+            if ((attachment.pImage->GetSpecs().p_Usage & Texture::TextureUsage::ImageUsageTransferSrc) != Texture::TextureUsage::Undefined) {
+                desc.finalLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+            }
             if (attachment.pImage->IsDepth()) {
                 desc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
             }
@@ -131,6 +131,7 @@ namespace Brisk
 
 
         std::array<VkSubpassDependency, 3> dependencies{ dependency1, dependency2, dependencyDepth };
+        //std::array<VkSubpassDependency, 2> dependencies{ dependency1, dependency2 };
         VkRenderPassCreateInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
         renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
         renderPassInfo.pAttachments = attachments.data();

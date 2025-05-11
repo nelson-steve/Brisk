@@ -415,6 +415,9 @@ namespace Brisk
 		static VkPipelineStageFlags PipelineStageToVkPipelineStageFlags(Texture::PipelineStage stage) {
 			VkPipelineStageFlags flags = 0;
 
+			//if ((stage & Texture::PipelineStage::None) == Texture::PipelineStage::None)
+			//	return 0;
+
 			if ((stage & Texture::PipelineStage::TopOfPipe) == Texture::PipelineStage::TopOfPipe)
 				flags |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 

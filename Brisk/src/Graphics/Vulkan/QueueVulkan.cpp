@@ -17,7 +17,8 @@ namespace Brisk
 
         for (size_t i = 0; i < submitInfo.pWaitStages.size(); ++i) {
             //waitStages[i] = static_cast<VkPipelineStageFlags>(submitInfo.pWaitStages[i]);
-            waitStages[i] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_NONE;
+            //waitStages[i] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            waitStages[i] = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
         }
 
         for (size_t i = 0; i < submitInfo.pWaitSemaphores.size(); ++i) {

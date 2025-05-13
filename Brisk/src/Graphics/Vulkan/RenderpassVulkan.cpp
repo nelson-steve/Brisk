@@ -64,10 +64,15 @@ namespace Brisk
                 ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
                 colorAttachmentRefs.push_back(ref);
             }
+            else if ((attachment.pImage->GetSpecs().p_Usage & Texture::TextureUsage::ImageUsageTransferSrc) != Texture::TextureUsage::Undefined) {
+                ref.layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+                colorAttachmentRefs.push_back(ref);
+            }
             else if (attachment.pAttachmentType == AttachmentType::Depth && !isInput) {
                 ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
                 depthAttachmentRef = ref;
                 hasDepth = true;
+                m_HasDepth = true;
             }
             else if (isInput) {
                 ref.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
@@ -160,11 +165,16 @@ namespace Brisk
 
     void RenderPassVulkan::Begin(std::shared_ptr<CommandBuffer> cmd) {
         std::vector<VkClearValue> clearValues;
-        clearValues.resize(m_ClearCount);
+        clearValues.resize(m_ColorAttachmentCount);
+
         for (auto& clear : clearValues) {
-            //clear.color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
-            clear.color = { { 0.0f, 1.0f, 1.0f, 1.0f } };
-            clear.depthStencil = { 1.0f, 0 };
+            clear.color = { { 0.0f, 0.0f, 0.0f, 0.0f } };
+            //clear.color = { { 0.0f, 1.0f, 1.0f, 1.0f } };
+        }
+        if (m_HasDepth) {
+            VkClearValue depthClear{};
+            depthClear.depthStencil = { 0.0f, 0 };
+            clearValues.push_back(depthClear);
         }
 
         VkRenderPassBeginInfo renderPassInfo{};
@@ -174,7 +184,7 @@ namespace Brisk
         renderPassInfo.renderArea.offset = { 0, 0 };
         VkExtent2D extent{ 1920, 1080 };
         renderPassInfo.renderArea.extent = extent;
-        renderPassInfo.clearValueCount = clearValues.size();
+        renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();
 
         vkCmdBeginRenderPass(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), &renderPassInfo, VK_SUBPASS_CONTENTS_INLINE);

@@ -16,6 +16,6 @@ layout(set = 3, binding = 0) uniform sampler3D global_textures_3d[];   // 3D tex
 void main() {
     outPosition = vec4(fragPosition, 1.0);
     outNormal = vec4(normalize(fragNormal), 1.0);
-    outAlbedo = vec4(1.0, 1.0, 1.0, 1.0);
+    outAlbedo = vec4(0.0, 0.0, 0.0, 0.0);
     //outAlbedo = texture(albedoTexture, fragUV);
 }

@@ -58,22 +58,29 @@ namespace Brisk
 
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{ VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
         VkVertexInputBindingDescription bindingDescription{};
-        bindingDescription.binding = specs.pLayout.pBinding;
-        bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
-        bindingDescription.stride = specs.pLayout.pStride;
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-        for (int i = 0; i < specs.pLayout.pAttributes.size(); i++) {
-            VkVertexInputAttributeDescription attributeDescription;
-            attributeDescription.binding = specs.pLayout.pAttributes[i].pBinding;
-            attributeDescription.location = specs.pLayout.pAttributes[i].pLocation;
-            attributeDescription.format = UtilitiesVulkan::FormatToVkFormat(specs.pLayout.pAttributes[i].pFormat);
-            attributeDescription.offset = specs.pLayout.pAttributes[i].pOffset;
-            attributeDescriptions.push_back(attributeDescription);
+        if (specs.pLayout.has_value()) {
+            bindingDescription.binding = specs.pLayout.value().pBinding;
+            bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
+            bindingDescription.stride = specs.pLayout.value().pStride;
+            for (int i = 0; i < specs.pLayout.value().pAttributes.size(); i++) {
+                VkVertexInputAttributeDescription attributeDescription;
+                attributeDescription.binding = specs.pLayout.value().pAttributes[i].pBinding;
+                attributeDescription.location = specs.pLayout.value().pAttributes[i].pLocation;
+                attributeDescription.format = UtilitiesVulkan::FormatToVkFormat(specs.pLayout.value().pAttributes[i].pFormat);
+                attributeDescription.offset = specs.pLayout.value().pAttributes[i].pOffset;
+                attributeDescriptions.push_back(attributeDescription);
+            }
+
+            vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
+            vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
+            vertexInputInfo.vertexBindingDescriptionCount = 1;
+            vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
         }
-        vertexInputInfo.vertexAttributeDescriptionCount = static_cast<uint32_t>(attributeDescriptions.size());
-        vertexInputInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
-        vertexInputInfo.vertexBindingDescriptionCount = 1;
-        vertexInputInfo.pVertexBindingDescriptions = &bindingDescription;
+        else {
+            vertexInputInfo.vertexAttributeDescriptionCount = 0;
+            vertexInputInfo.vertexBindingDescriptionCount = 0;
+        }
 
         VkPipelineInputAssemblyStateCreateInfo inputAssembly{ VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO };
         inputAssembly.topology = VK_PRIMITIVE_TOPOLOGY_TRIANGLE_LIST;

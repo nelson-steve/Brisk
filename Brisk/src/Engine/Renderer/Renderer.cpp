@@ -145,18 +145,10 @@ namespace Brisk
                 fragmentShaderModule->Init("Shaders/Vulkan/DeferredRenderer/Compiled/LightingFS.spv", Pipeline::ShaderStage::FRAGMENT);
 
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
-                Pipeline::VertexDataLayout vertexLayout;
-                vertexLayout.pBinding = 0;
-                vertexLayout.pStride = sizeof(MeshData);
-                //vertexLayout.pAttributes = {};
-                pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_LightingPass;
-
                 pipelineSpecs.p_ResourceTypes.push_back(GpuDescriptorResourceType::DeferredTextures);
-
                 pipelineSpecs.pShaderModules.push_back(vertexShaderModule);
                 pipelineSpecs.pShaderModules.push_back(fragmentShaderModule);
-
                 pipelineSpecs.pDepthClampEnable = false;
                 pipelineSpecs.pRasterizationDiscardEnable = false;
                 pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
@@ -253,6 +245,7 @@ namespace Brisk
         m_Fence->Reset();
 
         m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &m_ImageIndex);
+        m_GBufferCmdBuffer->Reset();
         m_GBufferCmdBuffer->Bind();
 
         // --------------------------------------------
@@ -333,6 +326,7 @@ namespace Brisk
 
         // --- LIGHTING PASS ---------------------------
 
+        m_LightingCmdBuffer->Reset();
         m_LightingCmdBuffer->Bind();
 
         // --------------------------------------------

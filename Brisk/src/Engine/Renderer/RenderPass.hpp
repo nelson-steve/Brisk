@@ -35,6 +35,7 @@ namespace Brisk
 
 	protected:
 		//std::vector<RenderPassAttachment> m_Attachments;
+		bool m_HasDepth;
 		int m_ClearCount = 0;
 		int m_ColorAttachmentCount = 0;
 	};

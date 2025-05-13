@@ -11,6 +11,7 @@
 #include <vector>
 #include <string>
 #include <memory>
+#include <optional>
 //---------------
 
 namespace Brisk
@@ -66,7 +67,7 @@ namespace Brisk
         };
 
         struct GraphicsPipelineSpecs {
-            VertexDataLayout pLayout;
+            std::optional<VertexDataLayout> pLayout;
             bool pDepthClampEnable;
             bool pRasterizationDiscardEnable;
             PolygonMode pPolygoneMode;

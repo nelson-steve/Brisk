@@ -353,20 +353,6 @@ namespace Brisk
 
         m_LightingPass->End(m_LightingCmdBuffer);
 
-        //// Prepare lighting output to be copyable
-        //{
-        //    Brisk::Texture::ImageBarrierParams params{};
-        //    params.texture = g_lightingOutput;
-        //    params.oldLayout = Texture::ImageLayout::ShaderReadOnlyOptimal;
-        //    params.newLayout = Texture::ImageLayout::TransferSrc;
-        //    params.srcAccess = Texture::AccessType::ColorAttachmentWrite;
-        //    params.dstAccess = Texture::AccessType::MemoryRead;
-        //    params.srcStage = Texture::PipelineStage::ColorAttachment;
-        //    params.dstStage = Texture::PipelineStage::TransferStage;
-
-        //    g_lightingOutput->TransitionImageLayout(m_LightingCmdBuffer, { params });
-        //}
-
         // Transition g_lightingOutput from SHADER_READ_ONLY to TRANSFER_SRC_OPTIMAL for blitting
         //{
         //    Brisk::Texture::ImageBarrierParams params{};
@@ -380,8 +366,6 @@ namespace Brisk
 
         //    g_lightingOutput->TransitionImageLayout(m_LightingCmdBuffer, { params });
         //}
-
-
 
         if (times < 2) {
             times++;
@@ -458,7 +442,7 @@ namespace Brisk
         m_LightingCmdBuffer->UnBind();
 
         Queue::SubmitInfo deferredSubmitInfo{};
-        deferredSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
+        //deferredSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
         deferredSubmitInfo.pSignalSemaphores.push_back(DeferredRenderingFinishedSemaphore);
         deferredSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
         deferredSubmitInfo.pCmdBuffers.push_back(m_GBufferCmdBuffer);
@@ -466,7 +450,7 @@ namespace Brisk
         m_Queue->Submit(deferredSubmitInfo, nullptr);
 
         Queue::SubmitInfo lightingSubmitInfo{};
-        //lightingSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
+        lightingSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
         lightingSubmitInfo.pWaitSemaphores.push_back(DeferredRenderingFinishedSemaphore);
         lightingSubmitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore);
         lightingSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);

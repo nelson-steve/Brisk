@@ -436,7 +436,8 @@ namespace Brisk
 		// "../Data/Models/revolver/revolver.gltf"
 		// "../Data/Models/cerberus/cerberus.gltf"
 		// "../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf"
-		LoadGLTFFile("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf", entity);
+		//LoadGLTFFile("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf", entity);
+		LoadGLTFFile("../Data/Models/damaged_helmet/DamagedHelmet.gltf", entity);
 
 		entity.AddComponent<MaterialComponent>();
 		//entity.AddComponent<MeshComponent>().pModel = model;

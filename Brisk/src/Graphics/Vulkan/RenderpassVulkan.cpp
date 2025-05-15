@@ -11,28 +11,22 @@ namespace Brisk
     void RenderPassVulkan::Init(const std::vector<RenderPassAttachment>& inputs, const std::vector<RenderPassAttachment>& outputs) {
         std::vector<VkAttachmentDescription> attachments;
         std::vector<VkAttachmentReference> colorAttachmentRefs;
-        std::vector<VkAttachmentReference> inputAttachmentRefs;
         VkAttachmentReference depthAttachmentRef{};
-        bool hasDepth = false;
 
         uint32_t attachmentIndex = 0;
         std::vector<VkImageView> imageViews;
         uint32_t width = 0, height = 0;
 
-        auto processAttachment = [&](const RenderPassAttachment& attachment, bool isInput) {
-            if (!isInput /*&& !attachment.pImage->IsDepth()*/) {
-                m_ClearCount++;
-                //m_Attachments.push_back(attachment);
-            }
-            if (!isInput && !attachment.pImage->IsDepth()) {
+        for (const auto& attachment : outputs) {
+            m_ClearCount++;
+            if (!attachment.pImage->IsDepth()) {
                 m_ColorAttachmentCount++;
-                //m_Attachments.push_back(attachment);
             }
             auto texture = std::static_pointer_cast<TextureVulkan>(attachment.pImage);
             VkAttachmentDescription desc{};
             desc.format = texture->GetFormat();
             desc.samples = VK_SAMPLE_COUNT_1_BIT;
-            desc.loadOp = isInput ? VK_ATTACHMENT_LOAD_OP_LOAD : VK_ATTACHMENT_LOAD_OP_CLEAR;
+            desc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
             desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
             desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
@@ -43,7 +37,6 @@ namespace Brisk
             }
             if ((attachment.pImage->GetSpecs().p_Usage & Texture::TextureUsage::ImageUsageTransferSrc) != Texture::TextureUsage::Undefined) {
                 desc.finalLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-                //desc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
             }
             if (attachment.pImage->IsDepth()) {
                 desc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
@@ -60,30 +53,18 @@ namespace Brisk
             VkAttachmentReference ref{};
             ref.attachment = attachment.pBinding;
 
-            if (attachment.pAttachmentType == AttachmentType::Color && !isInput) {
+            if (attachment.pAttachmentType == AttachmentType::Color) {
                 ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
                 colorAttachmentRefs.push_back(ref);
             }
-            else if ((attachment.pImage->GetSpecs().p_Usage & Texture::TextureUsage::ImageUsageTransferSrc) != Texture::TextureUsage::Undefined) {
-                ref.layout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-                colorAttachmentRefs.push_back(ref);
-            }
-            else if (attachment.pAttachmentType == AttachmentType::Depth && !isInput) {
+            if (attachment.pAttachmentType == AttachmentType::Depth) {
                 ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
                 depthAttachmentRef = ref;
-                hasDepth = true;
                 m_HasDepth = true;
-            }
-            else if (isInput) {
-                ref.layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                inputAttachmentRefs.push_back(ref);
             }
 
             ++attachmentIndex;
         };
-
-        for (const auto& in : inputs) processAttachment(in, true);
-        for (const auto& out : outputs) processAttachment(out, false);
 
         VkSubpassDescription subpass{};
         subpass.pipelineBindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
@@ -91,22 +72,8 @@ namespace Brisk
             subpass.colorAttachmentCount = static_cast<uint32_t>(colorAttachmentRefs.size());
             subpass.pColorAttachments = colorAttachmentRefs.data();
         }
-        if (inputAttachmentRefs.size() > 0) {
-            subpass.inputAttachmentCount = static_cast<uint32_t>(inputAttachmentRefs.size());
-            subpass.pInputAttachments = inputAttachmentRefs.data();
-        }
-        if (hasDepth)
+        if (m_HasDepth)
             subpass.pDepthStencilAttachment = &depthAttachmentRef;
-
-        VkSubpassDependency dependency1{};
-        dependency1.srcSubpass = VK_SUBPASS_EXTERNAL;
-        dependency1.dstSubpass = 0;
-        dependency1.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        dependency1.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        dependency1.srcAccessMask = 0;
-        dependency1.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-        dependency1.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
 
         //VkSubpassDependency dependency1{};
         //dependency1.srcSubpass = VK_SUBPASS_EXTERNAL;
@@ -117,13 +84,22 @@ namespace Brisk
         //dependency1.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
         //dependency1.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
+        VkSubpassDependency dependency1{};
+        dependency1.srcSubpass = VK_SUBPASS_EXTERNAL;
+        dependency1.dstSubpass = 0;
+        dependency1.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency1.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
+        dependency1.srcAccessMask = 0;
+        dependency1.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
+        dependency1.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
         VkSubpassDependency dependency2{};
         dependency2.srcSubpass = 0;
         dependency2.dstSubpass = VK_SUBPASS_EXTERNAL;
         dependency2.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        dependency2.dstStageMask = VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
-        dependency2.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_READ_BIT | VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        dependency2.dstAccessMask = VK_ACCESS_MEMORY_READ_BIT;
+        dependency2.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        dependency2.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        dependency2.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
         dependency2.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
         VkSubpassDependency dependencyDepth{};
@@ -136,8 +112,42 @@ namespace Brisk
         dependencyDepth.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
 
 
-        std::array<VkSubpassDependency, 3> dependencies{ dependency1, dependency2, dependencyDepth };
-        //std::array<VkSubpassDependency, 2> dependencies{ dependency1, dependency2 };
+        ///
+        
+        VkSubpassDependency lightingDependencyIn{};
+        lightingDependencyIn.srcSubpass = VK_SUBPASS_EXTERNAL;  // previous pass
+        lightingDependencyIn.dstSubpass = 0; // lighting pass subpass index
+        lightingDependencyIn.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        lightingDependencyIn.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
+        lightingDependencyIn.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        lightingDependencyIn.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+        lightingDependencyIn.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+        VkSubpassDependency lightingDependencyOut{};
+        lightingDependencyOut.srcSubpass = 0;  // lighting pass
+        lightingDependencyOut.dstSubpass = VK_SUBPASS_EXTERNAL;
+        lightingDependencyOut.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+        lightingDependencyOut.dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
+        lightingDependencyOut.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        lightingDependencyOut.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+        lightingDependencyOut.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+
+
+        ///
+
+        std::vector<VkSubpassDependency> dependencies;
+        if (m_ColorAttachmentCount > 1) {
+            dependencies.push_back(dependency1);
+            dependencies.push_back(dependency2);
+            if (m_HasDepth)
+                dependencies.push_back(dependencyDepth);
+        }
+        else {
+            dependencies.push_back(dependency1);
+            dependencies.push_back(lightingDependencyIn);
+            dependencies.push_back(lightingDependencyOut);
+        }
+
         VkRenderPassCreateInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
         renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
         renderPassInfo.pAttachments = attachments.data();
@@ -168,12 +178,11 @@ namespace Brisk
         clearValues.resize(m_ColorAttachmentCount);
 
         for (auto& clear : clearValues) {
-            clear.color = { { 0.0f, 0.0f, 0.0f, 0.0f } };
-            //clear.color = { { 0.0f, 1.0f, 1.0f, 1.0f } };
+            clear.color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
         }
         if (m_HasDepth) {
             VkClearValue depthClear{};
-            depthClear.depthStencil = { 0.0f, 0 };
+            depthClear.depthStencil = { 1.0f, 0 };
             clearValues.push_back(depthClear);
         }
 

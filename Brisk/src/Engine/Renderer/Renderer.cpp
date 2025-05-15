@@ -329,7 +329,7 @@ namespace Brisk
         m_LightingCmdBuffer->Reset();
         m_LightingCmdBuffer->Bind();
 
-        // --------------------------------------------
+        //// --------------------------------------------
         {
             Brisk::Texture::ImageBarrierParams params{};
             params.texture = g_lightingOutput;
@@ -353,28 +353,14 @@ namespace Brisk
 
         m_LightingPass->End(m_LightingCmdBuffer);
 
-        // Transition g_lightingOutput from SHADER_READ_ONLY to TRANSFER_SRC_OPTIMAL for blitting
-        //{
-        //    Brisk::Texture::ImageBarrierParams params{};
-        //    params.texture = g_lightingOutput;
-        //    params.oldLayout = Texture::ImageLayout::ShaderReadOnlyOptimal;
-        //    params.newLayout = Texture::ImageLayout::TransferSrc;          
-        //    params.srcAccess = Texture::AccessType::ShaderRead;            
-        //    params.dstAccess = Texture::AccessType::TransferRead;          
-        //    params.srcStage = Texture::PipelineStage::FragmentShader;      
-        //    params.dstStage = Texture::PipelineStage::TransferStage;       
-
-        //    g_lightingOutput->TransitionImageLayout(m_LightingCmdBuffer, { params });
-        //}
-
         if (times < 2) {
             times++;
             Brisk::Texture::ImageBarrierParams params{};
-            params.oldLayout = Texture::ImageLayout::Undefined; 
+            params.oldLayout = Texture::ImageLayout::Undefined;
             params.newLayout = Texture::ImageLayout::TransferDst;
             params.srcAccess = Texture::AccessType::None;
             params.dstAccess = Texture::AccessType::TransferWrite;
-            params.srcStage = Texture::PipelineStage::AllCommands;
+            params.srcStage = Texture::PipelineStage::BottomOfPipe;
             params.dstStage = Texture::PipelineStage::TransferStage;
 
             m_Swapchain->TransitionCurrentImage(m_LightingCmdBuffer, params, m_ImageIndex);
@@ -387,26 +373,11 @@ namespace Brisk
                 params.newLayout = Texture::ImageLayout::TransferDst;
                 params.srcAccess = Texture::AccessType::MemoryRead;
                 params.dstAccess = Texture::AccessType::TransferWrite;
-                params.srcStage = Texture::PipelineStage::AllCommands;
+                params.srcStage = Texture::PipelineStage::BottomOfPipe;
                 params.dstStage = Texture::PipelineStage::TransferStage;
 
                 m_Swapchain->TransitionCurrentImage(m_LightingCmdBuffer, params, m_ImageIndex);
             }
-        }
-
-        // Prepare lighting output to be copyable
-        {
-            Brisk::Texture::ImageBarrierParams params{};
-            params.texture = g_lightingOutput;
-            //params.oldLayout = Texture::ImageLayout::ShaderReadOnlyOptimal;
-            params.oldLayout = Texture::ImageLayout::TransferSrc;
-            params.newLayout = Texture::ImageLayout::TransferSrc;
-            params.srcAccess = Texture::AccessType::ColorAttachmentWrite;
-            params.dstAccess = Texture::AccessType::TransferRead;
-            params.srcStage = Texture::PipelineStage::ColorAttachment;
-            params.dstStage = Texture::PipelineStage::TransferStage;
-
-            g_lightingOutput->TransitionImageLayout(m_LightingCmdBuffer, { params });
         }
 
         // Blit the lighting output to swapchain image
@@ -419,9 +390,9 @@ namespace Brisk
             params.oldLayout = Texture::ImageLayout::TransferSrc;
             params.newLayout = Texture::ImageLayout::ColorAttachmentOptimal;
             params.srcAccess = Texture::AccessType::TransferRead;
-            params.dstAccess = Texture::AccessType::ColorAttachmentWrite;
+            params.dstAccess = Texture::AccessType::None;
             params.srcStage = Texture::PipelineStage::TransferStage;
-            params.dstStage = Texture::PipelineStage::ColorAttachment;
+            params.dstStage = Texture::PipelineStage::BottomOfPipe;
 
             g_lightingOutput->TransitionImageLayout(m_LightingCmdBuffer, { params });
         }
@@ -442,7 +413,6 @@ namespace Brisk
         m_LightingCmdBuffer->UnBind();
 
         Queue::SubmitInfo deferredSubmitInfo{};
-        //deferredSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
         deferredSubmitInfo.pSignalSemaphores.push_back(DeferredRenderingFinishedSemaphore);
         deferredSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
         deferredSubmitInfo.pCmdBuffers.push_back(m_GBufferCmdBuffer);

@@ -143,7 +143,7 @@ namespace Brisk
                 dependencies.push_back(dependencyDepth);
         }
         else {
-            dependencies.push_back(dependency1);
+            //dependencies.push_back(dependency1);
             dependencies.push_back(lightingDependencyIn);
             dependencies.push_back(lightingDependencyOut);
         }

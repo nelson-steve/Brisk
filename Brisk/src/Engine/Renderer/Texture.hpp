@@ -82,7 +82,7 @@ namespace Brisk
 		};
 
 		struct ImageBarrierParams {
-			std::shared_ptr<Texture> texture;
+			//std::shared_ptr<Texture> texture;
 			ImageLayout oldLayout;
 			ImageLayout newLayout;
 			AccessType srcAccess;

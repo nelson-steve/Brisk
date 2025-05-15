@@ -44,7 +44,6 @@ namespace Brisk
             //std::shared_ptr<Shader> m_ComputeShader = Shader::Create();
             //std::shared_ptr<Shader> m_ComputeShader = std::make_shared<Shader>();
             Texture::ImageBarrierParams preComputeBarrier = {
-                cubemap,
                 Texture::ImageLayout::Undefined,
                 Texture::ImageLayout::General,
                 Texture::AccessType::None,
@@ -65,7 +64,6 @@ namespace Brisk
             ComputeCommand::CmdDispatch(cmd, texSize / 32, texSize / 32, 6);
 
             Texture::ImageBarrierParams postComputeBarrier = {
-                cubemap,
                 Texture::ImageLayout::General,
                 Texture::ImageLayout::ShaderReadOnlyOptimal,
                 Texture::AccessType::ShaderWrite,
@@ -98,7 +96,6 @@ namespace Brisk
             cmd->Bind();
 
             Texture::ImageBarrierParams preCopyBarrierCubemap = {
-                cubemap,
                 Texture::ImageLayout::ShaderReadOnlyOptimal,
                 Texture::ImageLayout::TransferSrc,
                 Texture::AccessType::None,
@@ -113,7 +110,6 @@ namespace Brisk
             };
 
             Texture::ImageBarrierParams preCopyBarrierEnvTexture = {
-                mainEnvTexture,
                 Texture::ImageLayout::Undefined,
                 Texture::ImageLayout::TransferDst,
                 Texture::AccessType::None,
@@ -131,7 +127,6 @@ namespace Brisk
             cubemap->CopyImage(cmd, cubemap, mainEnvTexture, 1024, 1024);
 
             Texture::ImageBarrierParams postCopyBarrierCubemap = {
-                cubemap,
                 Texture::ImageLayout::TransferSrc,
                 Texture::ImageLayout::ShaderReadOnlyOptimal,
                 Texture::AccessType::TransferRead,
@@ -146,7 +141,6 @@ namespace Brisk
             };
 
             Texture::ImageBarrierParams postCopyBarrierEnvTexture = {
-                mainEnvTexture,
                 Texture::ImageLayout::TransferDst,
                 Texture::ImageLayout::ShaderReadOnlyOptimal,
                 Texture::AccessType::TransferWrite,

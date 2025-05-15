@@ -710,17 +710,11 @@ namespace Brisk
             barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
             barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
             bool isDepth = false;
-            if (p.texture == nullptr) {
-                BRISK_APP_INFO("No special image found for transition");
-                barrier.image = m_Image;
-                if (m_Format == VK_FORMAT_D16_UNORM)
-                    isDepth = true;
-            }
-            else {
-                barrier.image = std::static_pointer_cast<TextureVulkan>(p.texture)->GetImage();
-                if (std::static_pointer_cast<TextureVulkan>(p.texture)->GetFormat() == VK_FORMAT_D16_UNORM)
-                    isDepth = true;
-            }
+
+            barrier.image = m_Image;
+            if (m_Format == VK_FORMAT_D16_UNORM)
+                isDepth = true;
+
             barrier.subresourceRange.aspectMask = isDepth ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
             barrier.subresourceRange.layerCount = VK_REMAINING_ARRAY_LAYERS;
             barrier.subresourceRange.baseMipLevel = 0;

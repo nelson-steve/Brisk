@@ -23,11 +23,11 @@ namespace Brisk
             if (attachment.pAttachmentType == AttachmentType::SwapchainAttachment) {
                 m_ColorAttachmentCount++;
                 hasSwapchain = true;
-
+                m_ClearCount++;
                 VkAttachmentDescription desc{};
                 desc.format = std::static_pointer_cast<SwapchainVulkan>(Engine::s_Application->GetRenderer()->GetSwapchain())->GetFormat();
                 desc.samples = VK_SAMPLE_COUNT_1_BIT;
-                desc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+                desc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
                 desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
                 desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
                 desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;

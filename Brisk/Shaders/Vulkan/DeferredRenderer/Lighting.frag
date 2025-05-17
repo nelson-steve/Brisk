@@ -32,5 +32,11 @@ void main() {
     //vec3 result = (diffuse + specular) * albedo;
     //outColor = vec4(result, 1.0);
     //outColor = vec4(norm, 1.0);
-    outColor = vec4(1.0, 1.0, 0.0, 1.0);
+
+    vec4 albedo = subpassLoad(gAlbedo);
+    vec3 normal = subpassLoad(gNormal).xyz;
+    vec4 pos = subpassLoad(gPosition);
+
+    //outColor = vec4(1.0, 1.0, 0.0, 1.0);
+    outColor = vec4(pos);
 }

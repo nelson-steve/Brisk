@@ -5,6 +5,8 @@
 #include "ComputeCommand.hpp"
 #include "Engine/Component.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
+#include <Graphics/Vulkan/TextureVulkan.hpp>
+#include <Graphics/Vulkan/CommandBufferVulkan.hpp>
 //------------------------------------------------
 
 namespace Brisk
@@ -159,7 +161,7 @@ namespace Brisk
                 pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
                 pipelineSpecs.pLineWidth = 1.0f;
                 pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
-                pipelineSpecs.pFrontFace = Pipeline::FrontFace::COUTNER_CLOCKWISE;
+                pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
                 pipelineSpecs.pDepthBiasEnable = false;
                 pipelineSpecs.pDepthTestEnable = false;
                 pipelineSpecs.pDepthWriteEnable = false;
@@ -237,6 +239,160 @@ namespace Brisk
         }
     }
 
+    void Renderer::RenderScene(float deltaTime)
+    {
+        if (!SceneManager::pActiveScene) return;
+
+        auto parent = SceneManager::pActiveScene->Reg().view<RootComponent>();
+
+        m_Fence->Wait();
+        m_Fence->Reset();
+
+        m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &m_ImageIndex);
+        m_CmdBuffer->Reset();
+        m_CmdBuffer->Bind();
+
+        VkImageMemoryBarrier barrier{};
+        barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+        barrier.srcQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.dstQueueFamilyIndex = VK_QUEUE_FAMILY_IGNORED;
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        barrier.subresourceRange.baseMipLevel = 0;
+        barrier.subresourceRange.levelCount = 1;
+        barrier.subresourceRange.baseArrayLayer = 0;
+        barrier.subresourceRange.layerCount = 1;
+
+        // --- Transition G-Buffer images to COLOR_ATTACHMENT_OPTIMAL
+        std::array<VkImage, 3> gBufferImages = 
+        { 
+            std::static_pointer_cast<TextureVulkan>(g_Pos)->GetImage(), 
+            std::static_pointer_cast<TextureVulkan>(g_Normal)->GetImage(),
+            std::static_pointer_cast<TextureVulkan>(g_Albedo)->GetImage(),
+        };
+        for (auto image : gBufferImages) {
+            barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+            barrier.newLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+            barrier.image = image;
+            barrier.srcAccessMask = 0;
+            barrier.dstAccessMask = 0;
+
+            vkCmdPipelineBarrier(
+                std::static_pointer_cast<CommandBufferVulkan>( m_CmdBuffer)->Get(),
+                VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                0, 0, nullptr, 0, nullptr, 1, &barrier);
+        }
+
+        // --- Transition swapchain image to COLOR_ATTACHMENT_OPTIMAL
+        barrier.image = std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->GetSwapchainImages()[m_ImageIndex];
+        vkCmdPipelineBarrier(
+            std::static_pointer_cast<CommandBufferVulkan>(m_CmdBuffer)->Get(),
+            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+        // --- Transition Depth to DEPTH_STENCIL_ATTACHMENT_OPTIMAL
+        barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+        barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        barrier.image = std::static_pointer_cast<TextureVulkan>(g_Depth)->GetImage();
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+        barrier.srcAccessMask = 0;
+        barrier.dstAccessMask = 0;
+
+        vkCmdPipelineBarrier(
+            std::static_pointer_cast<CommandBufferVulkan>(m_CmdBuffer)->Get(),
+            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+        // --- GBuffer Geometry Pass ---
+        m_GBufferPipeline->Bind(m_CmdBuffer);
+        m_GeometryBufferPass->Begin(m_CmdBuffer, 0);
+
+        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+
+        for (auto e : parent) {
+            Entity entity = { e, SceneManager::pActiveScene.get() };
+            auto& mesh = entity.GetComponent<MeshComponent>();
+            auto& root = entity.GetComponent<RootComponent>();
+
+            RenderCommand::BindVertexBuffer(m_CmdBuffer, { root.m_VertexBuffer }, 0);
+            RenderCommand::BindIndexBuffer(m_CmdBuffer, root.m_IndexBuffer, 0);
+            RenderEntity(entity);
+        }
+
+        m_GeometryBufferPass->End(m_CmdBuffer);
+
+        // --- Transition G-buffer images to SHADER_READ_ONLY_OPTIMAL ---
+        barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        barrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        for (auto image : gBufferImages) {
+            barrier.image = image;
+            vkCmdPipelineBarrier(
+                std::static_pointer_cast<CommandBufferVulkan>(m_CmdBuffer)->Get(),
+                VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+                VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+                0, 0, nullptr, 0, nullptr, 1, &barrier);
+        }
+
+        // --- Transition Depth to DEPTH_STENCIL_READ_ONLY_OPTIMAL ---
+        barrier.oldLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
+        barrier.newLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+        barrier.image = std::static_pointer_cast<TextureVulkan>(g_Depth)->GetImage();
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+
+        vkCmdPipelineBarrier(
+            std::static_pointer_cast<CommandBufferVulkan>(m_CmdBuffer)->Get(),
+            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+            VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT,
+            0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+        // --- Lighting Pass ---
+        m_LightingPass->Begin(m_CmdBuffer, m_ImageIndex);
+        m_LightingPipeline->Bind(m_CmdBuffer);
+
+        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+
+        RenderCommand::Draw(m_CmdBuffer, 3, 0);
+        m_LightingPass->End(m_CmdBuffer);
+
+        // --- Prepare to present: transition swapchain image to PRESENT_SRC_KHR
+        barrier.oldLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
+        barrier.newLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
+        barrier.image = std::static_pointer_cast<SwapchainVulkan>(m_Swapchain)->GetSwapchainImages()[m_ImageIndex];
+        barrier.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+        barrier.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
+        barrier.dstAccessMask = 0;
+
+        vkCmdPipelineBarrier(
+            std::static_pointer_cast<CommandBufferVulkan>(m_CmdBuffer)->Get(),
+            VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT,
+            VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT,
+            0, 0, nullptr, 0, nullptr, 1, &barrier);
+
+        m_CmdBuffer->UnBind();
+
+        Queue::SubmitInfo deferredSubmitInfo{};
+        deferredSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
+        deferredSubmitInfo.pSignalSemaphores.push_back(DeferredRenderingFinishedSemaphore);
+        deferredSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+        deferredSubmitInfo.pCmdBuffers.push_back(m_CmdBuffer);
+
+        m_Queue->Submit(deferredSubmitInfo, m_Fence);
+
+        Queue::PresentInfo presentInfo{};
+        presentInfo.pWaitSemaphores.push_back(DeferredRenderingFinishedSemaphore);
+        presentInfo.pSwapchains.push_back(m_Swapchain);
+        presentInfo.pImageIndex = m_ImageIndex;
+
+        m_Queue->Present(presentInfo);
+    }
+
+
+    /*
     int times = 0;
     void Renderer::RenderScene(float deltaTime)
     {
@@ -267,19 +423,6 @@ namespace Brisk
 
             m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
         }
-
-        //{
-        //    Brisk::Texture::ImageBarrierParams swapchainTransition{};
-        //    swapchainTransition.oldLayout = Texture::ImageLayout::PresentSrc;
-        //    swapchainTransition.newLayout = Texture::ImageLayout::ColorAttachmentOptimal;
-        //    swapchainTransition.srcAccess = Texture::AccessType::MemoryRead;
-        //    swapchainTransition.dstAccess = Texture::AccessType::ColorAttachmentWrite;
-        //    swapchainTransition.srcStage = Texture::PipelineStage::BottomOfPipe;
-        //    swapchainTransition.dstStage = Texture::PipelineStage::ColorAttachment;
-
-        //    m_Swapchain->TransitionCurrentImage(m_CmdBuffer, swapchainTransition, m_ImageIndex);
-
-        //}
 
         {
             Brisk::Texture::ImageBarrierParams params{};
@@ -384,6 +527,7 @@ namespace Brisk
         // Present
         m_Queue->Present(presentInfo);
     }
+    */
 
     void Renderer::RenderEntity(Entity e) {
         if (e.HasComponent<MeshComponent>()) {

@@ -58,7 +58,7 @@ namespace Brisk
 	}
 
 	float Camera::RotationSpeed() const {
-		return 0.8f;
+		return 0.3f;
 	}
 
 	float Camera::ZoomSpeed() const {

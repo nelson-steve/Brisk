@@ -308,16 +308,31 @@ namespace Brisk
 			}
 			BRISK_CORE_ERROR("Invalid shader stage parameter");
 		}
-
 		static VkImageUsageFlags ImageUsageToVulkanType(Texture::TextureUsage usage) {
+			using U = std::underlying_type_t<Texture::TextureUsage>;
 			VkImageUsageFlags flags = 0;
+			U u = static_cast<U>(usage);
 
-			if ((usage & Texture::TextureUsage::ImageUsageTransferSrc) != Texture::TextureUsage::Undefined)            flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-			if ((usage & Texture::TextureUsage::ImageUsageTransferDst) != Texture::TextureUsage::Undefined)            flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-			if ((usage & Texture::TextureUsage::ImageUsageSampled) != Texture::TextureUsage::Undefined)                flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
-			if ((usage & Texture::TextureUsage::ImageUsageStorage) != Texture::TextureUsage::Undefined)                flags |= VK_IMAGE_USAGE_STORAGE_BIT;
-			if ((usage & Texture::TextureUsage::ImageUsageColorAttachment) != Texture::TextureUsage::Undefined)        flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-			if ((usage & Texture::TextureUsage::ImageUsageDepthStencilAttachment) != Texture::TextureUsage::Undefined) flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+			if (u & static_cast<U>(Texture::TextureUsage::ImageUsageTransferSrc))
+				flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+			if (u & static_cast<U>(Texture::TextureUsage::ImageUsageTransferDst))
+				flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+			if (u & static_cast<U>(Texture::TextureUsage::ImageUsageSampled))
+				flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
+			if (u & static_cast<U>(Texture::TextureUsage::ImageUsageStorage))
+				flags |= VK_IMAGE_USAGE_STORAGE_BIT;
+			if (u & static_cast<U>(Texture::TextureUsage::ImageUsageColorAttachment))
+				flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			if (u & static_cast<U>(Texture::TextureUsage::ImageUsageDepthStencilAttachment))
+				flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+			if (u & static_cast<U>(Texture::TextureUsage::ImageUsageInputAttachment))
+				flags |= VK_IMAGE_USAGE_INPUT_ATTACHMENT_BIT;
+			if (u & static_cast<U>(Texture::TextureUsage::ImageUsageTransientAttachment))
+				flags |= VK_IMAGE_USAGE_TRANSIENT_ATTACHMENT_BIT;
+			if (u & static_cast<U>(Texture::TextureUsage::ImageUsageFragmentShadingRateAttachment))
+				flags |= VK_IMAGE_USAGE_FRAGMENT_SHADING_RATE_ATTACHMENT_BIT_KHR;
+			if (u & static_cast<U>(Texture::TextureUsage::ImageUsageAttachmentFeedbackLoop))
+				flags |= VK_IMAGE_USAGE_ATTACHMENT_FEEDBACK_LOOP_BIT_EXT;
 
 			return flags;
 		}

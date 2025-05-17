@@ -72,14 +72,19 @@ namespace Brisk
 		};
 
 		enum class TextureUsage : uint32_t {
-			Undefined			 = 0,
-			ImageUsageTransferSrc			 = 1 << 1,
-			ImageUsageTransferDst			 = 1 << 2,
-			ImageUsageSampled				 = 1 << 3,
-			ImageUsageStorage				 = 1 << 4,
-			ImageUsageColorAttachment		 = 1 << 5,
+			Undefined = 0,
+			ImageUsageTransferSrc = 1 << 1,
+			ImageUsageTransferDst = 1 << 2,
+			ImageUsageSampled = 1 << 3,
+			ImageUsageStorage = 1 << 4,
+			ImageUsageColorAttachment = 1 << 5,
 			ImageUsageDepthStencilAttachment = 1 << 6,
+			ImageUsageInputAttachment = 1 << 7,
+			ImageUsageTransientAttachment = 1 << 8,
+			ImageUsageFragmentShadingRateAttachment = 1 << 9,
+			ImageUsageAttachmentFeedbackLoop = 1 << 10,
 		};
+
 
 		struct ImageBarrierParams {
 			//std::shared_ptr<Texture> texture;

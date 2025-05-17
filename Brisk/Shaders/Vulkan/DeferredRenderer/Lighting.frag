@@ -10,14 +10,15 @@ layout(location = 0) out vec4 outColor;
 //    vec3 viewPos;
 //} light;
 
-layout(set = 2, binding = 0) uniform sampler2D gPosition;
-layout(set = 2, binding = 1) uniform sampler2D gNormal;
-layout(set = 2, binding = 2) uniform sampler2D gAlbedo;
+layout(input_attachment_index = 0, binding = 0) uniform subpassInput gPosition;
+layout(input_attachment_index = 1, binding = 1) uniform subpassInput gNormal;
+layout(input_attachment_index = 2, binding = 2) uniform subpassInput gAlbedo;
+layout(input_attachment_index = 3, binding = 3) uniform subpassInput gDepth;
 
 void main() {
-    vec3 pos = texture(gPosition, uv).rgb;
-    vec3 norm = normalize(texture(gNormal, uv).rgb);
-    vec3 albedo = texture(gAlbedo, uv).rgb;
+    //vec3 pos = subpassLoad(gPosition, uv).rgb;
+    //vec3 norm = normalize(texture(gNormal, uv).rgb);
+    //vec3 albedo = texture(gAlbedo, uv).rgb;
 
     //vec3 lightDir = normalize(light.lightPos - pos);
     //float diff = max(dot(norm, lightDir), 0.0);

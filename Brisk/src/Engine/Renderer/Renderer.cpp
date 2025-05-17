@@ -30,11 +30,11 @@ namespace Brisk
             {
                 Texture::TextureSpecification specs{};
                 specs.p_Width = 1920;
-                specs.p_Height = 1080;
+                specs.p_Height = 1061;
                 specs.p_IsDepth = false;
                 specs.p_DebugName = "g_Pos";
                 specs.p_Type = Texture::TextureType::TEXTURE2D;
-                specs.p_Usage = Texture::TextureUsage::ImageUsageColorAttachment | Texture::TextureUsage::ImageUsageSampled;
+                specs.p_Usage = Texture::TextureUsage::ImageUsageColorAttachment | Texture::TextureUsage::ImageUsageInputAttachment;
                 specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
                 g_Pos->Init(specs);
 
@@ -46,7 +46,7 @@ namespace Brisk
                 g_Albedo->Init(specs);
 
                 specs.p_DebugName = "g_Depth";
-                specs.p_Usage = Texture::TextureUsage::ImageUsageDepthStencilAttachment | Texture::TextureUsage::ImageUsageSampled;
+                specs.p_Usage = Texture::TextureUsage::ImageUsageDepthStencilAttachment | Texture::TextureUsage::ImageUsageInputAttachment;
                 specs.p_Format = Core::Format::FORMAT_D16_UNORM;
                 specs.p_IsDepth = true;
                 g_Depth->Init(specs);
@@ -58,32 +58,37 @@ namespace Brisk
             m_GeometryBufferPass->Init(
                 {},
                 {   
-                    RenderPassAttachment{ 0, AttachmentType::Color, g_Pos    },
-                    RenderPassAttachment{ 1, AttachmentType::Color, g_Normal },
-                    RenderPassAttachment{ 2, AttachmentType::Color, g_Albedo },
-                    RenderPassAttachment{ 3, AttachmentType::Depth, g_Depth  } 
+                    RenderPassAttachment{ AttachmentType::Color, g_Pos    },
+                    RenderPassAttachment{ AttachmentType::Color, g_Normal },
+                    RenderPassAttachment{ AttachmentType::Color, g_Albedo },
+                    RenderPassAttachment{ AttachmentType::Depth, g_Depth  } 
                 }
             );
 
             // Lighting pass
             //----------------------------------------------------------------------------------------------------
-            g_lightingOutput = Texture::Create();
+            //g_lightingOutput = Texture::Create();
 
-            {
-                Texture::TextureSpecification specs{};
-                specs.p_Width = 1920;
-                specs.p_Height = 1080;
-                specs.p_DebugName = "g_Lighting";
-                specs.p_Usage = Texture::TextureUsage::ImageUsageColorAttachment | Texture::TextureUsage::ImageUsageTransferSrc | Texture::TextureUsage::ImageUsageSampled;
-                specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
-                g_lightingOutput->Init(specs);
-            }
+            //{
+            //    Texture::TextureSpecification specs{};
+            //    specs.p_Width = 1920;
+            //    specs.p_Height = 1080;
+            //    specs.p_DebugName = "g_Lighting";
+            //    specs.p_Usage = Texture::TextureUsage::ImageUsageColorAttachment | Texture::TextureUsage::ImageUsageTransferSrc | Texture::TextureUsage::ImageUsageSampled;
+            //    specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
+            //    g_lightingOutput->Init(specs);
+            //}
 
             m_LightingPass = RenderPass::Create();
             m_LightingPass->Init(
-                {},
+                {
+                    RenderPassAttachment{ AttachmentType::Color, g_Pos    },
+                    RenderPassAttachment{ AttachmentType::Color, g_Normal },
+                    RenderPassAttachment{ AttachmentType::Color, g_Albedo },
+                    RenderPassAttachment{ AttachmentType::Depth, g_Depth  }
+                },
                 {  
-                    RenderPassAttachment{ 0, AttachmentType::Color, g_lightingOutput } 
+                    RenderPassAttachment{ AttachmentType::SwapchainAttachment, nullptr }
                 }
             );
         }
@@ -156,8 +161,8 @@ namespace Brisk
                 pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
                 pipelineSpecs.pFrontFace = Pipeline::FrontFace::COUTNER_CLOCKWISE;
                 pipelineSpecs.pDepthBiasEnable = false;
-                pipelineSpecs.pDepthTestEnable = true;
-                pipelineSpecs.pDepthWriteEnable = true;
+                pipelineSpecs.pDepthTestEnable = false;
+                pipelineSpecs.pDepthWriteEnable = false;
                 pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS;
                 pipelineSpecs.pDepthBoundsTestEnable = false;
                 pipelineSpecs.pStencilTestEnable = false;
@@ -169,12 +174,11 @@ namespace Brisk
 
         }
 
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Pos, nullptr, 0);
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Normal, nullptr, 1);
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Albedo, nullptr, 2);
+        //Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Pos, nullptr, 0);
+        //Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Normal, nullptr, 1);
+        //Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Albedo, nullptr, 2);
 
-        m_GBufferCmdBuffer = CommandBuffer::Create();
-        m_LightingCmdBuffer = CommandBuffer::Create();
+        m_CmdBuffer = CommandBuffer::Create();
 
         m_Fence = Fence::Create();
         m_Fence->Init();
@@ -192,8 +196,7 @@ namespace Brisk
 
         m_MainCmdBufferAllocator = CommandBufferAllocator::Create();
         m_MainCmdBufferAllocator->Init();
-        m_MainCmdBufferAllocator->Allocate(m_GBufferCmdBuffer);
-        m_MainCmdBufferAllocator->Allocate(m_LightingCmdBuffer);
+        m_MainCmdBufferAllocator->Allocate(m_CmdBuffer);
     }
 
     void Renderer::SetupEntity(Entity e) {
@@ -214,7 +217,7 @@ namespace Brisk
 
                 //m_LightingPipeline->BindPushConstant(m_MainCmdBuffer, sizeof(PushConstants), &pushConstantsData);
 
-                RenderCommand::DrawIndexed(m_GBufferCmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
+                RenderCommand::DrawIndexed(m_CmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
             }
         }
         for (auto& child : e.GetComponent<TransformComponent>().children) {
@@ -245,64 +248,57 @@ namespace Brisk
         m_Fence->Reset();
 
         m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &m_ImageIndex);
-        m_GBufferCmdBuffer->Reset();
-        m_GBufferCmdBuffer->Bind();
+        m_CmdBuffer->Reset();
+        m_CmdBuffer->Bind();
 
         //// --------------------------------------------
-        //{
-        //    Brisk::Texture::ImageBarrierParams params{};
-        //    params.oldLayout = Texture::ImageLayout::Undefined;
-        //    params.newLayout = Texture::ImageLayout::ColorAttachmentOptimal;
-        //    params.srcAccess = Texture::AccessType::None;
-        //    params.dstAccess = Texture::AccessType::ColorAttachmentWrite;
-        //    params.srcStage = Texture::PipelineStage::TopOfPipe;
-        //    params.dstStage = Texture::PipelineStage::ColorAttachment;
+        {
+            Brisk::Texture::ImageBarrierParams params{};
+            params.oldLayout = Texture::ImageLayout::Undefined;
+            params.newLayout = Texture::ImageLayout::ColorAttachmentOptimal;
+            params.srcAccess = Texture::AccessType::None;
+            params.dstAccess = Texture::AccessType::None;
+            params.srcStage = Texture::PipelineStage::BottomOfPipe;
+            params.dstStage = Texture::PipelineStage::TopOfPipe;
 
-        //    g_Pos->TransitionImageLayout(m_GBufferCmdBuffer, { params });
-        //}
+            g_Pos->TransitionImageLayout(m_CmdBuffer, { params });
+            g_Normal->TransitionImageLayout(m_CmdBuffer, { params });
+            g_Albedo->TransitionImageLayout(m_CmdBuffer, { params });
 
-        //{
-        //    Brisk::Texture::ImageBarrierParams params{};
-        //    params.oldLayout = Texture::ImageLayout::Undefined;
-        //    params.newLayout = Texture::ImageLayout::ColorAttachmentOptimal;
-        //    params.srcAccess = Texture::AccessType::None;
-        //    params.dstAccess = Texture::AccessType::ColorAttachmentWrite;
-        //    params.srcStage = Texture::PipelineStage::TopOfPipe;
-        //    params.dstStage = Texture::PipelineStage::ColorAttachment;
-
-        //    g_Normal->TransitionImageLayout(m_GBufferCmdBuffer, { params });
-        //}
+            m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
+        }
 
         //{
-        //    Brisk::Texture::ImageBarrierParams params{};
-        //    params.oldLayout = Texture::ImageLayout::Undefined;
-        //    params.newLayout = Texture::ImageLayout::ColorAttachmentOptimal;
-        //    params.srcAccess = Texture::AccessType::None;
-        //    params.dstAccess = Texture::AccessType::ColorAttachmentWrite;
-        //    params.srcStage = Texture::PipelineStage::TopOfPipe;
-        //    params.dstStage = Texture::PipelineStage::ColorAttachment;
+        //    Brisk::Texture::ImageBarrierParams swapchainTransition{};
+        //    swapchainTransition.oldLayout = Texture::ImageLayout::PresentSrc;
+        //    swapchainTransition.newLayout = Texture::ImageLayout::ColorAttachmentOptimal;
+        //    swapchainTransition.srcAccess = Texture::AccessType::MemoryRead;
+        //    swapchainTransition.dstAccess = Texture::AccessType::ColorAttachmentWrite;
+        //    swapchainTransition.srcStage = Texture::PipelineStage::BottomOfPipe;
+        //    swapchainTransition.dstStage = Texture::PipelineStage::ColorAttachment;
 
-        //    g_Albedo->TransitionImageLayout(m_GBufferCmdBuffer, { params });
+        //    m_Swapchain->TransitionCurrentImage(m_CmdBuffer, swapchainTransition, m_ImageIndex);
+
         //}
 
-        //{
-        //    Brisk::Texture::ImageBarrierParams params{};
-        //    params.oldLayout = Texture::ImageLayout::Undefined;
-        //    params.newLayout = Texture::ImageLayout::DepthStencilAttachmentOptimal;
-        //    params.srcAccess = Texture::AccessType::None;
-        //    params.dstAccess = Texture::AccessType::DepthStencilWrite;
-        //    params.srcStage = Texture::PipelineStage::TopOfPipe;
-        //    params.dstStage = Texture::PipelineStage::EarlyFragmentTest;
+        {
+            Brisk::Texture::ImageBarrierParams params{};
+            params.oldLayout = Texture::ImageLayout::Undefined;
+            params.newLayout = Texture::ImageLayout::DepthStencilAttachmentOptimal;
+            params.srcAccess = Texture::AccessType::None;
+            params.dstAccess = Texture::AccessType::None;
+            params.srcStage = Texture::PipelineStage::BottomOfPipe;
+            params.dstStage = Texture::PipelineStage::TopOfPipe;
 
-        //    g_Depth->TransitionImageLayout(m_GBufferCmdBuffer, { params });
-        //}
+            g_Depth->TransitionImageLayout(m_CmdBuffer, { params });
+        }
 
-        m_GBufferPipeline->Bind(m_GBufferCmdBuffer);
+        m_GBufferPipeline->Bind(m_CmdBuffer);
 
-        m_GeometryBufferPass->Begin(m_GBufferCmdBuffer);
+        m_GeometryBufferPass->Begin(m_CmdBuffer, 0);
 
-        RenderCommand::SetViewport(m_GBufferCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
-        RenderCommand::SetScissor(m_GBufferCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
 
         for (auto e : parent) {
             Entity entity = { e, SceneManager::pActiveScene.get() };
@@ -310,122 +306,78 @@ namespace Brisk
             auto& mesh = entity.GetComponent<MeshComponent>();
             auto& root = entity.GetComponent<RootComponent>();
 
-            RenderCommand::BindVertexBuffer(m_GBufferCmdBuffer, { root.m_VertexBuffer }, 0);
-            RenderCommand::BindIndexBuffer(m_GBufferCmdBuffer, root.m_IndexBuffer, 0);
+            RenderCommand::BindVertexBuffer(m_CmdBuffer, { root.m_VertexBuffer }, 0);
+            RenderCommand::BindIndexBuffer(m_CmdBuffer, root.m_IndexBuffer, 0);
 
             RenderEntity(entity);
         }
 
-        m_GeometryBufferPass->End(m_GBufferCmdBuffer);
-        m_GBufferCmdBuffer->UnBind();
-
+        m_GeometryBufferPass->End(m_CmdBuffer);
 
         // --- LIGHTING PASS ---------------------------
 
-        m_LightingCmdBuffer->Reset();
-        m_LightingCmdBuffer->Bind();
-
         //// --------------------------------------------
-        //if (times < 1)
-        //{
-        //    Brisk::Texture::ImageBarrierParams params{};
-        //    params.oldLayout = Texture::ImageLayout::Undefined;
-        //    params.newLayout = Texture::ImageLayout::ColorAttachmentOptimal;
-        //    params.srcAccess = Texture::AccessType::None;
-        //    params.dstAccess = Texture::AccessType::ColorAttachmentWrite;
-        //    params.srcStage = Texture::PipelineStage::TopOfPipe;
-        //    params.dstStage = Texture::PipelineStage::ColorAttachment;
-
-        //    g_lightingOutput->TransitionImageLayout(m_LightingCmdBuffer, { params });
-        //}
-
-        m_LightingPass->Begin(m_LightingCmdBuffer);
-        m_LightingPipeline->Bind(m_LightingCmdBuffer);
-
-        RenderCommand::SetViewport(m_LightingCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
-        RenderCommand::SetScissor(m_LightingCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
-
-        RenderCommand::Draw(m_LightingCmdBuffer, 3, 0);
-
-        m_LightingPass->End(m_LightingCmdBuffer);
-
-        if (times < 2) {
-            times++;
-            Brisk::Texture::ImageBarrierParams params{};
-            params.oldLayout = Texture::ImageLayout::Undefined;
-            params.newLayout = Texture::ImageLayout::TransferDst;
-            params.srcAccess = Texture::AccessType::None;
-            params.dstAccess = Texture::AccessType::TransferWrite;
-            params.srcStage = Texture::PipelineStage::TopOfPipe;
-            params.dstStage = Texture::PipelineStage::TransferStage;
-
-            m_Swapchain->TransitionCurrentImage(m_LightingCmdBuffer, params, m_ImageIndex);
-        }
-        else {
-            // Prepare to be writeable
-            {
-                Brisk::Texture::ImageBarrierParams params{};
-                params.oldLayout = Texture::ImageLayout::PresentSrc;
-                params.newLayout = Texture::ImageLayout::TransferDst;
-                params.srcAccess = Texture::AccessType::MemoryRead;
-                params.dstAccess = Texture::AccessType::TransferWrite;
-                params.srcStage = Texture::PipelineStage::FragmentShader;
-                params.dstStage = Texture::PipelineStage::TransferStage;
-
-                m_Swapchain->TransitionCurrentImage(m_LightingCmdBuffer, params, m_ImageIndex);
-            }
-        }
-
-        // Blit the lighting output to swapchain image
-        m_Swapchain->Blit(m_LightingCmdBuffer, g_lightingOutput, m_ImageIndex);
-
-        // Transition lighting output back to color attachment for rendering
         {
             Brisk::Texture::ImageBarrierParams params{};
-            params.oldLayout = Texture::ImageLayout::TransferSrc;
-            params.newLayout = Texture::ImageLayout::ColorAttachmentOptimal;
-            params.srcAccess = Texture::AccessType::TransferRead;
-            params.dstAccess = Texture::AccessType::ColorAttachmentWrite;
-            params.srcStage = Texture::PipelineStage::TransferStage;
-            params.dstStage = Texture::PipelineStage::ColorAttachment;
+            params.oldLayout = Texture::ImageLayout::ColorAttachmentOptimal;
+            params.newLayout = Texture::ImageLayout::ShaderReadOnlyOptimal;
+            params.srcAccess = Texture::AccessType::None;
+            params.dstAccess = Texture::AccessType::None;
+            params.srcStage = Texture::PipelineStage::BottomOfPipe;
+            params.dstStage = Texture::PipelineStage::TopOfPipe;
 
-            g_lightingOutput->TransitionImageLayout(m_LightingCmdBuffer, { params });
+            g_Pos->TransitionImageLayout(m_CmdBuffer, { params });
+            g_Normal->TransitionImageLayout(m_CmdBuffer, { params });
+            g_Albedo->TransitionImageLayout(m_CmdBuffer, { params });
         }
+
+        {
+            Brisk::Texture::ImageBarrierParams params{};
+            params.oldLayout = Texture::ImageLayout::DepthStencilAttachmentOptimal;
+            params.newLayout = Texture::ImageLayout::DepthStencilReadOnlyOptimal;
+            params.srcAccess = Texture::AccessType::None;
+            params.dstAccess = Texture::AccessType::None;
+            params.srcStage = Texture::PipelineStage::BottomOfPipe;
+            params.dstStage = Texture::PipelineStage::TopOfPipe;
+
+            g_Depth->TransitionImageLayout(m_CmdBuffer, { params });
+        }
+
+        m_LightingPass->Begin(m_CmdBuffer, m_ImageIndex);
+        m_LightingPipeline->Bind(m_CmdBuffer);
+
+        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+
+        RenderCommand::Draw(m_CmdBuffer, 3, 0);
+
+        m_LightingPass->End(m_CmdBuffer);
 
         // Prepare to be presentable
         {
             Brisk::Texture::ImageBarrierParams params{};
-            params.oldLayout = Texture::ImageLayout::TransferDst;
+            params.oldLayout = Texture::ImageLayout::ColorAttachmentOptimal;
             params.newLayout = Texture::ImageLayout::PresentSrc;
-            params.srcAccess = Texture::AccessType::TransferWrite;
+            params.srcAccess = Texture::AccessType::ColorAttachmentWrite;
             params.dstAccess = Texture::AccessType::None;
-            params.srcStage = Texture::PipelineStage::TransferStage;
+            params.srcStage = Texture::PipelineStage::ColorAttachment;
             params.dstStage = Texture::PipelineStage::BottomOfPipe;
 
-            m_Swapchain->TransitionCurrentImage(m_LightingCmdBuffer, params, m_ImageIndex);
+            m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
         }
 
-        m_LightingCmdBuffer->UnBind();
+        m_CmdBuffer->UnBind();
 
         Queue::SubmitInfo deferredSubmitInfo{};
+        deferredSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
         deferredSubmitInfo.pSignalSemaphores.push_back(DeferredRenderingFinishedSemaphore);
         deferredSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-        deferredSubmitInfo.pCmdBuffers.push_back(m_GBufferCmdBuffer);
+        deferredSubmitInfo.pCmdBuffers.push_back(m_CmdBuffer);
 
-        m_Queue->Submit(deferredSubmitInfo, nullptr);
-
-        Queue::SubmitInfo lightingSubmitInfo{};
-        lightingSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
-        lightingSubmitInfo.pWaitSemaphores.push_back(DeferredRenderingFinishedSemaphore);
-        lightingSubmitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore);
-        lightingSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-        lightingSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-        lightingSubmitInfo.pCmdBuffers.push_back(m_LightingCmdBuffer);
-
-        m_Queue->Submit(lightingSubmitInfo, m_Fence);
+        m_Queue->Submit(deferredSubmitInfo, m_Fence);
 
         Queue::PresentInfo presentInfo{};
-        presentInfo.pWaitSemaphores.push_back(RenderFinishedSemaphore);
+        presentInfo.pWaitSemaphores.push_back(DeferredRenderingFinishedSemaphore);
         presentInfo.pSwapchains.push_back(m_Swapchain);
         presentInfo.pImageIndex = m_ImageIndex;
 
@@ -451,7 +403,7 @@ namespace Brisk
 
                 //m_Pipeline->BindPushConstant(m_MainCmdBuffer, sizeof(PushConstants), &pushConstantsData);
 
-                RenderCommand::DrawIndexed(m_GBufferCmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
+                RenderCommand::DrawIndexed(m_CmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
             }
         }
         for (auto& child : e.GetComponent<TransformComponent>().children) {

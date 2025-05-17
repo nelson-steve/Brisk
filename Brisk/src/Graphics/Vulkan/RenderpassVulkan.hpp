@@ -4,9 +4,7 @@
 #include "Engine/Renderer/RenderPass.hpp"
 
 #include <Volk/volk.h>
-
 #include <iostream>
-#include <vector>
 
 namespace Brisk 
 {
@@ -16,7 +14,7 @@ namespace Brisk
 
         virtual void Init(const std::vector<RenderPassAttachment>& inputs, const std::vector<RenderPassAttachment>& outputs) override;
 
-        virtual void Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t framebuffer) override;
+        virtual void Begin(std::shared_ptr<CommandBuffer> cmd) override;
         virtual void End(std::shared_ptr<CommandBuffer> cmd) override;
 
         virtual VkRenderPass GetRenderPass() { return m_RenderPass; }
@@ -26,7 +24,7 @@ namespace Brisk
 
         VkRenderPass m_RenderPass;
         VkDevice device;
-        std::vector<VkFramebuffer> m_Framebuffers;
+        VkFramebuffer m_Framebuffer;
         VkCommandBuffer commandBuffer;
     };
 }

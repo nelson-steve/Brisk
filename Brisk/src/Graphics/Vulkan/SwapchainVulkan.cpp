@@ -21,7 +21,8 @@ namespace Brisk
 	}
 
 	void SwapchainVulkan::Create(Mode mode) {
-		m_Format = VK_FORMAT_B8G8R8A8_UNORM;
+		// TODO: Dont use hardcoded values
+		VkFormat m_format = VK_FORMAT_B8G8R8A8_UNORM;
 		VkColorSpaceKHR m_color_space = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 
 		int imageCount = static_cast<uint32_t>(mode);
@@ -46,16 +47,16 @@ namespace Brisk
 
 		bool format_found = false;
 		for (const auto& availableFormat : supportedFormats) {
-			if (availableFormat.format == m_Format && availableFormat.colorSpace == m_color_space) {
-				m_SurfaceFormat = availableFormat;
+			if (availableFormat.format == m_format && availableFormat.colorSpace == m_color_space) {
+				m_surface_format = availableFormat;
 				format_found = true;
 			}
 		}
 		if (!format_found)
 		{
 			BRISK_CORE_WARN("Format specified is not supported using default format and color space");
-			m_SurfaceFormat.format = VK_FORMAT_B8G8R8A8_SRGB;
-			m_SurfaceFormat.colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
+			m_surface_format.format = VK_FORMAT_B8G8R8A8_SRGB;
+			m_surface_format.colorSpace = VK_COLOR_SPACE_SRGB_NONLINEAR_KHR;
 		}
 
 		if (imageCount > surfaceCapabilities.maxImageCount && surfaceCapabilities.maxImageCount > 0)
@@ -64,11 +65,11 @@ namespace Brisk
 		swapChainCreateInfo.sType = VK_STRUCTURE_TYPE_SWAPCHAIN_CREATE_INFO_KHR;
 		swapChainCreateInfo.surface = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetSurface()->GetRef();
 		swapChainCreateInfo.minImageCount = imageCount;
-		swapChainCreateInfo.imageFormat = m_SurfaceFormat.format;
-		swapChainCreateInfo.imageColorSpace = m_SurfaceFormat.colorSpace;
+		swapChainCreateInfo.imageFormat = m_surface_format.format;
+		swapChainCreateInfo.imageColorSpace = m_surface_format.colorSpace;
 		swapChainCreateInfo.imageExtent = surfaceCapabilities.currentExtent;
 		swapChainCreateInfo.imageArrayLayers = 1;
-		swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+		swapChainCreateInfo.imageUsage = VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT;
 		m_extent = surfaceCapabilities.currentExtent;
 
 		std::cout << "Swapchain image count: " << imageCount << std::endl;
@@ -105,19 +106,6 @@ namespace Brisk
 		m_SwapchainImages.resize(m_ImageCount);
 		vkGetSwapchainImagesKHR(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Swapchain, &m_ImageCount, m_SwapchainImages.data());
 
-		VkDebugUtilsObjectNameInfoEXT nameInfo = {};
-		nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
-		nameInfo.objectType = VK_OBJECT_TYPE_IMAGE;
-		nameInfo.objectHandle = (uint64_t)m_SwapchainImages[0];
-		nameInfo.pObjectName = "SwapchainImage0";
-
-		vkSetDebugUtilsObjectNameEXT(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
-
-		nameInfo.objectHandle = (uint64_t)m_SwapchainImages[1];
-		nameInfo.pObjectName = "SwapchainImage1";
-
-		vkSetDebugUtilsObjectNameEXT(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
-
 		m_SwapchainImageViews.resize(m_SwapchainImages.size());
 		
 		for (size_t i = 0; i < m_SwapchainImages.size(); i++) {
@@ -125,7 +113,7 @@ namespace Brisk
 			image_views_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
 			image_views_create_info.image = m_SwapchainImages[i];
 			image_views_create_info.viewType = VK_IMAGE_VIEW_TYPE_2D;
-			image_views_create_info.format = m_Format;
+			image_views_create_info.format = m_format;
 			image_views_create_info.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
 			image_views_create_info.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
 			image_views_create_info.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
@@ -139,6 +127,73 @@ namespace Brisk
 			if (vkCreateImageView(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &image_views_create_info, nullptr, &m_SwapchainImageViews[i]) != VK_SUCCESS) {
 				throw std::runtime_error("Failed to create Swapchain Image Views!");
 			}
+		}
+		
+		std::vector<VkFormat> formats = { VK_FORMAT_D32_SFLOAT, VK_FORMAT_D32_SFLOAT_S8_UINT, VK_FORMAT_D24_UNORM_S8_UINT };
+		for (VkFormat format : formats) {
+			VkFormatProperties props;
+			vkGetPhysicalDeviceFormatProperties(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetPhysicalDevice(), format, &props);
+
+			VkFormatFeatureFlags feature = VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT;
+			//if (tiling == VK_IMAGE_TILING_LINEAR && (props.linearTilingFeatures & features) == features) {
+			//	return format;
+			//}
+			if ((props.optimalTilingFeatures & VK_FORMAT_FEATURE_DEPTH_STENCIL_ATTACHMENT_BIT) == feature) {
+				m_DepthFormat = format;
+				break;
+			}
+		}
+
+		VkImageCreateInfo imageInfo{};
+		imageInfo.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
+		imageInfo.imageType = VK_IMAGE_TYPE_2D;
+		imageInfo.extent.width = m_extent.width;
+		imageInfo.extent.height = m_extent.height;
+		imageInfo.extent.depth = 1;
+		imageInfo.mipLevels = 1;
+		imageInfo.arrayLayers = 1;
+		imageInfo.format = m_DepthFormat;
+		imageInfo.tiling = VK_IMAGE_TILING_OPTIMAL;
+		imageInfo.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+		imageInfo.usage = VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+		imageInfo.samples = VK_SAMPLE_COUNT_1_BIT;
+		imageInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		if (vkCreateImage(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &imageInfo, nullptr, &m_DepthImage) != VK_SUCCESS) {
+			throw std::runtime_error("failed to create image!");
+		}
+
+		VkMemoryRequirements memRequirements;
+		vkGetImageMemoryRequirements(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_DepthImage, &memRequirements);
+
+		VkMemoryAllocateInfo allocInfo{};
+		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
+		allocInfo.allocationSize = memRequirements.size;
+		allocInfo.memoryTypeIndex = UtilitiesVulkan::FindMemoryType(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetPhysicalDevice(), memRequirements.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
+
+		if (vkAllocateMemory(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, nullptr, &m_DepthImageMemory) != VK_SUCCESS) {
+			throw std::runtime_error("failed to allocate image memory!");
+		}
+
+		vkBindImageMemory(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_DepthImage, m_DepthImageMemory, 0);
+
+		VkImageViewCreateInfo imageViewCreateInfo{};
+		imageViewCreateInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		imageViewCreateInfo.image = m_DepthImage;
+		imageViewCreateInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		imageViewCreateInfo.format = m_DepthFormat;
+		imageViewCreateInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		imageViewCreateInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		imageViewCreateInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		imageViewCreateInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+		imageViewCreateInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_DEPTH_BIT;
+		imageViewCreateInfo.subresourceRange.baseMipLevel = 0;
+		imageViewCreateInfo.subresourceRange.levelCount = 1;
+		imageViewCreateInfo.subresourceRange.baseArrayLayer = 0;
+		imageViewCreateInfo.subresourceRange.layerCount = 1;
+
+		if (vkCreateImageView(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &imageViewCreateInfo, nullptr, &m_DepthImageView) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create Swapchain Image Views!");
 		}
 	}
 

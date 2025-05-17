@@ -8,7 +8,7 @@
 namespace Brisk
 {
 	void Application::CreateApplication() {
-		m_Window = Window::Create(1920, 1061);
+		m_Window = Window::Create(1920, 1080);
 		m_Window->SetEventCallBack(BIND_EVENT_FN(Application::OnEvent));
 
 		m_Adapter = GpuAdapter::Create();

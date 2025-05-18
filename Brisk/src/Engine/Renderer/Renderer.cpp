@@ -200,19 +200,6 @@ namespace Brisk
         if (e.HasComponent<MeshComponent>()) {
             for (auto& subMesh : e.GetComponent<MeshComponent>().subMeshes) {
                 uint32_t index = subMesh.material_index != -1 ? subMesh.material_index : 0;
-                //materials[index]->Bind(m_MainCmdBuffer, m_Pipeline);
-
-                //PushConstants pushConstantsData = {
-                //    SceneManager::pActiveScene->mMaterials[index].baseColorTextureIndex,   // Index for albedo texture 0
-                //    SceneManager::pActiveScene->mMaterials[index].metallicRoughnessTextureIndex, // Index for metallic texture1
-                //    SceneManager::pActiveScene->mMaterials[index].normalTextureIndex,   // Index for normal texture 4
-                //    SceneManager::pActiveScene->mMaterials[index].emissiveTextureIndex,// Index for roughness texture 2
-                //    SceneManager::pActiveScene->mMaterials[index].occlusionTextureIndex// Index for emissive texture 3
-                //};
-
-                //pushConstantsData.camPos = Engine::s_Application->GetCamera()->GetPosition();
-
-                //m_LightingPipeline->BindPushConstant(m_MainCmdBuffer, sizeof(PushConstants), &pushConstantsData);
 
                 RenderCommand::DrawIndexed(m_GBufferCmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
             }

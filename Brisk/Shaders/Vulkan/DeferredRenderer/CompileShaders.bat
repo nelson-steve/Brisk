@@ -1,4 +1,6 @@
 @echo off
+cd /d "%~dp0"
+
 setlocal
 
 if not exist "Compiled" mkdir Compiled

@@ -10,7 +10,9 @@ namespace Brisk
     public:
         virtual void Submit(SubmitInfo submitInfo, std::shared_ptr<Fence> fence) override;
         virtual void Present(Queue::PresentInfo info) override;
+
+        virtual void Init(Queue::QueueType type) override;
     private:
-        //VkQueue mQueue;
+        VkQueue m_Queue;
     };
 }

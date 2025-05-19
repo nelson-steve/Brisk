@@ -123,7 +123,7 @@ namespace Brisk
                 pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
                 pipelineSpecs.pLineWidth = 1.0f;
                 pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
-                pipelineSpecs.pFrontFace = Pipeline::FrontFace::COUTNER_CLOCKWISE;
+                pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
                 pipelineSpecs.pDepthBiasEnable = false;
                 pipelineSpecs.pDepthTestEnable = true;
                 pipelineSpecs.pDepthWriteEnable = true;
@@ -188,7 +188,8 @@ namespace Brisk
         RenderFinishedSemaphore = Semaphore::Create();
         RenderFinishedSemaphore->Init();
 
-        m_Queue = Queue::Create();
+        m_GraphicsQueue = Queue::Create();
+        m_GraphicsQueue->Init(Queue::QueueType::Graphics);
 
         m_MainCmdBufferAllocator = CommandBufferAllocator::Create();
         m_MainCmdBufferAllocator->Init();
@@ -398,7 +399,7 @@ namespace Brisk
         deferredSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
         deferredSubmitInfo.pCmdBuffers.push_back(m_GBufferCmdBuffer);
 
-        m_Queue->Submit(deferredSubmitInfo, nullptr);
+        m_GraphicsQueue->Submit(deferredSubmitInfo, nullptr);
 
         Queue::SubmitInfo lightingSubmitInfo{};
         lightingSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
@@ -408,7 +409,7 @@ namespace Brisk
         lightingSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
         lightingSubmitInfo.pCmdBuffers.push_back(m_LightingCmdBuffer);
 
-        m_Queue->Submit(lightingSubmitInfo, m_Fence);
+        m_GraphicsQueue->Submit(lightingSubmitInfo, m_Fence);
 
         Queue::PresentInfo presentInfo{};
         presentInfo.pWaitSemaphores.push_back(RenderFinishedSemaphore);
@@ -416,7 +417,7 @@ namespace Brisk
         presentInfo.pImageIndex = m_ImageIndex;
 
         // Present
-        m_Queue->Present(presentInfo);
+        m_GraphicsQueue->Present(presentInfo);
     }
 
     void Renderer::RenderEntity(Entity e) {

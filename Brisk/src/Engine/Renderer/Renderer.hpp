@@ -40,7 +40,7 @@ namespace Brisk
 		std::shared_ptr<Semaphore> RenderFinishedSemaphore;
 		std::shared_ptr<Semaphore> DeferredRenderingFinishedSemaphore;
 		std::shared_ptr<Fence> m_Fence;
-		std::shared_ptr<Queue> m_Queue;
+		std::shared_ptr<Queue> m_GraphicsQueue;
 		//-
 
 		// Attachments

@@ -15,6 +15,11 @@ namespace Brisk
 	class Queue {
 		DEFINE_BASE_CLASS_CONSTRUCTOR(Queue)
 	public:
+		enum class QueueType {
+			Graphics,
+			Transfer
+		};
+	public:
 		enum WaitStage {
 			PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT
 		};
@@ -35,6 +40,8 @@ namespace Brisk
 	public:
 		virtual void Submit(SubmitInfo submitInfo, std::shared_ptr<Fence> fence) = 0;
 		virtual void Present(Queue::PresentInfo info) = 0;
+
+		virtual void Init(Queue::QueueType type) = 0;
 
 		static std::shared_ptr<Queue> Create();
 	};

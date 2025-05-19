@@ -79,23 +79,10 @@ namespace Brisk
 		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetPhysicalDevice(), &queueFamilyCount, queueFamilies.data());
 
-		uint32_t queueFamilyIndices[] = 
-		{ 
-			std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue().Index,
-		};
-		//if (Engine::s_PhysicalDevice->GetPresentQueue()->Info.QueueFamilyIndex !=
-		//	Engine::s_PhysicalDevice->GetGraphicsQueue()->Info.QueueFamilyIndex) {
-		//	swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_CONCURRENT;
-		//	swapChainCreateInfo.queueFamilyIndexCount = 2;
-		//	swapChainCreateInfo.pQueueFamilyIndices = queueFamilyIndices;
-		//}
-		//else {
-			swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
-		//}
+		swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
 		swapChainCreateInfo.preTransform = surfaceCapabilities.currentTransform;
 		swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-		//swapChainCreateInfo.presentMode = m_present_mode;
 		swapChainCreateInfo.presentMode = VK_PRESENT_MODE_FIFO_KHR;
 		swapChainCreateInfo.clipped = VK_TRUE;
 		swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;

@@ -80,7 +80,6 @@ namespace Brisk
 		m_RequiredExtensions = 
 		{ 
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-			/*VK_EXT_DESCRIPTOR_INDEXING_EXTENSION_NAME*/ 
 			VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME
 		};
 
@@ -194,11 +193,12 @@ namespace Brisk
 			throw std::runtime_error("failed to create descriptor pool!");
 		}
 
+		// Setup bindless rendering
 		{
-			uint32_t maxBindessResources = 1024;
+			uint32_t maxBindlessResources = 1024;
 			std::vector< VkDescriptorPoolSize> poolSizesBindless =
 			{
-				{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, maxBindessResources },
+				{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, maxBindlessResources },
 				//{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,			 maxBindessResources },
 			};
 
@@ -215,7 +215,7 @@ namespace Brisk
 
 			VkDescriptorSetLayoutBinding imageSamplerBinding{};
 			imageSamplerBinding.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			imageSamplerBinding.descriptorCount = maxBindessResources;
+			imageSamplerBinding.descriptorCount = maxBindlessResources;
 			imageSamplerBinding.binding = 0;
 			imageSamplerBinding.stageFlags = VK_SHADER_STAGE_ALL;
 			imageSamplerBinding.pImmutableSamplers = nullptr;
@@ -223,22 +223,23 @@ namespace Brisk
 
 			//VkDescriptorSetLayoutBinding storage_image_binding{};
 			//storage_image_binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-			//storage_image_binding.descriptorCount = maxBindessResources;
+			//storage_image_binding.descriptorCount = maxBindlessResources;
 			//storage_image_binding.binding = bindlessBinding + 1;
 			//storage_image_binding.stageFlags = VK_SHADER_STAGE_ALL;
 			//storage_image_binding.pImmutableSamplers = nullptr;
 			//bindings.push_back(storage_image_binding);
 
 			VkDescriptorSetLayoutCreateInfo layoutinfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
-			layoutinfo.bindingCount = static_cast<uint32_t>(poolSizesBindless.size());
+			layoutinfo.bindingCount = static_cast<uint32_t>(bindings.size());
 			layoutinfo.pBindings = bindings.data();
 			layoutinfo.flags = VK_DESCRIPTOR_SET_LAYOUT_CREATE_UPDATE_AFTER_BIND_POOL_BIT_EXT;
 
-			VkDescriptorBindingFlags bindlessflags = VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT_EXT | /*VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT_EXT |*/ VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT;
-			std::vector< VkDescriptorBindingFlags> bindingflagsList{
-				bindlessflags,
-				//bindlessflags,
-			};
+			VkDescriptorBindingFlags bindlessflags = 
+				VK_DESCRIPTOR_BINDING_PARTIALLY_BOUND_BIT_EXT | 
+				VK_DESCRIPTOR_BINDING_VARIABLE_DESCRIPTOR_COUNT_BIT_EXT | 
+				VK_DESCRIPTOR_BINDING_UPDATE_AFTER_BIND_BIT_EXT;
+
+			std::vector<VkDescriptorBindingFlags> bindingflagsList(bindings.size(), bindlessflags);
 			VkDescriptorSetLayoutBindingFlagsCreateInfoEXT extended_info{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_BINDING_FLAGS_CREATE_INFO_EXT, nullptr };
 			extended_info.bindingCount = static_cast<uint32_t>(poolSizesBindless.size());
 			extended_info.pBindingFlags = bindingflagsList.data();
@@ -255,7 +256,7 @@ namespace Brisk
 			allocInfo.pSetLayouts = &m_BindlessDescriptorLayout;
 
 			VkDescriptorSetVariableDescriptorCountAllocateInfoEXT countInfo{ VK_STRUCTURE_TYPE_DESCRIPTOR_SET_VARIABLE_DESCRIPTOR_COUNT_ALLOCATE_INFO_EXT };
-			uint32_t maxBinding = maxBindessResources - 1;
+			uint32_t maxBinding = maxBindlessResources;
 			countInfo.descriptorSetCount = 1;
 			// This number is the max allocatable count
 			countInfo.pDescriptorCounts = &maxBinding;

@@ -80,7 +80,7 @@ namespace Brisk
 		m_RequiredExtensions = 
 		{ 
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-			VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME
+			//VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME
 		};
 
 		std::vector<VkPhysicalDevice> availableDevices = RetrieveAvailableDevice(m_Instance);
@@ -334,8 +334,7 @@ namespace Brisk
 		features.features.multiDrawIndirect = VK_TRUE;
 		features.features.pipelineStatisticsQuery = VK_TRUE;
 		features.features.shaderInt64 = VK_TRUE;
-		features.features.shaderInt16 = VK_TRUE;
-		features.features.robustBufferAccess = false;
+		//features.features.shaderInt16 = VK_TRUE;
 
 		VkPhysicalDeviceVulkan11Features features11 { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
 		features11.storageBuffer16BitAccess = VK_TRUE;
@@ -358,10 +357,11 @@ namespace Brisk
 		features12.runtimeDescriptorArray = VK_TRUE;
 		features12.descriptorIndexing = VK_TRUE;
 
+		//vkGetPhysicalDeviceFeatures2(m_PhysicalDevice, &features);
+
 		deviceCreateInfo.pNext = &features;
 		features.pNext = &features11;
 		features11.pNext = &features12;
-		features12.pNext = nullptr;
 #if _DEBUG
 		const std::vector<const char*> validation_layers = {
 			"VK_LAYER_KHRONOS_validation"

@@ -195,6 +195,9 @@ namespace Brisk
         m_MainCmdBufferAllocator->Init();
         m_MainCmdBufferAllocator->Allocate(m_GBufferCmdBuffer);
         m_MainCmdBufferAllocator->Allocate(m_LightingCmdBuffer);
+
+        m_Editor = std::make_shared<Editor>();
+        //m_Editor->Create();
     }
 
     void Renderer::SetupEntity(Entity e) {

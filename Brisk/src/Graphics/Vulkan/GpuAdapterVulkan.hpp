@@ -36,6 +36,7 @@ namespace Brisk
 		const uint32_t GetGraphicsQueueFamily() const { return m_GraphicsQueueFamily; }
 		const uint32_t GetTransferQueueFamily() const { return m_TransferQueueFamily; }
 		const VkDescriptorPool GetDescriptorPool() const { return m_DescriptorPool; }
+		const VkInstance GetInstance() const { return m_Instance; }
 
 		virtual void AddResource(GpuDescriptorResourceType type, std::shared_ptr<Texture> texture, std::shared_ptr<Buffer> buffer, int bindingIndex) override;
 

@@ -12,6 +12,7 @@
 #include "RenderGraph.hpp"
 #include "Engine/Renderer/CommandBufferAllocator.hpp"
 #include "Engine/Renderer/RenderPass.hpp"
+#include "Editor/Editor.hpp"
 //------------------------
 #include <memory>
 //---------------
@@ -49,6 +50,8 @@ namespace Brisk
 		std::shared_ptr<Texture> g_Albedo;
 		std::shared_ptr<Texture> g_Depth;
 		std::shared_ptr<Texture> g_lightingOutput;
+
+		std::shared_ptr<Editor> m_Editor;
 
 		// RenderPasses
 		std::shared_ptr<RenderPass> m_GeometryBufferPass;

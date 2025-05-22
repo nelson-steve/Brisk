@@ -6,6 +6,7 @@
 #include "HeirarchyPanel.hpp"
 #include "InspectorPanel.hpp"
 #include "ScenePanel.hpp"
+#include <Graphics/Vulkan/GpuAdapterVulkan.hpp>
 
 
 namespace Brisk 
@@ -257,21 +258,21 @@ namespace Brisk
         //PinkTheme();
         //PinkTheme2();
         
-        //ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Engine::s_MainWindow->GetWindowHandle(), true);
+        ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Engine::s_Application->GetWindow()->GetWindowHandle(), true);
 
-        //ImGui_ImplVulkan_InitInfo info{};
-        //info.Instance = GpuContextVulkan::s_Instance;
-        //info.PhysicalDevice = GpuContextVulkan::s_GPUDevice->GetPhysicalDevice();
-        //info.Device = GpuContextVulkan::s_GPUDevice->GetDevice();
-        //info.QueueFamily = 0;
-        //info.Queue = GpuContextVulkan::s_GPUDevice->GetGraphicsQueue().Handle;
-        //info.DescriptorPool = static_cast<RendererVulkan*>(Engine::s_Renderer)->GetUIDescriptorPool();
-        //info.RenderPass = static_cast<RendererVulkan*>(Engine::s_Renderer)->GetUIRenderpass();
-        //info.ImageCount = 2;
-        //info.MinImageCount = 2;
-        //info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+        ImGui_ImplVulkan_InitInfo info{};
+        info.Instance = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetInstance();
+        info.PhysicalDevice = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetPhysicalDevice();
+        info.Device = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice();
+        info.QueueFamily = 0;
+        info.Queue = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue();
+        info.DescriptorPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDescriptorPool();
+        //info.RenderPass = ;
+        info.ImageCount = 2;
+        info.MinImageCount = 2;
+        info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
-        //ImGui_ImplVulkan_Init(&info);
+        ImGui_ImplVulkan_Init(&info);
 
         ScenePanel* scenePanel = new ScenePanel();
         m_Panels.insert({ "Scene" , scenePanel });

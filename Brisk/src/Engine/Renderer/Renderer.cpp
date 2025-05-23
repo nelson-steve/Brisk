@@ -115,8 +115,8 @@ namespace Brisk
                 pipelineSpecs.p_ResourceTypes.push_back(GpuDescriptorResourceType::MVPUBO);
                 pipelineSpecs.p_ResourceTypes.push_back(GpuDescriptorResourceType::BindlessTextures);
 
-                pipelineSpecs.pShaderModules.push_back(vertexShaderModule);
-                pipelineSpecs.pShaderModules.push_back(fragmentShaderModule);
+                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryVS.spv");
+                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryFS.spv");
 
                 pipelineSpecs.pDepthClampEnable = false;
                 pipelineSpecs.pRasterizationDiscardEnable = false;
@@ -139,16 +139,11 @@ namespace Brisk
             // Lighting pass pipeline
             //----------------------------------------------------------------------------------------------------
             {
-                std::shared_ptr<ShaderModule> vertexShaderModule = ShaderModule::Create();
-                vertexShaderModule->Init("Shaders/Vulkan/DeferredRenderer/Compiled/LightingVS.spv", Pipeline::ShaderStage::VERTEX);
-                std::shared_ptr<ShaderModule> fragmentShaderModule = ShaderModule::Create();
-                fragmentShaderModule->Init("Shaders/Vulkan/DeferredRenderer/Compiled/LightingFS.spv", Pipeline::ShaderStage::FRAGMENT);
-
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
                 pipelineSpecs.pRenderPass = m_LightingPass;
                 pipelineSpecs.p_ResourceTypes.push_back(GpuDescriptorResourceType::DeferredTextures);
-                pipelineSpecs.pShaderModules.push_back(vertexShaderModule);
-                pipelineSpecs.pShaderModules.push_back(fragmentShaderModule);
+                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/LightingVS.spv");
+                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/LightingFS.spv");
                 pipelineSpecs.pDepthClampEnable = false;
                 pipelineSpecs.pRasterizationDiscardEnable = false;
                 pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
@@ -166,7 +161,6 @@ namespace Brisk
                 m_LightingPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
-
         }
 
         Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Pos, nullptr, 0);
@@ -180,7 +174,7 @@ namespace Brisk
         m_Fence->Init();
 
         ImageAvailableSemaphore = Semaphore::Create();
-        ImageAvailableSemaphore->Init();        
+        ImageAvailableSemaphore->Init();
         
         DeferredRenderingFinishedSemaphore = Semaphore::Create();
         DeferredRenderingFinishedSemaphore->Init();

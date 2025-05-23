@@ -4,7 +4,10 @@
 #include "Core/Log.hpp"
 #include "Engine/Renderer/Texture.hpp"
 
+#include "spirv_cross/spirv_reflect.hpp"
 #include <glfw3.h>
+
+#include <spirv_reflect.h>
 
 #include <vector>
 #include <fstream>
@@ -139,7 +142,7 @@ namespace Brisk
 		if (vkCreateShaderModule(device, &createInfo, nullptr, &module) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create shader module!");
 		}
-
+		
 		// Cleanup the data that's not needed anymore
 		delete shaderCode;
 		return module;

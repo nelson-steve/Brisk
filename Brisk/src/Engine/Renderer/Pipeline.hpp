@@ -81,8 +81,7 @@ namespace Brisk
             bool pDepthBoundsTestEnable;
             bool pStencilTestEnable;
             std::shared_ptr<RenderPass> pRenderPass;
-            std::vector<std::shared_ptr<ShaderModule>> pShaderModules;
-            //std::vector<std::shared_ptr<DescriptorLayout>> pDescriptorLayouts;
+            std::vector<std::string> pShaderPaths;
             std::vector<GpuDescriptorResourceType> p_ResourceTypes;
         };
 

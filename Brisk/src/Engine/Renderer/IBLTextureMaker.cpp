@@ -201,8 +201,8 @@ namespace Brisk
 
             //pipelineSpecs.pDescriptorLayouts.push_back(materialLayout);
 
-            pipelineSpecs.pShaderModules.push_back(vertexShaderModule);
-            pipelineSpecs.pShaderModules.push_back(fragmentShaderModule);
+            //pipelineSpecs.pShaderModules.push_back(vertexShaderModule);
+            //pipelineSpecs.pShaderModules.push_back(fragmentShaderModule);
 
             pipelineSpecs.pDepthClampEnable = false;
             pipelineSpecs.pRasterizationDiscardEnable = false;

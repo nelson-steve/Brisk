@@ -41,7 +41,6 @@ namespace Brisk
             shaderStage.module = shaderModule;
             shaderStage.pName = "main";
 
-            // 1. Load SPIR-V binary
             SpvReflectShaderModule module;
             SpvReflectResult result = spvReflectCreateShaderModule(shaderCode->size(), shaderCode->data(), &module);
 
@@ -53,13 +52,11 @@ namespace Brisk
 
             shaderStages.push_back(shaderStage);
 
-            // 2. Enumerate descriptor sets
             uint32_t setCount = 0;
             result = spvReflectEnumerateDescriptorSets(&module, &setCount, nullptr);
             std::vector<SpvReflectDescriptorSet*> sets(setCount);
             result = spvReflectEnumerateDescriptorSets(&module, &setCount, sets.data());
 
-            // 3. For each set, collect bindings and create VkDescriptorSetLayoutBindings
             for (auto set : sets) {
                 uint32_t setIndex = 0;
                 bool isBindless = false;
@@ -81,7 +78,6 @@ namespace Brisk
                     bindings.push_back(binding);
                 }
                 if (!isBindless) {
-                    // Create VkDescriptorSetLayout for this set
                     VkDescriptorSetLayoutCreateInfo layoutInfo{};
                     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
                     layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -96,9 +92,10 @@ namespace Brisk
                 else {
                     descriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout;
                 }
+
+                p_ResourceTypes.push_back((GpuDescriptorResourceType)setIndex);
             }
 
-            // 4. Enumerate push constant ranges
             uint32_t pc_count = 0;
             result = spvReflectEnumeratePushConstantBlocks(&module, &pc_count, nullptr);
             std::vector<SpvReflectBlockVariable*> pcs(pc_count);
@@ -123,43 +120,6 @@ namespace Brisk
         if (vkCreatePipelineLayout(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &pipelineLayoutInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");
         }
-
-        //std::vector<VkDescriptorSetLayout> descriptorLayouts;
-        //descriptorLayouts.resize(4);
-        //descriptorLayouts[0] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
-        //descriptorLayouts[1] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
-        //descriptorLayouts[2] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
-        //descriptorLayouts[3] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
-        //
-        //for (auto& type : specs.p_ResourceTypes) {
-        //    if (type == GpuDescriptorResourceType::MVPUBO) {
-        //        descriptorLayouts[0] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_MVPDescriptorLayout;
-        //    }
-        //}
-        //for (auto& type : specs.p_ResourceTypes) {
-        //    if (type == GpuDescriptorResourceType::SceneLightsUBO) {
-        //        descriptorLayouts[1] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_LightsDescriptorLayout;
-        //    }
-        //}
-        //for (auto& type : specs.p_ResourceTypes) {
-        //    if (type == GpuDescriptorResourceType::DeferredTextures) {
-        //        descriptorLayouts[2] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DeferredTexturesDescriptorLayout;
-        //    }
-        //}
-        //for (auto& type : specs.p_ResourceTypes) {
-        //    if (type == GpuDescriptorResourceType::BindlessTextures) {
-        //        descriptorLayouts[3] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout;
-        //    }
-        //}
-
-        //VkPipelineLayoutCreateInfo m_PipelineLayoutInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
-        //m_PipelineLayoutInfo.pushConstantRangeCount = 0;
-        //m_PipelineLayoutInfo.setLayoutCount = static_cast<uint32_t>(descriptorSetLayouts.size());
-        //m_PipelineLayoutInfo.pSetLayouts = descriptorSetLayouts.data();
-
-        //if (vkCreatePipelineLayout(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &m_PipelineLayoutInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS) {
-        //    throw std::runtime_error("failed to create pipeline layout!");
-        //}
 
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{ VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
         VkVertexInputBindingDescription bindingDescription{};
@@ -297,7 +257,7 @@ namespace Brisk
     void PipelineVulkan::Bind(std::shared_ptr<CommandBuffer> cmd) {
         vkCmdBindPipeline(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
 
-        for (auto& type : m_GraphicsSpecs.p_ResourceTypes)
+        for (auto& type : p_ResourceTypes)
         {
             switch (type)
             {

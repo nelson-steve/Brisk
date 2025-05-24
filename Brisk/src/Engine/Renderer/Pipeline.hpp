@@ -82,7 +82,6 @@ namespace Brisk
             bool pStencilTestEnable;
             std::shared_ptr<RenderPass> pRenderPass;
             std::vector<std::string> pShaderPaths;
-            std::vector<GpuDescriptorResourceType> p_ResourceTypes;
         };
 
         struct ComputePipelineSpecs {
@@ -104,5 +103,7 @@ namespace Brisk
         // TODO: Shouldn't be public
         GraphicsPipelineSpecs m_GraphicsSpecs;
         ComputePipelineSpecs m_ComputeSpecs;
+    protected:
+        std::vector<GpuDescriptorResourceType> p_ResourceTypes;
     };
 }

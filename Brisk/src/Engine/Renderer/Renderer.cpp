@@ -112,9 +112,6 @@ namespace Brisk
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_GeometryBufferPass;
 
-                pipelineSpecs.p_ResourceTypes.push_back(GpuDescriptorResourceType::MVPUBO);
-                pipelineSpecs.p_ResourceTypes.push_back(GpuDescriptorResourceType::BindlessTextures);
-
                 pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryVS.spv");
                 pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryFS.spv");
 
@@ -141,7 +138,6 @@ namespace Brisk
             {
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
                 pipelineSpecs.pRenderPass = m_LightingPass;
-                pipelineSpecs.p_ResourceTypes.push_back(GpuDescriptorResourceType::DeferredTextures);
                 pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/LightingVS.spv");
                 pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/LightingFS.spv");
                 pipelineSpecs.pDepthClampEnable = false;

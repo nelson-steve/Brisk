@@ -167,7 +167,6 @@ namespace Brisk
 	}
 
 	void GpuAdapterVulkan::AllocatePools() {
-
 		std::vector<VkDescriptorPoolSize> poolSizes{
 			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1024 },
 			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,		 1024 },
@@ -429,59 +428,59 @@ namespace Brisk
 	void GpuAdapterVulkan::AddResource(GpuDescriptorResourceType type, std::shared_ptr<Texture> texture, std::shared_ptr<Buffer> buffer, int bindingIndex) {
 		switch (type)
 		{
-		case Brisk::MVPUBO:
-		{
-			VkWriteDescriptorSet write{};
-			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			write.dstSet = m_MVPUBOSet;
-			write.dstBinding = bindingIndex;
-			write.descriptorCount = 1;
-			write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
-			vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
-			break;
-		}
-		case Brisk::SceneLightsUBO:
-		{
-			VkWriteDescriptorSet write{};
-			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-			write.dstSet = m_SceneLightsSet;
-			write.dstBinding = bindingIndex;
-			write.descriptorCount = 1;
-			write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
-			vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
-			break;
-		}
-		case Brisk::DeferredTextures:
-		{
-			VkWriteDescriptorSet write{};
-			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			write.dstSet = m_DeferredTexturesSet;
-			write.dstBinding = bindingIndex;
-			write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			write.descriptorCount = 1;
-			write.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
+			case Brisk::MVPUBO:
+			{
+				VkWriteDescriptorSet write{};
+				write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				write.dstSet = m_MVPUBOSet;
+				write.dstBinding = bindingIndex;
+				write.descriptorCount = 1;
+				write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
+				vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+				break;
+			}
+			case Brisk::SceneLightsUBO:
+			{
+				VkWriteDescriptorSet write{};
+				write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
+				write.dstSet = m_SceneLightsSet;
+				write.dstBinding = bindingIndex;
+				write.descriptorCount = 1;
+				write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
+				vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+				break;
+			}
+			case Brisk::DeferredTextures:
+			{
+				VkWriteDescriptorSet write{};
+				write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				write.dstSet = m_DeferredTexturesSet;
+				write.dstBinding = bindingIndex;
+				write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+				write.descriptorCount = 1;
+				write.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
 
-			vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
-			break;
-		}
-		case Brisk::BindlessTextures:
-		{
-			VkWriteDescriptorSet write{};
-			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-			write.dstSet = m_BindlessTexturesSet;
-			write.dstBinding = 0;
-			write.dstArrayElement = bindingIndex;
-			write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-			write.descriptorCount = 1;
-			write.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
+				vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+				break;
+			}
+			case Brisk::BindlessTextures:
+			{
+				VkWriteDescriptorSet write{};
+				write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				write.dstSet = m_BindlessTexturesSet;
+				write.dstBinding = 0;
+				write.dstArrayElement = bindingIndex;
+				write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+				write.descriptorCount = 1;
+				write.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
 
-			vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
-			break;
-		}
-		default:
-			break;
+				vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+				break;
+			}
+			default:
+				break;
 		}
 	}
 }

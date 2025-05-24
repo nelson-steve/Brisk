@@ -84,7 +84,6 @@ namespace Brisk
         };
 
         struct ComputePipelineSpecs {
-            std::shared_ptr<ShaderModule> pShaderModule;
             std::vector<std::shared_ptr<DescriptorLayout>> pDescriptorLayouts;
         };
     public:

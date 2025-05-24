@@ -3,7 +3,6 @@
 // INCLUDES
 #include "Core/Core.hpp"
 #include "Engine/Model.hpp"
-#include "Renderer/Shader.hpp"
 #include "Entity.hpp"
 //---------------------------
 #include <glm/glm.hpp>
@@ -114,8 +113,6 @@ namespace Brisk
 	struct MaterialComponent
 	{
 		std::string name = "Material Component";
-
-		std::vector<std::shared_ptr<Shader>> pMaterials;
 
 		MaterialComponent() = default;
 		MaterialComponent(const MaterialComponent &) = default;

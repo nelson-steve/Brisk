@@ -2,7 +2,6 @@
 
 #include "IBLTextureMaker.hpp"
 #include "Engine/Model.hpp"
-#include "Shader.hpp"
 #include "ComputeCommand.hpp"
 
 namespace Brisk
@@ -27,12 +26,9 @@ namespace Brisk
         descriptorLayout->AddBinding(2, mapLevel - 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_IMAGE, { GPUResource::ShaderStageAccess::SHADER_STAGE_COMPUTE_BIT });
         descriptorLayout->Init();
 
-		std::shared_ptr<ShaderModule> computeShaderModule = ShaderModule::Create();
-        computeShaderModule->Init("Shaders/Vulkan/Compiled/EquirectangularToCubemap.spv", Pipeline::ShaderStage::COMPUTE);
-
         Pipeline::ComputePipelineSpecs pipelineSpecs{};
         pipelineSpecs.pDescriptorLayouts.push_back(descriptorLayout);
-        pipelineSpecs.pShaderModule = computeShaderModule;
+        //pipelineSpecs.pShaderModule = computeShaderModule;
 
         m_ComputePipeline = Pipeline::Create();
         m_ComputePipeline->Init(pipelineSpecs);
@@ -174,12 +170,6 @@ namespace Brisk
             std::shared_ptr<DescriptorLayout> pbrLayout = DescriptorLayout::Create();
             pbrLayout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
             pbrLayout->Init();
-
-            std::shared_ptr<ShaderModule> vertexShaderModule = ShaderModule::Create();
-            vertexShaderModule->Init("Shaders/Vulkan/Compiled/TriangleVS.spv", Pipeline::ShaderStage::VERTEX);
-
-            std::shared_ptr<ShaderModule> fragmentShaderModule = ShaderModule::Create();
-            fragmentShaderModule->Init("Shaders/Vulkan/Compiled/TriangleFS.spv", Pipeline::ShaderStage::FRAGMENT);
 
             Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
             //RenderPass::RenderPassSpecs renderPassSpecs;

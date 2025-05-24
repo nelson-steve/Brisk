@@ -1,11 +1,9 @@
 #include "PipelineVulkan.hpp"
 #include "Core/Log.hpp"
-#include "ShaderVulkan.hpp"
 #include "Engine/Engine.hpp"
 #include "SwapchainVulkan.hpp"
 #include "UtilitiesVulkan.hpp"
 #include "RenderPassVulkan.hpp"
-#include "ShaderModuleVulkan.hpp"
 #include "DescriptorLayoutVulkan.hpp"
 #include "Engine/Renderer/Renderer.hpp"
 
@@ -243,12 +241,11 @@ namespace Brisk
             descriptorLayouts.push_back(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout);
         }
 
-        VkPipelineShaderStageCreateInfo shaderStage{};
-        shaderStage = std::static_pointer_cast<ShaderModuleVulkan>(specs.pShaderModule)->GetShaderStageInfo();
+        //VkPipelineShaderStageCreateInfo shaderStage{};
         VkComputePipelineCreateInfo pipelineInfo{ VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO };
         pipelineInfo.pNext = nullptr;
         //pipelineInfo.flags;
-        pipelineInfo.stage = shaderStage;
+        //pipelineInfo.stage = shaderStage;
         pipelineInfo.layout = m_PipelineLayout;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
         //pipelineInfo.basePipelineIndex;

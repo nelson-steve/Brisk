@@ -93,11 +93,6 @@ namespace Brisk
             // Geometry pass pipeline
             //----------------------------------------------------------------------------------------------------
             {
-                std::shared_ptr<ShaderModule> vertexShaderModule = ShaderModule::Create();
-                vertexShaderModule->Init("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryVS.spv", Pipeline::ShaderStage::VERTEX);
-                std::shared_ptr<ShaderModule> fragmentShaderModule = ShaderModule::Create();
-                fragmentShaderModule->Init("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryFS.spv", Pipeline::ShaderStage::FRAGMENT);
-
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
                 Pipeline::VertexDataLayout vertexLayout;
                 vertexLayout.pBinding = 0;
@@ -438,8 +433,6 @@ namespace Brisk
             RenderEntity(child);
         }
     }
-
-    void Renderer::DrawNode(const std::shared_ptr<Mesh> model, std::vector<std::shared_ptr<Shader>> materials, GLTF_Node* node) {}
 
     std::unique_ptr<Renderer> Renderer::Create()
     {

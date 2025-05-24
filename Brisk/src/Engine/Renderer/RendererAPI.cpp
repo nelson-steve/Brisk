@@ -3,28 +3,32 @@
 //-----------------------
 #include "Graphics/Vulkan/RendererAPIVulkan.hpp"
 #include "Graphics/Vulkan/ComputeAPIVulkan.hpp"
+#ifdef BRISK_ENABLE_DIRECTX12
 #include "Graphics/DirectX12/RendererAPIDirectX12.hpp"
+#endif
 //---------------------------------------------
 
 namespace Brisk 
 {
 	RendererAPI* RendererAPI::Create() {
-		switch (Engine::s_EngineSettings.API)
-		{
-			case Engine::EngineSettings::GraphicsAPI::Vulkan:
-				return new RendererAPIVulkan();
-			case Engine::EngineSettings::GraphicsAPI::DirectX12:
-				return new RendererAPIDirectX12();
+		if (Engine::s_EngineSettings.API == Engine::EngineSettings::GraphicsAPI::Vulkan) {
+			return new RendererAPIVulkan();
 		}
+#ifdef BRISK_ENABLE_DIRECTX12
+		else if (Engine::s_EngineSettings.API == Engine::EngineSettings::GraphicsAPI::DirectX12) {
+			return new RendererAPIDirectX12();
+		}
+#endif
 	}
 
 	ComputeAPI* ComputeAPI::Create() {
-		switch (Engine::s_EngineSettings.API)
-		{
-			case Engine::EngineSettings::GraphicsAPI::Vulkan:
-				return new ComputeAPIVulkan();
-			//case Engine::EngineSettings::GraphicsAPI::DirectX12:
-				//return new ComputeAPIDirectX12();
+		if (Engine::s_EngineSettings.API == Engine::EngineSettings::GraphicsAPI::Vulkan) {
+			return new ComputeAPIVulkan();
 		}
+#ifdef BRISK_ENABLE_DIRECTX12
+		else if (Engine::s_EngineSettings.API == Engine::EngineSettings::GraphicsAPI::Vulkan) {
+			return new ComputeAPIDirectX12();
+		}
+#endif
 	}
 }

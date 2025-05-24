@@ -1,7 +1,6 @@
 #pragma once
 
 // INCLUDES
-#include "Engine/Renderer/Shader.hpp"
 #include "Core/Core.hpp"
 #include "Model.hpp"
 //---------------------

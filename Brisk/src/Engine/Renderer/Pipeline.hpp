@@ -2,7 +2,6 @@
 
 // INCLUDES
 #include "RenderPass.hpp"
-#include "ShaderModule.hpp"
 #include "Descriptor.hpp"
 #include "Core/Core.hpp"
 #include "GpuAdapter.hpp"

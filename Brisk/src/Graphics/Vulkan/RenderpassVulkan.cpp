@@ -8,7 +8,7 @@
 
 namespace Brisk
 {
-    void RenderPassVulkan::Init(const std::vector<RenderPassAttachment>& inputs, const std::vector<RenderPassAttachment>& outputs) {
+    void RenderPassVulkan::Init(const std::vector<RenderPassDependency>& dependencies, const std::vector<RenderPassAttachment>& outputs) {
         std::vector<VkAttachmentDescription> attachments;
         std::vector<VkAttachmentReference> colorAttachmentRefs;
         VkAttachmentReference depthAttachmentRef{};
@@ -135,17 +135,17 @@ namespace Brisk
 
         ///
 
-        std::vector<VkSubpassDependency> dependencies;
+        std::vector<VkSubpassDependency> subpassDependencies;
         if (m_ColorAttachmentCount > 1) {
-            dependencies.push_back(dependency1);
-            dependencies.push_back(dependency2);
-            if (m_HasDepth)
-                dependencies.push_back(dependencyDepth);
+            //dependencies.push_back(dependency1);
+            //dependencies.push_back(dependency2);
+            //if (m_HasDepth)
+            //    dependencies.push_back(dependencyDepth);
         }
         else {
-            dependencies.push_back(dependency1);
-            dependencies.push_back(lightingDependencyIn);
-            dependencies.push_back(lightingDependencyOut);
+            //dependencies.push_back(dependency1);
+            //dependencies.push_back(lightingDependencyIn);
+            //dependencies.push_back(lightingDependencyOut);
         }
 
         VkRenderPassCreateInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
@@ -154,7 +154,7 @@ namespace Brisk
         renderPassInfo.subpassCount = 1;
         renderPassInfo.pSubpasses = &subpass;
         renderPassInfo.dependencyCount = dependencies.size();
-        renderPassInfo.pDependencies = dependencies.data();
+        //renderPassInfo.pDependencies = dependencies.data();
 
         if (vkCreateRenderPass(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create Vulkan render pass");

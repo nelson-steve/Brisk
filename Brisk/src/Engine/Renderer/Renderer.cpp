@@ -56,12 +56,20 @@ namespace Brisk
             //----------------------------------------------------------------------------------------------------
             m_GeometryBufferPass = RenderPass::Create();
             m_GeometryBufferPass->Init(
-                {},
+                {
+                    RenderPassDependency {
+                        true,
+                        AccessType::ColorAttachmentWrite,
+                        AccessType::ShaderRead,
+                        PipelineStage::ColorAttachmentOutput,
+                        PipelineStage::FragmentShader
+                    }
+                },
                 {   
                     RenderPassAttachment{ 0, AttachmentType::Color, g_Pos    },
                     RenderPassAttachment{ 1, AttachmentType::Color, g_Normal },
                     RenderPassAttachment{ 2, AttachmentType::Color, g_Albedo },
-                    RenderPassAttachment{ 3, AttachmentType::Depth, g_Depth  } 
+                    //RenderPassAttachment{ 3, AttachmentType::Depth, g_Depth  } 
                 }
             );
 

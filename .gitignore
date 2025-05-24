@@ -5,8 +5,3 @@
 **x64/
 # Files
 *.user
-*.sln
-
-Brisk/*.vcxproj
-Brisk/*.vcxproj.filters
-Brisk/*.vcxproj.user

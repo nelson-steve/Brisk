@@ -195,17 +195,13 @@ namespace Brisk
         Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Normal, nullptr, 1);
         Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Albedo, nullptr, 2);
 
-        m_GBufferCmdBuffer = CommandBuffer::Create();
-        m_LightingCmdBuffer = CommandBuffer::Create();
+        m_CmdBuffer = CommandBuffer::Create();
 
         m_Fence = Fence::Create();
         m_Fence->Init();
 
         ImageAvailableSemaphore = Semaphore::Create();
         ImageAvailableSemaphore->Init();
-        
-        DeferredRenderingFinishedSemaphore = Semaphore::Create();
-        DeferredRenderingFinishedSemaphore->Init();
 
         RenderFinishedSemaphore = Semaphore::Create();
         RenderFinishedSemaphore->Init();
@@ -215,8 +211,7 @@ namespace Brisk
 
         m_MainCmdBufferAllocator = CommandBufferAllocator::Create();
         m_MainCmdBufferAllocator->Init();
-        m_MainCmdBufferAllocator->Allocate(m_GBufferCmdBuffer);
-        m_MainCmdBufferAllocator->Allocate(m_LightingCmdBuffer);
+        m_MainCmdBufferAllocator->Allocate(m_CmdBuffer);
 
         m_Editor = std::make_shared<Editor>();
         //m_Editor->Create();
@@ -227,7 +222,7 @@ namespace Brisk
             for (auto& subMesh : e.GetComponent<MeshComponent>().subMeshes) {
                 uint32_t index = subMesh.material_index != -1 ? subMesh.material_index : 0;
 
-                RenderCommand::DrawIndexed(m_GBufferCmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
+                RenderCommand::DrawIndexed(m_CmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
             }
         }
         for (auto& child : e.GetComponent<TransformComponent>().children) {
@@ -258,8 +253,8 @@ namespace Brisk
         m_Fence->Reset();
 
         m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &m_ImageIndex);
-        m_GBufferCmdBuffer->Reset();
-        m_GBufferCmdBuffer->Bind();
+        m_CmdBuffer->Reset();
+        m_CmdBuffer->Bind();
 
         // --------------------------------------------
         {
@@ -271,7 +266,7 @@ namespace Brisk
             params.srcStage = Core::PipelineStage::TopOfPipe;
             params.dstStage = Core::PipelineStage::ColorAttachment;
 
-            g_Pos->TransitionImageLayout(m_GBufferCmdBuffer, { params });
+            g_Pos->TransitionImageLayout(m_CmdBuffer, { params });
         }
 
         {
@@ -283,7 +278,7 @@ namespace Brisk
             params.srcStage = Core::PipelineStage::TopOfPipe;
             params.dstStage = Core::PipelineStage::ColorAttachment;
 
-            g_Normal->TransitionImageLayout(m_GBufferCmdBuffer, { params });
+            g_Normal->TransitionImageLayout(m_CmdBuffer, { params });
         }
 
         {
@@ -295,7 +290,7 @@ namespace Brisk
             params.srcStage = Core::PipelineStage::TopOfPipe;
             params.dstStage = Core::PipelineStage::ColorAttachment;
 
-            g_Albedo->TransitionImageLayout(m_GBufferCmdBuffer, { params });
+            g_Albedo->TransitionImageLayout(m_CmdBuffer, { params });
         }
 
         {
@@ -307,15 +302,15 @@ namespace Brisk
             params.srcStage = Core::PipelineStage::TopOfPipe;
             params.dstStage = Core::PipelineStage::EarlyFragmentTest;
 
-            g_Depth->TransitionImageLayout(m_GBufferCmdBuffer, { params });
+            g_Depth->TransitionImageLayout(m_CmdBuffer, { params });
         }
 
-        m_GBufferPipeline->Bind(m_GBufferCmdBuffer);
+        m_GBufferPipeline->Bind(m_CmdBuffer);
 
-        m_GeometryBufferPass->Begin(m_GBufferCmdBuffer);
+        m_GeometryBufferPass->Begin(m_CmdBuffer);
 
-        RenderCommand::SetViewport(m_GBufferCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
-        RenderCommand::SetScissor(m_GBufferCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
 
         for (auto e : parent) {
             Entity entity = { e, SceneManager::pActiveScene.get() };
@@ -323,20 +318,16 @@ namespace Brisk
             auto& mesh = entity.GetComponent<MeshComponent>();
             auto& root = entity.GetComponent<RootComponent>();
 
-            RenderCommand::BindVertexBuffer(m_GBufferCmdBuffer, { root.m_VertexBuffer }, 0);
-            RenderCommand::BindIndexBuffer(m_GBufferCmdBuffer, root.m_IndexBuffer, 0);
+            RenderCommand::BindVertexBuffer(m_CmdBuffer, { root.m_VertexBuffer }, 0);
+            RenderCommand::BindIndexBuffer(m_CmdBuffer, root.m_IndexBuffer, 0);
 
             RenderEntity(entity);
         }
 
-        m_GeometryBufferPass->End(m_GBufferCmdBuffer);
-        m_GBufferCmdBuffer->UnBind();
+        m_GeometryBufferPass->End(m_CmdBuffer);
 
 
         // --- LIGHTING PASS ---------------------------
-
-        m_LightingCmdBuffer->Reset();
-        m_LightingCmdBuffer->Bind();
 
         //// --------------------------------------------
         {
@@ -348,18 +339,18 @@ namespace Brisk
             params.srcStage = Core::PipelineStage::TopOfPipe;
             params.dstStage = Core::PipelineStage::ColorAttachment;
 
-            g_lightingOutput->TransitionImageLayout(m_LightingCmdBuffer, { params });
+            g_lightingOutput->TransitionImageLayout(m_CmdBuffer, { params });
         }
 
-        m_LightingPass->Begin(m_LightingCmdBuffer);
-        m_LightingPipeline->Bind(m_LightingCmdBuffer);
+        m_LightingPass->Begin(m_CmdBuffer);
+        m_LightingPipeline->Bind(m_CmdBuffer);
 
-        RenderCommand::SetViewport(m_LightingCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
-        RenderCommand::SetScissor(m_LightingCmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
 
-        RenderCommand::Draw(m_LightingCmdBuffer, 3, 0);
+        RenderCommand::Draw(m_CmdBuffer, 3, 0);
 
-        m_LightingPass->End(m_LightingCmdBuffer);
+        m_LightingPass->End(m_CmdBuffer);
 
         if (times < 2) {
             times++;
@@ -371,7 +362,7 @@ namespace Brisk
             params.srcStage = Core::PipelineStage::BottomOfPipe;
             params.dstStage = Core::PipelineStage::TransferStage;
 
-            m_Swapchain->TransitionCurrentImage(m_LightingCmdBuffer, params, m_ImageIndex);
+            m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
         }
         else {
             // Prepare to be writeable
@@ -384,12 +375,12 @@ namespace Brisk
                 params.srcStage = Core::PipelineStage::BottomOfPipe;
                 params.dstStage = Core::PipelineStage::TransferStage;
 
-                m_Swapchain->TransitionCurrentImage(m_LightingCmdBuffer, params, m_ImageIndex);
+                m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
             }
         }
 
         // Blit the lighting output to swapchain image
-        m_Swapchain->Blit(m_LightingCmdBuffer, g_lightingOutput, m_ImageIndex);
+        m_Swapchain->Blit(m_CmdBuffer, g_lightingOutput, m_ImageIndex);
 
         // Transition lighting output back to color attachment for rendering
         {
@@ -401,7 +392,7 @@ namespace Brisk
             params.srcStage = Core::PipelineStage::TransferStage;
             params.dstStage = Core::PipelineStage::BottomOfPipe;
 
-            g_lightingOutput->TransitionImageLayout(m_LightingCmdBuffer, { params });
+            g_lightingOutput->TransitionImageLayout(m_CmdBuffer, { params });
         }
 
         // Prepare to be presentable
@@ -414,25 +405,16 @@ namespace Brisk
             params.srcStage = Core::PipelineStage::TransferStage;
             params.dstStage = Core::PipelineStage::BottomOfPipe;
 
-            m_Swapchain->TransitionCurrentImage(m_LightingCmdBuffer, params, m_ImageIndex);
+            m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
         }
 
-        m_LightingCmdBuffer->UnBind();
-
-        Queue::SubmitInfo deferredSubmitInfo{};
-        deferredSubmitInfo.pSignalSemaphores.push_back(DeferredRenderingFinishedSemaphore);
-        deferredSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-        deferredSubmitInfo.pCmdBuffers.push_back(m_GBufferCmdBuffer);
-
-        m_GraphicsQueue->Submit(deferredSubmitInfo, nullptr);
+        m_CmdBuffer->UnBind();
 
         Queue::SubmitInfo lightingSubmitInfo{};
         lightingSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
-        lightingSubmitInfo.pWaitSemaphores.push_back(DeferredRenderingFinishedSemaphore);
         lightingSubmitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore);
-        lightingSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-        lightingSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
-        lightingSubmitInfo.pCmdBuffers.push_back(m_LightingCmdBuffer);
+         lightingSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+        lightingSubmitInfo.pCmdBuffers.push_back(m_CmdBuffer);
 
         m_GraphicsQueue->Submit(lightingSubmitInfo, m_Fence);
 
@@ -463,7 +445,7 @@ namespace Brisk
 
                 //m_Pipeline->BindPushConstant(m_MainCmdBuffer, sizeof(PushConstants), &pushConstantsData);
 
-                RenderCommand::DrawIndexed(m_GBufferCmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
+                RenderCommand::DrawIndexed(m_CmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
             }
         }
         for (auto& child : e.GetComponent<TransformComponent>().children) {

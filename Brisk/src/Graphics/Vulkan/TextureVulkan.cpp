@@ -160,7 +160,7 @@ namespace Brisk
             m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
         }
         else */
-        if ((specs.p_Usage & Texture::TextureUsage::ImageUsageSampled) != Texture::TextureUsage::Undefined) {
+        if ((specs.p_Usage & Core::TextureUsage::ImageUsageSampled) != Core::TextureUsage::Undefined) {
             m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
         }
     }

@@ -1,6 +1,6 @@
 #pragma once
 
-#include "Engine/Renderer/RHI.hpp"
+#include "RHI.hpp"
 #include "Engine/Renderer/CommandBuffer.hpp"
 
 #include <tiny_gltf.h>
@@ -10,85 +10,16 @@
 
 namespace Brisk 
 {
-
-
 	class Texture {
 	public:
-		enum class ImageLayout : uint32_t {
-			Undefined					  = 0,
-			General						  = 1 << 0,
-			ShaderReadOnlyOptimal		  = 1 << 1,
-			TransferSrc					  = 1 << 2,
-			TransferDst					  = 1 << 3,
-			ColorAttachmentOptimal		  = 1 << 4,
-			DepthStencilAttachmentOptimal = 1 << 5,
-			DepthStencilReadOnlyOptimal = 1 << 6,
-			PresentSrc = 1 << 7,
-			ComputeShaderWrite = 1 << 8,
-			AttachmentFeedbackLoopOptimal = 1 << 9,
-		};
-
-		enum class AccessType : uint32_t {
-			None				 = 0,
-			ShaderRead			 = 1 << 0,
-			ShaderWrite			 = 1 << 1,
-			TransferRead		 = 1 << 2,
-			TransferWrite		 = 1 << 3,
-			ColorAttachmentRead	 = 1 << 4,
-			ColorAttachmentWrite = 1 << 5,
-			DepthStencilRead	 = 1 << 6,
-			DepthStencilWrite	 = 1 << 7,
-			HostRead			 = 1 << 8,
-			HostWrite			 = 1 << 9,
-			MemoryRead			 = 1 << 10,
-			MemoryWrite			 = 1 << 11,
-			InputAttachmentRead	 = 1 << 12,
-			IndirectCommandRead	 = 1 << 13,
-			VertexAttributeRead	 = 1 << 14,
-			UniformRead			 = 1 << 15,
-		};
-
-		enum class PipelineStage : uint32_t {
-			None = 0,
-			TopOfPipe = 1 << 0,
-			BottomOfPipe = 1 << 1,
-			TransferStage = 1 << 2,
-			ComputeShader = 1 << 3,
-			FragmentShader = 1 << 4,
-			VertexShader = 1 << 5,
-			ColorAttachment = 1 << 6,
-			EarlyFragmentTest = 1 << 7,
-			LateFragmentTest = 1 << 8,
-			AllGraphics = 1 << 9,
-			AllCommands = 1 << 10,
-		};
-
-
-
-		enum class ImageAspectFlags : uint32_t {
-			Color   = 0,
-			Depth   = 1 << 0,
-			Stencil = 1 << 0,
-		};
-
-		enum class TextureUsage : uint32_t {
-			Undefined			 = 0,
-			ImageUsageTransferSrc			 = 1 << 1,
-			ImageUsageTransferDst			 = 1 << 2,
-			ImageUsageSampled				 = 1 << 3,
-			ImageUsageStorage				 = 1 << 4,
-			ImageUsageColorAttachment		 = 1 << 5,
-			ImageUsageDepthStencilAttachment = 1 << 6,
-		};
-
 		struct ImageBarrierParams {
-			ImageLayout oldLayout;
-			ImageLayout newLayout;
-			AccessType srcAccess;
-			AccessType dstAccess;
-			PipelineStage srcStage;
-			PipelineStage dstStage;
-			ImageAspectFlags aspectFlags;
+			Core::ImageLayout oldLayout;
+			Core::ImageLayout newLayout;
+			Core::AccessType srcAccess;
+			Core::AccessType dstAccess;
+			Core::PipelineStage srcStage;
+			Core::PipelineStage dstStage;
+			Core::ImageAspectFlags aspectFlags;
 			uint32_t baseMipLevel = 0;
 			uint32_t levelCount = 1;
 			uint32_t baseLayer = 0;
@@ -134,7 +65,7 @@ namespace Brisk
 		struct TextureSpecification {
 			TextureType p_Type;
 			TextureSampler p_Sampler{};
-			TextureUsage p_Usage{};
+			Core::TextureUsage p_Usage{};
 			Core::Format p_Format;
 			std::string p_DebugName = "Default";
 			bool p_IsDepth = false;
@@ -198,71 +129,4 @@ namespace Brisk
 	protected:
 		TextureSpecification m_Specs;
 	};
-
-	// Texture Usage 
-	inline Texture::TextureUsage operator|(Texture::TextureUsage a, Texture::TextureUsage b) {
-		return static_cast<Texture::TextureUsage>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
-	}
-
-	inline Texture::TextureUsage operator&(Texture::TextureUsage a, Texture::TextureUsage b) {
-		return static_cast<Texture::TextureUsage>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
-	}
-
-	inline Texture::TextureUsage& operator|=(Texture::TextureUsage& a, Texture::TextureUsage b) {
-		a = a | b;
-		return a;
-	}
-
-	// Texture Layout
-	inline Texture::ImageLayout operator|(Texture::ImageLayout a, Texture::ImageLayout b) {
-		return static_cast<Texture::ImageLayout>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
-	}
-
-	inline Texture::ImageLayout operator&(Texture::ImageLayout a, Texture::ImageLayout b) {
-		return static_cast<Texture::ImageLayout>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
-	}
-
-	inline Texture::ImageLayout& operator|=(Texture::ImageLayout& a, Texture::ImageLayout b) {
-		a = a | b;
-		return a;
-	}
-
-	// Access Type
-	inline Texture::AccessType operator|(Texture::AccessType a, Texture::AccessType b) {
-		return static_cast<Texture::AccessType>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
-	}
-
-	inline Texture::AccessType operator&(Texture::AccessType a, Texture::AccessType b) {
-		return static_cast<Texture::AccessType>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
-	}
-
-	inline Texture::AccessType& operator|=(Texture::AccessType& a, Texture::AccessType b) {
-		a = a | b;
-		return a;
-	}
-
-	inline Texture::AccessType& operator&=(Texture::AccessType& a, Texture::AccessType b) {
-		a = a & b;
-		return a;
-	}
-
-	// Pipeline stage
-	inline Texture::PipelineStage operator|(Texture::PipelineStage a, Texture::PipelineStage b) {
-		return static_cast<Texture::PipelineStage>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
-	}
-
-	inline Texture::PipelineStage operator&(Texture::PipelineStage a, Texture::PipelineStage b) {
-		return static_cast<Texture::PipelineStage>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
-	}
-
-	inline Texture::PipelineStage& operator|=(Texture::PipelineStage& a, Texture::PipelineStage b) {
-		a = a | b;
-		return a;
-	}
-
-	inline Texture::PipelineStage& operator&=(Texture::PipelineStage& a, Texture::PipelineStage b) {
-		a = a & b;
-		return a;
-	}
-
 }

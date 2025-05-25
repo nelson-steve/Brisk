@@ -29,7 +29,7 @@ namespace Brisk
 		if (m_Window == nullptr) {
 			BRISK_APP_FATAL("Could not create window of size width/height: " + std::to_string(m_Width) + "/" + std::to_string(m_Height));
 		}
-		//SetVSync(true);
+		//SetVSync(false);
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 

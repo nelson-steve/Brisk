@@ -41,13 +41,13 @@ namespace Brisk
             //std::shared_ptr<Shader> m_ComputeShader = std::make_shared<Shader>();
             Texture::ImageBarrierParams preComputeBarrier = {
                 //cubemap,
-                Texture::ImageLayout::Undefined,
-                Texture::ImageLayout::General,
-                Texture::AccessType::None,
-                Texture::AccessType::ShaderWrite,
-                Texture::PipelineStage::TopOfPipe,
-                Texture::PipelineStage::ComputeShader,
-                Texture::ImageAspectFlags::Color,
+                Core::ImageLayout::Undefined,
+                Core::ImageLayout::General,
+                Core::AccessType::None,
+                Core::AccessType::ShaderWrite,
+                Core::PipelineStage::TopOfPipe,
+                Core::PipelineStage::ComputeShader,
+                Core::ImageAspectFlags::Color,
                 0,                         // Starting mip level
                 1,                         // Only one mip level
                 0,                         // All layers
@@ -62,13 +62,13 @@ namespace Brisk
 
             Texture::ImageBarrierParams postComputeBarrier = {
                 //cubemap,
-                Texture::ImageLayout::General,
-                Texture::ImageLayout::ShaderReadOnlyOptimal,
-                Texture::AccessType::ShaderWrite,
-                Texture::AccessType::None,
-                Texture::PipelineStage::ComputeShader,
-                Texture::PipelineStage::BottomOfPipe,
-                Texture::ImageAspectFlags::Color,
+                Core::ImageLayout::General,
+                Core::ImageLayout::ShaderReadOnlyOptimal,
+                Core::AccessType::ShaderWrite,
+                Core::AccessType::None,
+                Core::PipelineStage::ComputeShader,
+                Core::PipelineStage::BottomOfPipe,
+                Core::ImageAspectFlags::Color,
                 0,                         // Starting mip level
                 1,                         // Only one mip level
                 0,                         // All layers
@@ -95,13 +95,13 @@ namespace Brisk
 
             Texture::ImageBarrierParams preCopyBarrierCubemap = {
                 //cubemap,
-                Texture::ImageLayout::ShaderReadOnlyOptimal,
-                Texture::ImageLayout::TransferSrc,
-                Texture::AccessType::None,
-                Texture::AccessType::TransferRead,
-                Texture::PipelineStage::TopOfPipe,
-                Texture::PipelineStage::TransferStage,
-                Texture::ImageAspectFlags::Color,
+                Core::ImageLayout::ShaderReadOnlyOptimal,
+                Core::ImageLayout::TransferSrc,
+                Core::AccessType::None,
+                Core::AccessType::TransferRead,
+                Core::PipelineStage::TopOfPipe,
+                Core::PipelineStage::TransferStage,
+                Core::ImageAspectFlags::Color,
                 0,                         // Starting mip level
                 1,                         // Only one mip level
                 0,                         // All layers
@@ -110,13 +110,13 @@ namespace Brisk
 
             Texture::ImageBarrierParams preCopyBarrierEnvTexture = {
                 //mainEnvTexture,
-                Texture::ImageLayout::Undefined,
-                Texture::ImageLayout::TransferDst,
-                Texture::AccessType::None,
-                Texture::AccessType::TransferRead,
-                Texture::PipelineStage::TopOfPipe,
-                Texture::PipelineStage::TransferStage,
-                Texture::ImageAspectFlags::Color,
+                Core::ImageLayout::Undefined,
+                Core::ImageLayout::TransferDst,
+                Core::AccessType::None,
+                Core::AccessType::TransferRead,
+                Core::PipelineStage::TopOfPipe,
+                Core::PipelineStage::TransferStage,
+                Core::ImageAspectFlags::Color,
                 0,                         // Starting mip level
                 1,                         // Only one mip level
                 0,                         // All layers
@@ -128,13 +128,13 @@ namespace Brisk
 
             Texture::ImageBarrierParams postCopyBarrierCubemap = {
                 //cubemap,
-                Texture::ImageLayout::TransferSrc,
-                Texture::ImageLayout::ShaderReadOnlyOptimal,
-                Texture::AccessType::TransferRead,
-                Texture::AccessType::None,
-                Texture::PipelineStage::TransferStage,
-                Texture::PipelineStage::BottomOfPipe,
-                Texture::ImageAspectFlags::Color,
+                Core::ImageLayout::TransferSrc,
+                Core::ImageLayout::ShaderReadOnlyOptimal,
+                Core::AccessType::TransferRead,
+                Core::AccessType::None,
+                Core::PipelineStage::TransferStage,
+                Core::PipelineStage::BottomOfPipe,
+                Core::ImageAspectFlags::Color,
                 0,                         // Starting mip level
                 1,                         // Only one mip level
                 0,                         // All layers
@@ -143,13 +143,13 @@ namespace Brisk
 
             Texture::ImageBarrierParams postCopyBarrierEnvTexture = {
                 //mainEnvTexture,
-                Texture::ImageLayout::TransferDst,
-                Texture::ImageLayout::ShaderReadOnlyOptimal,
-                Texture::AccessType::TransferWrite,
-                Texture::AccessType::None,
-                Texture::PipelineStage::TransferStage,
-                Texture::PipelineStage::BottomOfPipe,
-                Texture::ImageAspectFlags::Color,
+                Core::ImageLayout::TransferDst,
+                Core::ImageLayout::ShaderReadOnlyOptimal,
+                Core::AccessType::TransferWrite,
+                Core::AccessType::None,
+                Core::PipelineStage::TransferStage,
+                Core::PipelineStage::BottomOfPipe,
+                Core::ImageAspectFlags::Color,
                 0,                         // Starting mip level
                 1,                         // Only one mip level
                 0,                         // All layers

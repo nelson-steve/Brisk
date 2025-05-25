@@ -1,34 +1,37 @@
 #pragma once
 
+#include "CommandBuffer.hpp"
 #include "Texture.hpp"
+#include "RHI.hpp"
 
 #include <vector>
 #include <memory>
 
 namespace Brisk 
 {
-	enum class AccessType {
-		None,
-		ColorAttachmentWrite,
-		DepthStencilWrite,
-		ShaderRead,
-		ShaderWrite,
-		TransferSrc,
-		TransferDst,
-		Present
-	};
+	//enum class AccessType : uint32_t {
+	//	None = 0,
+	//	ColorAttachmentWrite = 1 << 0,
+	//	DepthStencilWrite = 1 << 1,
+	//	ShaderRead = 1 << 2,
+	//	ShaderWrite = 1 << 3,
+	//	TransferSrc = 1 << 4,
+	//	TransferDst = 1 << 5,
+	//	Present = 1 << 6
+	//};
 
-	enum class PipelineStage {
-		None,
-		VertexShader,
-		FragmentShader,
-		ComputeShader,
-		ColorAttachmentOutput,
-		EarlyFragmentTests,
-		LateFragmentTests,
-		Transfer,
-		BottomOfPipe,
-	};
+	//enum class PipelineStage : uint32_t {
+	//	None = 0,
+	//	VertexShader = 1 << 0,
+	//	FragmentShader = 1 << 1,
+	//	ComputeShader = 1 << 2,
+	//	ColorAttachmentOutput = 1 << 3,
+	//	EarlyFragmentTests = 1 << 4,
+	//	LateFragmentTests = 1 << 5,
+	//	Transfer = 1 << 6,
+	//	BottomOfPipe = 1 << 7
+	//};
+
 
 	enum class AttachmentType {
 		Color,
@@ -40,10 +43,10 @@ namespace Brisk
 
 	struct RenderPassDependency {
 		bool srcExternalPass = true;
-		AccessType srcAccess = AccessType::None;
-		AccessType dstAccess = AccessType::None;
-		PipelineStage srcStage = PipelineStage::None;
-		PipelineStage dstStage = PipelineStage::None;
+		Core::AccessType srcAccess = Core::AccessType::None;
+		Core::AccessType dstAccess = Core::AccessType::None;
+		Core::PipelineStage srcStage = Core::PipelineStage::None;
+		Core::PipelineStage dstStage = Core::PipelineStage::None;
 	};
 
 
@@ -71,4 +74,35 @@ namespace Brisk
 		int m_ClearCount = 0;
 		int m_ColorAttachmentCount = 0;
 	};
+
+	//template <typename Enum>
+	//constexpr auto operator|(Enum lhs, Enum rhs) -> Enum {
+	//	using T = std::underlying_type_t<Enum>;
+	//	return static_cast<Enum>(static_cast<T>(lhs) | static_cast<T>(rhs));
+	//}
+
+	//template <typename Enum>
+	//constexpr auto operator&(Enum lhs, Enum rhs) -> Enum {
+	//	using T = std::underlying_type_t<Enum>;
+	//	return static_cast<Enum>(static_cast<T>(lhs) & static_cast<T>(rhs));
+	//}
+
+	//template <typename Enum>
+	//constexpr auto operator~(Enum value) -> Enum {
+	//	using T = std::underlying_type_t<Enum>;
+	//	return static_cast<Enum>(~static_cast<T>(value));
+	//}
+
+	//template <typename Enum>
+	//inline Enum& operator|=(Enum& lhs, Enum rhs) {
+	//	lhs = lhs | rhs;
+	//	return lhs;
+	//}
+
+	//template <typename Enum>
+	//inline Enum& operator&=(Enum& lhs, Enum rhs) {
+	//	lhs = lhs & rhs;
+	//	return lhs;
+	//}
+
 };

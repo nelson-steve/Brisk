@@ -1,4 +1,5 @@
 #pragma once
+#include <cstdint>
 
 namespace Brisk {
 	namespace Core {
@@ -227,5 +228,137 @@ namespace Brisk {
             MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV,
             MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM,
         };
+
+        enum class ImageLayout : uint32_t {
+            Undefined = 0,
+            General = 1 << 0,
+            ShaderReadOnlyOptimal = 1 << 1,
+            TransferSrc = 1 << 2,
+            TransferDst = 1 << 3,
+            ColorAttachmentOptimal = 1 << 4,
+            DepthStencilAttachmentOptimal = 1 << 5,
+            DepthStencilReadOnlyOptimal = 1 << 6,
+            PresentSrc = 1 << 7,
+            ComputeShaderWrite = 1 << 8,
+            AttachmentFeedbackLoopOptimal = 1 << 9,
+        };
+
+        enum class AccessType : uint32_t {
+            None = 0,
+            ShaderRead = 1 << 0,
+            ShaderWrite = 1 << 1,
+            TransferRead = 1 << 2,
+            TransferWrite = 1 << 3,
+            ColorAttachmentRead = 1 << 4,
+            ColorAttachmentWrite = 1 << 5,
+            DepthStencilRead = 1 << 6,
+            DepthStencilWrite = 1 << 7,
+            HostRead = 1 << 8,
+            HostWrite = 1 << 9,
+            MemoryRead = 1 << 10,
+            MemoryWrite = 1 << 11,
+            InputAttachmentRead = 1 << 12,
+            IndirectCommandRead = 1 << 13,
+            VertexAttributeRead = 1 << 14,
+            UniformRead = 1 << 15,
+        };
+
+        enum class PipelineStage : uint32_t {
+            None = 0,
+            TopOfPipe = 1 << 0,
+            BottomOfPipe = 1 << 1,
+            TransferStage = 1 << 2,
+            ComputeShader = 1 << 3,
+            FragmentShader = 1 << 4,
+            VertexShader = 1 << 5,
+            ColorAttachment = 1 << 6,
+            EarlyFragmentTest = 1 << 7,
+            LateFragmentTest = 1 << 8,
+            AllGraphics = 1 << 9,
+            AllCommands = 1 << 10,
+        };
+
+        enum class ImageAspectFlags : uint32_t {
+            Color = 0,
+            Depth = 1 << 0,
+            Stencil = 1 << 0,
+        };
+
+        enum class TextureUsage : uint32_t {
+            Undefined = 0,
+            ImageUsageTransferSrc = 1 << 1,
+            ImageUsageTransferDst = 1 << 2,
+            ImageUsageSampled = 1 << 3,
+            ImageUsageStorage = 1 << 4,
+            ImageUsageColorAttachment = 1 << 5,
+            ImageUsageDepthStencilAttachment = 1 << 6,
+        };
+
+        // Texture Usage 
+        inline TextureUsage operator|(TextureUsage a, TextureUsage b) {
+            return static_cast<TextureUsage>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+        }
+
+        inline TextureUsage operator&(TextureUsage a, TextureUsage b) {
+            return static_cast<TextureUsage>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+        }
+
+        inline TextureUsage& operator|=(TextureUsage& a, TextureUsage b) {
+            a = a | b;
+            return a;
+        }
+
+        // Texture Layout
+        inline ImageLayout operator|(ImageLayout a, ImageLayout b) {
+            return static_cast<ImageLayout>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+        }
+
+        inline ImageLayout operator&(ImageLayout a, ImageLayout b) {
+            return static_cast<ImageLayout>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+        }
+
+        inline ImageLayout& operator|=(ImageLayout& a, ImageLayout b) {
+            a = a | b;
+            return a;
+        }
+
+        // Access Type
+        inline AccessType operator|(AccessType a, AccessType b) {
+            return static_cast<AccessType>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+        }
+
+        inline AccessType operator&(AccessType a, AccessType b) {
+            return static_cast<AccessType>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+        }
+
+        inline AccessType& operator|=(AccessType& a, AccessType b) {
+            a = a | b;
+            return a;
+        }
+
+        inline AccessType& operator&=(AccessType& a, AccessType b) {
+            a = a & b;
+            return a;
+        }
+
+        // Pipeline stage
+        inline PipelineStage operator|(PipelineStage a, PipelineStage b) {
+            return static_cast<PipelineStage>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+        }
+
+        inline PipelineStage operator&(PipelineStage a, PipelineStage b) {
+            return static_cast<PipelineStage>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+        }
+
+        inline PipelineStage& operator|=(PipelineStage& a, PipelineStage b) {
+            a = a | b;
+            return a;
+        }
+
+        inline PipelineStage& operator&=(PipelineStage& a, PipelineStage b) {
+            a = a & b;
+            return a;
+        }
+
 	}
 }

@@ -309,150 +309,146 @@ namespace Brisk
 			BRISK_CORE_ERROR("Invalid shader stage parameter");
 		}
 
-		static VkImageUsageFlags ImageUsageToVulkanType(Texture::TextureUsage usage) {
+		static VkImageUsageFlags ImageUsageToVulkanType(Core::TextureUsage usage) {
 			VkImageUsageFlags flags = 0;
 
-			if ((usage & Texture::TextureUsage::ImageUsageTransferSrc) != Texture::TextureUsage::Undefined)            flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
-			if ((usage & Texture::TextureUsage::ImageUsageTransferDst) != Texture::TextureUsage::Undefined)            flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-			if ((usage & Texture::TextureUsage::ImageUsageSampled) != Texture::TextureUsage::Undefined)                flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
-			if ((usage & Texture::TextureUsage::ImageUsageStorage) != Texture::TextureUsage::Undefined)                flags |= VK_IMAGE_USAGE_STORAGE_BIT;
-			if ((usage & Texture::TextureUsage::ImageUsageColorAttachment) != Texture::TextureUsage::Undefined)        flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
-			if ((usage & Texture::TextureUsage::ImageUsageDepthStencilAttachment) != Texture::TextureUsage::Undefined) flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
+			if ((usage & Core::TextureUsage::ImageUsageTransferSrc) != Core::TextureUsage::Undefined)            flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
+			if ((usage & Core::TextureUsage::ImageUsageTransferDst) != Core::TextureUsage::Undefined)            flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
+			if ((usage & Core::TextureUsage::ImageUsageSampled) != Core::TextureUsage::Undefined)                flags |= VK_IMAGE_USAGE_SAMPLED_BIT;
+			if ((usage & Core::TextureUsage::ImageUsageStorage) != Core::TextureUsage::Undefined)                flags |= VK_IMAGE_USAGE_STORAGE_BIT;
+			if ((usage & Core::TextureUsage::ImageUsageColorAttachment) != Core::TextureUsage::Undefined)        flags |= VK_IMAGE_USAGE_COLOR_ATTACHMENT_BIT;
+			if ((usage & Core::TextureUsage::ImageUsageDepthStencilAttachment) != Core::TextureUsage::Undefined) flags |= VK_IMAGE_USAGE_DEPTH_STENCIL_ATTACHMENT_BIT;
 
 			return flags;
 		}
 
-		static VkImageLayout ImageLayoutToVkImageLayout(Texture::ImageLayout layout) {
-			if ((layout & Texture::ImageLayout::ColorAttachmentOptimal) == Texture::ImageLayout::ColorAttachmentOptimal)
+		static VkImageLayout ImageLayoutToVkImageLayout(Core::ImageLayout layout) {
+			if ((layout & Core::ImageLayout::ColorAttachmentOptimal) == Core::ImageLayout::ColorAttachmentOptimal)
 				return VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
 
-			if ((layout & Texture::ImageLayout::DepthStencilAttachmentOptimal) == Texture::ImageLayout::DepthStencilAttachmentOptimal)
+			if ((layout & Core::ImageLayout::DepthStencilAttachmentOptimal) == Core::ImageLayout::DepthStencilAttachmentOptimal)
 				return VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
 
-			if ((layout & Texture::ImageLayout::ShaderReadOnlyOptimal) == Texture::ImageLayout::ShaderReadOnlyOptimal)
+			if ((layout & Core::ImageLayout::ShaderReadOnlyOptimal) == Core::ImageLayout::ShaderReadOnlyOptimal)
 				return VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
-			if ((layout & Texture::ImageLayout::TransferSrc) == Texture::ImageLayout::TransferSrc)
+			if ((layout & Core::ImageLayout::TransferSrc) == Core::ImageLayout::TransferSrc)
 				return VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
 
-			if ((layout & Texture::ImageLayout::TransferDst) == Texture::ImageLayout::TransferDst)
+			if ((layout & Core::ImageLayout::TransferDst) == Core::ImageLayout::TransferDst)
 				return VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
 
-			if ((layout & Texture::ImageLayout::General) == Texture::ImageLayout::General)
+			if ((layout & Core::ImageLayout::General) == Core::ImageLayout::General)
 				return VK_IMAGE_LAYOUT_GENERAL;
 
-			if ((layout & Texture::ImageLayout::DepthStencilReadOnlyOptimal) == Texture::ImageLayout::DepthStencilReadOnlyOptimal)
+			if ((layout & Core::ImageLayout::DepthStencilReadOnlyOptimal) == Core::ImageLayout::DepthStencilReadOnlyOptimal)
 				return VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
 
-			if ((layout & Texture::ImageLayout::PresentSrc) == Texture::ImageLayout::PresentSrc)
+			if ((layout & Core::ImageLayout::PresentSrc) == Core::ImageLayout::PresentSrc)
 				return VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
 
-			if ((layout & Texture::ImageLayout::ComputeShaderWrite) == Texture::ImageLayout::ComputeShaderWrite)
+			if ((layout & Core::ImageLayout::ComputeShaderWrite) == Core::ImageLayout::ComputeShaderWrite)
 				return VK_IMAGE_LAYOUT_GENERAL;
 
-			if ((layout & Texture::ImageLayout::AttachmentFeedbackLoopOptimal) == Texture::ImageLayout::AttachmentFeedbackLoopOptimal)
+			if ((layout & Core::ImageLayout::AttachmentFeedbackLoopOptimal) == Core::ImageLayout::AttachmentFeedbackLoopOptimal)
 				return VK_IMAGE_LAYOUT_ATTACHMENT_FEEDBACK_LOOP_OPTIMAL_EXT;
 
 			return VK_IMAGE_LAYOUT_UNDEFINED;
 		}
 
 
-		static VkAccessFlags AccessTypeToVkAccessFlags(Texture::AccessType access) {
+		static VkAccessFlags AccessTypeToVkAccessFlags(Core::AccessType access) {
 			VkAccessFlags flags = 0;
 
-			if ((access & Texture::AccessType::ShaderRead) == Texture::AccessType::ShaderRead)
+			if ((access & Core::AccessType::ShaderRead) == Core::AccessType::ShaderRead)
 				flags |= VK_ACCESS_SHADER_READ_BIT;
 
-			if ((access & Texture::AccessType::ShaderWrite) == Texture::AccessType::ShaderWrite)
+			if ((access & Core::AccessType::ShaderWrite) == Core::AccessType::ShaderWrite)
 				flags |= VK_ACCESS_SHADER_WRITE_BIT;
 
-			if ((access & Texture::AccessType::TransferRead) == Texture::AccessType::TransferRead)
+			if ((access & Core::AccessType::TransferRead) == Core::AccessType::TransferRead)
 				flags |= VK_ACCESS_TRANSFER_READ_BIT;
 
-			if ((access & Texture::AccessType::TransferWrite) == Texture::AccessType::TransferWrite)
+			if ((access & Core::AccessType::TransferWrite) == Core::AccessType::TransferWrite)
 				flags |= VK_ACCESS_TRANSFER_WRITE_BIT;
 
-			if ((access & Texture::AccessType::ColorAttachmentRead) == Texture::AccessType::ColorAttachmentRead)
+			if ((access & Core::AccessType::ColorAttachmentRead) == Core::AccessType::ColorAttachmentRead)
 				flags |= VK_ACCESS_COLOR_ATTACHMENT_READ_BIT;
 
-			if ((access & Texture::AccessType::ColorAttachmentWrite) == Texture::AccessType::ColorAttachmentWrite)
+			if ((access & Core::AccessType::ColorAttachmentWrite) == Core::AccessType::ColorAttachmentWrite)
 				flags |= VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
 
-			if ((access & Texture::AccessType::DepthStencilRead) == Texture::AccessType::DepthStencilRead)
+			if ((access & Core::AccessType::DepthStencilRead) == Core::AccessType::DepthStencilRead)
 				flags |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_READ_BIT;
 
-			if ((access & Texture::AccessType::DepthStencilWrite) == Texture::AccessType::DepthStencilWrite)
+			if ((access & Core::AccessType::DepthStencilWrite) == Core::AccessType::DepthStencilWrite)
 				flags |= VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
 
-			if ((access & Texture::AccessType::HostRead) == Texture::AccessType::HostRead)
+			if ((access & Core::AccessType::HostRead) == Core::AccessType::HostRead)
 				flags |= VK_ACCESS_HOST_READ_BIT;
 
-			if ((access & Texture::AccessType::HostWrite) == Texture::AccessType::HostWrite)
+			if ((access & Core::AccessType::HostWrite) == Core::AccessType::HostWrite)
 				flags |= VK_ACCESS_HOST_WRITE_BIT;
 
-			if ((access & Texture::AccessType::MemoryRead) == Texture::AccessType::MemoryRead)
+			if ((access & Core::AccessType::MemoryRead) == Core::AccessType::MemoryRead)
 				flags |= VK_ACCESS_MEMORY_READ_BIT;
 
-			if ((access & Texture::AccessType::MemoryWrite) == Texture::AccessType::MemoryWrite)
+			if ((access & Core::AccessType::MemoryWrite) == Core::AccessType::MemoryWrite)
 				flags |= VK_ACCESS_MEMORY_WRITE_BIT;
 
-			if ((access & Texture::AccessType::InputAttachmentRead) == Texture::AccessType::InputAttachmentRead)
+			if ((access & Core::AccessType::InputAttachmentRead) == Core::AccessType::InputAttachmentRead)
 				flags |= VK_ACCESS_INPUT_ATTACHMENT_READ_BIT;
 
-			if ((access & Texture::AccessType::IndirectCommandRead) == Texture::AccessType::IndirectCommandRead)
+			if ((access & Core::AccessType::IndirectCommandRead) == Core::AccessType::IndirectCommandRead)
 				flags |= VK_ACCESS_INDIRECT_COMMAND_READ_BIT;
 
-			if ((access & Texture::AccessType::VertexAttributeRead) == Texture::AccessType::VertexAttributeRead)
+			if ((access & Core::AccessType::VertexAttributeRead) == Core::AccessType::VertexAttributeRead)
 				flags |= VK_ACCESS_VERTEX_ATTRIBUTE_READ_BIT;
 
-			if ((access & Texture::AccessType::UniformRead) == Texture::AccessType::UniformRead)
+			if ((access & Core::AccessType::UniformRead) == Core::AccessType::UniformRead)
 				flags |= VK_ACCESS_UNIFORM_READ_BIT;
 
 			return flags;
 		}
 
 
-		static VkPipelineStageFlags PipelineStageToVkPipelineStageFlags(Texture::PipelineStage stage) {
+		static VkPipelineStageFlags PipelineStageToVkPipelineStageFlags(Core::PipelineStage stage) {
 			VkPipelineStageFlags flags = 0;
 
-			//if ((stage & Texture::PipelineStage::None) == Texture::PipelineStage::None)
-			//	return 0;
-
-			if ((stage & Texture::PipelineStage::TopOfPipe) == Texture::PipelineStage::TopOfPipe)
+			if ((stage & Core::PipelineStage::TopOfPipe) == Core::PipelineStage::TopOfPipe)
 				flags |= VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
 
-			if ((stage & Texture::PipelineStage::BottomOfPipe) == Texture::PipelineStage::BottomOfPipe)
+			if ((stage & Core::PipelineStage::BottomOfPipe) == Core::PipelineStage::BottomOfPipe)
 				flags |= VK_PIPELINE_STAGE_BOTTOM_OF_PIPE_BIT;
 
-			if ((stage & Texture::PipelineStage::TransferStage) == Texture::PipelineStage::TransferStage)
+			if ((stage & Core::PipelineStage::TransferStage) == Core::PipelineStage::TransferStage)
 				flags |= VK_PIPELINE_STAGE_TRANSFER_BIT;
 
-			if ((stage & Texture::PipelineStage::ComputeShader) == Texture::PipelineStage::ComputeShader)
+			if ((stage & Core::PipelineStage::ComputeShader) == Core::PipelineStage::ComputeShader)
 				flags |= VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT;
 
-			if ((stage & Texture::PipelineStage::FragmentShader) == Texture::PipelineStage::FragmentShader)
+			if ((stage & Core::PipelineStage::FragmentShader) == Core::PipelineStage::FragmentShader)
 				flags |= VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
 
-			if ((stage & Texture::PipelineStage::VertexShader) == Texture::PipelineStage::VertexShader)
+			if ((stage & Core::PipelineStage::VertexShader) == Core::PipelineStage::VertexShader)
 				flags |= VK_PIPELINE_STAGE_VERTEX_SHADER_BIT;
 
-			if ((stage & Texture::PipelineStage::ColorAttachment) == Texture::PipelineStage::ColorAttachment)
+			if ((stage & Core::PipelineStage::ColorAttachment) == Core::PipelineStage::ColorAttachment)
 				flags |= VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
 
-			if ((stage & Texture::PipelineStage::EarlyFragmentTest) == Texture::PipelineStage::EarlyFragmentTest)
+			if ((stage & Core::PipelineStage::EarlyFragmentTest) == Core::PipelineStage::EarlyFragmentTest)
 				flags |= VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
 
-			if ((stage & Texture::PipelineStage::LateFragmentTest) == Texture::PipelineStage::LateFragmentTest)
+			if ((stage & Core::PipelineStage::LateFragmentTest) == Core::PipelineStage::LateFragmentTest)
 				flags |= VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
 
-			if ((stage & Texture::PipelineStage::AllGraphics) == Texture::PipelineStage::AllGraphics)
+			if ((stage & Core::PipelineStage::AllGraphics) == Core::PipelineStage::AllGraphics)
 				flags |= VK_PIPELINE_STAGE_ALL_GRAPHICS_BIT;
 
-			if ((stage & Texture::PipelineStage::AllCommands) == Texture::PipelineStage::AllCommands)
+			if ((stage & Core::PipelineStage::AllCommands) == Core::PipelineStage::AllCommands)
 				flags |= VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 
 			return flags;
 		}
-
 	};
 }

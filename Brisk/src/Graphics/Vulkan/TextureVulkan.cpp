@@ -73,6 +73,8 @@ namespace Brisk
     //    }
     //}
 
+    VkSampler TextureVulkan::m_Sampler;
+
     void TextureVulkan::Init(const TextureSpecification& specs) {
         m_Specs = specs;
         VkImageCreateInfo imageinfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
@@ -137,6 +139,7 @@ namespace Brisk
         }
 
         // Init Sampler
+        if(m_Sampler == VK_NULL_HANDLE)
         {
             VkSamplerCreateInfo samplerInfo{};
             samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -655,22 +658,24 @@ namespace Brisk
             //}
         }
 
-        VkSamplerCreateInfo samplerInfo{};
-        samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-        samplerInfo.magFilter = (VkFilter) sampler.mag_filter;
-        samplerInfo.minFilter = (VkFilter)sampler.min_filter;
-        samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-        samplerInfo.addressModeU = (VkSamplerAddressMode)sampler.address_modeU;
-        samplerInfo.addressModeV = (VkSamplerAddressMode)sampler.address_modeV;
-        samplerInfo.addressModeW = (VkSamplerAddressMode)sampler.address_modeW;
-        samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
-        samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-        samplerInfo.maxAnisotropy = 1.0;
-        samplerInfo.anisotropyEnable = VK_FALSE;
-        samplerInfo.maxLod = (float)1;
-        samplerInfo.maxAnisotropy = 8.0f;
-        if (vkCreateSampler(m_DeviceCached, &samplerInfo, nullptr, &m_Sampler)) {
-            throw std::runtime_error("failed to create sampler!");
+        if (m_Sampler == VK_NULL_HANDLE) {
+            VkSamplerCreateInfo samplerInfo{};
+            samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
+            samplerInfo.magFilter = (VkFilter)sampler.mag_filter;
+            samplerInfo.minFilter = (VkFilter)sampler.min_filter;
+            samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
+            samplerInfo.addressModeU = (VkSamplerAddressMode)sampler.address_modeU;
+            samplerInfo.addressModeV = (VkSamplerAddressMode)sampler.address_modeV;
+            samplerInfo.addressModeW = (VkSamplerAddressMode)sampler.address_modeW;
+            samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
+            samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
+            samplerInfo.maxAnisotropy = 1.0;
+            samplerInfo.anisotropyEnable = VK_FALSE;
+            samplerInfo.maxLod = (float)1;
+            samplerInfo.maxAnisotropy = 8.0f;
+            if (vkCreateSampler(m_DeviceCached, &samplerInfo, nullptr, &m_Sampler)) {
+                throw std::runtime_error("failed to create sampler!");
+            }
         }
 
         VkImageViewCreateInfo viewInfo{};

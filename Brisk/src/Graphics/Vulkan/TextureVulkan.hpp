@@ -37,7 +37,8 @@ namespace Brisk
 		VkImage m_Image;
 		VkImageView m_ImageView;
 		VkDeviceMemory m_Memory;
-		VkSampler m_Sampler;
+		// Just a workaround to only use 1 sampler
+		static VkSampler m_Sampler;
 		VkFormat m_Format;
 
 		VkDevice m_DeviceCached;

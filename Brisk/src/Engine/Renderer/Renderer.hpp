@@ -19,8 +19,6 @@
 
 namespace Brisk 
 {
-
-
 	class Renderer {
 	public:
 		void Init();

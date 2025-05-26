@@ -95,68 +95,6 @@ namespace Brisk
             subpassDependencies.push_back(subpassDependency);
         }
 
-        //VkSubpassDependency dependency1{};
-        //dependency1.srcSubpass = VK_SUBPASS_EXTERNAL;
-        //dependency1.dstSubpass = 0;
-        //dependency1.srcStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        //dependency1.dstStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT | VK_PIPELINE_STAGE_EARLY_FRAGMENT_TESTS_BIT;
-        //dependency1.srcAccessMask = 0;
-        //dependency1.dstAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT | VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-        //dependency1.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
-        //VkSubpassDependency dependency2{};
-        //dependency2.srcSubpass = 0;
-        //dependency2.dstSubpass = VK_SUBPASS_EXTERNAL;
-        //dependency2.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        //dependency2.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        //dependency2.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        //dependency2.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        //dependency2.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
-        //VkSubpassDependency dependencyDepth{};
-        //dependencyDepth.srcSubpass = 0;
-        //dependencyDepth.dstSubpass = VK_SUBPASS_EXTERNAL;
-        //dependencyDepth.srcStageMask = VK_PIPELINE_STAGE_LATE_FRAGMENT_TESTS_BIT;
-        //dependencyDepth.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        //dependencyDepth.srcAccessMask = VK_ACCESS_DEPTH_STENCIL_ATTACHMENT_WRITE_BIT;
-        //dependencyDepth.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        //dependencyDepth.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
-
-        ///
-        
-        //VkSubpassDependency lightingDependencyIn{};
-        //lightingDependencyIn.srcSubpass = VK_SUBPASS_EXTERNAL;  // previous pass
-        //lightingDependencyIn.dstSubpass = 0; // lighting pass subpass index
-        //lightingDependencyIn.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        //lightingDependencyIn.dstStageMask = VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT;
-        //lightingDependencyIn.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        //lightingDependencyIn.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-        //lightingDependencyIn.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
-        //VkSubpassDependency lightingDependencyOut{};
-        //lightingDependencyOut.srcSubpass = 0;  // lighting pass
-        //lightingDependencyOut.dstSubpass = VK_SUBPASS_EXTERNAL;
-        //lightingDependencyOut.srcStageMask = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
-        //lightingDependencyOut.dstStageMask = VK_PIPELINE_STAGE_TRANSFER_BIT;
-        //lightingDependencyOut.srcAccessMask = VK_ACCESS_COLOR_ATTACHMENT_WRITE_BIT;
-        //lightingDependencyOut.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-        //lightingDependencyOut.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
-
-
-        ///
-        if (m_ColorAttachmentCount > 1) {
-            //dependencies.push_back(dependency1);
-            //dependencies.push_back(dependency2);
-            //if (m_HasDepth)
-            //    dependencies.push_back(dependencyDepth);
-        }
-        else {
-            //dependencies.push_back(dependency1);
-            //dependencies.push_back(lightingDependencyIn);
-            //dependencies.push_back(lightingDependencyOut);
-        }
-
         VkRenderPassCreateInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
         renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
         renderPassInfo.pAttachments = attachments.data();

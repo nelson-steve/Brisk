@@ -106,6 +106,13 @@ namespace Brisk
                 {
                     RenderPassDependency {
                         true,
+                        Core::AccessType::None, // src access
+                        Core::AccessType::ColorAttachmentWrite | Core::AccessType::DepthStencilWrite, // dst access
+                        Core::PipelineStage::FragmentShader | Core::PipelineStage::EarlyFragmentTest, // src stage
+                        Core::PipelineStage::ColorAttachment | Core::PipelineStage::EarlyFragmentTest // dst stage
+                    },
+                    RenderPassDependency {
+                        true,
                         Core::AccessType::ColorAttachmentWrite, // src access
                         Core::AccessType::ShaderRead, // dst access
                         Core::PipelineStage::ColorAttachment, // src stage

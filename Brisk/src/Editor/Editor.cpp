@@ -12,8 +12,6 @@
 
 namespace Brisk 
 {
-    // Sample asset dat
-
     struct PerformanceStat
     {
         std::string name;
@@ -247,17 +245,15 @@ namespace Brisk
         ImGuiIO& io = ImGui::GetIO(); (void)io;
         io.WantCaptureMouse = true;
         io.WantCaptureKeyboard = true;
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
-        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-        //io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;      // Enable Gamepad Controls
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
+        io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+        //io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         //ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
         io.FontDefault = io.Fonts->AddFontFromFileTTF("../Data/Fonts/Nunito/Nunito-Medium.ttf", 18.0f);
 
         LavenderTheme();
-        //PinkTheme();
-        //PinkTheme2();
         
         ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Engine::s_Application->GetWindow()->GetWindowHandle(), true);
 
@@ -277,23 +273,18 @@ namespace Brisk
 
         VkCommandBuffer commandBuffer = std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get();
 
-        // 1. Reset Command Pool
         vkResetCommandPool(info.Device, std::static_pointer_cast<CommandBufferVulkan>(cmd)->GetParentAllocator(), 0);
 
-        // 2. Begin Command Buffer
         VkCommandBufferBeginInfo beginInfo = {};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
         beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
         vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-        // 3. Upload Fonts
         ImGui_ImplVulkan_CreateFontsTexture();
 
-        // 4. End Command Buffer
         vkEndCommandBuffer(commandBuffer);
 
-        // 5. Submit to GPU
         VkSubmitInfo submitInfo = {};
         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
         submitInfo.commandBufferCount = 1;
@@ -324,37 +315,22 @@ namespace Brisk
         InspectorPanel* inspectorPanel = new InspectorPanel();
         m_Panels.insert({ "Inspector" , inspectorPanel });
 
-        //m_Texture = new TextureVulkan();
-        //m_Texture->Create("../Data/Images/texture.jpg");
-
         for (const auto& panel : m_Panels) {
             panel.second->OnCreate();
         }
-
-        //static_cast<RendererVulkan*>(Engine::s_Renderer)->CreateOffscreenResources();
-
-        //textureSet = ImGui_ImplVulkan_AddTexture(m_Texture->GetSampler(), m_Texture->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 	}
 
-    // Function to show the performance stats window
     void ShowPerformanceStatsWindow(float deltaTime, const std::vector<PerformanceStat>& stats)
     {
-        // Begin the performance stats window
         ImGui::Begin("Performance Stats");
 
-        // Show FPS
         ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-
-        // Show Delta Time
         ImGui::Text("Delta Time: %.3f ms", ImGui::GetIO().DeltaTime * 1000.0f);
-
-        // Display custom performance stats
         for (const auto& stat : stats)
         {
             ImGui::Text("%s: %.3f %s", stat.name.c_str(), stat.value, stat.unit.c_str());
         }
 
-        // End the performance stats window
         ImGui::End();
     }
 
@@ -363,32 +339,32 @@ namespace Brisk
         {
             if (ImGui::BeginMenu("File"))
             {
-                if (ImGui::MenuItem("New", "Ctrl+N")) { /* Handle New action */ }
-                if (ImGui::MenuItem("Open", "Ctrl+O")) { /* Handle Open action */ }
-                if (ImGui::MenuItem("Save", "Ctrl+S")) { /* Handle Save action */ }
-                if (ImGui::MenuItem("Exit", "Alt+F4")) { /* Handle Exit action */ }
+                if (ImGui::MenuItem("New", "Ctrl+N")) { }
+                if (ImGui::MenuItem("Open", "Ctrl+O")) { }
+                if (ImGui::MenuItem("Save", "Ctrl+S")) { }
+                if (ImGui::MenuItem("Exit", "Alt+F4")) { }
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Edit"))
             {
-                if (ImGui::MenuItem("Undo", "Ctrl+Z")) { /* Handle Undo action */ }
-                if (ImGui::MenuItem("Redo", "Ctrl+Y", false, false)) { /* Handle Redo action (disabled in this case) */ }
-                if (ImGui::MenuItem("Cut", "Ctrl+X")) { /* Handle Cut action */ }
-                if (ImGui::MenuItem("Copy", "Ctrl+C")) { /* Handle Copy action */ }
-                if (ImGui::MenuItem("Paste", "Ctrl+V")) { /* Handle Paste action */ }
+                if (ImGui::MenuItem("Undo", "Ctrl+Z")) { }
+                if (ImGui::MenuItem("Redo", "Ctrl+Y", false, false)) { }
+                if (ImGui::MenuItem("Cut", "Ctrl+X")) { }
+                if (ImGui::MenuItem("Copy", "Ctrl+C")) { }
+                if (ImGui::MenuItem("Paste", "Ctrl+V")) { }
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Tools"))
             {
-                if (ImGui::MenuItem("Options", "")) { /* Handle Options action */ }
+                if (ImGui::MenuItem("Options", "")) { }
                 ImGui::EndMenu();
             }
 
             if (ImGui::BeginMenu("Options"))
             {
-                if (ImGui::MenuItem("Settings", "")) { /* Handle Settings action */ }
+                if (ImGui::MenuItem("Settings", "")) { }
                 ImGui::EndMenu();
             }
 
@@ -409,14 +385,6 @@ namespace Brisk
             panel.second->OnUpdate();
         }
 
-        //ImGui::Begin("Test Image");
-        //ImGui::Image((ImTextureID)textureSet, ImVec2{ (float)m_Texture->GetWidth(), (float)m_Texture->GetHeight() });
-        //ImGui::End();
-
-        ImGui::Begin("Console");
-        ImGui::End();
-
-        // Sample performance stats (add more as needed)
         std::vector<PerformanceStat> stats = {
             {"GPU Usage", 65.0f, "%"},
             {"CPU Usage", 45.3f, "%"},
@@ -424,7 +392,6 @@ namespace Brisk
             {"Render Time", 16.67f, "ms"}
         };
 
-        // Display the stats window
         float deltaTime = 0.1;
         ShowPerformanceStatsWindow(deltaTime, stats);
 
@@ -434,11 +401,6 @@ namespace Brisk
     void Editor::Render(std::shared_ptr<CommandBuffer> cmd) {
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get());
     }
-
-    //VkDescriptorSet Editor::AddTexToUI(BriskTexture* texture) {
-    //    return ImGui_ImplVulkan_AddTexture(
-    //        static_cast<TextureVulkan*>(texture)->GetSampler(), static_cast<TextureVulkan*>(texture)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-    //}
 
     void Editor::Release() {
         for (const auto& panel : m_Panels) {

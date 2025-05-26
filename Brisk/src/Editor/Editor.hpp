@@ -2,6 +2,7 @@
 
 #include "IEditorPanel.hpp"
 #include "Engine/Renderer/Texture.hpp"
+#include "Engine/Renderer/RenderPass.hpp"
 
 #include "imgui.h"
 #include "ImGuiBackends/imgui_impl_glfw.h"
@@ -15,8 +16,9 @@ namespace Brisk
 	class Editor {
 	public:
 		Editor() = default;
-		void Create();
+		void Create(std::shared_ptr<RenderPass> renderpass, std::shared_ptr<CommandBuffer> cmd);
 		void Update();
+		void Render(std::shared_ptr<CommandBuffer> cmd);
 		void Release();
 
 		const glm::vec2& GetViewportSize() const { return m_ViewportSize; }

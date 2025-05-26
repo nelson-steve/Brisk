@@ -66,6 +66,7 @@ namespace Brisk
 
 		int GetClearCount() const { return m_ClearCount; }
 		int GetColorAttachmentCount() const { return m_ColorAttachmentCount; }
+		bool HasDepth() const { return m_HasDepth; }
 
 		static std::shared_ptr<RenderPass> Create();
 

@@ -7,6 +7,7 @@
 #include "InspectorPanel.hpp"
 #include "ScenePanel.hpp"
 #include <Graphics/Vulkan/GpuAdapterVulkan.hpp>
+#include <Graphics/Vulkan/RenderpassVulkan.hpp>
 
 
 namespace Brisk 
@@ -239,7 +240,7 @@ namespace Brisk
 
     }
 
-	void Editor::Create() {
+	void Editor::Create(std::shared_ptr<RenderPass> renderpass, std::shared_ptr<CommandBuffer> cmd) {
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -248,7 +249,7 @@ namespace Brisk
         io.WantCaptureKeyboard = true;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;     // Enable Keyboard Controls
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;      // Enable Gamepad Controls
-        io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;      // Enable Gamepad Controls
+        //io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;      // Enable Gamepad Controls
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         //ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
@@ -267,18 +268,49 @@ namespace Brisk
         info.QueueFamily = 0;
         info.Queue = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue();
         info.DescriptorPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDescriptorPool();
-        //info.RenderPass = ;
+        info.RenderPass = std::static_pointer_cast<RenderPassVulkan>(renderpass)->GetRenderPass();
         info.ImageCount = 2;
         info.MinImageCount = 2;
         info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
 
         ImGui_ImplVulkan_Init(&info);
 
-        ScenePanel* scenePanel = new ScenePanel();
-        m_Panels.insert({ "Scene" , scenePanel });
+        VkCommandBuffer commandBuffer = std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get();
 
-        AssetsPanel* assetsPanel = new AssetsPanel();
-        m_Panels.insert({ "Assets" , assetsPanel });
+        // 1. Reset Command Pool
+        vkResetCommandPool(info.Device, std::static_pointer_cast<CommandBufferVulkan>(cmd)->GetParentAllocator(), 0);
+
+        // 2. Begin Command Buffer
+        VkCommandBufferBeginInfo beginInfo = {};
+        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+        vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+        // 3. Upload Fonts
+        ImGui_ImplVulkan_CreateFontsTexture();
+
+        // 4. End Command Buffer
+        vkEndCommandBuffer(commandBuffer);
+
+        // 5. Submit to GPU
+        VkSubmitInfo submitInfo = {};
+        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        submitInfo.commandBufferCount = 1;
+        submitInfo.pCommandBuffers = &commandBuffer;
+
+        vkQueueSubmit(info.Queue, 1, &submitInfo, VK_NULL_HANDLE);
+        vkDeviceWaitIdle(info.Device); // Wait until done
+
+        // 6. Destroy Temporary Font Upload Resources
+        //ImGui_ImplVulkan_DestroyFontUploadObjects(); // REQUIRED!
+
+
+        //ScenePanel* scenePanel = new ScenePanel();
+        //m_Panels.insert({ "Scene" , scenePanel });
+
+        //AssetsPanel* assetsPanel = new AssetsPanel();
+        //m_Panels.insert({ "Assets" , assetsPanel });
 
         ConsolePanel* consolePanel = new ConsolePanel();
         m_Panels.insert({ "Console" , consolePanel });
@@ -314,7 +346,7 @@ namespace Brisk
         ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
 
         // Show Delta Time
-        ImGui::Text("Delta Time: %.3f ms", deltaTime * 1000.0f);
+        ImGui::Text("Delta Time: %.3f ms", ImGui::GetIO().DeltaTime * 1000.0f);
 
         // Display custom performance stats
         for (const auto& stat : stats)
@@ -397,6 +429,10 @@ namespace Brisk
         ShowPerformanceStatsWindow(deltaTime, stats);
 
         ImGui::Render();
+    }
+
+    void Editor::Render(std::shared_ptr<CommandBuffer> cmd) {
+        ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get());
     }
 
     //VkDescriptorSet Editor::AddTexToUI(BriskTexture* texture) {

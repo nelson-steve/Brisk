@@ -53,12 +53,16 @@ namespace Brisk
 		std::shared_ptr<Editor> m_Editor;
 
 		// RenderPasses
+		std::shared_ptr<RenderPass> m_DepthPrePass;
 		std::shared_ptr<RenderPass> m_GeometryBufferPass;
 		std::shared_ptr<RenderPass> m_LightingPass;
 
-		std::shared_ptr<CommandBufferAllocator> m_MainCmdBufferAllocator;
+		// Pipelines
+		std::shared_ptr<Pipeline> m_DepthPrePassPipeline;
 		std::shared_ptr<Pipeline> m_GBufferPipeline;
 		std::shared_ptr<Pipeline> m_LightingPipeline;
+
+		std::shared_ptr<CommandBufferAllocator> m_MainCmdBufferAllocator;
 		std::shared_ptr<Buffer> m_UniformBuffer;
 		std::shared_ptr<CommandBuffer> m_CmdBuffer;
 		//std::shared_ptr<CommandBuffer> m_LightingCmdBuffer;

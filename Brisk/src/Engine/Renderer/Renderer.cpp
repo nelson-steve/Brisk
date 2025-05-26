@@ -21,11 +21,50 @@ namespace Brisk
 
         // Renderpasses
         {
+            // Depth Pre pass
+            //----------------------------------------------------------------------------------------------------
+            g_Depth = Texture::Create();
+
+            {
+                Texture::TextureSpecification specs{};
+                specs.p_Width = 1920;
+                specs.p_Height = 1080;
+                specs.p_Type = Texture::TextureType::TEXTURE2D;
+                specs.p_DebugName = "g_Depth";
+                specs.p_Usage = Core::TextureUsage::ImageUsageDepthStencilAttachment | Core::TextureUsage::ImageUsageSampled;
+                specs.p_Format = Core::Format::FORMAT_D16_UNORM;
+                specs.p_IsDepth = true;
+                g_Depth->Init(specs);
+            }
+
+            m_DepthPrePass = RenderPass::Create();
+            m_DepthPrePass->Init(
+                {
+                    RenderPassDependency {
+                        true,
+                        Core::AccessType::None, // src access
+                        Core::AccessType::ColorAttachmentWrite | Core::AccessType::DepthStencilWrite, // dst access
+                        Core::PipelineStage::FragmentShader | Core::PipelineStage::EarlyFragmentTest, // src stage
+                        Core::PipelineStage::ColorAttachment | Core::PipelineStage::EarlyFragmentTest // dst stage
+                    },
+                    RenderPassDependency {
+                        false,
+                        Core::AccessType::DepthStencilWrite,
+                        Core::AccessType::ShaderRead,
+                        Core::PipelineStage::LateFragmentTest,
+                        Core::PipelineStage::FragmentShader
+                    }
+                },
+                {   
+                    RenderPassAttachment{ 0, AttachmentType::Depth, g_Depth  } 
+                }
+            );
+
+            // Geometry pass
             //----------------------------------------------------------------------------------------------------
             g_Pos = Texture::Create();
             g_Normal = Texture::Create();
             g_Albedo = Texture::Create();
-            g_Depth = Texture::Create();
 
             {
                 Texture::TextureSpecification specs{};
@@ -44,16 +83,8 @@ namespace Brisk
                 specs.p_DebugName = "g_Albedo";
                 specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
                 g_Albedo->Init(specs);
-
-                specs.p_DebugName = "g_Depth";
-                specs.p_Usage = Core::TextureUsage::ImageUsageDepthStencilAttachment | Core::TextureUsage::ImageUsageSampled;
-                specs.p_Format = Core::Format::FORMAT_D16_UNORM;
-                specs.p_IsDepth = true;
-                g_Depth->Init(specs);
             }
 
-            // Geometry pass
-            //----------------------------------------------------------------------------------------------------
             m_GeometryBufferPass = RenderPass::Create();
             m_GeometryBufferPass->Init(
                 {
@@ -71,19 +102,11 @@ namespace Brisk
                         Core::PipelineStage::ColorAttachment,
                         Core::PipelineStage::FragmentShader
                     },                
-                    RenderPassDependency {
-                        false,
-                        Core::AccessType::DepthStencilWrite,
-                        Core::AccessType::ShaderRead,
-                        Core::PipelineStage::LateFragmentTest,
-                        Core::PipelineStage::FragmentShader
-                    }
                 },
                 {   
                     RenderPassAttachment{ 0, AttachmentType::Color, g_Pos    },
                     RenderPassAttachment{ 1, AttachmentType::Color, g_Normal },
                     RenderPassAttachment{ 2, AttachmentType::Color, g_Albedo },
-                    RenderPassAttachment{ 3, AttachmentType::Depth, g_Depth  } 
                 }
             );
 
@@ -134,6 +157,40 @@ namespace Brisk
 
         // Pipelines
         {
+            // Depth pre pass pipeline
+            //----------------------------------------------------------------------------------------------------
+            {
+                Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
+                Pipeline::VertexDataLayout vertexLayout;
+                vertexLayout.pBinding = 0;
+                vertexLayout.pStride = sizeof(MeshData);
+                vertexLayout.pAttributes = {
+                    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Position)},
+                };
+                pipelineSpecs.pLayout = vertexLayout;
+                pipelineSpecs.pRenderPass = m_DepthPrePass;
+
+                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassVS.spv");
+                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassFS.spv");
+
+                pipelineSpecs.pDepthClampEnable = false;
+                pipelineSpecs.pRasterizationDiscardEnable = false;
+                pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
+                pipelineSpecs.pLineWidth = 1.0f;
+                pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
+                pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
+                pipelineSpecs.pDepthBiasEnable = false;
+                pipelineSpecs.pDepthTestEnable = true;
+                pipelineSpecs.pDepthWriteEnable = true;
+                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS;
+                pipelineSpecs.pDepthBoundsTestEnable = false;
+                pipelineSpecs.pStencilTestEnable = false;
+
+                m_DepthPrePassPipeline = Pipeline::Create();
+                m_DepthPrePassPipeline->Init(pipelineSpecs);
+            }
+            //----------------------------------------------------------------------------------------------------
+
             // Geometry pass pipeline
             //----------------------------------------------------------------------------------------------------
             {
@@ -151,8 +208,8 @@ namespace Brisk
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_GeometryBufferPass;
 
-                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryVS.spv");
-                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryFS.spv");
+                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryPassVS.spv");
+                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryPassFS.spv");
 
                 pipelineSpecs.pDepthClampEnable = false;
                 pipelineSpecs.pRasterizationDiscardEnable = false;
@@ -161,8 +218,8 @@ namespace Brisk
                 pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
                 pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
                 pipelineSpecs.pDepthBiasEnable = false;
-                pipelineSpecs.pDepthTestEnable = true;
-                pipelineSpecs.pDepthWriteEnable = true;
+                pipelineSpecs.pDepthTestEnable = false;
+                pipelineSpecs.pDepthWriteEnable = false;
                 pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS;
                 pipelineSpecs.pDepthBoundsTestEnable = false;
                 pipelineSpecs.pStencilTestEnable = false;
@@ -221,7 +278,7 @@ namespace Brisk
         m_MainCmdBufferAllocator->Allocate(m_CmdBuffer);
 
         m_Editor = std::make_shared<Editor>();
-        //m_Editor->Create();
+        m_Editor->Create(m_LightingPass, m_CmdBuffer);
     }
 
     void Renderer::SetupEntity(Entity e) {
@@ -263,6 +320,38 @@ namespace Brisk
         m_CmdBuffer->Reset();
         m_CmdBuffer->Bind();
 
+        {
+            Brisk::Texture::ImageBarrierParams params{};
+            params.oldLayout = Core::ImageLayout::Undefined;
+            params.newLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
+            params.srcAccess = Core::AccessType::None;
+            params.dstAccess = Core::AccessType::DepthStencilWrite;
+            params.srcStage = Core::PipelineStage::TopOfPipe;
+            params.dstStage = Core::PipelineStage::EarlyFragmentTest;
+
+            g_Depth->TransitionImageLayout(m_CmdBuffer, { params });
+        }
+
+        m_DepthPrePassPipeline->Bind(m_CmdBuffer);
+        m_DepthPrePass->Begin(m_CmdBuffer);
+
+        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+
+        for (auto e : parent) {
+            Entity entity = { e, SceneManager::pActiveScene.get() };
+
+            auto& mesh = entity.GetComponent<MeshComponent>();
+            auto& root = entity.GetComponent<RootComponent>();
+
+            RenderCommand::BindVertexBuffer(m_CmdBuffer, { root.m_VertexBuffer }, 0);
+            RenderCommand::BindIndexBuffer(m_CmdBuffer, root.m_IndexBuffer, 0);
+
+            RenderEntity(entity);
+        }
+
+        m_DepthPrePass->End(m_CmdBuffer);
+
         // --------------------------------------------
         {
             Brisk::Texture::ImageBarrierParams params{};
@@ -300,20 +389,7 @@ namespace Brisk
             g_Albedo->TransitionImageLayout(m_CmdBuffer, { params });
         }
 
-        {
-            Brisk::Texture::ImageBarrierParams params{};
-            params.oldLayout = Core::ImageLayout::Undefined;
-            params.newLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
-            params.srcAccess = Core::AccessType::None;
-            params.dstAccess = Core::AccessType::DepthStencilWrite;
-            params.srcStage = Core::PipelineStage::TopOfPipe;
-            params.dstStage = Core::PipelineStage::EarlyFragmentTest;
-
-            g_Depth->TransitionImageLayout(m_CmdBuffer, { params });
-        }
-
         m_GBufferPipeline->Bind(m_CmdBuffer);
-
         m_GeometryBufferPass->Begin(m_CmdBuffer);
 
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
@@ -333,6 +409,8 @@ namespace Brisk
 
         m_GeometryBufferPass->End(m_CmdBuffer);
 
+
+        m_Editor->Update();
 
         // --- LIGHTING PASS ---------------------------
 
@@ -356,6 +434,8 @@ namespace Brisk
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
 
         RenderCommand::Draw(m_CmdBuffer, 3, 0);
+
+        m_Editor->Render(m_CmdBuffer);
 
         m_LightingPass->End(m_CmdBuffer);
 

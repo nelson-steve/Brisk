@@ -15,6 +15,7 @@ namespace Brisk {
 			m_Commands.push_back(command);
 		}
 
+		virtual void Allocate() = 0;
 		virtual void UnBind() = 0;
 		virtual void Reset() = 0;
 

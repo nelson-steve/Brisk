@@ -259,8 +259,6 @@ namespace Brisk
         Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Normal, nullptr, 1);
         Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Albedo, nullptr, 2);
 
-        m_CmdBuffer = CommandBuffer::Create();
-
         m_Fence = Fence::Create();
         m_Fence->Init();
 
@@ -273,9 +271,8 @@ namespace Brisk
         m_GraphicsQueue = Queue::Create();
         m_GraphicsQueue->Init(Queue::QueueType::Graphics);
 
-        m_MainCmdBufferAllocator = CommandBufferAllocator::Create();
-        m_MainCmdBufferAllocator->Init();
-        m_MainCmdBufferAllocator->Allocate(m_CmdBuffer);
+        m_CmdBuffer = CommandBuffer::Create();
+        m_CmdBuffer->Allocate();
 
         m_Editor = std::make_shared<Editor>();
         m_Editor->Create(m_LightingPass, m_CmdBuffer);
@@ -435,7 +432,7 @@ namespace Brisk
 
         RenderCommand::Draw(m_CmdBuffer, 3, 0);
 
-        m_Editor->Render(m_CmdBuffer);
+        //m_Editor->Render(m_CmdBuffer);
 
         m_LightingPass->End(m_CmdBuffer);
 

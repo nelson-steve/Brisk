@@ -88,16 +88,16 @@ namespace Brisk {
 		m_VertexBuffer = Buffer::Create();
 		m_VertexBuffer->Init(sizeof(m_vertex_buffer[0]) * vertex_count,
 			m_vertex_buffer,
-			{ Core::BufferUsage::BUFFER_USAGE_VERTEX_BUFFER_BIT },
-			{ Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
+			Core::BufferUsage::VertexBuffer,
+			Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent,
 			true);
 
 		if (indexBufferSize > 0) {
 			m_IndexBuffer = Buffer::Create();
 			m_IndexBuffer->Init(sizeof(m_index_buffer[0]) * index_count,
 				m_index_buffer,
-				{ Core::BufferUsage::BUFFER_USAGE_INDEX_BUFFER_BIT },
-				{ Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
+				Core::BufferUsage::IndexBuffer,
+				Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent,
 				true);
 		}
 	}

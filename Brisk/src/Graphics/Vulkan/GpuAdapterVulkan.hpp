@@ -32,6 +32,7 @@ namespace Brisk
 		void Release();
 		VkPhysicalDevice GetPhysicalDevice() { return m_PhysicalDevice; }
 		VkDevice GetDevice() { return m_Device; }
+		VkCommandPool GetCommandPool() { return m_CommandPool; }
 		VmaAllocator GetVmaAllocator() { return m_VmaAllocator; }
 		const VkQueue GetGraphicsQueue() const { return m_GraphicsQueue; }
 		const VkQueue GetTransferQueue() const { return m_TransferQueue; }
@@ -79,6 +80,8 @@ namespace Brisk
 
 		uint32_t m_GraphicsQueueFamily;
 		uint32_t m_TransferQueueFamily;
+
+		VkCommandPool m_CommandPool;
 
 		///
 		/// <summary>

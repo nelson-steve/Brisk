@@ -221,44 +221,84 @@ namespace Brisk
 			assert(false);
 		}
 
-		static VkBufferUsageFlags BufferUsageToVkFormat(Core::BufferUsage usageFlag) {
-			switch (usageFlag)
-			{
-				case Core::BUFFER_USAGE_TRANSFER_SRC_BIT: return VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-				case Core::BUFFER_USAGE_TRANSFER_DST_BIT: return VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-				case Core::BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT: return VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
-				case Core::BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT: return VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
-				case Core::BUFFER_USAGE_UNIFORM_BUFFER_BIT: return VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-				case Core::BUFFER_USAGE_STORAGE_BUFFER_BIT: return VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-				case Core::BUFFER_USAGE_INDEX_BUFFER_BIT: return VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-				case Core::BUFFER_USAGE_VERTEX_BUFFER_BIT: return VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-				case Core::BUFFER_USAGE_INDIRECT_BUFFER_BIT: return VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
-				case Core::BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT: return VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
-				case Core::BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR: return VK_BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR;
-				case Core::BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR: return VK_BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR;
-				case Core::BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT: return VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT;
-				case Core::BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT: return VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT;
-				case Core::BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT: return VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT;
-			}
-			assert(false);
+		static VkBufferUsageFlags BufferUsageToVkFormat(Core::BufferUsage usageFlags) {
+			VkBufferUsageFlags flags = 0;
+
+			if (HasFlag(usageFlags, Core::BufferUsage::TransferSrc))                flags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+			if (HasFlag(usageFlags, Core::BufferUsage::TransferDst))                flags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+			if (HasFlag(usageFlags, Core::BufferUsage::UniformTexelBuffer))         flags |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
+			if (HasFlag(usageFlags, Core::BufferUsage::StorageTexelBuffer))         flags |= VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+			if (HasFlag(usageFlags, Core::BufferUsage::UniformBuffer))              flags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+			if (HasFlag(usageFlags, Core::BufferUsage::StorageBuffer))              flags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+			if (HasFlag(usageFlags, Core::BufferUsage::IndexBuffer))                flags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+			if (HasFlag(usageFlags, Core::BufferUsage::VertexBuffer))               flags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+			if (HasFlag(usageFlags, Core::BufferUsage::IndirectBuffer))             flags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+			if (HasFlag(usageFlags, Core::BufferUsage::ShaderDeviceAddress))        flags |= VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+			if (HasFlag(usageFlags, Core::BufferUsage::VideoDecodeSrcKHR))          flags |= VK_BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR;
+			if (HasFlag(usageFlags, Core::BufferUsage::VideoDecodeDstKHR))          flags |= VK_BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR;
+			if (HasFlag(usageFlags, Core::BufferUsage::TransformFeedbackBufferEXT)) flags |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT;
+			if (HasFlag(usageFlags, Core::BufferUsage::TransformFeedbackCounterBufferEXT)) flags |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT;
+			if (HasFlag(usageFlags, Core::BufferUsage::ConditionalRenderingEXT))    flags |= VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT;
+
+			return flags;
 		}
 
-		static VkMemoryPropertyFlags MemoryPropertyToVkFormat(Core::MemoryProperty memoryPropertyFlag) {
-			switch (memoryPropertyFlag)
-			{
-				case Core::MEMORY_PROPERTY_DEVICE_LOCAL_BIT: return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
-				case Core::MEMORY_PROPERTY_HOST_VISIBLE_BIT: return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
-				case Core::MEMORY_PROPERTY_HOST_COHERENT_BIT: return VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
-				case Core::MEMORY_PROPERTY_HOST_CACHED_BIT: return VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
-				case Core::MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT: return VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
-				case Core::MEMORY_PROPERTY_PROTECTED_BIT: return VK_MEMORY_PROPERTY_PROTECTED_BIT;
-				case Core::MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD: return VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD;
-				case Core::MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD: return VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD;
-				case Core::MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV: return VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV;
-				case Core::MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM: return VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM;
-			}
-			assert(false);
+		static VkMemoryPropertyFlags ToVkMemoryPropertyFlags(Core::MemoryProperty memFlags) {
+			VkMemoryPropertyFlags flags = 0;
+
+			if (HasFlag(memFlags, Core::MemoryProperty::DeviceLocal))        flags |= VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+			if (HasFlag(memFlags, Core::MemoryProperty::HostVisible))        flags |= VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+			if (HasFlag(memFlags, Core::MemoryProperty::HostCoherent))       flags |= VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+			if (HasFlag(memFlags, Core::MemoryProperty::HostCached))         flags |= VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+			if (HasFlag(memFlags, Core::MemoryProperty::LazilyAllocated))    flags |= VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
+			if (HasFlag(memFlags, Core::MemoryProperty::Protected))          flags |= VK_MEMORY_PROPERTY_PROTECTED_BIT;
+			// The following two are vendor-specific extensions and not part of core Vulkan
+			if (HasFlag(memFlags, Core::MemoryProperty::DeviceCoherentAMD))  flags |= VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD;
+			if (HasFlag(memFlags, Core::MemoryProperty::DeviceUncachedAMD))  flags |= VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD;
+			if (HasFlag(memFlags, Core::MemoryProperty::RdmaCapableNV))      flags |= VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV;
+
+			return flags;
 		}
+
+
+		//static VkBufferUsageFlags BufferUsageToVkFormat(Core::BufferUsage usageFlag) {
+		//	switch (usageFlag)
+		//	{
+		//		case Core::BUFFER_USAGE_TRANSFER_SRC_BIT: return VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+		//		case Core::BUFFER_USAGE_TRANSFER_DST_BIT: return VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+		//		case Core::BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT: return VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT;
+		//		case Core::BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT: return VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+		//		case Core::BUFFER_USAGE_UNIFORM_BUFFER_BIT: return VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+		//		case Core::BUFFER_USAGE_STORAGE_BUFFER_BIT: return VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+		//		case Core::BUFFER_USAGE_INDEX_BUFFER_BIT: return VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+		//		case Core::BUFFER_USAGE_VERTEX_BUFFER_BIT: return VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+		//		case Core::BUFFER_USAGE_INDIRECT_BUFFER_BIT: return VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+		//		case Core::BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT: return VK_BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT;
+		//		case Core::BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR: return VK_BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR;
+		//		case Core::BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR: return VK_BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR;
+		//		case Core::BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT: return VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT;
+		//		case Core::BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT: return VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT;
+		//		case Core::BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT: return VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT;
+		//	}
+		//	assert(false);
+		//}
+
+		//static VkMemoryPropertyFlags MemoryPropertyToVkFormat(Core::MemoryProperty memoryPropertyFlag) {
+		//	switch (memoryPropertyFlag)
+		//	{
+		//		case Core::MEMORY_PROPERTY_DEVICE_LOCAL_BIT: return VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT;
+		//		case Core::MEMORY_PROPERTY_HOST_VISIBLE_BIT: return VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT;
+		//		case Core::MEMORY_PROPERTY_HOST_COHERENT_BIT: return VK_MEMORY_PROPERTY_HOST_COHERENT_BIT;
+		//		case Core::MEMORY_PROPERTY_HOST_CACHED_BIT: return VK_MEMORY_PROPERTY_HOST_CACHED_BIT;
+		//		case Core::MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT: return VK_MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT;
+		//		case Core::MEMORY_PROPERTY_PROTECTED_BIT: return VK_MEMORY_PROPERTY_PROTECTED_BIT;
+		//		case Core::MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD: return VK_MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD;
+		//		case Core::MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD: return VK_MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD;
+		//		case Core::MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV: return VK_MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV;
+		//		case Core::MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM: return VK_MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM;
+		//	}
+		//	assert(false);
+		//}
 
 		static VkDescriptorType ResourceToDescriptorType(GPUResource::ResourceType resourceType) {
 			switch (resourceType)

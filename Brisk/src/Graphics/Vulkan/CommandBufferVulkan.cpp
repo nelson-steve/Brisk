@@ -8,11 +8,10 @@
 //---------------
 
 namespace Brisk {
-	void CommandBufferVulkan::Allocate(VkCommandPool pool) {
-		m_ParentPool = pool;
+	void CommandBufferVulkan::Allocate() {
 		VkCommandBufferAllocateInfo allocInfo{};
 		allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-		allocInfo.commandPool = m_ParentPool;
+		allocInfo.commandPool = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetCommandPool();
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		allocInfo.commandBufferCount = 1;
 

@@ -10,91 +10,187 @@
 //---------------
 namespace Brisk 
 {
-	void BufferVulkan::Init(uint64_t size,
-		void* data,
-		std::vector<Core::BufferUsage> usageFlags,
-		std::vector<Core::MemoryProperty> memoryProperty,
-		bool mapPersistant) {
+	void BufferVulkan::Init(uint32_t size, void* data, Core::BufferUsage usageFlags, Core::MemoryProperty memoryProperty, bool mapPersistant) {
 		VkBufferUsageFlags usage{};
-		VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU; // slow, usage staging buffer
+        VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_UNKNOWN;
+		usage = UtilitiesVulkan::BufferUsageToVkFormat(usageFlags);
+		m_Size = size;
 
-		for (auto& flag : usageFlags)
-			usage |= UtilitiesVulkan::BufferUsageToVkFormat(flag);
+        bool hostVisible = false;
+        bool hostCoherent = false;
+        bool hostCached = false;
+        bool deviceLocal = false;
 
-		Create(size, usage, vmaUsage);
+        VmaAllocator cachedAllocator = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator();
 
-		if (mapPersistant) {
-			void* ref;
-			vmaMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), m_Allocation, &ref);
-			memcpy(ref, data, static_cast<size_t>(m_Size));
-			vmaUnmapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), m_Allocation);
-		}
-		else {
-			void* ref;
-			vmaMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), m_Allocation, &ref);
-			m_MappedPointerHandle = ref;
-			if (data)
-				memcpy(m_MappedPointerHandle, data, static_cast<size_t>(m_Size));
-		}
+        if (Core::HasFlag(memoryProperty, Core::MemoryProperty::HostVisible)) {
+            hostVisible = true;
+        }
+        if (Core::HasFlag(memoryProperty, Core::MemoryProperty::HostCoherent)) {
+            hostCoherent = true;
+        }
+        if (Core::HasFlag(memoryProperty, Core::MemoryProperty::HostCached)) {
+            hostCached = true;
+        }
+        if (Core::HasFlag(memoryProperty, Core::MemoryProperty::DeviceLocal)) {
+            deviceLocal = true;
+        }
+
+        if (deviceLocal && !hostVisible) {
+            vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY;
+        }
+        else if (hostVisible && hostCoherent) {
+            vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU;
+        }
+        else if (hostVisible && !hostCoherent) {
+            vmaUsage = VMA_MEMORY_USAGE_CPU_ONLY;
+        }
+        else {
+            vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY;
+        }
+
+        bool needsStaging = (deviceLocal && data != nullptr);
+
+        if (needsStaging) {
+            // Create staging buffer
+            VkBufferCreateInfo stagingBufferInfo{};
+            stagingBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+            stagingBufferInfo.size = size;
+            stagingBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+            stagingBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+            VmaAllocationCreateInfo stagingAllocInfo{};
+            stagingAllocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
+
+            VkBuffer stagingBuffer;
+            VmaAllocation stagingAllocation;
+            if (vmaCreateBuffer(cachedAllocator, &stagingBufferInfo, &stagingAllocInfo, &stagingBuffer, &stagingAllocation, nullptr) != VK_SUCCESS) {
+                throw std::runtime_error("Failed to create staging buffer");
+            }
+
+            // Map staging buffer and copy data
+            void* mappedStaging = nullptr;
+            vmaMapMemory(cachedAllocator, stagingAllocation, &mappedStaging);
+            std::memcpy(mappedStaging, data, (size_t)size);
+            vmaUnmapMemory(cachedAllocator, stagingAllocation);
+
+            // Create device local buffer
+            VkBufferCreateInfo deviceBufferInfo{};
+            deviceBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+            deviceBufferInfo.size = size;
+            deviceBufferInfo.usage = usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+            deviceBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+            VmaAllocationCreateInfo deviceAllocInfo{};
+            deviceAllocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+
+            if (vmaCreateBuffer(cachedAllocator, &deviceBufferInfo, &deviceAllocInfo, &m_Handle, &m_Allocation, nullptr) != VK_SUCCESS) {
+                vmaDestroyBuffer(cachedAllocator, stagingBuffer, stagingAllocation);
+                throw std::runtime_error("Failed to create device local buffer");
+            }
+
+            {
+                VkCommandBufferAllocateInfo allocInfoCmd{};
+                allocInfoCmd.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
+                allocInfoCmd.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
+                allocInfoCmd.commandPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetCommandPool();
+                allocInfoCmd.commandBufferCount = 1;
+
+                VkCommandBuffer commandBuffer;
+                vkAllocateCommandBuffers(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfoCmd, &commandBuffer);
+
+                VkCommandBufferBeginInfo beginInfo{};
+                beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+                beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+
+                vkBeginCommandBuffer(commandBuffer, &beginInfo);
+
+                VkBufferCopy copyRegion{};
+                copyRegion.size = size;
+                vkCmdCopyBuffer(commandBuffer, stagingBuffer,  m_Handle, 1, &copyRegion);
+
+                vkEndCommandBuffer(commandBuffer);
+
+                VkSubmitInfo submitInfo{};
+                submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+                submitInfo.commandBufferCount = 1;
+                submitInfo.pCommandBuffers = &commandBuffer;
+
+                vkQueueSubmit(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+                vkQueueWaitIdle(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue());
+
+                // --- 7. Cleanup command buffer ---
+                vkFreeCommandBuffers(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 
+                    std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetCommandPool(), 1, &commandBuffer);
+            }
+
+            vmaDestroyBuffer(cachedAllocator, stagingBuffer, stagingAllocation);
+
+            isMapped = false;
+            mappedPtr = nullptr;
+            return;
+        }
+
+        VkBufferCreateInfo bufferInfo{};
+        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferInfo.size = size;
+        bufferInfo.usage = usage;
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        VmaAllocationCreateInfo allocInfo{};
+        allocInfo.usage = vmaUsage;
+        if (hostCoherent) allocInfo.flags |= VMA_ALLOCATION_CREATE_MAPPED_BIT;
+
+        if (vmaCreateBuffer(cachedAllocator, &bufferInfo, &allocInfo, &m_Handle, &m_Allocation, nullptr) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create buffer");
+        }
+
+        if (allocInfo.flags & VMA_ALLOCATION_CREATE_MAPPED_BIT) {
+            VmaAllocationInfo allocInfo;
+            vmaGetAllocationInfo(cachedAllocator, m_Allocation, &allocInfo);
+            mappedPtr = allocInfo.pMappedData;
+            isMapped = true;
+        }
+        else {
+            mappedPtr = nullptr;
+            isMapped = false;
+        }
+
+        if (data != nullptr) {
+            if (isMapped) {
+                std::memcpy(mappedPtr, data, (size_t)size);
+                if (!hostCoherent) {
+                    // Flush if not coherent
+                    VmaAllocationInfo allocInfo;
+                    vmaGetAllocationInfo(cachedAllocator, m_Allocation, &allocInfo);
+                    //mappedPtr = allocInfo.pMappedData;
+                    VkDeviceMemory mem = allocInfo.deviceMemory;;
+                    VkMappedMemoryRange range{};
+                    range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+                    range.memory = mem;
+                    range.offset = 0;
+                    range.size = size;
+                    vkFlushMappedMemoryRanges(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &range);
+                }
+            }
+            else {
+                // Map/unmap for one-time upload
+                void* mapped = nullptr;
+                vmaMapMemory(cachedAllocator, m_Allocation, &mapped);
+                std::memcpy(mapped, data, (size_t)size);
+                vmaUnmapMemory(cachedAllocator, m_Allocation);
+            }
+        }
+
+        if (!mapPersistant && isMapped) {
+            vmaUnmapMemory(cachedAllocator, m_Allocation);
+            mappedPtr = nullptr;
+            isMapped = false;
+        }
 	}
 
 	void BufferVulkan::UpdatePersistantData(uint32_t size, void* data) {
-		memcpy(m_MappedPointerHandle, data, m_Size);
-	}
-
-	void BufferVulkan::Create(uint64_t bufferSize, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage) {
-		m_Size = bufferSize;
-
-		VkBufferCreateInfo bufferInfo{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-		bufferInfo.size = m_Size;
-		bufferInfo.usage = usageFlags;
-		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-		VmaAllocationCreateInfo allocCreateInfo{};
-		allocCreateInfo.usage = memoryUsage;
-
-		if (vmaCreateBuffer(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), &bufferInfo, &allocCreateInfo, &m_Handle, &m_Allocation, nullptr) != VK_SUCCESS) {
-			throw std::runtime_error("Failed to create VMA buffer");
-		}
-	}
-
-	void BufferVulkan::Allocate(VkMemoryPropertyFlags properties) {
-		VkMemoryRequirements memRequirements;
-		vkGetBufferMemoryRequirements(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Handle, &memRequirements);
-
-		VkMemoryAllocateInfo allocInfo{};
-		allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-		allocInfo.allocationSize = memRequirements.size;
-		allocInfo.memoryTypeIndex = UtilitiesVulkan::FindMemoryType(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetPhysicalDevice(), memRequirements.memoryTypeBits, properties);
-
-		if (vkAllocateMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfo, nullptr, &m_Memory) != VK_SUCCESS) {
-			throw std::runtime_error("failed to allocate vertex buffer memory!");
-		}
-
-		vkBindBufferMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Handle, m_Memory, 0);
-	}
-
-	//void BufferVulkan::MapMemory(std::vector<Point>& vertices) {
-	//	void* data;
-	//	vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, 0, m_Size, 0, &data);
-	//	memcpy(data, vertices.data(), (size_t)m_Size);
-	//}
-
-	void BufferVulkan::MapMemory(MeshData* vertices) {
-		void* data;
-		vmaMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), m_Allocation, &data);
-		memcpy(data, vertices, static_cast<size_t>(m_Size));
-		vmaUnmapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), m_Allocation);
-	}
-
-	void BufferVulkan::MapMemory(void** data) {
-		void* mapped;
-		vmaMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), m_Allocation, &mapped);
-		*data = mapped;
-	}
-
-	void BufferVulkan::UnMapMemory() {
-		vmaUnmapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), m_Allocation);
+		memcpy(mappedPtr, data, m_Size);
 	}
 
 	void BufferVulkan::Release() {

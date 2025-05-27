@@ -13,16 +13,8 @@ namespace Brisk
 		UpdateView();
 
 		mMVPBuffer = Buffer::Create();
-		mMVPBuffer->Init(sizeof(MVP), nullptr,
-			{
-				Core::BufferUsage::BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-			},
-			{
-				Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-				Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT
-			},
-			false
-		);
+		mMVPBuffer->Init(sizeof(MVP), nullptr, Core::BufferUsage::UniformBuffer,
+			Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
 
 		Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::MVPUBO, nullptr, mMVPBuffer, 0);
 	}

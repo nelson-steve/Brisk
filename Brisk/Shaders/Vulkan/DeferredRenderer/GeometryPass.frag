@@ -15,5 +15,5 @@ void main() {
     outPosition = vec4(fragPosition, 1.0);
     outNormal = vec4(normalize(fragNormal), 1.0);
     outAlbedo = texture(global_textures[nonuniformEXT(0)], fragUV);
-    outAlbedo = vec4(1.0, 0.0, 0.0, 1.0);
+    //outAlbedo = vec4(1.0, 0.0, 0.0, 1.0);
 }

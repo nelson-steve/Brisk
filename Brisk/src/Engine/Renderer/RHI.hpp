@@ -199,35 +199,62 @@ namespace Brisk {
             SAMPLE_COUNT_32_BIT,
             SAMPLE_COUNT_64_BIT,
         };
-        enum BufferUsage {
-            BUFFER_USAGE_TRANSFER_SRC_BIT,
-            BUFFER_USAGE_TRANSFER_DST_BIT,
-            BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT,
-            BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT,
-            BUFFER_USAGE_UNIFORM_BUFFER_BIT,
-            BUFFER_USAGE_STORAGE_BUFFER_BIT,
-            BUFFER_USAGE_INDEX_BUFFER_BIT,
-            BUFFER_USAGE_VERTEX_BUFFER_BIT,
-            BUFFER_USAGE_INDIRECT_BUFFER_BIT,
-            BUFFER_USAGE_SHADER_DEVICE_ADDRESS_BIT,
-            BUFFER_USAGE_VIDEO_DECODE_SRC_BIT_KHR,
-            BUFFER_USAGE_VIDEO_DECODE_DST_BIT_KHR,
-            BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT,
-            BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT,
-            BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT,
+
+        enum class BufferUsage : uint32_t {
+            TransferSrc = 1 << 0,
+            TransferDst = 1 << 1,
+            UniformTexelBuffer = 1 << 2,
+            StorageTexelBuffer = 1 << 3,
+            UniformBuffer = 1 << 4,
+            StorageBuffer = 1 << 5,
+            IndexBuffer = 1 << 6,
+            VertexBuffer = 1 << 7,
+            IndirectBuffer = 1 << 8,
+            ShaderDeviceAddress = 1 << 9,
+            VideoDecodeSrcKHR = 1 << 10,
+            VideoDecodeDstKHR = 1 << 11,
+            TransformFeedbackBufferEXT = 1 << 12,
+            TransformFeedbackCounterBufferEXT = 1 << 13,
+            ConditionalRenderingEXT = 1 << 14,
         };
-        enum MemoryProperty {
-            MEMORY_PROPERTY_DEVICE_LOCAL_BIT,
-            MEMORY_PROPERTY_HOST_VISIBLE_BIT,
-            MEMORY_PROPERTY_HOST_COHERENT_BIT,
-            MEMORY_PROPERTY_HOST_CACHED_BIT,
-            MEMORY_PROPERTY_LAZILY_ALLOCATED_BIT,
-            MEMORY_PROPERTY_PROTECTED_BIT,
-            MEMORY_PROPERTY_DEVICE_COHERENT_BIT_AMD,
-            MEMORY_PROPERTY_DEVICE_UNCACHED_BIT_AMD,
-            MEMORY_PROPERTY_RDMA_CAPABLE_BIT_NV,
-            MEMORY_PROPERTY_FLAG_BITS_MAX_ENUM,
+
+        inline BufferUsage operator|(BufferUsage a, BufferUsage b) {
+            return static_cast<BufferUsage>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+        }
+
+        inline BufferUsage& operator|=(BufferUsage& a, BufferUsage b) {
+            a = a | b;
+            return a;
+        }
+
+        inline bool HasFlag(BufferUsage flags, BufferUsage flag) {
+            return (static_cast<uint32_t>(flags) & static_cast<uint32_t>(flag)) != 0;
+        }
+
+        enum class MemoryProperty : uint32_t {
+            DeviceLocal = 1 << 0,
+            HostVisible = 1 << 1,
+            HostCoherent = 1 << 2,
+            HostCached = 1 << 3,
+            LazilyAllocated = 1 << 4,
+            Protected = 1 << 5,
+            DeviceCoherentAMD = 1 << 6,
+            DeviceUncachedAMD = 1 << 7,
+            RdmaCapableNV = 1 << 8,
         };
+
+        inline MemoryProperty operator|(MemoryProperty a, MemoryProperty b) {
+            return static_cast<MemoryProperty>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+        }
+
+        inline MemoryProperty& operator|=(MemoryProperty& a, MemoryProperty b) {
+            a = a | b;
+            return a;
+        }
+
+        inline bool HasFlag(MemoryProperty flags, MemoryProperty flag) {
+            return (static_cast<uint32_t>(flags) & static_cast<uint32_t>(flag)) != 0;
+        }
 
         enum class ImageLayout : uint32_t {
             Undefined = 0,

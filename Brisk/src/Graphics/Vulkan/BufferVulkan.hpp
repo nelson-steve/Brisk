@@ -14,11 +14,7 @@
 namespace Brisk {
 	class BufferVulkan : public Buffer {
 	public:
-		virtual void Init(uint64_t size,
-			void* data,
-			std::vector<Core::BufferUsage> usageFlags,
-			std::vector<Core::MemoryProperty> memoryProperty,
-			bool mapPersistant) override;
+		virtual void Init(uint32_t size, void* data, Core::BufferUsage usageFlags, Core::MemoryProperty memoryProperty, bool mapPersistant) override;
 		virtual void Release() override;
 		virtual void UpdatePersistantData(uint32_t size, void* data) override;
 
@@ -32,19 +28,13 @@ namespace Brisk {
 			return &bufferInfo;
 		}
 	private:
-		void Create(uint64_t size, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage);
-		void Allocate(VkMemoryPropertyFlags properties);
-		//void MapMemory(std::vector<Point>& data);
-		void MapMemory(MeshData* data);
-		void MapMemory(void** data);
-		void UnMapMemory();
-		//void Release();
-		const VkDeviceMemory GetMemory() const { return m_Memory; }
-	private:
-		void* m_MappedPointerHandle;
+		//void* m_MappedPointerHandle;
 		VmaAllocation m_Allocation;
 		VkBuffer m_Handle;
 		VkDeviceMemory m_Memory;
 		VkDescriptorBufferInfo bufferInfo;
+
+		bool isMapped = false;
+		void* mappedPtr = nullptr;
 	};
 }

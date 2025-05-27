@@ -16,7 +16,7 @@ namespace Brisk
 		void SetParentAllocator(VkCommandPool allocator);
 		VkCommandPool GetParentAllocator() { return m_ParentPool; }
 
-		void Allocate(VkCommandPool pool);
+		virtual void Allocate() override;
 		void Reset() override;
 
 		VkCommandBuffer& Get() { return m_CommandBuffer; }

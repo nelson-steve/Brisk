@@ -182,6 +182,14 @@ namespace Brisk
 		{
 			throw std::runtime_error("failed to allocate descriptor sets!");
 		}
+
+		VkCommandPoolCreateInfo poolInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
+		poolInfo.queueFamilyIndex = m_GraphicsQueueFamily;
+		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+
+		if (vkCreateCommandPool(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create command pool!");
+		}
 	}
 
 	void GpuAdapterVulkan::AllocatePools() {

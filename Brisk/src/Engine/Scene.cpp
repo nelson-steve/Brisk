@@ -410,16 +410,16 @@ namespace Brisk
 		entity.GetComponent<RootComponent>().m_VertexBuffer = Buffer::Create();
 		entity.GetComponent<RootComponent>().m_VertexBuffer->Init(sizeof(entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr[0]) * entity.GetComponent<MeshComponent>().renderableRef->pVertexCount,
 			entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr.data(),
-			{ Core::BufferUsage::BUFFER_USAGE_VERTEX_BUFFER_BIT },
-			{ Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
-			true);
+			Core::BufferUsage::VertexBuffer | Core::BufferUsage::TransferDst,
+			Core::MemoryProperty::DeviceLocal,
+			false);
 
 		if (entity.GetComponent<MeshComponent>().renderableRef->pIndexCount > 0) {
 			entity.GetComponent<RootComponent>().m_IndexBuffer = Buffer::Create();
 			entity.GetComponent<RootComponent>().m_IndexBuffer->Init(sizeof(entity.GetComponent<MeshComponent>().renderableRef->pIndicesDataPtr[0]) * entity.GetComponent<MeshComponent>().renderableRef->pIndexCount,
 				entity.GetComponent<MeshComponent>().renderableRef->pIndicesDataPtr.data(),
-				{ Core::BufferUsage::BUFFER_USAGE_INDEX_BUFFER_BIT },
-				{ Core::MemoryProperty::MEMORY_PROPERTY_HOST_VISIBLE_BIT, Core::MemoryProperty::MEMORY_PROPERTY_HOST_COHERENT_BIT },
+				Core::BufferUsage::IndexBuffer | Core::BufferUsage::TransferDst,
+				Core::MemoryProperty::DeviceLocal,
 				true);
 		}
 
@@ -433,15 +433,17 @@ namespace Brisk
 		//entity.AddComponent<TransformComponent>();
 		//std::shared_ptr<Mesh> model;
 		//model = std::make_shared<Mesh>();
-		// "../Data/Models/Cube/Cube.gltf"
-		// "../Data/Models/revolver/revolver.gltf"
-		// "../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf"
-		// "../Data/Models/damaged_helmet/DamagedHelmet.gltf"
-		// "../Data/Models/revolver/revolver.gltf"
-		// "../Data/Models/cerberus/cerberus.gltf"
-		// "../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf"
-		//LoadGLTFFile("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf", entity);
-		LoadGLTFFile("../Data/Models/damaged_helmet/DamagedHelmet.gltf", entity);
+		std::vector<std::string> paths = {
+			/* 0 */"../Data/Models/Cube/Cube.gltf",
+			/* 1 */"../Data/Models/revolver/revolver.gltf",
+			/* 2 */"../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf",
+			/* 3 */"../Data/Models/damaged_helmet/DamagedHelmet.gltf",
+			/* 4 */"../Data/Models/revolver/revolver.gltf",
+			/* 5 */"../Data/Models/cerberus/cerberus.gltf",
+			/* 6 */"../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf",
+		};
+		//LoadGLTFFile(, entity);
+		LoadGLTFFile(paths[4], entity);
 		//LoadGLTFFile("../Data/Models/spaceship/scene.gltf", entity);
 
 		entity.AddComponent<MaterialComponent>();

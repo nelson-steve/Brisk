@@ -273,7 +273,7 @@ namespace Brisk
 
         VkCommandBuffer commandBuffer = std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get();
 
-        vkResetCommandPool(info.Device, std::static_pointer_cast<CommandBufferVulkan>(cmd)->GetParentAllocator(), 0);
+        vkResetCommandPool(info.Device, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetCommandPool(), 0);
 
         VkCommandBufferBeginInfo beginInfo = {};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;

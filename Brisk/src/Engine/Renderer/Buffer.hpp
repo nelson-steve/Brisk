@@ -12,11 +12,7 @@ namespace Brisk
 {
 	class Buffer {
 	public:
-		virtual void Init(uint64_t size,
-			void* data, 
-			std::vector<Core::BufferUsage> usageFlags, 
-			std::vector<Core::MemoryProperty> memoryProperty, 
-			bool mapPersistant) = 0;
+		virtual void Init(uint32_t size, void* data, Core::BufferUsage usageFlags, Core::MemoryProperty memoryProperty, bool mapPersistant) = 0;
 		virtual void Release() = 0;
 		virtual void UpdatePersistantData(uint32_t size, void* data) = 0;
 		

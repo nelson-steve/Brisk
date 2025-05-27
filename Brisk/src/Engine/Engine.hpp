@@ -47,10 +47,5 @@ namespace Brisk
 		/// Stores basic information about the engine
 		/// </summary>
 		static EngineSettings s_EngineSettings;
-
-		/// <summary>
-		/// Editor handle
-		/// </summary>
-		static std::unique_ptr<Editor> s_Editor;
 	};
 }

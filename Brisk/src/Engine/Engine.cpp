@@ -6,7 +6,6 @@
 namespace Brisk
 {
 	Engine::EngineSettings Engine::s_EngineSettings;
-	std::unique_ptr<Editor> Engine::s_Editor;
 	std::shared_ptr<Application> Engine::s_Application;
 
 	void Engine::InitSystems() {
@@ -16,12 +15,6 @@ namespace Brisk
 
 		s_Application = std::make_shared<Application>();
 		s_Application->CreateApplication();
-
-		//s_Editor = std::make_unique<Editor>();
-		//s_Editor->Create();
-
-		//glfwSetCursorPosCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), mouseCallback); 
-		//glfwSetScrollCallback((GLFWwindow*)s_MainWindow->GetWindowHandle(), scrollCallback);
 	}
 
 	void Engine::Update() {
@@ -36,6 +29,5 @@ namespace Brisk
 
 	void Engine::Terminate() {
 		s_Application->Close();
-		//s_Editor->Release();
 	}
 }

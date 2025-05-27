@@ -32,7 +32,7 @@ namespace Brisk
 		m_ValidationLayers = { "VK_LAYER_KHRONOS_validation" };
 
 		VkApplicationInfo appInfo{ VK_STRUCTURE_TYPE_APPLICATION_INFO };
-		appInfo.pApplicationName = "Demo";
+		appInfo.pApplicationName = "Potato";
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.pEngineName = Engine::s_EngineSettings.EngineName.c_str();
 		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
@@ -78,7 +78,6 @@ namespace Brisk
 		m_RequiredExtensions = 
 		{ 
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
-			//VK_KHR_PUSH_DESCRIPTOR_EXTENSION_NAME
 		};
 
 		std::vector<VkPhysicalDevice> availableDevices = RetrieveAvailableDevice(m_Instance);
@@ -381,8 +380,6 @@ namespace Brisk
 		features12.descriptorBindingVariableDescriptorCount = VK_TRUE;
 		features12.runtimeDescriptorArray = VK_TRUE;
 		features12.descriptorIndexing = VK_TRUE;
-
-		//vkGetPhysicalDeviceFeatures2(m_PhysicalDevice, &features);
 
 		deviceCreateInfo.pNext = &features;
 		features.pNext = &features11;

@@ -273,6 +273,12 @@
     <ClInclude Include="vendors\SPIRV-Reflect\include\spirv\unified1\spirv.h">
       <Filter>Header Files</Filter>
     </ClInclude>
+    <ClInclude Include="vendors\VMA\VMA\include\vk_mem_alloc.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
+    <ClInclude Include="vendors\VMA\VMA\src\VmaUsage.h">
+      <Filter>Header Files</Filter>
+    </ClInclude>
     <ClInclude Include="vendors\VMA\src\VmaUsage.h">
       <Filter>Header Files</Filter>
     </ClInclude>
@@ -464,10 +470,16 @@
     <ClCompile Include="src\Engine\Renderer\Texture.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="vendors\VMA\src\VolkUsage.cpp">
+    <ClCompile Include="vendors\VMA\VMA\src\VmaUsage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\VMA\VMA\src\VolkUsage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="vendors\VMA\src\VmaUsage.cpp">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="vendors\VMA\src\VolkUsage.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

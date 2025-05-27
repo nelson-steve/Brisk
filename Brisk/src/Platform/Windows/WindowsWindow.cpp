@@ -29,7 +29,6 @@ namespace Brisk
 		if (m_Window == nullptr) {
 			BRISK_APP_FATAL("Could not create window of size width/height: " + std::to_string(m_Width) + "/" + std::to_string(m_Height));
 		}
-		//SetVSync(false);
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);
 
@@ -60,16 +59,16 @@ namespace Brisk
 
 				switch (focus)
 				{
-				case 0:
-				{
-					WindowFocusEvent event(focus);
-					data.EventCallBack(event);
-				}
-				case 1:
-				{
-					WindowLoseFocusEvent event(focus);
-					data.EventCallBack(event);
-				}
+					case 0:
+					{
+						WindowFocusEvent event(focus);
+						data.EventCallBack(event);
+					}
+					case 1:
+					{
+						WindowLoseFocusEvent event(focus);
+						data.EventCallBack(event);
+					}
 				}
 			});
 
@@ -96,18 +95,18 @@ namespace Brisk
 				std::cout << "Mouse button";
 				switch (action)
 				{
-				case GLFW_PRESS:
-				{
-					MouseButtonPressedEvent event(button);
-					data.EventCallBack(event);
-					break;
-				}
-				case GLFW_RELEASE:
-				{
-					MouseButtonReleasedEvent event(button);
-					data.EventCallBack(event);
-					break;
-				}
+					case GLFW_PRESS:
+					{
+						MouseButtonPressedEvent event(button);
+						data.EventCallBack(event);
+						break;
+					}
+					case GLFW_RELEASE:
+					{
+						MouseButtonReleasedEvent event(button);
+						data.EventCallBack(event);
+						break;
+					}
 				}
 
 			});
@@ -134,24 +133,24 @@ namespace Brisk
 
 				switch (action)
 				{
-				case GLFW_PRESS:
-				{
-					KeyPressedEvent event(key, 0);
-					data.EventCallBack(event);
-					break;
-				}
-				case GLFW_RELEASE:
-				{
-					KeyReleasedEvent event(key);
-					data.EventCallBack(event);
-					break;
-				}
-				case GLFW_REPEAT:
-				{
-					KeyPressedEvent event(key, 1);
-					data.EventCallBack(event);
-					break;
-				}
+					case GLFW_PRESS:
+					{
+						KeyPressedEvent event(key, 0);
+						data.EventCallBack(event);
+						break;
+					}
+					case GLFW_RELEASE:
+					{
+						KeyReleasedEvent event(key);
+						data.EventCallBack(event);
+						break;
+					}
+					case GLFW_REPEAT:
+					{
+						KeyPressedEvent event(key, 1);
+						data.EventCallBack(event);
+						break;
+					}
 				}
 			});
 	}

@@ -432,7 +432,7 @@ namespace Brisk
 
         RenderCommand::Draw(m_CmdBuffer, 3, 0);
 
-        //m_Editor->Render(m_CmdBuffer);
+        m_Editor->Render(m_CmdBuffer);
 
         m_LightingPass->End(m_CmdBuffer);
 

@@ -430,9 +430,7 @@ namespace Brisk
 	Entity Scene::CreateMeshEntity(const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
-		//entity.AddComponent<TransformComponent>();
-		//std::shared_ptr<Mesh> model;
-		//model = std::make_shared<Mesh>();
+
 		std::vector<std::string> paths = {
 			/* 0 */"../Data/Models/Cube/Cube.gltf",
 			/* 1 */"../Data/Models/revolver/revolver.gltf",
@@ -441,21 +439,9 @@ namespace Brisk
 			/* 4 */"../Data/Models/revolver/revolver.gltf",
 			/* 5 */"../Data/Models/cerberus/cerberus.gltf",
 			/* 6 */"../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf",
+			/* 7 */"../Data/Models/spaceship/scene.gltf",
 		};
-		//LoadGLTFFile(, entity);
-		LoadGLTFFile(paths[4], entity);
-		//LoadGLTFFile("../Data/Models/spaceship/scene.gltf", entity);
-
-		entity.AddComponent<MaterialComponent>();
-		//entity.AddComponent<MeshComponent>().pModel = model;
-		auto& mat = entity.GetComponent<MaterialComponent>();
-
-		//mat.pMaterials.push_back(Shader::Create());
-		//mat.pMaterials[0]->Init(Engine::s_Application->GetRenderer()->pipeline, "material");
-		//mat.pMaterials[0]->SetMVPBuffer(Engine::s_Application->GetCamera()->mMVPBuffer);
-		//mat.pMaterials[0]->UpdateResources();
-
-		//mat.pMaterials[0]->AddTextures(mTextures);
+		LoadGLTFFile(paths[2], entity);
 
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;

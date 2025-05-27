@@ -10,8 +10,6 @@
 #include "DescriptorLayoutVulkan.hpp"
 //-----------------
 
-#include <vulkan/vulkan_core.h>
-
 namespace Brisk
 {
 	std::vector<VkPhysicalDevice> GpuAdapterVulkan::RetrieveAvailableDevice(VkInstance instance) {
@@ -108,6 +106,26 @@ namespace Brisk
 		m_Surface = SurfaceFactoryVulkan::CreateNativeSurface(m_Instance);
 
 		CreateLogicalDevice();
+		volkLoadDevice(m_Device);
+
+		VmaAllocatorCreateInfo allocatorInfo = {};
+		allocatorInfo.physicalDevice = m_PhysicalDevice;
+		allocatorInfo.device = m_Device;
+		allocatorInfo.instance = m_Instance;
+		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_2;
+		VmaVulkanFunctions vulkanFunctions = {};
+		VkResult res = vmaImportVulkanFunctionsFromVolk(&allocatorInfo, &vulkanFunctions);
+		if (res != VK_SUCCESS) {
+			throw std::runtime_error("Failed to import Vulkan functions from Volk");
+		}
+
+		// Pass the filled struct pointer to allocatorInfo
+		allocatorInfo.pVulkanFunctions = &vulkanFunctions;
+
+		res = vmaCreateAllocator(&allocatorInfo, &m_VmaAllocator);
+		if (res != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create VMA allocator.");
+		}
 
 		AllocatePools();
 

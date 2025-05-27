@@ -7,6 +7,7 @@
 #include "Engine/Renderer/Buffer.hpp"
 #include "Engine/Camera.hpp"
 //-----------------------------------
+#include <vk_mem_alloc.h>
 #include <Volk/volk.h>
 //--------------------
 
@@ -31,7 +32,7 @@ namespace Brisk {
 			return &bufferInfo;
 		}
 	private:
-		void Create(uint64_t size, VkBufferUsageFlags usageFlags);
+		void Create(uint64_t size, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage);
 		void Allocate(VkMemoryPropertyFlags properties);
 		//void MapMemory(std::vector<Point>& data);
 		void MapMemory(MeshData* data);
@@ -41,6 +42,7 @@ namespace Brisk {
 		const VkDeviceMemory GetMemory() const { return m_Memory; }
 	private:
 		void* m_MappedPointerHandle;
+		VmaAllocation m_Allocation;
 		VkBuffer m_Handle;
 		VkDeviceMemory m_Memory;
 		VkDescriptorBufferInfo bufferInfo;

@@ -16,28 +16,25 @@ namespace Brisk
 		std::vector<Core::MemoryProperty> memoryProperty,
 		bool mapPersistant) {
 		VkBufferUsageFlags usage{};
-		VkMemoryPropertyFlags memory{};
+		VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU; // slow, usage staging buffer
+
 		for (auto& flag : usageFlags)
 			usage |= UtilitiesVulkan::BufferUsageToVkFormat(flag);
-		for (auto& flag : memoryProperty)
-			memory |= UtilitiesVulkan::MemoryPropertyToVkFormat(flag);
 
-		Create(size, usage);
-		Allocate(memory);
+		Create(size, usage, vmaUsage);
 
 		if (mapPersistant) {
 			void* ref;
-			vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, 0, m_Size, 0, &ref);
-			memcpy(ref, data, (size_t)m_Size);
-			vkUnmapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory);
+			vmaMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), m_Allocation, &ref);
+			memcpy(ref, data, static_cast<size_t>(m_Size));
+			vmaUnmapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), m_Allocation);
 		}
-		else
-		{
+		else {
 			void* ref;
-			vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, 0, m_Size, 0, &ref);
+			vmaMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), m_Allocation, &ref);
 			m_MappedPointerHandle = ref;
 			if (data)
-				memcpy(m_MappedPointerHandle, data, (size_t)m_Size);
+				memcpy(m_MappedPointerHandle, data, static_cast<size_t>(m_Size));
 		}
 	}
 
@@ -45,16 +42,19 @@ namespace Brisk
 		memcpy(m_MappedPointerHandle, data, m_Size);
 	}
 
-	void BufferVulkan::Create(uint64_t bufferSize, VkBufferUsageFlags usageFlags) {
-		VkBufferCreateInfo createInfo{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
-		createInfo.pNext = nullptr;
+	void BufferVulkan::Create(uint64_t bufferSize, VkBufferUsageFlags usageFlags, VmaMemoryUsage memoryUsage) {
 		m_Size = bufferSize;
-		createInfo.size = m_Size;
-		createInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-        createInfo.usage = usageFlags;
 
-		if (vkCreateBuffer(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &createInfo, nullptr, &m_Handle) != VK_SUCCESS) {
-			throw std::runtime_error("failed to create vertex buffer!");
+		VkBufferCreateInfo bufferInfo{ VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO };
+		bufferInfo.size = m_Size;
+		bufferInfo.usage = usageFlags;
+		bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+		VmaAllocationCreateInfo allocCreateInfo{};
+		allocCreateInfo.usage = memoryUsage;
+
+		if (vmaCreateBuffer(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), &bufferInfo, &allocCreateInfo, &m_Handle, &m_Allocation, nullptr) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create VMA buffer");
 		}
 	}
 
@@ -82,22 +82,22 @@ namespace Brisk
 
 	void BufferVulkan::MapMemory(MeshData* vertices) {
 		void* data;
-		vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, 0, m_Size, 0, &data);
-		memcpy(data, vertices, (size_t)m_Size);
+		vmaMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), m_Allocation, &data);
+		memcpy(data, vertices, static_cast<size_t>(m_Size));
+		vmaUnmapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), m_Allocation);
 	}
 
 	void BufferVulkan::MapMemory(void** data) {
-		void* buffer;
-		vkMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, 0, m_Size, 0, &buffer);
-		*data = buffer;
+		void* mapped;
+		vmaMapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), m_Allocation, &mapped);
+		*data = mapped;
 	}
 
 	void BufferVulkan::UnMapMemory() {
-		vkUnmapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory);
+		vmaUnmapMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), m_Allocation);
 	}
 
 	void BufferVulkan::Release() {
-		vkDestroyBuffer(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Handle, nullptr);
-		vkFreeMemory(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Memory, nullptr);
+		vmaDestroyBuffer(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), m_Handle, m_Allocation);
 	}
 }

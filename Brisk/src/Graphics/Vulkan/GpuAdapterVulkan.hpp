@@ -6,6 +6,7 @@
 #include "Engine/Application.hpp"
 //-------------------------------
 #include <Volk/volk.h>
+#include "vk_mem_alloc.h"
 //--------------------
 #include <vector>
 #include <string>
@@ -31,6 +32,7 @@ namespace Brisk
 		void Release();
 		VkPhysicalDevice GetPhysicalDevice() { return m_PhysicalDevice; }
 		VkDevice GetDevice() { return m_Device; }
+		VmaAllocator GetVmaAllocator() { return m_VmaAllocator; }
 		const VkQueue GetGraphicsQueue() const { return m_GraphicsQueue; }
 		const VkQueue GetTransferQueue() const { return m_TransferQueue; }
 		const uint32_t GetGraphicsQueueFamily() const { return m_GraphicsQueueFamily; }
@@ -72,6 +74,8 @@ namespace Brisk
 		VkDevice m_Device;
 		VkQueue m_TransferQueue;
 		VkQueue m_GraphicsQueue;
+
+		VmaAllocator m_VmaAllocator;
 
 		uint32_t m_GraphicsQueueFamily;
 		uint32_t m_TransferQueueFamily;

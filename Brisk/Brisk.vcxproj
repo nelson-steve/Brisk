@@ -111,7 +111,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IMGUI_IMPL_VULKAN_USE_VOLK=1</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)vendors\include\GLFW;$(ProjectDir)vendors\entt\include;$(ProjectDir)vendors\json;$(ProjectDir)src;$(ProjectDir)vendors\tiny_obj;$(ProjectDir)vendors\tiny_gltf;$(ProjectDir)vendors\SPIRV-Reflect;$(ProjectDir)vendors\ImGui;$(ProjectDir)vendors\stb_image;$(ProjectDir)vendors\Assimp\include;$(ProjectDir)vendors\spdlog\include;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)vendors\include\GLFW;$(ProjectDir)vendors\entt\include;$(ProjectDir)vendors\json;$(ProjectDir)src;$(ProjectDir)vendors\tiny_obj;$(ProjectDir)vendors\tiny_gltf;$(ProjectDir)vendors\SPIRV-Reflect;$(ProjectDir)vendors\ImGui;$(ProjectDir)vendors\stb_image;$(ProjectDir)vendors\VMA\include;$(ProjectDir)vendors\Assimp\include;$(ProjectDir)vendors\spdlog\include;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -138,7 +138,7 @@
       <SDLCheck>true</SDLCheck>
       <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IMGUI_IMPL_VULKAN_USE_VOLK=1</PreprocessorDefinitions>
       <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)vendors\include\GLFW;$(ProjectDir)vendors\entt\include;$(ProjectDir)vendors\json;$(ProjectDir)src;$(ProjectDir)vendors\tiny_obj;$(ProjectDir)vendors\tiny_gltf;$(ProjectDir)vendors\SPIRV-Reflect;$(ProjectDir)vendors\ImGui;$(ProjectDir)vendors\stb_image;$(ProjectDir)vendors\Assimp\include;$(ProjectDir)vendors\spdlog\include;$(ProjectDir)vendors\DirectX12Headers\include;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>$(ProjectDir)vendors\include\GLFW;$(ProjectDir)vendors\entt\include;$(ProjectDir)vendors\json;$(ProjectDir)src;$(ProjectDir)vendors\tiny_obj;$(ProjectDir)vendors\tiny_gltf;$(ProjectDir)vendors\SPIRV-Reflect;$(ProjectDir)vendors\ImGui;$(ProjectDir)vendors\stb_image;$(ProjectDir)vendors\VMA\include;$(ProjectDir)vendors\Assimp\include;$(ProjectDir)vendors\spdlog\include;$(ProjectDir)vendors\DirectX12Headers\include;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
       <LanguageStandard>stdcpp17</LanguageStandard>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
     </ClCompile>
@@ -250,6 +250,7 @@
     <ClInclude Include="vendors\ImGui\imstb_truetype.h" />
     <ClInclude Include="vendors\SPIRV-Reflect\include\spirv\unified1\spirv.h" />
     <ClInclude Include="vendors\SPIRV-Reflect\spirv_reflect.h" />
+    <ClInclude Include="vendors\VMA\src\VmaUsage.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Log.cpp" />
@@ -314,6 +315,8 @@
     <ClCompile Include="vendors\ImGui\imgui_tables.cpp" />
     <ClCompile Include="vendors\ImGui\imgui_widgets.cpp" />
     <ClCompile Include="vendors\SPIRV-Reflect\spirv_reflect.c" />
+    <ClCompile Include="vendors\VMA\src\VmaUsage.cpp" />
+    <ClCompile Include="vendors\VMA\src\VolkUsage.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

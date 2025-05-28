@@ -48,43 +48,20 @@ namespace Brisk
 		Entity CreateCubeEntity(const std::string& name = "Cube");
 		Entity CreatePlaneEntity(const std::string& name = "Plane");
 		Entity CreateLightEntity(const std::string& name = "Light");
-		Entity CreateSkyboxEntity(const std::string& name = "Skybox");
 		Entity CreateEntity(const std::string& name);
 		void DestroyEntity(Entity entity);
-
-		void OnRuntimeStart();
-		void OnRuntimeStop();
-
-		void OnSimulationStart();
-		void OnSimulationStop();
 
 		void LoadNode(Entity parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> renderableRef);
 		void LoadMaterials(tinygltf::Model model);
 
-		//void OnUpdateRuntime(Timestep ts);
-		//void OnUpdateSimulation(Ref<EditorCamera> camera, Timestep ts);
-		//void OnUpdateEditor(Ref<EditorCamera> camera, Timestep ts);
-		//void RenderScene(Camera* camera, Timestep ts);
-		//void OnUpdateResize(uint32_t width, uint32_t height);
-
 		void OnViewportResize(uint32_t width, uint32_t height);
 
-		Entity GetPrimaryCameraEntity();
 		SceneSetting& GetSceneSetting() { return m_SceneSetting; }
 		Entity FindEntityByName(std::string_view name);
 
 		Entity DuplicateEntity(Entity entity);
 
-		bool IsRunning() const { return m_IsRunning; }
-		bool IsPaused() const { return m_IsPaused; }
-
 		void SetPaused(bool paused) { m_IsPaused = paused; }
-
-		//void SetMainFramebuffer(Ref<Framebuffer> fbo) { m_Framebuffer = fbo; }
-
-		void Step(int frames = 1);
-
-		void EnableGravity(bool gravity);
 
 		entt::registry& Reg() { return m_Registry; }
 		glm::vec3 lightPos = glm::vec3(-2.0f, 4.0f, -1.0f);
@@ -98,8 +75,6 @@ namespace Brisk
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
 		bool m_IsRunning = false;
 		bool m_IsPaused = false;
-		int m_StepFrames = 0;
-		bool m_IsSimulating = false;
 		SceneSetting m_SceneSetting;
 
 		uint32_t m_vertex_pos = 0;

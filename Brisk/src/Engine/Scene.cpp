@@ -208,10 +208,6 @@ namespace Brisk
 		if (parent) {
 			parent.GetComponent<TransformComponent>().children.push_back(entity);
 		}
-		else {
-			//pNodes.push_back(new_node);
-		}
-		//m_linear_nodes.push_back(new_node);
 	}
 
 	// TODO: Move GLTF specific functions to a namespace or static class GLTF_Utility

@@ -8,7 +8,7 @@
 #include <cstdlib>
 #include <cassert>
 
-#include <Volk/volk.h>
+#include <volk.h>
 #include <glslang/Public/ShaderLang.h>
 
 namespace Brisk 

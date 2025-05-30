@@ -1,14 +1,6 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project DefaultTargets="Build" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup Label="ProjectConfigurations">
-    <ProjectConfiguration Include="Debug|Win32">
-      <Configuration>Debug</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
-    <ProjectConfiguration Include="Release|Win32">
-      <Configuration>Release</Configuration>
-      <Platform>Win32</Platform>
-    </ProjectConfiguration>
     <ProjectConfiguration Include="Debug|x64">
       <Configuration>Debug</Configuration>
       <Platform>x64</Platform>
@@ -19,49 +11,27 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <VCProjectVersion>17.0</VCProjectVersion>
+    <ProjectGuid>{80A2E90C-ECB6-11BE-B538-B51D210C0EEF}</ProjectGuid>
+    <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <Keyword>Win32Proj</Keyword>
-    <ProjectGuid>{0b1e3c05-3f0f-47e4-baf3-5148be861743}</ProjectGuid>
     <RootNamespace>Brisk</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
-  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'" Label="Configuration">
-    <ConfigurationType>Application</ConfigurationType>
-    <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
-    <CharacterSet>Unicode</CharacterSet>
-  </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>true</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'" Label="Configuration">
     <ConfigurationType>Application</ConfigurationType>
     <UseDebugLibraries>false</UseDebugLibraries>
-    <PlatformToolset>v143</PlatformToolset>
-    <WholeProgramOptimization>true</WholeProgramOptimization>
     <CharacterSet>Unicode</CharacterSet>
+    <PlatformToolset>v143</PlatformToolset>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.props" />
   <ImportGroup Label="ExtensionSettings">
-  </ImportGroup>
-  <ImportGroup Label="Shared">
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
-  </ImportGroup>
-  <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
   </ImportGroup>
   <ImportGroup Label="PropertySheets" Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <Import Project="$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props" Condition="exists('$(UserRootDir)\Microsoft.Cpp.$(Platform).user.props')" Label="LocalAppDataPlatform" />
@@ -71,97 +41,59 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <IncludePath>$(ProjectDir)vendors\DirectX12Headers\include;$(ProjectDir)\src;$(IncludePath)</IncludePath>
-    <PublicIncludeDirectories>
-    </PublicIncludeDirectories>
-    <AllProjectIncludesArePublic>true</AllProjectIncludesArePublic>
-    <ExternalIncludePath>$(VC_IncludePath);$(WindowsSDK_IncludePath)</ExternalIncludePath>
+    <LinkIncremental>true</LinkIncremental>
+    <OutDir>..\bin\Debug-windows-x86_64\Brisk\</OutDir>
+    <IntDir>..\bin-int\Debug-windows-x86_64\Brisk\</IntDir>
+    <TargetName>Brisk</TargetName>
+    <TargetExt>.exe</TargetExt>
   </PropertyGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;_DEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-  </ItemDefinitionGroup>
-  <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|Win32'">
-    <ClCompile>
-      <WarningLevel>Level3</WarningLevel>
-      <FunctionLevelLinking>true</FunctionLevelLinking>
-      <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>WIN32;NDEBUG;_CONSOLE;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-    </ClCompile>
-    <Link>
-      <SubSystem>Console</SubSystem>
-      <EnableCOMDATFolding>true</EnableCOMDATFolding>
-      <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-    </Link>
-  </ItemDefinitionGroup>
+  <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
+    <LinkIncremental>false</LinkIncremental>
+    <OutDir>..\bin\Release-windows-x86_64\Brisk\</OutDir>
+    <IntDir>..\bin-int\Release-windows-x86_64\Brisk\</IntDir>
+    <TargetName>Brisk</TargetName>
+    <TargetExt>.exe</TargetExt>
+  </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>_DEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IMGUI_IMPL_VULKAN_USE_VOLK=1</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)vendors\include\GLFW;$(ProjectDir)vendors\entt\include;$(ProjectDir)vendors\json;$(ProjectDir)src;$(ProjectDir)vendors\tiny_obj;$(ProjectDir)vendors\tiny_gltf;$(ProjectDir)vendors\SPIRV-Reflect;$(ProjectDir)vendors\ImGui;$(ProjectDir)vendors\stb_image;$(ProjectDir)vendors\VMA\include;$(ProjectDir)vendors\Assimp\include;$(ProjectDir)vendors\spdlog\include;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <PreprocessorDefinitions>VK_NO_PROTOTYPES;BRISK_PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;vendors\GLFW\include;vendors\ImGui;vendors\Volk;vendors\spdlog\include;vendors\stb_image\include;vendors\json\include;vendors\entt\include;vendors\glm;vendors\tiny_gltf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
+      <Optimization>Disabled</Optimization>
+      <MinimalRebuild>false</MinimalRebuild>
+      <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(VULKAN_SDK)\Lib\volkd.lib;$(ProjectDir)vendors\lib\glfw3.lib;$(CoreLibraryDependencies);$(ProjectDir)vendors\spdlog\lib\Debug\spdlogd.lib;%(AdditionalDependencies);$(ProjectDir)vendors\Assimp\lib\x64\assimp-vc143-mt.lib;dxgi.lib;d3d12.lib</AdditionalDependencies>
-      <EntryPointSymbol>
-      </EntryPointSymbol>
     </Link>
-    <PreBuildEvent>
-      <Command>
-      </Command>
-    </PreBuildEvent>
-    <PreLinkEvent>
-      <Command>call "$(ProjectDir)Shaders\Vulkan\DeferredRenderer\CompileShaders.bat"</Command>
-    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
+      <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>VK_NO_PROTOTYPES;BRISK_PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;vendors\GLFW\include;vendors\ImGui;vendors\Volk;vendors\spdlog\include;vendors\stb_image\include;vendors\json\include;vendors\entt\include;vendors\glm;vendors\tiny_gltf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
-      <SDLCheck>true</SDLCheck>
-      <PreprocessorDefinitions>NDEBUG;_CONSOLE;%(PreprocessorDefinitions);_CRT_SECURE_NO_WARNINGS;IMGUI_IMPL_VULKAN_USE_VOLK=1</PreprocessorDefinitions>
-      <ConformanceMode>true</ConformanceMode>
-      <AdditionalIncludeDirectories>$(ProjectDir)vendors\include\GLFW;$(ProjectDir)vendors\entt\include;$(ProjectDir)vendors\json;$(ProjectDir)src;$(ProjectDir)vendors\tiny_obj;$(ProjectDir)vendors\tiny_gltf;$(ProjectDir)vendors\SPIRV-Reflect;$(ProjectDir)vendors\ImGui;$(ProjectDir)vendors\stb_image;$(ProjectDir)vendors\VMA\include;$(ProjectDir)vendors\Assimp\include;$(ProjectDir)vendors\spdlog\include;$(ProjectDir)vendors\DirectX12Headers\include;$(VULKAN_SDK)\Include</AdditionalIncludeDirectories>
-      <LanguageStandard>stdcpp17</LanguageStandard>
+      <MinimalRebuild>false</MinimalRebuild>
+      <StringPooling>true</StringPooling>
+      <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpp20</LanguageStandard>
+      <ExternalWarningLevel>Level3</ExternalWarningLevel>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
-      <GenerateDebugInformation>true</GenerateDebugInformation>
-      <AdditionalDependencies>$(VULKAN_SDK)\Include\Lib\volk.lib;$(ProjectDir)vendors\lib\glfw3.lib;$(CoreLibraryDependencies);$(ProjectDir)vendors\spdlog\lib\Release\spdlog.lib;%(AdditionalDependencies);$(ProjectDir)vendors\Assimp\lib\x64;$(ProjectDir)vendors\Assimp\lib\x64\assimp-vc143-mt.lib;dxgi.lib;D3D12.lib</AdditionalDependencies>
-      <EntryPointSymbol>
-      </EntryPointSymbol>
     </Link>
-    <PreBuildEvent>
-      <Command>
-      </Command>
-    </PreBuildEvent>
-    <PreBuildEvent>
-      <Message>
-      </Message>
-    </PreBuildEvent>
-    <PreLinkEvent>
-      <Command>call "$(ProjectDir)Shaders\Vulkan\DeferredRenderer\CompileShaders.bat"</Command>
-    </PreLinkEvent>
   </ItemDefinitionGroup>
   <ItemGroup>
     <ClInclude Include="src\Core\Core.hpp" />
@@ -171,11 +103,11 @@
     <ClInclude Include="src\Editor\AssetsPanel.hpp" />
     <ClInclude Include="src\Editor\ConsolePanel.hpp" />
     <ClInclude Include="src\Editor\Editor.hpp" />
-    <ClInclude Include="src\Editor\IEditorPanel.hpp" />
+    <ClInclude Include="src\Editor\GamePanel.hpp" />
     <ClInclude Include="src\Editor\HeirarchyPanel.hpp" />
+    <ClInclude Include="src\Editor\IEditorPanel.hpp" />
     <ClInclude Include="src\Editor\InspectorPanel.hpp" />
     <ClInclude Include="src\Editor\ScenePanel.hpp" />
-    <ClInclude Include="src\Editor\GamePanel.hpp" />
     <ClInclude Include="src\Engine\Application.hpp" />
     <ClInclude Include="src\Engine\AssetManager.hpp" />
     <ClInclude Include="src\Engine\Camera.hpp" />
@@ -188,7 +120,6 @@
     <ClInclude Include="src\Engine\Events\KeyEvent.hpp" />
     <ClInclude Include="src\Engine\Events\MouseEvent.hpp" />
     <ClInclude Include="src\Engine\Model.hpp" />
-    <ClInclude Include="src\Engine\Module.hpp" />
     <ClInclude Include="src\Engine\OrthographicCamera.hpp" />
     <ClInclude Include="src\Engine\Renderer\Buffer.hpp" />
     <ClInclude Include="src\Engine\Renderer\CommandBuffer.hpp" />
@@ -200,25 +131,24 @@
     <ClInclude Include="src\Engine\Renderer\GpuAdapter.hpp" />
     <ClInclude Include="src\Engine\Renderer\IBLTextureMaker.hpp" />
     <ClInclude Include="src\Engine\Renderer\Material.hpp" />
+    <ClInclude Include="src\Engine\Renderer\Pipeline.hpp" />
     <ClInclude Include="src\Engine\Renderer\Queue.hpp" />
+    <ClInclude Include="src\Engine\Renderer\RHI.hpp" />
     <ClInclude Include="src\Engine\Renderer\RenderCommand.hpp" />
-    <ClInclude Include="src\Engine\Renderer\RendererAPI.hpp" />
     <ClInclude Include="src\Engine\Renderer\RenderGraph.hpp" />
     <ClInclude Include="src\Engine\Renderer\RenderPass.hpp" />
-    <ClInclude Include="src\Engine\Renderer\RHI.hpp" />
-    <ClInclude Include="src\Engine\Renderer\GraphicsPipeline.hpp" />
-    <ClInclude Include="src\Engine\Renderer\Pipeline.hpp" />
     <ClInclude Include="src\Engine\Renderer\Renderer.hpp" />
+    <ClInclude Include="src\Engine\Renderer\RendererAPI.hpp" />
     <ClInclude Include="src\Engine\Renderer\RendererFactory.hpp" />
     <ClInclude Include="src\Engine\Renderer\Semaphore.hpp" />
+    <ClInclude Include="src\Engine\Renderer\Swapchain.hpp" />
+    <ClInclude Include="src\Engine\Renderer\Texture.hpp" />
     <ClInclude Include="src\Engine\Scene.hpp" />
     <ClInclude Include="src\Engine\SceneManager.hpp" />
     <ClInclude Include="src\Engine\SceneSerializer.hpp" />
     <ClInclude Include="src\Engine\ScriptEngine.hpp" />
     <ClInclude Include="src\Engine\Window.hpp" />
     <ClInclude Include="src\Graphics\Factories\SwapchainFactory.hpp" />
-    <ClInclude Include="src\Engine\Renderer\Swapchain.hpp" />
-    <ClInclude Include="src\Engine\Renderer\Texture.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\BufferVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\CommandBufferAllocatorVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\CommandBufferVulkan.hpp" />
@@ -227,40 +157,28 @@
     <ClInclude Include="src\Graphics\Vulkan\DescriptorLayoutVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\FenceVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\FramebufferVulkan.hpp" />
+    <ClInclude Include="src\Graphics\Vulkan\GpuAdapterVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\PipelineVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\QueueVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\RendererAPIVulkan.hpp" />
-    <ClInclude Include="src\Graphics\Vulkan\RenderPassVulkan.hpp" />
+    <ClInclude Include="src\Graphics\Vulkan\RenderpassVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\SemaphoreVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\ShaderCompiler.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\SurfaceFactoryVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\SwapchainVulkan.hpp" />
-    <ClInclude Include="src\Graphics\Vulkan\GpuAdapterVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\TextureVulkan.hpp" />
-    <ClInclude Include="src\Graphics\Vulkan\volk.cpp" />
     <ClInclude Include="src\Graphics\Vulkan\UtilitiesVulkan.hpp" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.hpp" />
-    <ClInclude Include="vendors\ImGui\imconfig.h" />
-    <ClInclude Include="vendors\ImGui\imgui.h" />
-    <ClInclude Include="vendors\ImGui\ImGuiBackends\imgui_impl_glfw.h" />
-    <ClInclude Include="vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h" />
-    <ClInclude Include="vendors\ImGui\imgui_internal.h" />
-    <ClInclude Include="vendors\ImGui\imstb_rectpack.h" />
-    <ClInclude Include="vendors\ImGui\imstb_textedit.h" />
-    <ClInclude Include="vendors\ImGui\imstb_truetype.h" />
-    <ClInclude Include="vendors\SPIRV-Reflect\include\spirv\unified1\spirv.h" />
-    <ClInclude Include="vendors\SPIRV-Reflect\spirv_reflect.h" />
-    <ClInclude Include="vendors\VMA\src\VmaUsage.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Log.cpp" />
     <ClCompile Include="src\Editor\AssetsPanel.cpp" />
     <ClCompile Include="src\Editor\ConsolePanel.cpp" />
     <ClCompile Include="src\Editor\Editor.cpp" />
+    <ClCompile Include="src\Editor\GamePanel.cpp" />
     <ClCompile Include="src\Editor\HeirarchyPanel.cpp" />
     <ClCompile Include="src\Editor\InspectorPanel.cpp" />
     <ClCompile Include="src\Editor\ScenePanel.cpp" />
-    <ClCompile Include="src\Editor\GamePanel.cpp" />
     <ClCompile Include="src\Engine\Application.cpp" />
     <ClCompile Include="src\Engine\Camera.cpp" />
     <ClCompile Include="src\Engine\Engine.cpp" />
@@ -278,45 +196,47 @@
     <ClCompile Include="src\Engine\Renderer\Pipeline.cpp" />
     <ClCompile Include="src\Engine\Renderer\Queue.cpp" />
     <ClCompile Include="src\Engine\Renderer\RenderCommand.cpp" />
+    <ClCompile Include="src\Engine\Renderer\RenderPass.cpp" />
     <ClCompile Include="src\Engine\Renderer\Renderer.cpp" />
     <ClCompile Include="src\Engine\Renderer\RendererAPI.cpp" />
-    <ClCompile Include="src\Engine\Renderer\RenderPass.cpp" />
     <ClCompile Include="src\Engine\Renderer\Semaphore.cpp" />
+    <ClCompile Include="src\Engine\Renderer\Swapchain.cpp" />
     <ClCompile Include="src\Engine\Renderer\Texture.cpp" />
     <ClCompile Include="src\Engine\Scene.cpp" />
     <ClCompile Include="src\Engine\SceneManager.cpp" />
     <ClCompile Include="src\Engine\SceneSerializer.cpp" />
     <ClCompile Include="src\Engine\ScriptEngine.cpp" />
     <ClCompile Include="src\Engine\Window.cpp" />
-    <ClCompile Include="src\Engine\Renderer\Swapchain.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\BufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\CommandBufferAllocatorVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\CommandBufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\DescriptorLayoutVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\FenceVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\FramebufferVulkan.cpp" />
+    <ClCompile Include="src\Graphics\Vulkan\GpuAdapterVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\PipelineVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\QueueVulkan.cpp" />
-    <ClCompile Include="src\Graphics\Vulkan\RenderPassVulkan.cpp" />
+    <ClCompile Include="src\Graphics\Vulkan\RenderpassVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\SemaphoreVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\SwapchainVulkan.cpp" />
-    <ClCompile Include="src\Graphics\Vulkan\GpuAdapterVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\TextureVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\UtilitiesVulkan.cpp" />
+    <ClCompile Include="src\Graphics\Vulkan\volk.cpp" />
     <ClCompile Include="src\Main\main.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
     <ClCompile Include="src\tiny_gltf.cc" />
     <ClCompile Include="src\tiny_obj.cc" />
-    <ClCompile Include="vendors\ImGui\imgui.cpp" />
-    <ClCompile Include="vendors\ImGui\ImGuiBackends\imgui_impl_glfw.cpp" />
-    <ClCompile Include="vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.cpp" />
-    <ClCompile Include="vendors\ImGui\imgui_demo.cpp" />
-    <ClCompile Include="vendors\ImGui\imgui_draw.cpp" />
-    <ClCompile Include="vendors\ImGui\imgui_tables.cpp" />
-    <ClCompile Include="vendors\ImGui\imgui_widgets.cpp" />
-    <ClCompile Include="vendors\SPIRV-Reflect\spirv_reflect.c" />
-    <ClCompile Include="vendors\VMA\src\VmaUsage.cpp" />
-    <ClCompile Include="vendors\VMA\src\VolkUsage.cpp" />
+    <ClCompile Include="src\volk.c">
+      <ObjectFileName>$(IntDir)\volk1.obj</ObjectFileName>
+    </ClCompile>
+  </ItemGroup>
+  <ItemGroup>
+    <ProjectReference Include="vendors\ImGui\ImGui.vcxproj">
+      <Project>{C0FF640D-2C14-8DBE-F595-301E616989EF}</Project>
+    </ProjectReference>
+    <ProjectReference Include="vendors\GLFW\GLFW.vcxproj">
+      <Project>{154B857C-0182-860D-AA6E-6C109684020F}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

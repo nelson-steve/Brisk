@@ -3,7 +3,7 @@
 #include "RenderPassVulkan.hpp"
 #include "GpuAdapterVulkan.hpp"
 //-----------------------------
-#include <Volk/volk.h>
+#include <volk.h>
 //--------------------
 #include <cassert>
 //----------------

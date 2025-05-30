@@ -4,7 +4,7 @@
 #include "Engine/Renderer/Pipeline.hpp"
 #include "Core/Log.hpp"
 
-#include <Volk/volk.h>
+#include <volk.h>
 #define GLFW_INCLUDE_VULKAN
 
 #include <vector>

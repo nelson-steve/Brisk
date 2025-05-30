@@ -4,7 +4,7 @@
 #include "Engine/Engine.hpp"
 #include "Engine/Application.hpp"
 
-#include <Volk/volk.h>
+#include <volk.h>
 #include <vulkan/vulkan_win32.h>
 #include <glfw3.h>
 

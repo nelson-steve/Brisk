@@ -4,7 +4,7 @@
 #include "CommandBufferVulkan.hpp"
 #include "BufferVulkan.hpp"
 
-#include <Volk/volk.h>
+#include <volk.h>
 #include <vector>
 #include <Engine/Engine.hpp>
 

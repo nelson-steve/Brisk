@@ -1,31 +1,38 @@
 ﻿
 Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
-VisualStudioVersion = 17.8.34511.84
-MinimumVisualStudioVersion = 10.0.40219.1
-Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Brisk", "Brisk\Brisk.vcxproj", "{0B1E3C05-3F0F-47E4-BAF3-5148BE861743}"
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Brisk", "Brisk\Brisk.vcxproj", "{80A2E90C-ECB6-11BE-B538-B51D210C0EEF}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{53E47842-3FC8-3998-A828-34EB942B241A}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GLFW", "Brisk\vendors\GLFW\GLFW.vcxproj", "{154B857C-0182-860D-AA6E-6C109684020F}"
+EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "ImGui", "Brisk\vendors\ImGui\ImGui.vcxproj", "{C0FF640D-2C14-8DBE-F595-301E616989EF}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|x64 = Debug|x64
-		Debug|x86 = Debug|x86
 		Release|x64 = Release|x64
-		Release|x86 = Release|x86
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{0B1E3C05-3F0F-47E4-BAF3-5148BE861743}.Debug|x64.ActiveCfg = Debug|x64
-		{0B1E3C05-3F0F-47E4-BAF3-5148BE861743}.Debug|x64.Build.0 = Debug|x64
-		{0B1E3C05-3F0F-47E4-BAF3-5148BE861743}.Debug|x86.ActiveCfg = Debug|Win32
-		{0B1E3C05-3F0F-47E4-BAF3-5148BE861743}.Debug|x86.Build.0 = Debug|Win32
-		{0B1E3C05-3F0F-47E4-BAF3-5148BE861743}.Release|x64.ActiveCfg = Release|x64
-		{0B1E3C05-3F0F-47E4-BAF3-5148BE861743}.Release|x64.Build.0 = Release|x64
-		{0B1E3C05-3F0F-47E4-BAF3-5148BE861743}.Release|x86.ActiveCfg = Release|Win32
-		{0B1E3C05-3F0F-47E4-BAF3-5148BE861743}.Release|x86.Build.0 = Release|Win32
+		{80A2E90C-ECB6-11BE-B538-B51D210C0EEF}.Debug|x64.ActiveCfg = Debug|x64
+		{80A2E90C-ECB6-11BE-B538-B51D210C0EEF}.Debug|x64.Build.0 = Debug|x64
+		{80A2E90C-ECB6-11BE-B538-B51D210C0EEF}.Release|x64.ActiveCfg = Release|x64
+		{80A2E90C-ECB6-11BE-B538-B51D210C0EEF}.Release|x64.Build.0 = Release|x64
+		{154B857C-0182-860D-AA6E-6C109684020F}.Debug|x64.ActiveCfg = Debug|x64
+		{154B857C-0182-860D-AA6E-6C109684020F}.Debug|x64.Build.0 = Debug|x64
+		{154B857C-0182-860D-AA6E-6C109684020F}.Release|x64.ActiveCfg = Release|x64
+		{154B857C-0182-860D-AA6E-6C109684020F}.Release|x64.Build.0 = Release|x64
+		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Debug|x64.ActiveCfg = Debug|x64
+		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Debug|x64.Build.0 = Debug|x64
+		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Release|x64.ActiveCfg = Release|x64
+		{C0FF640D-2C14-8DBE-F595-301E616989EF}.Release|x64.Build.0 = Release|x64
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection
-	GlobalSection(ExtensibilityGlobals) = postSolution
-		SolutionGuid = {8B4B6642-4A74-4284-AE3B-18A3CD070E17}
+	GlobalSection(NestedProjects) = preSolution
+		{154B857C-0182-860D-AA6E-6C109684020F} = {53E47842-3FC8-3998-A828-34EB942B241A}
+		{C0FF640D-2C14-8DBE-F595-301E616989EF} = {53E47842-3FC8-3998-A828-34EB942B241A}
 	EndGlobalSection
 EndGlobal

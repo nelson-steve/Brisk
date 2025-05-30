@@ -1,0 +1,182 @@
+﻿  Log.cpp
+  AssetsPanel.cpp
+  ConsolePanel.cpp
+  Editor.cpp
+  GamePanel.cpp
+  HeirarchyPanel.cpp
+  InspectorPanel.cpp
+  ScenePanel.cpp
+  Application.cpp
+  Camera.cpp
+  Engine.cpp
+  Entity.cpp
+  Model.cpp
+  OrthographicCamera.cpp
+  Buffer.cpp
+  CommanBuffer.cpp
+  CommandBufferAllocator.cpp
+  ComputeCommands.cpp
+  Descriptor.cpp
+  Fence.cpp
+  GpuAdapter.cpp
+  IBLTextureMaker.cpp
+  Pipeline.cpp
+  Queue.cpp
+  RenderCommand.cpp
+  RenderPass.cpp
+  Renderer.cpp
+  RendererAPI.cpp
+  Semaphore.cpp
+  Swapchain.cpp
+  Texture.cpp
+  Scene.cpp
+D:\dev\Brisk\Brisk\vendors\Volk\volk.h(29,12): error C1083: Cannot open include file: 'vulkan/vk_platform.h': No such file or directory
+  (compiling source file 'src/Engine/Renderer/Semaphore.cpp')
+  
+  SceneManager.cpp
+D:\dev\Brisk\Brisk\vendors\Volk\volk.h(29,12): error C1083: Cannot open include file: 'vulkan/vk_platform.h': No such file or directory
+  (compiling source file 'src/Engine/Renderer/Fence.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\Volk\volk.h(29,12): error C1083: Cannot open include file: 'vulkan/vk_platform.h': No such file or directory
+  (compiling source file 'src/Engine/Renderer/RenderPass.cpp')
+  
+  SceneSerializer.cpp
+  ScriptEngine.cpp
+D:\dev\Brisk\Brisk\vendors\Volk\volk.h(29,12): error C1083: Cannot open include file: 'vulkan/vk_platform.h': No such file or directory
+  (compiling source file 'src/Engine/Renderer/RendererAPI.cpp')
+  
+  Window.cpp
+  BufferVulkan.cpp
+  CommandBufferAllocatorVulkan.cpp
+  CommandBufferVulkan.cpp
+  DescriptorLayoutVulkan.cpp
+  FenceVulkan.cpp
+D:\dev\Brisk\Brisk\vendors\Volk\volk.h(29,12): error C1083: Cannot open include file: 'vulkan/vk_platform.h': No such file or directory
+  (compiling source file 'src/Engine/Renderer/Descriptor.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Editor/Editor.cpp')
+  
+  FramebufferVulkan.cpp
+  GpuAdapterVulkan.cpp
+D:\dev\Brisk\Brisk\vendors\Volk\volk.h(29,12): error C1083: Cannot open include file: 'vulkan/vk_platform.h': No such file or directory
+  (compiling source file 'src/Engine/Renderer/Pipeline.cpp')
+  
+  PipelineVulkan.cpp
+D:\dev\Brisk\Brisk\vendors\Volk\volk.h(29,12): error C1083: Cannot open include file: 'vulkan/vk_platform.h': No such file or directory
+  (compiling source file 'src/Graphics/Vulkan/FenceVulkan.cpp')
+  
+  QueueVulkan.cpp
+D:\dev\Brisk\Brisk\vendors\Volk\volk.h(29,12): error C1083: Cannot open include file: 'vulkan/vk_platform.h': No such file or directory
+  (compiling source file 'src/Engine/Renderer/Queue.cpp')
+  
+  RenderpassVulkan.cpp
+  SemaphoreVulkan.cpp
+D:\dev\Brisk\Brisk\vendors\Volk\volk.h(29,12): error C1083: Cannot open include file: 'vulkan/vk_platform.h': No such file or directory
+  (compiling source file 'src/Graphics/Vulkan/CommandBufferAllocatorVulkan.cpp')
+  
+  SwapchainVulkan.cpp
+  TextureVulkan.cpp
+D:\dev\Brisk\Brisk\vendors\Volk\volk.h(29,12): error C1083: Cannot open include file: 'vulkan/vk_platform.h': No such file or directory
+  (compiling source file 'src/Graphics/Vulkan/SemaphoreVulkan.cpp')
+  
+  UtilitiesVulkan.cpp
+D:\dev\Brisk\Brisk\vendors\Volk\volk.h(29,12): error C1083: Cannot open include file: 'vulkan/vk_platform.h': No such file or directory
+  (compiling source file 'src/Graphics/Vulkan/DescriptorLayoutVulkan.cpp')
+  
+  volk.cpp
+D:\dev\Brisk\Brisk\vendors\Volk\volk.h(29,12): error C1083: Cannot open include file: 'vulkan/vk_platform.h': No such file or directory
+  (compiling source file 'src/Graphics/Vulkan/volk.cpp')
+  
+  main.cpp
+D:\dev\Brisk\Brisk\src\Engine\Model.cpp(89,51): warning C4267: 'argument': conversion from 'size_t' to 'uint32_t', possible loss of data
+D:\dev\Brisk\Brisk\src\Engine\Model.cpp(97,50): warning C4267: 'argument': conversion from 'size_t' to 'uint32_t', possible loss of data
+D:\dev\Brisk\Brisk\vendors\Volk\volk.h(29,12): error C1083: Cannot open include file: 'vulkan/vk_platform.h': No such file or directory
+  (compiling source file 'src/Graphics/Vulkan/RenderpassVulkan.cpp')
+  
+  WindowsWindow.cpp
+D:\dev\Brisk\Brisk\vendors\Volk\volk.h(29,12): error C1083: Cannot open include file: 'vulkan/vk_platform.h': No such file or directory
+  (compiling source file 'src/Graphics/Vulkan/FramebufferVulkan.cpp')
+  
+  tiny_gltf.cc
+D:\dev\Brisk\Brisk\vendors\Volk\volk.h(29,12): error C1083: Cannot open include file: 'vulkan/vk_platform.h': No such file or directory
+  (compiling source file 'src/Graphics/Vulkan/PipelineVulkan.cpp')
+  
+  tiny_obj.cc
+D:\dev\Brisk\Brisk\src\tiny_obj.cc(4,10): error C1083: Cannot open include file: 'tiny_obj_loader.h': No such file or directory
+D:\dev\Brisk\Brisk\vendors\Volk\volk.h(29,12): error C1083: Cannot open include file: 'vulkan/vk_platform.h': No such file or directory
+  (compiling source file 'src/Graphics/Vulkan/QueueVulkan.cpp')
+  
+D:\dev\Brisk\Brisk\src\Engine\Entity.cpp(10,8): warning C4067: unexpected tokens following preprocessor directive - expected a newline
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Engine/Renderer/Texture.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Engine/Renderer/CommandBufferAllocator.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Editor/ScenePanel.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Engine/Application.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Engine/Engine.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Editor/AssetsPanel.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Engine/Renderer/CommanBuffer.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Editor/GamePanel.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Engine/Camera.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Editor/HeirarchyPanel.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Editor/InspectorPanel.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Engine/Renderer/Renderer.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Engine/Renderer/Buffer.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Engine/Scene.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Engine/Window.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Graphics/Vulkan/CommandBufferVulkan.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Graphics/Vulkan/BufferVulkan.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Graphics/Vulkan/TextureVulkan.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Engine/Renderer/GpuAdapter.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Main/main.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\Volk\volk.h(29,12): error C1083: Cannot open include file: 'vulkan/vk_platform.h': No such file or directory
+  (compiling source file 'src/Graphics/Vulkan/UtilitiesVulkan.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Graphics/Vulkan/GpuAdapterVulkan.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Graphics/Vulkan/SwapchainVulkan.cpp')
+  
+D:\dev\Brisk\Brisk\vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h(61,10): error C1083: Cannot open include file: 'vulkan/vulkan.h': No such file or directory
+  (compiling source file 'src/Platform/Windows/WindowsWindow.cpp')
+  

@@ -58,27 +58,27 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>VK_NO_PROTOTYPES;BRISK_PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendors\GLFW\include;vendors\ImGui;vendors\Volk;vendors\spdlog\include;vendors\stb_image\include;vendors\json\include;vendors\entt\include;vendors\glm;vendors\tiny_gltf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>VK_NO_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;VMA_VOLK_HEADER_PATH="volk.h";BRISK_PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;vendors\GLFW\include;vendors\imgui;vendors\Volk;vendors\spdlog\include;vendors\stb_image\include;vendors\json\include;vendors\entt\include;vendors\glm;vendors\tiny_gltf\include;vendors\VMA\include;vendors\SPIRV-Reflect;C:\VulkanSDK\1.4.309.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.4.309.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
-      <PreprocessorDefinitions>VK_NO_PROTOTYPES;BRISK_PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendors\GLFW\include;vendors\ImGui;vendors\Volk;vendors\spdlog\include;vendors\stb_image\include;vendors\json\include;vendors\entt\include;vendors\glm;vendors\tiny_gltf\include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <PreprocessorDefinitions>VK_NO_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;VMA_VOLK_HEADER_PATH="volk.h";BRISK_PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
+      <AdditionalIncludeDirectories>src;vendors\GLFW\include;vendors\imgui;vendors\Volk;vendors\spdlog\include;vendors\stb_image\include;vendors\json\include;vendors\entt\include;vendors\glm;vendors\tiny_gltf\include;vendors\VMA\include;vendors\SPIRV-Reflect;C:\VulkanSDK\1.4.309.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -86,13 +86,13 @@
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
-      <LanguageStandard>stdcpp20</LanguageStandard>
-      <ExternalWarningLevel>Level3</ExternalWarningLevel>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Console</SubSystem>
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.4.309.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
@@ -169,6 +169,7 @@
     <ClInclude Include="src\Graphics\Vulkan\TextureVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\UtilitiesVulkan.hpp" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.hpp" />
+    <ClInclude Include="src\VmaUsage.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Log.cpp" />
@@ -224,8 +225,9 @@
     <ClCompile Include="src\Graphics\Vulkan\volk.cpp" />
     <ClCompile Include="src\Main\main.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
+    <ClCompile Include="src\VmaUsage.cpp" />
+    <ClCompile Include="src\VolkUsage.cpp" />
     <ClCompile Include="src\tiny_gltf.cc" />
-    <ClCompile Include="src\tiny_obj.cc" />
     <ClCompile Include="src\volk.c">
       <ObjectFileName>$(IntDir)\volk1.obj</ObjectFileName>
     </ClCompile>
@@ -236,6 +238,9 @@
     </ProjectReference>
     <ProjectReference Include="vendors\GLFW\GLFW.vcxproj">
       <Project>{154B857C-0182-860D-AA6E-6C109684020F}</Project>
+    </ProjectReference>
+    <ProjectReference Include="vendors\SPIRV-Reflect\SPIRV-Reflect.vcxproj">
+      <Project>{CB5A3E0C-371B-BA42-0056-03C06CD5FE1E}</Project>
     </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

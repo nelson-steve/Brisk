@@ -8,6 +8,8 @@
 #include <iostream>
 #include "TextureVulkan.hpp"
 #include "DescriptorLayoutVulkan.hpp"
+
+#include <volk.h>
 //-----------------
 
 namespace Brisk

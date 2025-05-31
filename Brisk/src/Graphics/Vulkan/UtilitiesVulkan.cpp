@@ -5,7 +5,7 @@
 #include "Engine/Renderer/Texture.hpp"
 
 #include "spirv_cross/spirv_reflect.hpp"
-#include <glfw3.h>
+#include <GLFW/glfw3.h>
 
 #include <spirv_reflect.h>
 

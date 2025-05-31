@@ -1,5 +1,19 @@
+vendors/**/bin/
+vendors/**/bin-int/
+
+**bin/
+**bin-int/
+
+# Ignore common build artifacts
+*.obj
+*.lib
+*.dll
+*.so
+*.a
+*.exe
+*.pdb
+
 .vs/
-**Brisk/vendors/
 **Data/
 **Brisk/x64/
 **x64/

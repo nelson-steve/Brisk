@@ -2,7 +2,7 @@
 #include "Camera.hpp"
 #include "Engine/Engine.hpp"
 //-------------------
-#include "glfw3.h"
+#include <GLFW/glfw3.h>
 //----------------
 
 namespace Brisk 

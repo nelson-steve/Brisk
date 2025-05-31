@@ -6,7 +6,7 @@
 
 #include <volk.h>
 #include <vulkan/vulkan_win32.h>
-#include <glfw3.h>
+#include <GLFW/glfw3.h>
 
 //#ifdef _WIN32
 //#define VK_USE_PLATFORM_WIN32_KHR

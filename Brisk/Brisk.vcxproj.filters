@@ -1,4 +1,4 @@
-﻿<?xml version="1.0" encoding="utf-8"?>
+<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
     <Filter Include="Core">
@@ -255,6 +255,7 @@
     <ClInclude Include="src\Platform\Windows\WindowsWindow.hpp">
       <Filter>Platform\Windows</Filter>
     </ClInclude>
+    <ClInclude Include="src\VmaUsage.h" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Log.cpp">
@@ -416,8 +417,9 @@
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
       <Filter>Platform\Windows</Filter>
     </ClCompile>
+    <ClCompile Include="src\VmaUsage.cpp" />
+    <ClCompile Include="src\VolkUsage.cpp" />
     <ClCompile Include="src\tiny_gltf.cc" />
-    <ClCompile Include="src\tiny_obj.cc" />
     <ClCompile Include="src\volk.c" />
   </ItemGroup>
 </Project>

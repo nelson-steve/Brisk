@@ -1,17 +1,17 @@
 workspace "Brisk"
-    architecture "x86_64"
+    architecture "x64"
     startproject "Brisk"
+
     configurations 
     { 
         "Debug", 
         "Release" 
     }
+
     flags 
     {
         "MultiProcessorCompile"
     }
-    cppdialect "C++20"
-    staticruntime "on"
 
 outputdir = "%{cfg.buildcfg}-%{cfg.system}-%{cfg.architecture}"
 
@@ -21,8 +21,8 @@ if Vulkan_SDK == nil then
     error("VULKAN_SDK environment variable is not set. Please install the Vulkan SDK from LunarG.")
 end
 
-LibraryDirVulkan = Vulkan_SDK .. "/Lib"
-
+-- Convert backslashes to forward slashes
+Vulkan_SDK = Vulkan_SDK:gsub("\\", "/")
 
 IncludeDir = {}
 IncludeDir["GLFW"]      = "%{wks.location}/Brisk/vendors/GLFW/include"
@@ -33,19 +33,29 @@ IncludeDir["stb_image"] = "%{wks.location}/Brisk/vendors/stb_image/include"
 IncludeDir["json"]      = "%{wks.location}/Brisk/vendors/json/include"
 IncludeDir["entt"]      = "%{wks.location}/Brisk/vendors/entt/include"
 IncludeDir["glm"]       = "%{wks.location}/Brisk/vendors/glm"
-IncludeDir["tiny_gltf"]       = "%{wks.location}/Brisk/vendors/tiny_gltf/include"
-IncludeDir["Vulkan"]    = Vulkan_SDK .. "/Include"
+IncludeDir["tiny_gltf"] = "%{wks.location}/Brisk/vendors/tiny_gltf/include"
+IncludeDir["VMA"]       = "%{wks.location}/Brisk/vendors/VMA/include"
+IncludeDir["SPIRV"]       = "%{wks.location}/Brisk/vendors/SPIRV-Reflect"
+-- IncludeDir["Vulkan"] = Vulkan_SDK .. "/Include"
+
+LibraryDir = {}
+LibraryDir["GLFW"] = "%{wks.location}/Brisk/vendors/GLFW/include"
+-- LibraryDir["imgui"] = {}
+
 
 -- External libraries
 group "Dependencies"
     include "Brisk/vendors/ImGui"
     include "Brisk/vendors/GLFW"
+    include "Brisk/vendors/SPIRV-Reflect"
 group ""
 
 project "Brisk"
     location "Brisk"
     kind "ConsoleApp"
     language "C++"
+    cppdialect "C++20"
+    staticruntime "on"
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
@@ -58,39 +68,39 @@ project "Brisk"
         "Brisk/src/**.c"
     }
 
-    print("Resolved GLFW IncludeDir: ", path.getabsolute("vendors/GLFW/include"))
-    print("Resolved GLFW IncludeDir: ", Vulkan_SDK)
-
     includedirs {
         "Brisk/src",
-        "%{IncludeDir.GLFW}",
-        "%{IncludeDir.imgui}",
-        "%{IncludeDir.Volk}",
-        "%{IncludeDir.spdlog}",
-        "%{IncludeDir.stb_image}",
-        "%{IncludeDir.json}",
-        "%{IncludeDir.entt}",
-        "%{IncludeDir.glm}",
-        "%{IncludeDir.tiny_gltf}",
-        "%{IncludeDir.Vulkan}",
-
-
-        -- "vendors/spdlog/include",
-        -- "vendors/tiny_gltf",
-        -- "vendors/stb_image",
-        -- "vendors/json",
-        -- "vendors/entt/include",
-        -- "vendors/include", -- optional general include
-        -- "vendors/glm",
-        -- "vendors/ImGui",
-        -- "vendors/glfw/include"
+        -- "%{IncludeDir.GLFW}",
+        "Brisk/vendors/GLFW/include",
+        "Brisk/vendors/imgui",
+        "Brisk/vendors/Volk",
+        "Brisk/vendors/spdlog/include",
+        "Brisk/vendors/stb_image/include",
+        "Brisk/vendors/json/include",
+        "Brisk/vendors/entt/include",
+        "Brisk/vendors/glm",
+        "Brisk/vendors/tiny_gltf/include",
+        "Brisk/vendors/VMA/include",
+        "Brisk/vendors/SPIRV-Reflect",
+        Vulkan_SDK .. "/Include"
     }
 
-    defines { "VK_NO_PROTOTYPES" }
+    libdirs {
+        Vulkan_SDK .. "/Lib"
+    }
+
+    defines 
+    { 
+        "VK_NO_PROTOTYPES", 
+        "_CRT_SECURE_NO_WARNINGS",
+        'VMA_VOLK_HEADER_PATH="volk.h"'
+    }
+
 
     links {
         "ImGui",
         "GLFW",
+        "SPIRV-Reflect",
     }
 
     filter "system:windows"

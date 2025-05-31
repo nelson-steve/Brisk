@@ -1,0 +1,23 @@
+<?xml version="1.0" encoding="utf-8"?>
+<Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
+  <ItemGroup>
+    <Filter Include="include">
+      <UniqueIdentifier>{89AF369E-F58E-B539-FEA6-40106A051C9B}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\spirv">
+      <UniqueIdentifier>{0C222BA6-78E2-A6DC-411D-F059AD9CEBB8}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="include\spirv\unified1">
+      <UniqueIdentifier>{701024CB-5C0A-4D1D-4577-E32D3110B389}</UniqueIdentifier>
+    </Filter>
+  </ItemGroup>
+  <ItemGroup>
+    <ClInclude Include="include\spirv\unified1\spirv.h">
+      <Filter>include\spirv\unified1</Filter>
+    </ClInclude>
+    <ClInclude Include="spirv_reflect.h" />
+  </ItemGroup>
+  <ItemGroup>
+    <ClCompile Include="spirv_reflect.c" />
+  </ItemGroup>
+</Project>

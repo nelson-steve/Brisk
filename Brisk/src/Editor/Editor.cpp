@@ -247,11 +247,12 @@ namespace Brisk
         io.WantCaptureKeyboard = true;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;
         io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;
+        io.Fonts->Flags |= ImFontAtlasFlags_NoBakedLines;
         //io.ConfigFlags |= ImGuiConfigFlags_IsTouchScreen;
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         //ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-        io.FontDefault = io.Fonts->AddFontFromFileTTF("../Data/Fonts/Nunito/Nunito-Medium.ttf", 18.0f);
+        //io.FontDefault = io.Fonts->AddFontFromFileTTF("../Data/Fonts/Nunito/Nunito-Medium.ttf", 18.0f);
 
         LavenderTheme();
         
@@ -268,6 +269,7 @@ namespace Brisk
         info.ImageCount = 2;
         info.MinImageCount = 2;
         info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
+        info.Allocator = nullptr;
 
         ImGui_ImplVulkan_Init(&info);
 

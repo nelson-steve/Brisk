@@ -1,4 +1,4 @@
-project "SPIRV-Reflect"
+project "simdjson"
     kind "StaticLib"
     language "C++"
     staticruntime "on"
@@ -7,12 +7,10 @@ project "SPIRV-Reflect"
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
     files {
-        "spirv_reflect.h",
-        "spirv_reflect.c",
-
-        "include/spirv/unified1/spirv.h",
+        "simdjson.h",
+        "simdjson.cpp",
     }
-    
+
     filter "system:windows"
         systemversion "latest"
 

@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{CB5A3E0C-371B-BA42-0056-03C06CD5FE1E}</ProjectGuid>
+    <ProjectGuid>{4CCD7835-389A-D340-61B3-C1E84DDF08CF}</ProjectGuid>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>SPIRV-Reflect</RootNamespace>
+    <RootNamespace>simdjson</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -41,15 +41,15 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>bin\Debug-windows-x86_64\SPIRV-Reflect\</OutDir>
-    <IntDir>bin-int\Debug-windows-x86_64\SPIRV-Reflect\</IntDir>
-    <TargetName>SPIRV-Reflect</TargetName>
+    <OutDir>vendors\simdjson\bin\Debug-windows-x86_64\simdjson\</OutDir>
+    <IntDir>vendors\simdjson\bin-int\Debug-windows-x86_64\simdjson\</IntDir>
+    <TargetName>simdjson</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>bin\Release-windows-x86_64\SPIRV-Reflect\</OutDir>
-    <IntDir>bin-int\Release-windows-x86_64\SPIRV-Reflect\</IntDir>
-    <TargetName>SPIRV-Reflect</TargetName>
+    <OutDir>vendors\simdjson\bin\Release-windows-x86_64\simdjson\</OutDir>
+    <IntDir>vendors\simdjson\bin-int\Release-windows-x86_64\simdjson\</IntDir>
+    <TargetName>simdjson</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
@@ -86,11 +86,10 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\spirv\unified1\spirv.h" />
-    <ClInclude Include="spirv_reflect.h" />
+    <ClInclude Include="vendors\simdjson\simdjson.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="spirv_reflect.c" />
+    <ClCompile Include="vendors\simdjson\simdjson.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

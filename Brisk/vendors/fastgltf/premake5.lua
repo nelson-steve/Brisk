@@ -1,18 +1,23 @@
-project "SPIRV-Reflect"
+project "fastgltf"
     kind "StaticLib"
     language "C++"
+    cppdialect "C++20"
     staticruntime "on"
 
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 
     files {
-        "spirv_reflect.h",
-        "spirv_reflect.c",
-
-        "include/spirv/unified1/spirv.h",
+        "include/**.hpp",        
+        "src/**.cpp",        
+        "src/**.ixx",        
     }
-    
+
+    includedirs {
+        "%{IncludeDir.simdjson}",
+        "%{IncludeDir.fastgltf}"
+    }
+
     filter "system:windows"
         systemversion "latest"
 

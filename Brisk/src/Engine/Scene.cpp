@@ -10,13 +10,12 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <stack>
+#include <fastgltf/core.hpp>
+#include <fastgltf/tools.hpp>
 //-------------------------------------
 
 namespace Brisk 
 {
-
-	//extern std::unique_ptr<AssetSystem> m_AssetManager;
-
 	Scene::Scene()
 	{
 	}
@@ -43,8 +42,6 @@ namespace Brisk
 
 	void Scene::InitScene()
 	{
-		//m_PhysicsWorld3D = std::make_shared<PhysicsWorld>();
-		//m_PhysicsWorld3D->Init();
 	}
 
 	void Scene::LoadNode(Entity parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> renderableRef) {
@@ -336,6 +333,109 @@ namespace Brisk
 		}
 	}
 
+	void Scene::LoadFileSystemGLTFFile(std::filesystem::path path, Entity e) {
+		if (!std::filesystem::exists(path)) {
+			std::cout << "Failed to find " << path << '\n';
+		}
+
+		if constexpr (std::is_same_v<std::filesystem::path::value_type, wchar_t>) {
+			std::wcout << "Loading " << path << '\n';
+		}
+		else {
+			std::cout << "Loading " << path << '\n';
+		}
+
+		fastgltf::Asset asset;
+
+		// Parse the glTF file and get the constructed asset
+		{
+			static constexpr auto supportedExtensions =
+				fastgltf::Extensions::KHR_mesh_quantization |
+				fastgltf::Extensions::KHR_texture_transform |
+				fastgltf::Extensions::KHR_materials_variants;
+
+			fastgltf::Parser parser(supportedExtensions);
+
+			constexpr auto gltfOptions =
+				fastgltf::Options::DontRequireValidAssetMember |
+				//fastgltf::Options::AllowDouble |
+				//fastgltf::Options::LoadExternalBuffers |
+				fastgltf::Options::LoadExternalImages |
+				fastgltf::Options::GenerateMeshIndices;
+
+			auto gltfFile = fastgltf::MappedGltfFile::FromPath(path);
+			if (!bool(gltfFile)) {
+				std::cerr << "Failed to open glTF file: " << fastgltf::getErrorMessage(gltfFile.error()) << '\n';
+			}
+
+			auto a = parser.loadGltf(gltfFile.get(), path.parent_path(), gltfOptions);
+			if (a.error() != fastgltf::Error::None) {
+				std::cerr << "Failed to load glTF: " << fastgltf::getErrorMessage(a.error()) << '\n';
+			}
+
+			asset = std::move(a.get());
+		}
+
+		if (asset.buffers.empty()) {
+			throw std::runtime_error("GLTF has no buffers");
+		}
+
+		for (const auto& mesh : asset.meshes) {
+			for (auto it = mesh.primitives.begin(); it != mesh.primitives.end(); ++it) {
+				auto* positionIt = it->findAttribute("POSITION");
+				assert(positionIt != it->attributes.end()); // A mesh primitive is required to hold the POSITION attribute.
+				assert(it->indicesAccessor.has_value()); // We specify GenerateMeshIndices, so we should always have indices
+
+				auto& positionAccessor = asset.accessors[positionIt->accessorIndex];
+				if (!positionAccessor.bufferViewIndex.has_value())
+					continue;
+
+				std::vector<fastgltf::math::fvec3> positions(positionAccessor.count);
+				fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, positionAccessor, positions.data());
+
+				// Combine into Vertex
+				for (size_t i = 0; i < positions.size(); ++i) {
+					MeshData data{};
+					data.Position = glm::vec3(positions[i].x(), positions[i].y(), positions[i].z());
+					render.pMeshDataPtr.push_back(data);
+				}
+
+				size_t primitiveIndex = std::distance(mesh.primitives.begin(), it);
+				const auto& primitive = *it;
+
+				// Load indices
+				if (it->indicesAccessor.has_value()) {
+					const auto& indexAccessor = asset.accessors[it->indicesAccessor.value()];
+
+					switch (indexAccessor.componentType) {
+					case fastgltf::ComponentType::UnsignedByte: {
+						std::vector<uint8_t> indices(it->indicesAccessor.value());
+						fastgltf::copyFromAccessor<uint8_t>(asset, indexAccessor, indices.data());
+						for (uint8_t i : indices)
+							render.pIndicesDataPtr.push_back(static_cast<uint32_t>(i));
+						break;
+					}
+					case fastgltf::ComponentType::UnsignedShort: {
+						std::vector<uint16_t> indices(it->indicesAccessor.value());
+						fastgltf::copyFromAccessor<uint16_t>(asset, indexAccessor, indices.data());
+						for (uint16_t i : indices)
+							render.pIndicesDataPtr.push_back(static_cast<uint32_t>(i));
+						break;
+					}
+					case fastgltf::ComponentType::UnsignedInt: {
+						std::vector<uint32_t> indices(it->indicesAccessor.value());
+						fastgltf::copyFromAccessor<uint32_t>(asset, indexAccessor, indices.data());
+						render.pIndicesDataPtr.insert(render.pIndicesDataPtr.end(), indices.begin(), indices.end());
+						break;
+					}
+					default:
+						throw std::runtime_error("Unsupported index component type.");
+					}
+				}
+			}
+		}
+	}
+
 	void Scene::LoadGLTFFile(std::string path, Entity entity) {
 		tinygltf::TinyGLTF loader;
 		tinygltf::Model model;
@@ -437,7 +537,7 @@ namespace Brisk
 			/* 6 */"../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf",
 			/* 7 */"../Data/Models/spaceship/scene.gltf",
 		};
-		LoadGLTFFile(paths[2], entity);
+		LoadFileSystemGLTFFile(paths[2], entity);
 
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;

@@ -1,20 +1,3 @@
-Vulkan_SDK = os.getenv("VULKAN_SDK")
-
-if Vulkan_SDK == nil then
-    error("VULKAN_SDK environment variable is not set. Please install the Vulkan SDK from LunarG.")
-end
-
--- Convert backslashes to forward slashes
-Vulkan_SDK = Vulkan_SDK:gsub("\\", "/")
-
-IncludeDir = {}
-IncludeDir["imgui"]  = "%{wks.location}/Brisk/vendors/ImGui"
-IncludeDir["GLFW"]   = "%{wks.location}/Brisk/vendors/GLFW/include"
-
--- IncludeDir["Vulkan"] = Vulkan_SDK .. "/Include"
-
-print("Vulkan SDK path: " .. (Vulkan_SDK or "NOT FOUND"))
-
 project "ImGui"
     kind "StaticLib"
     language "C++"

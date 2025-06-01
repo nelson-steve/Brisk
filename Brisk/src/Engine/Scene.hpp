@@ -42,6 +42,7 @@ namespace Brisk
 		void InitScene();
 
 		void LoadGLTFFile(std::string path, Entity e);
+		void LoadFileSystemGLTFFile(std::filesystem::path path, Entity e);
 
 		Entity CreateMeshEntity(const std::string& name = "Mesh");
 		Entity CreateCameraEntity(const std::string& name = "Camera");
@@ -79,6 +80,8 @@ namespace Brisk
 
 		uint32_t m_vertex_pos = 0;
 		uint32_t m_index_pos = 0;
+
+		RendererableDataRef render;
 
 		std::vector<std::shared_ptr<Texture>> mTextures;
 		std::vector<GLTF_Node*> pNodes;

@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{CB5A3E0C-371B-BA42-0056-03C06CD5FE1E}</ProjectGuid>
+    <ProjectGuid>{60D16DDD-4C9E-C8E8-75B7-B69061E3FD76}</ProjectGuid>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>SPIRV-Reflect</RootNamespace>
+    <RootNamespace>fastgltf</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -41,26 +41,28 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>bin\Debug-windows-x86_64\SPIRV-Reflect\</OutDir>
-    <IntDir>bin-int\Debug-windows-x86_64\SPIRV-Reflect\</IntDir>
-    <TargetName>SPIRV-Reflect</TargetName>
+    <OutDir>vendors\fastgltf\bin\Debug-windows-x86_64\fastgltf\</OutDir>
+    <IntDir>vendors\fastgltf\bin-int\Debug-windows-x86_64\fastgltf\</IntDir>
+    <TargetName>fastgltf</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>bin\Release-windows-x86_64\SPIRV-Reflect\</OutDir>
-    <IntDir>bin-int\Release-windows-x86_64\SPIRV-Reflect\</IntDir>
-    <TargetName>SPIRV-Reflect</TargetName>
+    <OutDir>vendors\fastgltf\bin\Release-windows-x86_64\fastgltf\</OutDir>
+    <IntDir>vendors\fastgltf\bin-int\Release-windows-x86_64\fastgltf\</IntDir>
+    <TargetName>fastgltf</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
+      <AdditionalIncludeDirectories>vendors\fastgltf\Brisk\vendors\simdjson;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
       <RuntimeLibrary>MultiThreadedDebug</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -71,6 +73,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
+      <AdditionalIncludeDirectories>vendors\fastgltf\Brisk\vendors\simdjson;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -78,6 +81,7 @@
       <StringPooling>true</StringPooling>
       <RuntimeLibrary>MultiThreaded</RuntimeLibrary>
       <MultiProcessorCompilation>true</MultiProcessorCompilation>
+      <LanguageStandard>stdcpplatest</LanguageStandard>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -86,11 +90,22 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\spirv\unified1\spirv.h" />
-    <ClInclude Include="spirv_reflect.h" />
+    <ClInclude Include="vendors\fastgltf\include\fastgltf\base64.hpp" />
+    <ClInclude Include="vendors\fastgltf\include\fastgltf\core.hpp" />
+    <ClInclude Include="vendors\fastgltf\include\fastgltf\dxmath_element_traits.hpp" />
+    <ClInclude Include="vendors\fastgltf\include\fastgltf\glm_element_traits.hpp" />
+    <ClInclude Include="vendors\fastgltf\include\fastgltf\math.hpp" />
+    <ClInclude Include="vendors\fastgltf\include\fastgltf\tools.hpp" />
+    <ClInclude Include="vendors\fastgltf\include\fastgltf\types.hpp" />
+    <ClInclude Include="vendors\fastgltf\include\fastgltf\util.hpp" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="spirv_reflect.c" />
+    <ClCompile Include="vendors\fastgltf\src\base64.cpp" />
+    <ClCompile Include="vendors\fastgltf\src\fastgltf.cpp" />
+    <ClCompile Include="vendors\fastgltf\src\io.cpp" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="vendors\fastgltf\src\fastgltf.ixx" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

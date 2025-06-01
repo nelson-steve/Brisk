@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{CB5A3E0C-371B-BA42-0056-03C06CD5FE1E}</ProjectGuid>
+    <ProjectGuid>{154B857C-0182-860D-AA6E-6C109684020F}</ProjectGuid>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>SPIRV-Reflect</RootNamespace>
+    <RootNamespace>GLFW</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -41,21 +41,22 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>bin\Debug-windows-x86_64\SPIRV-Reflect\</OutDir>
-    <IntDir>bin-int\Debug-windows-x86_64\SPIRV-Reflect\</IntDir>
-    <TargetName>SPIRV-Reflect</TargetName>
+    <OutDir>vendors\GLFW\bin\Debug-windows-x86_64\GLFW\</OutDir>
+    <IntDir>vendors\GLFW\bin-int\Debug-windows-x86_64\GLFW\</IntDir>
+    <TargetName>GLFW</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>bin\Release-windows-x86_64\SPIRV-Reflect\</OutDir>
-    <IntDir>bin-int\Release-windows-x86_64\SPIRV-Reflect\</IntDir>
-    <TargetName>SPIRV-Reflect</TargetName>
+    <OutDir>vendors\GLFW\bin\Release-windows-x86_64\GLFW\</OutDir>
+    <IntDir>vendors\GLFW\bin-int\Release-windows-x86_64\GLFW\</IntDir>
+    <TargetName>GLFW</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -66,11 +67,15 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
     </Link>
+    <Lib>
+      <AdditionalDependencies>Dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
+      <PreprocessorDefinitions>_GLFW_WIN32;_CRT_SECURE_NO_WARNINGS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -84,13 +89,37 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
     </Link>
+    <Lib>
+      <AdditionalDependencies>Dwmapi.lib;%(AdditionalDependencies)</AdditionalDependencies>
+    </Lib>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\spirv\unified1\spirv.h" />
-    <ClInclude Include="spirv_reflect.h" />
+    <ClInclude Include="vendors\GLFW\include\GLFW\glfw3.h" />
+    <ClInclude Include="vendors\GLFW\include\GLFW\glfw3native.h" />
+    <ClInclude Include="vendors\GLFW\src\glfw_config.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="spirv_reflect.c" />
+    <ClCompile Include="vendors\GLFW\src\context.c" />
+    <ClCompile Include="vendors\GLFW\src\egl_context.c" />
+    <ClCompile Include="vendors\GLFW\src\init.c" />
+    <ClCompile Include="vendors\GLFW\src\input.c" />
+    <ClCompile Include="vendors\GLFW\src\monitor.c" />
+    <ClCompile Include="vendors\GLFW\src\null_init.c" />
+    <ClCompile Include="vendors\GLFW\src\null_joystick.c" />
+    <ClCompile Include="vendors\GLFW\src\null_monitor.c" />
+    <ClCompile Include="vendors\GLFW\src\null_window.c" />
+    <ClCompile Include="vendors\GLFW\src\osmesa_context.c" />
+    <ClCompile Include="vendors\GLFW\src\platform.c" />
+    <ClCompile Include="vendors\GLFW\src\vulkan.c" />
+    <ClCompile Include="vendors\GLFW\src\wgl_context.c" />
+    <ClCompile Include="vendors\GLFW\src\win32_init.c" />
+    <ClCompile Include="vendors\GLFW\src\win32_joystick.c" />
+    <ClCompile Include="vendors\GLFW\src\win32_module.c" />
+    <ClCompile Include="vendors\GLFW\src\win32_monitor.c" />
+    <ClCompile Include="vendors\GLFW\src\win32_thread.c" />
+    <ClCompile Include="vendors\GLFW\src\win32_time.c" />
+    <ClCompile Include="vendors\GLFW\src\win32_window.c" />
+    <ClCompile Include="vendors\GLFW\src\window.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -41,14 +41,14 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>bin\Debug-windows-x86_64\SPIRV-Reflect\</OutDir>
-    <IntDir>bin-int\Debug-windows-x86_64\SPIRV-Reflect\</IntDir>
+    <OutDir>vendors\SPIRV-Reflect\bin\Debug-windows-x86_64\SPIRV-Reflect\</OutDir>
+    <IntDir>vendors\SPIRV-Reflect\bin-int\Debug-windows-x86_64\SPIRV-Reflect\</IntDir>
     <TargetName>SPIRV-Reflect</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>bin\Release-windows-x86_64\SPIRV-Reflect\</OutDir>
-    <IntDir>bin-int\Release-windows-x86_64\SPIRV-Reflect\</IntDir>
+    <OutDir>vendors\SPIRV-Reflect\bin\Release-windows-x86_64\SPIRV-Reflect\</OutDir>
+    <IntDir>vendors\SPIRV-Reflect\bin-int\Release-windows-x86_64\SPIRV-Reflect\</IntDir>
     <TargetName>SPIRV-Reflect</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
@@ -56,6 +56,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
+      <AdditionalIncludeDirectories>vendors\SPIRV-Reflect;C:\VulkanSDK\1.4.309.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -71,6 +72,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
+      <AdditionalIncludeDirectories>vendors\SPIRV-Reflect;C:\VulkanSDK\1.4.309.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -86,11 +88,11 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\spirv\unified1\spirv.h" />
-    <ClInclude Include="spirv_reflect.h" />
+    <ClInclude Include="vendors\SPIRV-Reflect\include\spirv\unified1\spirv.h" />
+    <ClInclude Include="vendors\SPIRV-Reflect\spirv_reflect.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="spirv_reflect.c" />
+    <ClCompile Include="vendors\SPIRV-Reflect\spirv_reflect.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

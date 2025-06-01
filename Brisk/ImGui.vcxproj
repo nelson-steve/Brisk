@@ -11,10 +11,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <PropertyGroup Label="Globals">
-    <ProjectGuid>{CB5A3E0C-371B-BA42-0056-03C06CD5FE1E}</ProjectGuid>
+    <ProjectGuid>{C0FF640D-2C14-8DBE-F595-301E616989EF}</ProjectGuid>
     <IgnoreWarnCompileDuplicatedFilename>true</IgnoreWarnCompileDuplicatedFilename>
     <Keyword>Win32Proj</Keyword>
-    <RootNamespace>SPIRV-Reflect</RootNamespace>
+    <RootNamespace>ImGui</RootNamespace>
     <WindowsTargetPlatformVersion>10.0</WindowsTargetPlatformVersion>
   </PropertyGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.Default.props" />
@@ -41,21 +41,22 @@
   </ImportGroup>
   <PropertyGroup Label="UserMacros" />
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
-    <OutDir>bin\Debug-windows-x86_64\SPIRV-Reflect\</OutDir>
-    <IntDir>bin-int\Debug-windows-x86_64\SPIRV-Reflect\</IntDir>
-    <TargetName>SPIRV-Reflect</TargetName>
+    <OutDir>vendors\ImGui\bin\Debug-windows-x86_64\ImGui\</OutDir>
+    <IntDir>vendors\ImGui\bin-int\Debug-windows-x86_64\ImGui\</IntDir>
+    <TargetName>ImGui</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
-    <OutDir>bin\Release-windows-x86_64\SPIRV-Reflect\</OutDir>
-    <IntDir>bin-int\Release-windows-x86_64\SPIRV-Reflect\</IntDir>
-    <TargetName>SPIRV-Reflect</TargetName>
+    <OutDir>vendors\ImGui\bin\Release-windows-x86_64\ImGui\</OutDir>
+    <IntDir>vendors\ImGui\bin-int\Release-windows-x86_64\ImGui\</IntDir>
+    <TargetName>ImGui</TargetName>
     <TargetExt>.lib</TargetExt>
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
+      <AdditionalIncludeDirectories>vendors\ImGui\ImGuiBackends;C:\VulkanSDK\1.4.309.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -71,6 +72,7 @@
     <ClCompile>
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
+      <AdditionalIncludeDirectories>vendors\ImGui\ImGuiBackends;C:\VulkanSDK\1.4.309.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -86,11 +88,23 @@
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="include\spirv\unified1\spirv.h" />
-    <ClInclude Include="spirv_reflect.h" />
+    <ClInclude Include="vendors\ImGui\ImGuiBackends\imgui_impl_glfw.h" />
+    <ClInclude Include="vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.h" />
+    <ClInclude Include="vendors\ImGui\imconfig.h" />
+    <ClInclude Include="vendors\ImGui\imgui.h" />
+    <ClInclude Include="vendors\ImGui\imgui_internal.h" />
+    <ClInclude Include="vendors\ImGui\imgui_rectpack.h" />
+    <ClInclude Include="vendors\ImGui\imgui_textedit.h" />
+    <ClInclude Include="vendors\ImGui\imgui_truetype.h" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="spirv_reflect.c" />
+    <ClCompile Include="vendors\ImGui\ImGuiBackends\imgui_impl_glfw.cpp" />
+    <ClCompile Include="vendors\ImGui\ImGuiBackends\imgui_impl_vulkan.cpp" />
+    <ClCompile Include="vendors\ImGui\imgui.cpp" />
+    <ClCompile Include="vendors\ImGui\imgui_demo.cpp" />
+    <ClCompile Include="vendors\ImGui\imgui_draw.cpp" />
+    <ClCompile Include="vendors\ImGui\imgui_tables.cpp" />
+    <ClCompile Include="vendors\ImGui\imgui_widgets.cpp" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

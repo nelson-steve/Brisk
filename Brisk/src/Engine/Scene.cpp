@@ -359,7 +359,7 @@ namespace Brisk
 			constexpr auto gltfOptions =
 				fastgltf::Options::DontRequireValidAssetMember |
 				//fastgltf::Options::AllowDouble |
-				//fastgltf::Options::LoadExternalBuffers |
+				fastgltf::Options::LoadExternalBuffers |
 				fastgltf::Options::LoadExternalImages |
 				fastgltf::Options::GenerateMeshIndices;
 
@@ -380,6 +380,8 @@ namespace Brisk
 			throw std::runtime_error("GLTF has no buffers");
 		}
 
+		return;
+
 		for (const auto& mesh : asset.meshes) {
 			for (auto it = mesh.primitives.begin(); it != mesh.primitives.end(); ++it) {
 				auto* positionIt = it->findAttribute("POSITION");
@@ -390,14 +392,17 @@ namespace Brisk
 				if (!positionAccessor.bufferViewIndex.has_value())
 					continue;
 
-				std::vector<fastgltf::math::fvec3> positions(positionAccessor.count);
-				fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, positionAccessor, positions.data());
+				if (positionAccessor.componentType == fastgltf::ComponentType::Float && positionAccessor.type == fastgltf::AccessorType::Vec3)
+				{
+					std::vector<fastgltf::math::fvec3> positions(positionAccessor.count);
+					fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, positionAccessor, positions.data());
 
-				// Combine into Vertex
-				for (size_t i = 0; i < positions.size(); ++i) {
-					MeshData data{};
-					data.Position = glm::vec3(positions[i].x(), positions[i].y(), positions[i].z());
-					render.pMeshDataPtr.push_back(data);
+					// Combine into Vertex
+					for (size_t i = 0; i < positions.size(); ++i) {
+						MeshData data{};
+						data.Position = glm::vec3(positions[i].x(), positions[i].y(), positions[i].z());
+						render.pMeshDataPtr.push_back(data);
+					}
 				}
 
 				size_t primitiveIndex = std::distance(mesh.primitives.begin(), it);
@@ -409,21 +414,21 @@ namespace Brisk
 
 					switch (indexAccessor.componentType) {
 					case fastgltf::ComponentType::UnsignedByte: {
-						std::vector<uint8_t> indices(it->indicesAccessor.value());
+						std::vector<uint8_t> indices(indexAccessor.count);
 						fastgltf::copyFromAccessor<uint8_t>(asset, indexAccessor, indices.data());
 						for (uint8_t i : indices)
 							render.pIndicesDataPtr.push_back(static_cast<uint32_t>(i));
 						break;
 					}
 					case fastgltf::ComponentType::UnsignedShort: {
-						std::vector<uint16_t> indices(it->indicesAccessor.value());
+						std::vector<uint16_t> indices(indexAccessor.count);
 						fastgltf::copyFromAccessor<uint16_t>(asset, indexAccessor, indices.data());
 						for (uint16_t i : indices)
 							render.pIndicesDataPtr.push_back(static_cast<uint32_t>(i));
 						break;
 					}
 					case fastgltf::ComponentType::UnsignedInt: {
-						std::vector<uint32_t> indices(it->indicesAccessor.value());
+						std::vector<uint32_t> indices(indexAccessor.count);
 						fastgltf::copyFromAccessor<uint32_t>(asset, indexAccessor, indices.data());
 						render.pIndicesDataPtr.insert(render.pIndicesDataPtr.end(), indices.begin(), indices.end());
 						break;
@@ -537,7 +542,13 @@ namespace Brisk
 			/* 6 */"../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf",
 			/* 7 */"../Data/Models/spaceship/scene.gltf",
 		};
+		auto start = std::chrono::high_resolution_clock::now();
 		LoadFileSystemGLTFFile(paths[2], entity);
+		auto end = std::chrono::high_resolution_clock::now();
+
+		// Calculate duration
+		std::chrono::duration<double, std::milli> duration = end - start;
+		std::cout << "Time taken: " << duration.count() << " ms\n";
 
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;

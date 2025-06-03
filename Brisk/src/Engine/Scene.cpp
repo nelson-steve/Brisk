@@ -380,29 +380,56 @@ namespace Brisk
 			throw std::runtime_error("GLTF has no buffers");
 		}
 
-		return;
+		//return;
 
 		for (const auto& mesh : asset.meshes) {
 			for (auto it = mesh.primitives.begin(); it != mesh.primitives.end(); ++it) {
 				auto* positionIt = it->findAttribute("POSITION");
-				assert(positionIt != it->attributes.end()); // A mesh primitive is required to hold the POSITION attribute.
-				assert(it->indicesAccessor.has_value()); // We specify GenerateMeshIndices, so we should always have indices
+				auto* normalIt = it->findAttribute("NORMAL");
+
+				assert(positionIt != it->attributes.end()); // POSITION must be present.
+				assert(it->indicesAccessor.has_value());    // Indices must be present if GenerateMeshIndices is specified.
 
 				auto& positionAccessor = asset.accessors[positionIt->accessorIndex];
 				if (!positionAccessor.bufferViewIndex.has_value())
 					continue;
 
-				if (positionAccessor.componentType == fastgltf::ComponentType::Float && positionAccessor.type == fastgltf::AccessorType::Vec3)
-				{
-					std::vector<fastgltf::math::fvec3> positions(positionAccessor.count);
-					fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, positionAccessor, positions.data());
+				// Load positions
+				std::vector<fastgltf::math::fvec3> positions;
+				if (positionAccessor.componentType == fastgltf::ComponentType::Float &&
+					positionAccessor.type == fastgltf::AccessorType::Vec3) {
 
-					// Combine into Vertex
-					for (size_t i = 0; i < positions.size(); ++i) {
-						MeshData data{};
-						data.Position = glm::vec3(positions[i].x(), positions[i].y(), positions[i].z());
-						render.pMeshDataPtr.push_back(data);
+					positions.resize(positionAccessor.count);
+					fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, positionAccessor, positions.data());
+				}
+
+				// Load normals (optional if present)
+				std::vector<fastgltf::math::fvec3> normals;
+				bool hasNormals = (normalIt != it->attributes.end());
+				if (hasNormals) {
+					auto& normalAccessor = asset.accessors[normalIt->accessorIndex];
+					if (normalAccessor.componentType == fastgltf::ComponentType::Float &&
+						normalAccessor.type == fastgltf::AccessorType::Vec3 &&
+						normalAccessor.bufferViewIndex.has_value()) {
+
+						normals.resize(normalAccessor.count);
+						fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, normalAccessor, normals.data());
 					}
+					else {
+						hasNormals = false;
+					}
+				}
+
+				// Combine into Vertex
+				for (size_t i = 0; i < positions.size(); ++i) {
+					MeshData data{};
+					data.Position = glm::vec3(positions[i].x(), positions[i].y(), positions[i].z());
+
+					if (hasNormals && i < normals.size()) {
+						data.Normal = glm::vec3(normals[i].x(), normals[i].y(), normals[i].z());
+					}
+
+					render.pMeshDataPtr.push_back(data);
 				}
 
 				size_t primitiveIndex = std::distance(mesh.primitives.begin(), it);

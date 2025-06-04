@@ -386,9 +386,10 @@ namespace Brisk
 			for (auto it = mesh.primitives.begin(); it != mesh.primitives.end(); ++it) {
 				auto* positionIt = it->findAttribute("POSITION");
 				auto* normalIt = it->findAttribute("NORMAL");
+				auto* texCoordIt = it->findAttribute("TEXCOORD_0");
 
-				assert(positionIt != it->attributes.end()); // POSITION must be present.
-				assert(it->indicesAccessor.has_value());    // Indices must be present if GenerateMeshIndices is specified.
+				assert(positionIt != it->attributes.end());
+				assert(it->indicesAccessor.has_value());
 
 				auto& positionAccessor = asset.accessors[positionIt->accessorIndex];
 				if (!positionAccessor.bufferViewIndex.has_value())
@@ -398,12 +399,11 @@ namespace Brisk
 				std::vector<fastgltf::math::fvec3> positions;
 				if (positionAccessor.componentType == fastgltf::ComponentType::Float &&
 					positionAccessor.type == fastgltf::AccessorType::Vec3) {
-
 					positions.resize(positionAccessor.count);
 					fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, positionAccessor, positions.data());
 				}
 
-				// Load normals (optional if present)
+				// Load normals
 				std::vector<fastgltf::math::fvec3> normals;
 				bool hasNormals = (normalIt != it->attributes.end());
 				if (hasNormals) {
@@ -411,7 +411,6 @@ namespace Brisk
 					if (normalAccessor.componentType == fastgltf::ComponentType::Float &&
 						normalAccessor.type == fastgltf::AccessorType::Vec3 &&
 						normalAccessor.bufferViewIndex.has_value()) {
-
 						normals.resize(normalAccessor.count);
 						fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, normalAccessor, normals.data());
 					}
@@ -420,17 +419,40 @@ namespace Brisk
 					}
 				}
 
-				// Combine into Vertex
+				// Load texcoords
+				std::vector<fastgltf::math::fvec2> texcoords;
+				bool hasTexcoords = (texCoordIt != it->attributes.end());
+				if (hasTexcoords) {
+					auto& texcoordAccessor = asset.accessors[texCoordIt->accessorIndex];
+					if (texcoordAccessor.componentType == fastgltf::ComponentType::Float &&
+						texcoordAccessor.type == fastgltf::AccessorType::Vec2 &&
+						texcoordAccessor.bufferViewIndex.has_value()) {
+						texcoords.resize(texcoordAccessor.count);
+						fastgltf::copyFromAccessor<fastgltf::math::fvec2>(asset, texcoordAccessor, texcoords.data());
+					}
+					else {
+						hasTexcoords = false;
+					}
+				}
+
+				// Combine into vertex struct
 				for (size_t i = 0; i < positions.size(); ++i) {
 					MeshData data{};
 					data.Position = glm::vec3(positions[i].x(), positions[i].y(), positions[i].z());
 
-					if (hasNormals && i < normals.size()) {
+					if (hasNormals && i < normals.size())
 						data.Normal = glm::vec3(normals[i].x(), normals[i].y(), normals[i].z());
-					}
+					else
+						data.Normal = glm::vec3(0.0f);
+
+					if (hasTexcoords && i < texcoords.size())
+						data.UV0 = glm::vec2(texcoords[i].x(), texcoords[i].y());
+					else
+						data.UV0 = glm::vec2(0.0f);
 
 					render.pMeshDataPtr.push_back(data);
 				}
+
 
 				size_t primitiveIndex = std::distance(mesh.primitives.begin(), it);
 				const auto& primitive = *it;

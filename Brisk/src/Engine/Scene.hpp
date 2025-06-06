@@ -26,12 +26,12 @@ namespace Brisk
 		float backgroundLight = 1.0;
 	};
 
-	struct RendererableDataRef {
-		uint32_t pVertexCount;
-		uint32_t pIndexCount;
-		std::vector<MeshData> pMeshDataPtr;
-		std::vector<uint32_t> pIndicesDataPtr;
-	};
+	//struct RendererableDataRef {
+	//	uint32_t pVertexCount;
+	//	uint32_t pIndexCount;
+	//	std::vector<MeshData> pMeshDataPtr;
+	//	std::vector<uint32_t> pIndicesDataPtr;
+	//};
 
 	class Scene
 	{

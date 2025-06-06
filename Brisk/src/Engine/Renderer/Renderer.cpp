@@ -286,21 +286,21 @@ namespace Brisk
                 RenderCommand::DrawIndexed(m_CmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
             }
         }
-        for (auto& child : e.GetComponent<TransformComponent>().children) {
-            SetupEntity(child);
-        }
+        //for (auto& child : e.GetComponent<TransformComponent>().children) {
+        //    SetupEntity(child);
+        //}
     }
 
     void Renderer::PreRenderScene() {
         // Bind unbound resources
         if (!SceneManager::pActiveScene) return;
 
-        auto parent = SceneManager::pActiveScene->Reg().view<RootComponent>();
+        //auto parent = SceneManager::pActiveScene->Reg().view<RootComponent>();
 
-        for (auto e : parent) {
-            Entity entity = { e, SceneManager::pActiveScene.get() };
-            SetupEntity(entity);
-        }
+        //for (auto e : parent) {
+        //    Entity entity = { e, SceneManager::pActiveScene.get() };
+        //    SetupEntity(entity);
+        //}
     }
 
     int times = 0;
@@ -308,7 +308,7 @@ namespace Brisk
     {
         if (!SceneManager::pActiveScene) return;
 
-        auto parent = SceneManager::pActiveScene->Reg().view<RootComponent>();
+        //auto parent = SceneManager::pActiveScene->Reg().view<RootComponent>();
 
         m_Fence->Wait();
         m_Fence->Reset();
@@ -335,17 +335,17 @@ namespace Brisk
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
 
-        for (auto e : parent) {
-            Entity entity = { e, SceneManager::pActiveScene.get() };
+        //for (auto e : parent) {
+        //    Entity entity = { e, SceneManager::pActiveScene.get() };
 
-            auto& mesh = entity.GetComponent<MeshComponent>();
-            auto& root = entity.GetComponent<RootComponent>();
+        //    auto& mesh = entity.GetComponent<MeshComponent>();
+        //    auto& root = entity.GetComponent<RootComponent>();
 
-            RenderCommand::BindVertexBuffer(m_CmdBuffer, { root.m_VertexBuffer }, 0);
-            RenderCommand::BindIndexBuffer(m_CmdBuffer, root.m_IndexBuffer, 0);
+        //    RenderCommand::BindVertexBuffer(m_CmdBuffer, { root.m_VertexBuffer }, 0);
+        //    RenderCommand::BindIndexBuffer(m_CmdBuffer, root.m_IndexBuffer, 0);
 
-            RenderEntity(entity);
-        }
+        //    RenderEntity(entity);
+        //}
 
         m_DepthPrePass->End(m_CmdBuffer);
 
@@ -392,17 +392,17 @@ namespace Brisk
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
 
-        for (auto e : parent) {
-            Entity entity = { e, SceneManager::pActiveScene.get() };
-            
-            auto& mesh = entity.GetComponent<MeshComponent>();
-            auto& root = entity.GetComponent<RootComponent>();
+        //for (auto e : parent) {
+        //    Entity entity = { e, SceneManager::pActiveScene.get() };
+        //    
+        //    auto& mesh = entity.GetComponent<MeshComponent>();
+        //    auto& root = entity.GetComponent<RootComponent>();
 
-            RenderCommand::BindVertexBuffer(m_CmdBuffer, { root.m_VertexBuffer }, 0);
-            RenderCommand::BindIndexBuffer(m_CmdBuffer, root.m_IndexBuffer, 0);
+        //    RenderCommand::BindVertexBuffer(m_CmdBuffer, { root.m_VertexBuffer }, 0);
+        //    RenderCommand::BindIndexBuffer(m_CmdBuffer, root.m_IndexBuffer, 0);
 
-            RenderEntity(entity);
-        }
+        //    RenderEntity(entity);
+        //}
 
         m_GeometryBufferPass->End(m_CmdBuffer);
 
@@ -532,9 +532,9 @@ namespace Brisk
                 RenderCommand::DrawIndexed(m_CmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
             }
         }
-        for (auto& child : e.GetComponent<TransformComponent>().children) {
-            RenderEntity(child);
-        }
+        //for (auto& child : e.GetComponent<TransformComponent>().children) {
+        //    RenderEntity(child);
+        //}
     }
 
     std::unique_ptr<Renderer> Renderer::Create()

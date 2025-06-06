@@ -26,35 +26,34 @@ namespace Brisk
 			: Tag(tag) {}
 	};
 
-	struct TransformComponent
+	struct LocalTransformComponent
 	{
-		std::string name = "Transform Compnent";
+		std::string name = "Local Transform Component";
 
 		Entity parent;
 		std::vector<Entity> children;
 
-		const glm::vec3 &GetPosition() const { return Position; }
-		const glm::vec3 &GetRotation() const { return Rotation; }
-		const glm::vec3 &GetScale() const { return Scale; }
+		const glm::vec3& GetPosition() const { return Position; }
+		const glm::quat& GetRotation() const { return Rotation; }
+		const glm::vec3& GetScale() const { return Scale; }
 
-		void AddTranform(const glm::vec3 &pos)
+		void AddTranform(const glm::vec3& pos)
 		{
 			Position = pos;
 		}
 
-		void AddTranform(const glm::vec4 &rot)
+		void AddTranform(const glm::quat& rot)
 		{
 			Rotation = rot;
 		}
 
-		void AddTranform(const glm::vec3 &pos, const glm::vec4 &rot)
+		void AddTranform(const glm::vec3& pos, const glm::quat& rot)
 		{
-			glm::mat4 rotation = glm::toMat4(glm::quat(rot));
 			Position = pos;
 			Rotation = rot;
 		}
 
-		void AddTranform(const glm::vec3 &pos, const glm::vec4 &rot, const glm::vec3 &scale)
+		void AddTranform(const glm::vec3& pos, const glm::quat& rot, const glm::vec3& scale)
 		{
 			glm::mat4 rotation = glm::toMat4(glm::quat(rot));
 			Position = pos;
@@ -62,16 +61,16 @@ namespace Brisk
 			Scale = scale;
 		}
 
-		glm::vec3 Position = {0.0f, 0.0f, 0.0f};
-		glm::vec3 Rotation = {0.0f, 0.0f, 0.0f};
-		glm::vec3 Scale = {1.0f, 1.0f, 1.0f};
-		glm::mat4 Matrix = glm::mat4(1.0f);
+		glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
+		glm::quat Rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+		glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
 
-		TransformComponent() = default;
-		TransformComponent(const TransformComponent &) = default;
+		LocalTransformComponent() = default;
+		LocalTransformComponent(const LocalTransformComponent&) = default;
 
-		TransformComponent(const glm::vec3 &position)
-			: Position(position) {}
+		LocalTransformComponent(const glm::vec3& position)
+			: Position(position) {
+		}
 
 		// void SetPosition(const glm::mat4& pos) { Position = pos; }
 
@@ -82,19 +81,52 @@ namespace Brisk
 		}
 	};
 
-	struct SubMesh
+	struct WorldTransformComponent
 	{
-		uint32_t first_index = 0;
-		uint32_t index_count = 0;
-		uint32_t vertex_count = 0;
-		uint32_t material_index = 0;
-	};
+		std::string name = "World Transform Component";
 
-	struct RootComponent {
-		std::string name = "Root Component";
+		const glm::vec3 &GetPosition() const { return Position; }
+		const glm::quat &GetRotation() const { return Rotation; }
+		const glm::vec3 &GetScale() const { return Scale; }
 
-		std::shared_ptr<Buffer> m_VertexBuffer;
-		std::shared_ptr<Buffer> m_IndexBuffer;
+		void AddTranform(const glm::vec3 &pos)
+		{
+			Position = pos;
+		}
+
+		void AddTranform(const glm::quat &rot)
+		{
+			Rotation = rot;
+		}
+
+		void AddTranform(const glm::vec3 &pos, const glm::quat &rot)
+		{
+			Position = pos;
+			Rotation = rot;
+		}
+
+		void AddTranform(const glm::vec3 &pos, const glm::quat &rot, const glm::vec3 &scale)
+		{
+			glm::mat4 rotation = glm::toMat4(glm::quat(rot));
+			Position = pos;
+			Rotation = rot;
+			Scale = scale;
+		}
+
+		glm::vec3 Position = {0.0f, 0.0f, 0.0f};
+		glm::quat Rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
+		glm::vec3 Scale = {1.0f, 1.0f, 1.0f};
+
+		WorldTransformComponent() = default;
+		WorldTransformComponent(const WorldTransformComponent&) = default;
+
+		WorldTransformComponent(const glm::vec3 &position)
+			: Position(position) {}
+
+		glm::mat4 GetTransform() const
+		{
+			return glm::translate(glm::mat4(1.0f), Position) * glm::toMat4(Rotation) * glm::scale(glm::mat4(1.0f), Scale);
+		}
 	};
 
 	struct MeshComponent
@@ -103,7 +135,14 @@ namespace Brisk
 
 		std::shared_ptr<Mesh> pModel;
 
-		std::shared_ptr<RendererableDataRef> renderableRef;
+		//std::shared_ptr<RendererableDataRef> renderableRef;
+		struct SubMesh
+		{
+			uint32_t first_index = 0;
+			uint32_t index_count = 0;
+			uint32_t vertex_count = 0;
+			uint32_t material_index = 0;
+		};
 		std::vector<SubMesh> subMeshes;
 
 		MeshComponent() = default;
@@ -298,8 +337,8 @@ namespace Brisk
 
 	using AllComponents =
 		ComponentGroup<MeshComponent,
-						RootComponent,
-					   TransformComponent,
+					   LocalTransformComponent,
+					   WorldTransformComponent,
 					   LightComponent,
 					   SkyboxComponent,
 					   Physics2DComponent,

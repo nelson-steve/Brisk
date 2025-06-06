@@ -384,7 +384,8 @@ namespace Brisk
 			for (auto it = mesh.primitives.begin(); it != mesh.primitives.end(); ++it) {
 				auto* positionIt = it->findAttribute("POSITION");
 				auto* normalIt = it->findAttribute("NORMAL");
-				auto* texCoordIt = it->findAttribute("TEXCOORD_0");
+				auto* texCoord0It = it->findAttribute("TEXCOORD_0");
+				auto* texCoord1It = it->findAttribute("TEXCOORD_1");
 
 				assert(positionIt != it->attributes.end());
 				assert(it->indicesAccessor.has_value());
@@ -418,18 +419,34 @@ namespace Brisk
 				}
 
 				// Load texcoords
-				std::vector<fastgltf::math::fvec2> texcoords;
-				bool hasTexcoords = (texCoordIt != it->attributes.end());
-				if (hasTexcoords) {
-					auto& texcoordAccessor = asset.accessors[texCoordIt->accessorIndex];
+				std::vector<fastgltf::math::fvec2> texcoords0;
+				bool hasTexcoords0 = (texCoord0It != it->attributes.end());
+				if (hasTexcoords0) {
+					auto& texcoordAccessor = asset.accessors[texCoord0It->accessorIndex];
 					if (texcoordAccessor.componentType == fastgltf::ComponentType::Float &&
 						texcoordAccessor.type == fastgltf::AccessorType::Vec2 &&
 						texcoordAccessor.bufferViewIndex.has_value()) {
-						texcoords.resize(texcoordAccessor.count);
-						fastgltf::copyFromAccessor<fastgltf::math::fvec2>(asset, texcoordAccessor, texcoords.data());
+						texcoords0.resize(texcoordAccessor.count);
+						fastgltf::copyFromAccessor<fastgltf::math::fvec2>(asset, texcoordAccessor, texcoords0.data());
 					}
 					else {
-						hasTexcoords = false;
+						hasTexcoords0 = false;
+					}
+				}
+
+				// Load texcoords
+				std::vector<fastgltf::math::fvec2> texcoords1;
+				bool hasTexcoords1 = (texCoord1It != it->attributes.end());
+				if (hasTexcoords1) {
+					auto& texcoordAccessor = asset.accessors[texCoord1It->accessorIndex];
+					if (texcoordAccessor.componentType == fastgltf::ComponentType::Float &&
+						texcoordAccessor.type == fastgltf::AccessorType::Vec2 &&
+						texcoordAccessor.bufferViewIndex.has_value()) {
+						texcoords1.resize(texcoordAccessor.count);
+						fastgltf::copyFromAccessor<fastgltf::math::fvec2>(asset, texcoordAccessor, texcoords1.data());
+					}
+					else {
+						hasTexcoords1 = false;
 					}
 				}
 
@@ -443,10 +460,15 @@ namespace Brisk
 					else
 						data.Normal = glm::vec3(0.0f);
 
-					if (hasTexcoords && i < texcoords.size())
-						data.UV0 = glm::vec2(texcoords[i].x(), texcoords[i].y());
+					if (hasTexcoords0 && i < texcoords0.size())
+						data.UV0 = glm::vec2(texcoords0[i].x(), texcoords0[i].y());
 					else
 						data.UV0 = glm::vec2(0.0f);
+
+					if (hasTexcoords1 && i < texcoords1.size())
+						data.UV1 = glm::vec2(texcoords1[i].x(), texcoords1[i].y());
+					else
+						data.UV1 = glm::vec2(0.0f);
 
 					render.pMeshDataPtr.push_back(data);
 				}
@@ -485,6 +507,24 @@ namespace Brisk
 					}
 				}
 			}
+		}
+
+
+
+		entity.GetComponent<RootComponent>().m_VertexBuffer = Buffer::Create();
+		entity.GetComponent<RootComponent>().m_VertexBuffer->Init(sizeof(entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr[0]) * entity.GetComponent<MeshComponent>().renderableRef->pVertexCount,
+			entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr.data(),
+			Core::BufferUsage::VertexBuffer | Core::BufferUsage::TransferDst,
+			Core::MemoryProperty::DeviceLocal,
+			false);
+
+		if (entity.GetComponent<MeshComponent>().renderableRef->pIndexCount > 0) {
+			entity.GetComponent<RootComponent>().m_IndexBuffer = Buffer::Create();
+			entity.GetComponent<RootComponent>().m_IndexBuffer->Init(sizeof(entity.GetComponent<MeshComponent>().renderableRef->pIndicesDataPtr[0]) * entity.GetComponent<MeshComponent>().renderableRef->pIndexCount,
+				entity.GetComponent<MeshComponent>().renderableRef->pIndicesDataPtr.data(),
+				Core::BufferUsage::IndexBuffer | Core::BufferUsage::TransferDst,
+				Core::MemoryProperty::DeviceLocal,
+				true);
 		}
 	}
 
@@ -605,7 +645,7 @@ namespace Brisk
 	Entity Scene::CreateCubeEntity(const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
-		entity.AddComponent<TransformComponent>();
+		entity.AddComponent<LocalTransformComponent>();
 		entity.AddComponent<ScriptComponent>();
 		entity.AddComponent<PhysicsComponent>();
 		entity.AddComponent<BoxColliderComponent>();
@@ -618,7 +658,7 @@ namespace Brisk
 	Entity Scene::CreatePlaneEntity(const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
-		entity.AddComponent<TransformComponent>();
+		entity.AddComponent<LocalTransformComponent>();
 		entity.AddComponent<ScriptComponent>();
 
 		auto& tag = entity.AddComponent<TagComponent>();
@@ -629,7 +669,7 @@ namespace Brisk
 	Entity Scene::CreateLightEntity(const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
-		entity.AddComponent<TransformComponent>();
+		entity.AddComponent<LocalTransformComponent>();
 		entity.AddComponent<LightComponent>();
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
@@ -639,7 +679,7 @@ namespace Brisk
 	Entity Scene::CreateEntity(const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
-		entity.AddComponent<TransformComponent>();
+		entity.AddComponent<LocalTransformComponent>();
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
 		return entity;
@@ -648,7 +688,7 @@ namespace Brisk
 	Entity Scene::CreateCameraEntity(const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
-		entity.AddComponent<TransformComponent>();
+		entity.AddComponent<LocalTransformComponent>();
 		entity.AddComponent<CameraComponent>();
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
@@ -705,7 +745,12 @@ namespace Brisk
 	}
 
 	template<>
-	void Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent& component)
+	void Scene::OnComponentAdded<LocalTransformComponent>(Entity entity, LocalTransformComponent& component)
+	{
+	}
+
+	template<>
+	void Scene::OnComponentAdded<WorldTransformComponent>(Entity entity, WorldTransformComponent& component)
 	{
 	}
 

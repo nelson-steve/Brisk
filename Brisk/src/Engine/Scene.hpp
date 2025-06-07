@@ -26,21 +26,9 @@ namespace Brisk
 		float backgroundLight = 1.0;
 	};
 
-	//struct RendererableDataRef {
-	//	uint32_t pVertexCount;
-	//	uint32_t pIndexCount;
-	//	std::vector<MeshData> pMeshDataPtr;
-	//	std::vector<uint32_t> pIndicesDataPtr;
-	//};
-
 	class Scene
 	{
 	public:
-		Scene(); // this is a constructor as you may remember. since it's name is the same as the class
-
-		void InitDefaults();
-		void InitScene();
-
 		void LoadGLTFFile(std::string path, Entity e);
 		void LoadFileSystemGLTFFile(std::filesystem::path path, Entity e);
 
@@ -80,8 +68,6 @@ namespace Brisk
 
 		uint32_t m_vertex_pos = 0;
 		uint32_t m_index_pos = 0;
-
-		RendererableDataRef render;
 
 		std::vector<std::shared_ptr<Texture>> mTextures;
 		std::vector<GLTF_Node*> pNodes;

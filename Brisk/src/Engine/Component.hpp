@@ -135,7 +135,6 @@ namespace Brisk
 
 		std::shared_ptr<Mesh> pModel;
 
-		//std::shared_ptr<RendererableDataRef> renderableRef;
 		struct SubMesh
 		{
 			uint32_t first_index = 0;

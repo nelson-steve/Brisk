@@ -107,10 +107,10 @@ namespace Brisk
 		}
 	};
 
-	class Mesh {
+	class MeshAsset {
 	public:
-		Mesh() = default;
-		~Mesh();
+		MeshAsset() = default;
+		~MeshAsset();
 		void Load(const std::string& path);
 		void GetNodeProps(const tinygltf::Node& node, const tinygltf::Model& model, size_t& vertex_count, size_t& index_count);
 		void LoadNode(GLTF_Node* parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model);

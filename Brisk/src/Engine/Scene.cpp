@@ -16,10 +16,6 @@
 
 namespace Brisk 
 {
-	Scene::Scene()
-	{
-	}
-
 	template<typename... Component>
 	static void CopyComponentIfExists(Entity dst, Entity src)
 	{
@@ -34,14 +30,6 @@ namespace Brisk
 	static void CopyComponentIfExists(ComponentGroup<Component...>, Entity dst, Entity src)
 	{
 		CopyComponentIfExists<Component...>(dst, src);
-	}
-
-	void Scene::InitDefaults()
-	{
-	}
-
-	void Scene::InitScene()
-	{
 	}
 
 	//void Scene::LoadNode(Entity parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> renderableRef) {
@@ -646,9 +634,6 @@ namespace Brisk
 	{
 		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<LocalTransformComponent>();
-		entity.AddComponent<ScriptComponent>();
-		entity.AddComponent<PhysicsComponent>();
-		entity.AddComponent<BoxColliderComponent>();
 
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
@@ -659,7 +644,6 @@ namespace Brisk
 	{
 		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<LocalTransformComponent>();
-		entity.AddComponent<ScriptComponent>();
 
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;

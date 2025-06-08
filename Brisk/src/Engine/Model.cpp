@@ -5,13 +5,13 @@
 //-------------------
 
 namespace Brisk {
-	Mesh::~Mesh() {
+	MeshAsset::~MeshAsset() {
 		for (auto node : m_nodes) {
 			delete node;
 		}
 	}
 
-	void Mesh::Load(const std::string& path) {
+	void MeshAsset::Load(const std::string& path) {
 		tinygltf::TinyGLTF loader;
 		tinygltf::Model model;
 		std::string error;
@@ -102,7 +102,7 @@ namespace Brisk {
 		}
 	}
 
-	void Mesh::LoadMaterials(tinygltf::Model model) {
+	void MeshAsset::LoadMaterials(tinygltf::Model model) {
 		for (tinygltf::Material& mat : model.materials) {
 			MaterialData material{};
 			material.doubleSided = mat.doubleSided;
@@ -202,7 +202,7 @@ namespace Brisk {
 		m_materials.push_back(MaterialData());
 	}
 
-	void Mesh::GetNodeProps(const tinygltf::Node& node, const tinygltf::Model& model, size_t& vertex_count, size_t& index_count) {
+	void MeshAsset::GetNodeProps(const tinygltf::Node& node, const tinygltf::Model& model, size_t& vertex_count, size_t& index_count) {
 		if (node.children.size() > 0) {
 			for (size_t i = 0; i < node.children.size(); i++) {
 				GetNodeProps(model.nodes[node.children[i]], model, vertex_count, index_count);
@@ -220,7 +220,7 @@ namespace Brisk {
 		}
 	}
 
-	void Mesh::LoadNode(GLTF_Node* parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model) {
+	void MeshAsset::LoadNode(GLTF_Node* parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model) {
 		GLTF_Node* new_node = new GLTF_Node();
 		new_node->parent = parent;
 		new_node->index = node_index;

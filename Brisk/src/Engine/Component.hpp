@@ -133,7 +133,7 @@ namespace Brisk
 	{
 		std::string name = "Mesh Component";
 
-		std::shared_ptr<Mesh> pModel;
+		std::shared_ptr<MeshAsset> pModel;
 
 		struct SubMesh
 		{

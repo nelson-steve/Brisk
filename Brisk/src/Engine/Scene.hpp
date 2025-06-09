@@ -40,7 +40,7 @@ namespace Brisk
 		Entity CreateEntity(const std::string& name);
 		void DestroyEntity(Entity entity);
 
-		void LoadNode(Entity parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> renderableRef);
+		//void LoadNode(Entity parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> renderableRef);
 		void LoadMaterials(tinygltf::Model model);
 
 		void OnViewportResize(uint32_t width, uint32_t height);

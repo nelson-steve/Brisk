@@ -458,62 +458,62 @@ namespace Brisk
 					else
 						data.UV1 = glm::vec2(0.0f);
 
-					render.pMeshDataPtr.push_back(data);
+					//render.pMeshDataPtr.push_back(data);
 				}
 
 
 				size_t primitiveIndex = std::distance(mesh.primitives.begin(), it);
 				const auto& primitive = *it;
 
-				// Load indices
-				if (it->indicesAccessor.has_value()) {
-					const auto& indexAccessor = asset.accessors[it->indicesAccessor.value()];
+				//// Load indices
+				//if (it->indicesAccessor.has_value()) {
+				//	const auto& indexAccessor = asset.accessors[it->indicesAccessor.value()];
 
-					switch (indexAccessor.componentType) {
-					case fastgltf::ComponentType::UnsignedByte: {
-						std::vector<uint8_t> indices(indexAccessor.count);
-						fastgltf::copyFromAccessor<uint8_t>(asset, indexAccessor, indices.data());
-						for (uint8_t i : indices)
-							render.pIndicesDataPtr.push_back(static_cast<uint32_t>(i));
-						break;
-					}
-					case fastgltf::ComponentType::UnsignedShort: {
-						std::vector<uint16_t> indices(indexAccessor.count);
-						fastgltf::copyFromAccessor<uint16_t>(asset, indexAccessor, indices.data());
-						for (uint16_t i : indices)
-							render.pIndicesDataPtr.push_back(static_cast<uint32_t>(i));
-						break;
-					}
-					case fastgltf::ComponentType::UnsignedInt: {
-						std::vector<uint32_t> indices(indexAccessor.count);
-						fastgltf::copyFromAccessor<uint32_t>(asset, indexAccessor, indices.data());
-						render.pIndicesDataPtr.insert(render.pIndicesDataPtr.end(), indices.begin(), indices.end());
-						break;
-					}
-					default:
-						throw std::runtime_error("Unsupported index component type.");
-					}
-				}
+				//	switch (indexAccessor.componentType) {
+				//	case fastgltf::ComponentType::UnsignedByte: {
+				//		std::vector<uint8_t> indices(indexAccessor.count);
+				//		fastgltf::copyFromAccessor<uint8_t>(asset, indexAccessor, indices.data());
+				//		for (uint8_t i : indices)
+				//			render.pIndicesDataPtr.push_back(static_cast<uint32_t>(i));
+				//		break;
+				//	}
+				//	case fastgltf::ComponentType::UnsignedShort: {
+				//		std::vector<uint16_t> indices(indexAccessor.count);
+				//		fastgltf::copyFromAccessor<uint16_t>(asset, indexAccessor, indices.data());
+				//		for (uint16_t i : indices)
+				//			render.pIndicesDataPtr.push_back(static_cast<uint32_t>(i));
+				//		break;
+				//	}
+				//	case fastgltf::ComponentType::UnsignedInt: {
+				//		std::vector<uint32_t> indices(indexAccessor.count);
+				//		fastgltf::copyFromAccessor<uint32_t>(asset, indexAccessor, indices.data());
+				//		render.pIndicesDataPtr.insert(render.pIndicesDataPtr.end(), indices.begin(), indices.end());
+				//		break;
+				//	}
+				//	default:
+				//		throw std::runtime_error("Unsupported index component type.");
+				//	}
+				//}
 			}
 		}
 
 
 
-		entity.GetComponent<RootComponent>().m_VertexBuffer = Buffer::Create();
-		entity.GetComponent<RootComponent>().m_VertexBuffer->Init(sizeof(entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr[0]) * entity.GetComponent<MeshComponent>().renderableRef->pVertexCount,
-			entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr.data(),
-			Core::BufferUsage::VertexBuffer | Core::BufferUsage::TransferDst,
-			Core::MemoryProperty::DeviceLocal,
-			false);
+		//entity.GetComponent<RootComponent>().m_VertexBuffer = Buffer::Create();
+		//entity.GetComponent<RootComponent>().m_VertexBuffer->Init(sizeof(entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr[0]) * entity.GetComponent<MeshComponent>().renderableRef->pVertexCount,
+		//	entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr.data(),
+		//	Core::BufferUsage::VertexBuffer | Core::BufferUsage::TransferDst,
+		//	Core::MemoryProperty::DeviceLocal,
+		//	false);
 
-		if (entity.GetComponent<MeshComponent>().renderableRef->pIndexCount > 0) {
-			entity.GetComponent<RootComponent>().m_IndexBuffer = Buffer::Create();
-			entity.GetComponent<RootComponent>().m_IndexBuffer->Init(sizeof(entity.GetComponent<MeshComponent>().renderableRef->pIndicesDataPtr[0]) * entity.GetComponent<MeshComponent>().renderableRef->pIndexCount,
-				entity.GetComponent<MeshComponent>().renderableRef->pIndicesDataPtr.data(),
-				Core::BufferUsage::IndexBuffer | Core::BufferUsage::TransferDst,
-				Core::MemoryProperty::DeviceLocal,
-				true);
-		}
+		//if (entity.GetComponent<MeshComponent>().renderableRef->pIndexCount > 0) {
+		//	entity.GetComponent<RootComponent>().m_IndexBuffer = Buffer::Create();
+		//	entity.GetComponent<RootComponent>().m_IndexBuffer->Init(sizeof(entity.GetComponent<MeshComponent>().renderableRef->pIndicesDataPtr[0]) * entity.GetComponent<MeshComponent>().renderableRef->pIndexCount,
+		//		entity.GetComponent<MeshComponent>().renderableRef->pIndicesDataPtr.data(),
+		//		Core::BufferUsage::IndexBuffer | Core::BufferUsage::TransferDst,
+		//		Core::MemoryProperty::DeviceLocal,
+		//		true);
+		//}
 	}
 
 	void Scene::LoadGLTFFile(std::string path, Entity entity) {

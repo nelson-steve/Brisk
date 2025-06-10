@@ -4,7 +4,6 @@
 #include "Renderer/Texture.hpp"
 #include "Renderer/Descriptor.hpp"
 //-------------------------------
-#include "tiny_gltf.h"
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
 //----------------------------
@@ -112,9 +111,9 @@ namespace Brisk
 		MeshAsset() = default;
 		~MeshAsset();
 		void Load(const std::string& path);
-		void GetNodeProps(const tinygltf::Node& node, const tinygltf::Model& model, size_t& vertex_count, size_t& index_count);
-		void LoadNode(GLTF_Node* parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model);
-		void LoadMaterials(tinygltf::Model model);
+		//void GetNodeProps(const tinygltf::Node& node, const tinygltf::Model& model, size_t& vertex_count, size_t& index_count);
+		//void LoadNode(GLTF_Node* parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model);
+		//void LoadMaterials(tinygltf::Model model);
 
 		const std::vector<GLTF_Node*> GetNodes() const { return m_nodes; }
 		const std::vector<GLTF_Node*> GetLinearNodes() const { return m_linear_nodes; }

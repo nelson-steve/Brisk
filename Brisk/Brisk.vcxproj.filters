@@ -419,7 +419,7 @@
     </ClCompile>
     <ClCompile Include="src\VmaUsage.cpp" />
     <ClCompile Include="src\VolkUsage.cpp" />
-    <ClCompile Include="src\tiny_gltf.cc" />
+    <ClCompile Include="src\stbimage.cc" />
     <ClCompile Include="src\volk.c" />
   </ItemGroup>
 </Project>

@@ -517,29 +517,29 @@ namespace Brisk
 	}
 
 	void Scene::LoadGLTFFile(std::string path, Entity entity) {
-		tinygltf::TinyGLTF loader;
-		tinygltf::Model model;
-		std::string error;
-		std::string warning;
+		//tinygltf::TinyGLTF loader;
+		//tinygltf::Model model;
+		//std::string error;
+		//std::string warning;
 
-		bool binary = false;
-		size_t extpos = path.rfind('.', path.length());
-		if (extpos != std::string::npos) {
-			binary = (path.substr(extpos + 1, path.length() - extpos) == "glb");
-		}
+		//bool binary = false;
+		//size_t extpos = path.rfind('.', path.length());
+		//if (extpos != std::string::npos) {
+		//	binary = (path.substr(extpos + 1, path.length() - extpos) == "glb");
+		//}
 
-		bool file_loaded = false;
-		if (binary) {
-			file_loaded = loader.LoadBinaryFromFile(&model, &error, &warning, path.c_str());
-		}
-		else {
-			file_loaded = loader.LoadASCIIFromFile(&model, &error, &warning, path.c_str());
-		}
+		//bool file_loaded = false;
+		//if (binary) {
+		//	file_loaded = loader.LoadBinaryFromFile(&model, &error, &warning, path.c_str());
+		//}
+		//else {
+		//	file_loaded = loader.LoadASCIIFromFile(&model, &error, &warning, path.c_str());
+		//}
 
-		if (!file_loaded) {
-			BRISK_CORE_ERROR("gltf model file could not be loaded");
-			return;
-		}
+		//if (!file_loaded) {
+		//	BRISK_CORE_ERROR("gltf model file could not be loaded");
+		//	return;
+		//}
 
 		//int textureIndex = 0;
 		//for (tinygltf::Texture& tex : model.textures) {

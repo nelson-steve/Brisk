@@ -33,7 +33,6 @@ IncludeDir["stb_image"] = "%{wks.location}/Brisk/vendors/stb_image/include"
 IncludeDir["json"]      = "%{wks.location}/Brisk/vendors/json/include"
 IncludeDir["entt"]      = "%{wks.location}/Brisk/vendors/entt/include"
 IncludeDir["glm"]       = "%{wks.location}/Brisk/vendors/glm"
-IncludeDir["tiny_gltf"] = "%{wks.location}/Brisk/vendors/tiny_gltf/include"
 IncludeDir["VMA"]       = "%{wks.location}/Brisk/vendors/VMA/include"
 IncludeDir["SPIRV"]       = "%{wks.location}/Brisk/vendors/SPIRV-Reflect"
 IncludeDir["fastgltf"]       = "%{wks.location}/Brisk/vendors/fastgltf/include"
@@ -77,11 +76,9 @@ project "Brisk"
         "Brisk/vendors/json/include",
         "Brisk/vendors/entt/include",
         "Brisk/vendors/glm",
-        "Brisk/vendors/tiny_gltf/include",
         "Brisk/vendors/VMA/include",
         "Brisk/vendors/SPIRV-Reflect",
         "Brisk/vendors/simdjson",
-        -- "Brisk/vendors/fastgltf/include",
         "%{IncludeDir.fastgltf}",
         Vulkan_SDK .. "/Include"
     }

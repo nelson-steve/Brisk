@@ -59,7 +59,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>VK_NO_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;VMA_VOLK_HEADER_PATH="volk.h";BRISK_PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendors\GLFW\include;vendors\imgui;vendors\Volk;vendors\spdlog\include;vendors\stb_image\include;vendors\json\include;vendors\entt\include;vendors\glm;vendors\tiny_gltf\include;vendors\VMA\include;vendors\SPIRV-Reflect;vendors\simdjson;vendors\fastgltf\include;C:\VulkanSDK\1.4.309.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendors\GLFW\include;vendors\imgui;vendors\Volk;vendors\spdlog\include;vendors\stb_image\include;vendors\json\include;vendors\entt\include;vendors\glm;vendors\VMA\include;vendors\SPIRV-Reflect;vendors\simdjson;vendors\fastgltf\include;C:\VulkanSDK\1.4.309.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -78,7 +78,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>VK_NO_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;VMA_VOLK_HEADER_PATH="volk.h";BRISK_PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendors\GLFW\include;vendors\imgui;vendors\Volk;vendors\spdlog\include;vendors\stb_image\include;vendors\json\include;vendors\entt\include;vendors\glm;vendors\tiny_gltf\include;vendors\VMA\include;vendors\SPIRV-Reflect;vendors\simdjson;vendors\fastgltf\include;C:\VulkanSDK\1.4.309.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendors\GLFW\include;vendors\imgui;vendors\Volk;vendors\spdlog\include;vendors\stb_image\include;vendors\json\include;vendors\entt\include;vendors\glm;vendors\VMA\include;vendors\SPIRV-Reflect;vendors\simdjson;vendors\fastgltf\include;C:\VulkanSDK\1.4.309.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -227,7 +227,7 @@
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
     <ClCompile Include="src\VmaUsage.cpp" />
     <ClCompile Include="src\VolkUsage.cpp" />
-    <ClCompile Include="src\tiny_gltf.cc" />
+    <ClCompile Include="src\stbimage.cc" />
     <ClCompile Include="src\volk.c">
       <ObjectFileName>$(IntDir)\volk1.obj</ObjectFileName>
     </ClCompile>

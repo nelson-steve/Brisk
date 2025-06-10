@@ -31,7 +31,7 @@ namespace Brisk
 
 		virtual void Init(const TextureSpecification& specs) override;
 		virtual void Init(const std::string &path) override;
-		virtual void Init(tinygltf::Image image, TextureSampler sampler) override;
+		//virtual void Init(tinygltf::Image image, TextureSampler sampler) override;
 	private:
 		VkDescriptorImageInfo m_Descriptor;
 		VkImage m_Image;

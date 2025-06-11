@@ -29,7 +29,6 @@ namespace Brisk
 	class Scene
 	{
 	public:
-		void LoadGLTFFile(std::string path, Entity e);
 		void LoadFileSystemGLTFFile(std::filesystem::path path, Entity e);
 
 		Entity CreateMeshEntity(const std::string& name = "Mesh");
@@ -39,9 +38,6 @@ namespace Brisk
 		Entity CreateLightEntity(const std::string& name = "Light");
 		Entity CreateEntity(const std::string& name);
 		void DestroyEntity(Entity entity);
-
-		//void LoadNode(Entity parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model, std::shared_ptr<RendererableDataRef> renderableRef);
-		//void LoadMaterials(tinygltf::Model model);
 
 		void OnViewportResize(uint32_t width, uint32_t height);
 
@@ -65,12 +61,6 @@ namespace Brisk
 		bool m_IsRunning = false;
 		bool m_IsPaused = false;
 		SceneSetting m_SceneSetting;
-
-		uint32_t m_vertex_pos = 0;
-		uint32_t m_index_pos = 0;
-
-		std::vector<std::shared_ptr<Texture>> mTextures;
-		std::vector<GLTF_Node*> pNodes;
 
 		friend class Entity;
 		friend class SceneSerializer;

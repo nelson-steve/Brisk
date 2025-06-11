@@ -516,7 +516,7 @@ namespace Brisk
 		//}
 	}
 
-	void Scene::LoadGLTFFile(std::string path, Entity entity) {
+	//void Scene::LoadGLTFFile(std::string path, Entity entity) {
 		//tinygltf::TinyGLTF loader;
 		//tinygltf::Model model;
 		//std::string error;
@@ -601,7 +601,7 @@ namespace Brisk
 
 		//entity.GetComponent<MeshComponent>().renderableRef->pMeshDataPtr.clear();
 		//entity.GetComponent<MeshComponent>().renderableRef->pIndicesDataPtr.clear();
-	}
+	//}
 
 	Entity Scene::CreateMeshEntity(const std::string& name)
 	{

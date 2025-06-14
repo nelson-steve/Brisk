@@ -2,6 +2,7 @@
 
 // INCLUDES
 #include "Renderer/Texture.hpp"
+#include "Model.hpp"
 //-----------------------------
 #include <iostream>
 #include <typeindex>
@@ -11,7 +12,7 @@
 namespace Brisk {
 
     //class Texture;
-    class Model;
+    //class Model;
     class Shader;
     class Sound;
     class Animation;
@@ -106,7 +107,7 @@ namespace Brisk {
     }
 
     template<>
-    std::shared_ptr<Model> AssetManager::LoadAssetFromFile<Model>(const std::string& filePath)
+    std::shared_ptr<MeshAsset> AssetManager::LoadAssetFromFile<Model>(const std::string& filePath)
     {
         return std::make_shared<Model>(filePath);
     }
@@ -256,7 +257,7 @@ namespace Brisk {
     };
 
     template<>
-    std::shared_ptr<Model> AssetManagerV2::LoadFromFile<Model>(const std::string& filePath)
+    std::shared_ptr<MeshAsset> AssetManagerV2::LoadFromFile<Model>(const std::string& filePath)
     {
         return std::make_shared<Model>(filePath);
     }

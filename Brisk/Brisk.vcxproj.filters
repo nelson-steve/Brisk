@@ -165,9 +165,6 @@
     <ClInclude Include="src\Engine\Renderer\RendererAPI.hpp">
       <Filter>Engine\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\RendererFactory.hpp">
-      <Filter>Engine\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Semaphore.hpp">
       <Filter>Engine\Renderer</Filter>
     </ClInclude>

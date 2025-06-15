@@ -139,7 +139,6 @@
     <ClInclude Include="src\Engine\Renderer\RenderPass.hpp" />
     <ClInclude Include="src\Engine\Renderer\Renderer.hpp" />
     <ClInclude Include="src\Engine\Renderer\RendererAPI.hpp" />
-    <ClInclude Include="src\Engine\Renderer\RendererFactory.hpp" />
     <ClInclude Include="src\Engine\Renderer\Semaphore.hpp" />
     <ClInclude Include="src\Engine\Renderer\Swapchain.hpp" />
     <ClInclude Include="src\Engine\Renderer\Texture.hpp" />

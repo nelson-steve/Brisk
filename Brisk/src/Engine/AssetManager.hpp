@@ -11,11 +11,8 @@
 
 namespace Brisk {
 
-    //class Texture;
-    //class Model;
     class Shader;
     class Sound;
-    class Animation;
 
 
     class AssetManager
@@ -124,12 +121,6 @@ namespace Brisk {
         return std::make_shared<Sound>(filePath);
     }
 
-    template<>
-    std::shared_ptr<Animation> AssetManager::LoadAssetFromFile<Animation>(const std::string& filePath)
-    {
-        return std::make_shared<Animation>(filePath);
-    }
-
     class Model {
     public:
         Model(const std::string& filePath) {
@@ -141,20 +132,6 @@ namespace Brisk {
     public:
         Shader(const std::string& filePath) {
             std::cout << "Shader loaded from: " << filePath << std::endl;
-        }
-    };
-
-    class Sound {
-    public:
-        Sound(const std::string& filePath) {
-            std::cout << "Sound loaded from: " << filePath << std::endl;
-        }
-    };
-
-    class Animation {
-    public:
-        Animation(const std::string& filePath) {
-            std::cout << "Animation loaded from: " << filePath << std::endl;
         }
     };
 
@@ -266,17 +243,5 @@ namespace Brisk {
     std::shared_ptr<Shader> AssetManagerV2::LoadFromFile<Shader>(const std::string& filePath)
     {
         return std::make_shared<Shader>(filePath);
-    }
-
-    template<>
-    std::shared_ptr<Sound> AssetManagerV2::LoadFromFile<Sound>(const std::string& filePath)
-    {
-        return std::make_shared<Sound>(filePath);
-    }
-
-    template<>
-    std::shared_ptr<Animation> AssetManagerV2::LoadFromFile<Animation>(const std::string& filePath)
-    {
-        return std::make_shared<Animation>(filePath);
     }
 }

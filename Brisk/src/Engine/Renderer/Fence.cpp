@@ -3,7 +3,7 @@
 #include "Graphics/Vulkan/FenceVulkan.hpp"
 #include "Engine/Engine.hpp"
 #ifdef BRISK_ENABLE_DIRECTX12
-#include "Graphics/Vulkan/FenceDirectX12.hpp"
+#include "Graphics/DirectX12/FenceDirectX12.hpp"
 #endif
 //----------------------------------------
 

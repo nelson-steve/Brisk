@@ -19,6 +19,9 @@
     <Filter Include="Graphics">
       <UniqueIdentifier>{1653CE33-0220-293F-2B39-17E717655ECD}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Graphics\DirectX12">
+      <UniqueIdentifier>{5B485122-472C-1278-B08C-0CCB9C8FFCF9}</UniqueIdentifier>
+    </Filter>
     <Filter Include="Graphics\Factories">
       <UniqueIdentifier>{05B2674A-F195-28A0-5AF6-22F346F91222}</UniqueIdentifier>
     </Filter>
@@ -188,6 +191,48 @@
     </ClInclude>
     <ClInclude Include="src\Engine\Window.hpp">
       <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\DirectX12\BufferDirectX12.hpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\DirectX12\CommandBufferAllocatorDirectX12.hpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\DirectX12\CommandBufferDirectX12.hpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\DirectX12\FenceDirectX12.hpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\DirectX12\FramebufferDirectX12.hpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\DirectX12\GpuAdapterDirectX12.hpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\DirectX12\PipelineDirectX12.hpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\DirectX12\QueueDirectX12.hpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\DirectX12\RenderPassDirectX12.hpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\DirectX12\RendererAPIDirectX12.hpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\DirectX12\SemaphoreDirectX12.hpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\DirectX12\ShaderModuleDirectX12.hpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\DirectX12\SwapchainDirectX12.hpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\DirectX12\TextureDirectX12.hpp">
+      <Filter>Graphics\DirectX12</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Factories\SwapchainFactory.hpp">
       <Filter>Graphics\Factories</Filter>
@@ -362,6 +407,45 @@
     </ClCompile>
     <ClCompile Include="src\Engine\Window.cpp">
       <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\DirectX12\BufferDirectX12.cpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\DirectX12\CommandBufferAllocatorDirectX12.cpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\DirectX12\CommandBufferDirectX12.cpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\DirectX12\FenceDirectX12.cpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\DirectX12\FramebufferDirectX12.cpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\DirectX12\GpuAdapterDirectX12.cpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\DirectX12\PipelineDirecX12.cpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\DirectX12\QueueDirectX12.cpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\DirectX12\RenderPassDirectX12.cpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\DirectX12\SemaphoreDirectX12.cpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\DirectX12\ShaderModuleDirectX12.cpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\DirectX12\SwapchainDirectX12.cpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\DirectX12\TextureDirectX12.cpp">
+      <Filter>Graphics\DirectX12</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Vulkan\BufferVulkan.cpp">
       <Filter>Graphics\Vulkan</Filter>

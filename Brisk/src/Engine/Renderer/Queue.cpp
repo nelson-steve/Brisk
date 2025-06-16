@@ -4,7 +4,7 @@
 #include "Engine/Engine.hpp"
 
 #ifdef BRISK_ENABLE_DIRECTX12
-#include "Graphics/Vulkan/QueueDirectX12.hpp"
+#include "Graphics/DirectX12/QueueDirectX12.hpp"
 #endif
 //---------------------------------------
 

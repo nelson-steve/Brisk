@@ -11,7 +11,7 @@ namespace Brisk
 	void Engine::InitSystems() {
 		Log::Init();
 
-		s_EngineSettings.API = Engine::EngineSettings::GraphicsAPI::DirectX12;
+		s_EngineSettings.API = Engine::EngineSettings::GraphicsAPI::Vulkan;
 
 		s_Application = std::make_shared<Application>();
 		s_Application->CreateApplication();

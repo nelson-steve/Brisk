@@ -2,7 +2,6 @@
 
 // INCLUDES
 #include "Core/Core.hpp"
-#include "Model.hpp"
 //---------------------
 #include <glm/glm.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
@@ -29,7 +28,7 @@ namespace Brisk
 	class Scene
 	{
 	public:
-		void LoadFileSystemGLTFFile(std::filesystem::path path, Entity e);
+		//void LoadFileSystemGLTFFile(std::filesystem::path path, Entity e);
 
 		Entity CreateMeshEntity(const std::string& name = "Mesh");
 		Entity CreateCameraEntity(const std::string& name = "Camera");
@@ -51,7 +50,6 @@ namespace Brisk
 		entt::registry& Reg() { return m_Registry; }
 		glm::vec3 lightPos = glm::vec3(-2.0f, 4.0f, -1.0f);
 
-		std::vector<MaterialData> mMaterials;
 	private:
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);

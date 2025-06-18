@@ -6,7 +6,6 @@
 #include "Pipeline.hpp"
 #include "Swapchain.hpp"
 #include "Engine/Scene.hpp"
-#include "Engine/Model.hpp"
 #include "CommandBuffer.hpp"
 #include "RenderCommand.hpp"
 #include "RenderGraph.hpp"

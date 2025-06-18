@@ -108,7 +108,7 @@
     <ClInclude Include="src\Engine\Events\MouseEvent.hpp">
       <Filter>Engine\Events</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Model.hpp">
+    <ClInclude Include="src\Engine\MeshAsset.hpp">
       <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\OrthographicCamera.hpp">
@@ -336,7 +336,7 @@
     <ClCompile Include="src\Engine\Entity.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\Model.cpp">
+    <ClCompile Include="src\Engine\MeshAsset.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\OrthographicCamera.cpp">

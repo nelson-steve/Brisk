@@ -16,6 +16,7 @@
 namespace Brisk 
 {
 	class MeshAsset {
+	public:
 		struct MeshData {
 			glm::vec3 Position;
 			glm::vec3 Normal;
@@ -100,9 +101,7 @@ namespace Brisk
 		~MeshAsset();
 		void Load(const std::filesystem::path& path);
 		void LoadNodes(Node* parent, uint32_t nodeIndex, const fastgltf::Asset& asset);
-		//void GetNodeProps(const tinygltf::Node& node, const tinygltf::Model& model, size_t& vertex_count, size_t& index_count);
-		//void LoadNode(GLTF_Node* parent, const tinygltf::Node& node, uint32_t node_index, const tinygltf::Model& model);
-		//void LoadMaterials(tinygltf::Model model);
+		void GetNodeProps(uint32_t nodeIndex, const fastgltf::Asset& asset);
 
 		//const std::vector<Node*> GetNodes() const { return m_nodes; }
 		//const std::vector<Node*> GetLinearNodes() const { return m_linear_nodes; }

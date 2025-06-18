@@ -3,7 +3,7 @@
 #include "Graphics/Vulkan/DescriptorLayoutVulkan.hpp"
 #include "Engine/Engine.hpp"
 #ifdef BRISK_ENABLE_DIRECTX12
-#include "Graphics/Vulkan/DescriptorLayoutDirectX12.hpp"
+#include "Graphics/DirectX12/DescriptorLayoutDirectX12.hpp"
 #endif
 //---------------------------------------------------
 
@@ -15,7 +15,7 @@ namespace Brisk
 		}
 #ifdef BRISK_ENABLE_DIRECTX12
 		else if (Engine::s_EngineSettings.API == Engine::EngineSettings::GraphicsAPI::DirectX12) {
-			return std::make_shared<DescriptorLayoutDirectX12>();
+			//return std::make_shared<DescriptorLayoutDirectX12>();
 		}
 #endif
 	}

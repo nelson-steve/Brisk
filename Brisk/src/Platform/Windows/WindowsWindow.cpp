@@ -20,14 +20,14 @@ namespace Brisk
 		m_Height = height;
 		int result = glfwInit();
 		if (result != GLFW_TRUE) {
-			BRISK_APP_FATAL("Failed to intitialize GLFW");
+			BRISK_APP_ERROR("Failed to intitialize GLFW");
 		}
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 		//glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
 		m_Window = glfwCreateWindow((int)m_Width, (int)m_Height, Engine::s_EngineSettings.EngineName.c_str(), nullptr, nullptr);
 		if (m_Window == nullptr) {
-			BRISK_APP_FATAL("Could not create window of size width/height: " + std::to_string(m_Width) + "/" + std::to_string(m_Height));
+			BRISK_APP_ERROR("Could not create window of size width/height: " + std::to_string(m_Width) + "/" + std::to_string(m_Height));
 		}
 
 		glfwSetWindowUserPointer(m_Window, &m_Data);

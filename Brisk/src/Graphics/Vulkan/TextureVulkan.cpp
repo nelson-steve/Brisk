@@ -35,8 +35,9 @@ namespace Brisk
         nameInfo.objectHandle = (uint64_t)m_Image;
         nameInfo.pObjectName = specs.p_DebugName.c_str();
 
+#if _DEBUG
         vkSetDebugUtilsObjectNameEXT(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
-
+#endif
 
         VkMemoryRequirements memRequirements;
         vkGetImageMemoryRequirements(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_Image, &memRequirements);

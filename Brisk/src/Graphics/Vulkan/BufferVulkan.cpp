@@ -1,6 +1,5 @@
 // INCLUDES
 #include "BufferVulkan.hpp"
-#include "Engine/Model.hpp"
 #include "Engine/Engine.hpp"
 #include "UtilitiesVulkan.hpp"
 #include "GpuAdapterVulkan.hpp"

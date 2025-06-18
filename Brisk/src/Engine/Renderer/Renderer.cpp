@@ -163,9 +163,9 @@ namespace Brisk
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
                 Pipeline::VertexDataLayout vertexLayout;
                 vertexLayout.pBinding = 0;
-                vertexLayout.pStride = sizeof(MeshData);
+                vertexLayout.pStride = sizeof(MeshAsset::MeshData);
                 vertexLayout.pAttributes = {
-                    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Position)},
+                    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Position)},
                 };
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_DepthPrePass;
@@ -197,13 +197,13 @@ namespace Brisk
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
                 Pipeline::VertexDataLayout vertexLayout;
                 vertexLayout.pBinding = 0;
-                vertexLayout.pStride = sizeof(MeshData);
+                vertexLayout.pStride = sizeof(MeshAsset::MeshData);
                 vertexLayout.pAttributes = {
-                    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Position)},
-                    {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Normal)},
-                    {0, 2, Core::Format::FORMAT_R32G32_SFLOAT,    offsetof(MeshData, MeshData::UV0)},
-                    //{0, 3, Core::Format::FORMAT_R32G32_SFLOAT,    offsetof(MeshData, MeshData::UV1)},
-                    //{0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Color)},
+                    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Position)},
+                    {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Normal)},
+                    {0, 2, Core::Format::FORMAT_R32G32_SFLOAT,    offsetof(MeshAsset::MeshData, MeshAsset::MeshData::UV0)},
+                    //{0, 3, Core::Format::FORMAT_R32G32_SFLOAT,    offsetof(MeshAsset::MeshData, MeshAsset::MeshData::UV1)},
+                    //{0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Color)},
                 };
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_GeometryBufferPass;

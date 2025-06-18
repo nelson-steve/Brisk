@@ -1,7 +1,6 @@
 #pragma once
 
 // INCLUDES
-#include "Engine/Model.hpp"
 #include "Engine/Engine.hpp"
 #include "PipelineVulkan.hpp"
 #include "Engine/Renderer/Buffer.hpp"

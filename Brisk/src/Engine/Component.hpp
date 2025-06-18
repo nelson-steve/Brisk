@@ -2,7 +2,7 @@
 
 // INCLUDES
 #include "Core/Core.hpp"
-#include "Engine/Model.hpp"
+#include "Engine/MeshAsset.hpp"
 #include "Entity.hpp"
 //---------------------------
 #include <glm/glm.hpp>

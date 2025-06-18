@@ -36,6 +36,7 @@ namespace Brisk {
 		m_Nodes.push_back(newNode);
 	}
 
+
 	void MeshAsset::Load(const std::filesystem::path& path) {
 		if (!std::filesystem::exists(path)) {
 			std::cout << "Failed to find " << path << '\n';
@@ -89,10 +90,39 @@ namespace Brisk {
 			LoadNodes(nullptr, node, asset);
 		}
 
+		uint32_t totalVertexCount = 0;
+		uint32_t totalIndexCount = 0;
+		for (const auto& gltfMesh : asset.meshes) {
+			for (auto it = gltfMesh.primitives.begin(); it != gltfMesh.primitives.end(); ++it) {
+				Primitive outPrimitive{};
+				const fastgltf::Attribute* positionIt = it->findAttribute("POSITION");
+
+				assert(positionIt != it->attributes.end());
+				assert(it->indicesAccessor.has_value());
+
+				auto& positionAccessor = asset.accessors[positionIt->accessorIndex];
+				if (!positionAccessor.bufferViewIndex.has_value())
+					continue;
+
+				// Load positions
+				if (positionAccessor.componentType == fastgltf::ComponentType::Float &&
+					positionAccessor.type == fastgltf::AccessorType::Vec3) {
+					totalVertexCount += positionAccessor.count;
+				}
+
+				if (it->indicesAccessor.has_value()) {
+					const auto& indexAccessor = asset.accessors[it->indicesAccessor.value()];
+					totalIndexCount += indexAccessor.count;
+				}
+			}
+		}
+
 		uint32_t indexPos = 0;
 		uint32_t vertexPos = 0;
 		std::vector<MeshData> verticesData;
 		std::vector<uint32_t> indicesData;
+		verticesData.reserve(totalVertexCount);
+		indicesData.reserve(totalIndexCount);
 		for (const auto& gltfMesh : asset.meshes) {
 			Mesh outMesh{};
 			uint32_t indexStart = indexPos;
@@ -247,98 +277,24 @@ namespace Brisk {
 			}
 			m_Meshes.push_back(outMesh);
 		}
+
+
+		m_VertexBuffer = Buffer::Create();
+		m_VertexBuffer->Init(sizeof(verticesData[0]) * verticesData.size(),
+			verticesData.data(),
+			Core::BufferUsage::VertexBuffer | Core::BufferUsage::TransferDst,
+			Core::MemoryProperty::DeviceLocal,
+			true);
+
+		if (indicesData.size() > 0) {
+			m_IndexBuffer = Buffer::Create();
+			m_IndexBuffer->Init(sizeof(indicesData[0]) * indicesData.size(),
+				indicesData.data(),
+				Core::BufferUsage::IndexBuffer | Core::BufferUsage::TransferDst,
+				Core::MemoryProperty::DeviceLocal,
+				true);
+		}
 	}
-
-	//void MeshAsset::Load(const std::string& path) {
-		//tinygltf::TinyGLTF loader;
-		//tinygltf::Model model;
-		//std::string error;
-		//std::string warning;
-
-		//bool binary = false;
-		//size_t extpos = path.rfind('.', path.length());
-		//if (extpos != std::string::npos) {
-		//	binary = (path.substr(extpos + 1, path.length() - extpos) == "glb");
-		//}
-
-		//bool file_loaded = false;
-		//if (binary) {
-		//	file_loaded = loader.LoadBinaryFromFile(&model, &error, &warning, path.c_str());
-		//}
-		//else {
-		//	file_loaded = loader.LoadASCIIFromFile(&model, &error, &warning, path.c_str());
-		//}
-
-		//size_t vertex_count = 0;
-		//size_t index_count = 0;
-		//if (file_loaded) {
-			//for (tinygltf::Sampler smpl : model.samplers) {
-			//	TextureSampler texture_sampler{};
-			//	texture_sampler.min_filter = Texture::GetVkFilterMode(smpl.minFilter);
-			//	texture_sampler.mag_filter = Texture::GetVkFilterMode(smpl.magFilter);
-			//	texture_sampler.address_modeU = Texture::GetVkWrapMode(smpl.wrapS);
-			//	texture_sampler.address_modeV = Texture::GetVkWrapMode(smpl.wrapT);
-			//	texture_sampler.address_modeW = texture_sampler.address_modeV;
-			//	m_texture_samplers.push_back(texture_sampler);
-			//}
-			//for (tinygltf::Texture& tex : model.textures) {
-			//	tinygltf::Image image = model.images[tex.source];
-			//	TextureSampler texture_sampler{};
-			//	if (tex.sampler == -1)
-			//	{
-			//		// No sampler specified, use a default one
-			//		texture_sampler.min_filter = FILTER_LINEAR;
-			//		texture_sampler.mag_filter = FILTER_LINEAR;
-			//		texture_sampler.address_modeU = SAMPLER_ADDRESS_MODE_REPEAT;
-			//		texture_sampler.address_modeV = SAMPLER_ADDRESS_MODE_REPEAT;
-			//		texture_sampler.address_modeW = SAMPLER_ADDRESS_MODE_REPEAT;
-			//	}
-			//	else {
-			//		texture_sampler = m_texture_samplers[tex.sampler];
-			//	}
-
-			//	std::shared_ptr<Texture> texture;
-			//	texture = Texture::Create();
-			//	texture->Init(image, texture_sampler);
-			//	m_textures.push_back(texture);
-			//}
-			//Load Materials
-			//LoadMaterials(model);
-
-			//const tinygltf::Scene& scene = model.scenes[model.defaultScene > -1 ? model.defaultScene : 0];
-			//for (auto& node_index : scene.nodes) {
-			//	GetNodeProps(model.nodes[node_index], model, vertex_count, index_count);
-			//}
-			//assert(vertex_count > 0);
-			//m_vertex_buffer = new MeshData[vertex_count];
-			//m_index_buffer = new uint32_t[index_count];
-
-			//for (auto& node_index : scene.nodes) {
-			//	const tinygltf::Node node = model.nodes[node_index];
-			//	LoadNode(nullptr, node, node_index, model);
-			//}
-		//}
-
-		//size_t vertexBufferSize = vertex_count * sizeof(MeshData);
-		//size_t indexBufferSize = index_count * sizeof(uint32_t);
-		//assert(vertexBufferSize > 0);
-
-		//m_VertexBuffer = Buffer::Create();
-		//m_VertexBuffer->Init(sizeof(m_vertex_buffer[0]) * vertex_count,
-		//	m_vertex_buffer,
-		//	Core::BufferUsage::VertexBuffer,
-		//	Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent,
-		//	true);
-
-		//if (indexBufferSize > 0) {
-		//	m_IndexBuffer = Buffer::Create();
-		//	m_IndexBuffer->Init(sizeof(m_index_buffer[0]) * index_count,
-		//		m_index_buffer,
-		//		Core::BufferUsage::IndexBuffer,
-		//		Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent,
-		//		true);
-		//}
-	//}
 
 	//void MeshAsset::LoadMaterials(tinygltf::Model model) {
 	//	for (tinygltf::Material& mat : model.materials) {

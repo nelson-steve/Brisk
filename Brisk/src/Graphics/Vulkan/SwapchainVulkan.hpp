@@ -17,14 +17,13 @@ namespace Brisk
 		VkSwapchainKHR GetSwapchain() const { return m_Swapchain; }
 		std::vector<VkImage> GetSwapchainImages() const { return m_SwapchainImages; }
 		std::vector<VkImageView> GetSwapchainImageViews() const { return m_SwapchainImageViews; }
-		VkImageView GetDepthImageView() const { return m_DepthImageView; }
 		virtual uint32_t GetExtentWidth() const override { return m_extent.width; }
 		virtual uint32_t GetExtentHeight() const override { return m_extent.height; }
 		VkSurfaceFormatKHR GetFormat() const { return m_surface_format; }
 		VkFormat GetDepthFormat() const { return m_DepthFormat; }
 		VkExtent2D GetExtent() const { return m_extent; }
 		VkPresentModeKHR GetPresentMode() const { return m_present_mode; }
-	//private:
+
 		SwapchainVulkan(std::shared_ptr<Window> window);
 	private:
 		VkSwapchainKHR m_Swapchain = VK_NULL_HANDLE;
@@ -38,9 +37,9 @@ namespace Brisk
 		VkPresentModeKHR m_present_mode;
 
 		// depth buffer
-		VkImage m_DepthImage;
-		VkDeviceMemory m_DepthImageMemory;
-		VkImageView m_DepthImageView;
+		//VkImage m_DepthImage;
+		//VkDeviceMemory m_DepthImageMemory;
+		//VkImageView m_DepthImageView;
 
 		friend class SwapchainFactory;
 	};

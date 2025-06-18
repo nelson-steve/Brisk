@@ -105,7 +105,11 @@ project "Brisk"
 
     filter "system:windows"
         systemversion "latest"
-        defines { "BRISK_PLATFORM_WINDOWS", "BRISK_ENABLE_DIRECTX12" }
+        defines 
+        { 
+            "BRISK_PLATFORM_WINDOWS", 
+            -- "BRISK_ENABLE_DIRECTX12" 
+        }
         links {
         "d3d12",
         "dxgi",

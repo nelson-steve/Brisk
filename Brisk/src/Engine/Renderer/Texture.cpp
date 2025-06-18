@@ -2,7 +2,7 @@
 #include "Graphics/Vulkan/TextureVulkan.hpp"
 
 #ifdef BRISK_ENABLE_DIRECTX12
-#include "Graphics/Vulkan/TextureDirectX12.hpp"
+#include "Graphics/DirectX12/TextureDirectX12.hpp"
 #endif
 
 namespace Brisk

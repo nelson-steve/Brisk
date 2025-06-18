@@ -1,7 +1,6 @@
 #pragma once
 
 #include "IBLTextureMaker.hpp"
-#include "Engine/Model.hpp"
 #include "ComputeCommand.hpp"
 
 namespace Brisk
@@ -181,10 +180,10 @@ namespace Brisk
 
             Pipeline::VertexDataLayout vertexLayout;
             vertexLayout.pBinding = 0;
-            vertexLayout.pStride = sizeof(MeshData);
-            vertexLayout.pAttributes = {
-                {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Position)},
-            };
+            //vertexLayout.pStride = sizeof(MeshData);
+            //vertexLayout.pAttributes = {
+            //    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshData, MeshData::Position)},
+            //};
             pipelineSpecs.pLayout = vertexLayout;
             //pipelineSpecs.pRenderPass = RenderPass::Create();
             //pipelineSpecs.pRenderPass->Init(renderPassSpecs);

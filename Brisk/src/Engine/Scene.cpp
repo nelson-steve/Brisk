@@ -46,6 +46,9 @@ namespace Brisk
 		};
 		auto start = std::chrono::high_resolution_clock::now();
 
+		std::shared_ptr<MeshAsset> mesh = std::make_shared<MeshAsset>();
+		mesh->Load(paths[2]);
+
 		auto end = std::chrono::high_resolution_clock::now();
 
 		// Calculate duration

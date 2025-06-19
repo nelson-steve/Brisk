@@ -27,7 +27,6 @@ namespace Brisk {
 			return &bufferInfo;
 		}
 	private:
-		//void* m_MappedPointerHandle;
 		VmaAllocation m_Allocation;
 		VkBuffer m_Handle;
 		VkDeviceMemory m_Memory;

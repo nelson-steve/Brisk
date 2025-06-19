@@ -34,27 +34,6 @@ namespace Brisk
 	{
 		Entity entity = { m_Registry.create(), this };
 
-		std::vector<std::string> paths = {
-			/* 0 */"../Data/Models/Cube/Cube.gltf",
-			/* 1 */"../Data/Models/revolver/revolver.gltf",
-			/* 2 */"../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf",
-			/* 3 */"../Data/Models/damaged_helmet/DamagedHelmet.gltf",
-			/* 4 */"../Data/Models/revolver/revolver.gltf",
-			/* 5 */"../Data/Models/cerberus/cerberus.gltf",
-			/* 6 */"../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf",
-			/* 7 */"../Data/Models/spaceship/scene.gltf",
-		};
-		auto start = std::chrono::high_resolution_clock::now();
-
-		std::shared_ptr<MeshAsset> mesh = std::make_shared<MeshAsset>();
-		mesh->Load(paths[2]);
-
-		auto end = std::chrono::high_resolution_clock::now();
-
-		// Calculate duration
-		std::chrono::duration<double, std::milli> duration = end - start;
-		std::cout << "Time taken: " << duration.count() << " ms\n";
-
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
 		return entity;

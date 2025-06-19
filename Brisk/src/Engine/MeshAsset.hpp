@@ -87,9 +87,6 @@ namespace Brisk
 			uint32_t meshIndex;
 			glm::mat4 matrix;
 			std::string name;
-			//glm::vec3 translation;
-			//glm::vec3 scale = glm::vec3(1.0f);
-			//glm::quat rotation;
 			~Node() {
 				for (auto& child : children) {
 					delete child;
@@ -100,16 +97,12 @@ namespace Brisk
 		MeshAsset() = default;
 		~MeshAsset();
 		void Load(const std::filesystem::path& path);
-		void LoadNodes(Node* parent, uint32_t nodeIndex, const fastgltf::Asset& asset);
-		void GetNodeProps(uint32_t nodeIndex, const fastgltf::Asset& asset);
 
-		//const std::vector<Node*> GetNodes() const { return m_nodes; }
-		//const std::vector<Node*> GetLinearNodes() const { return m_linear_nodes; }
-		//const std::vector<MaterialData>& GetMaterials() const { return m_materials; }
-		//const MaterialData& GetMaterial(int i) const { return m_materials[i]; }
-		//MaterialData& GetMaterial(int i) { return m_materials[i]; }
 		std::shared_ptr<Buffer> GetIndexBuffer() const { return m_IndexBuffer; }
 		std::shared_ptr<Buffer> GetVertexBuffer() const { return m_VertexBuffer; }
+
+	private:
+		void LoadNodes(Node* parent, uint32_t nodeIndex, const fastgltf::Asset& asset);
 	private:
 		std::vector<Node*> m_Nodes;
 		std::vector<Mesh> m_Meshes;

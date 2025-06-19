@@ -21,6 +21,26 @@ namespace Brisk
 		m_SceneManager->Init();
 
 		m_EditorCamera = std::make_shared<Camera>((GLFWwindow*)m_Window->GetWindowHandle());
+
+		m_AssetManager = std::make_shared<AssetManager>();
+
+		std::vector<std::string> paths = {
+			/* 0 */"../Data/Models/Cube/Cube.gltf",
+			/* 1 */"../Data/Models/revolver/revolver.gltf",
+			/* 2 */"../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf",
+			/* 3 */"../Data/Models/damaged_helmet/DamagedHelmet.gltf",
+			/* 4 */"../Data/Models/revolver/revolver.gltf",
+			/* 5 */"../Data/Models/cerberus/cerberus.gltf",
+			/* 6 */"../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf",
+			/* 7 */"../Data/Models/spaceship/scene.gltf",
+		};
+		auto start = std::chrono::high_resolution_clock::now();
+
+		m_AssetManager->LoadAsset<MeshAsset>(paths[2], false);
+
+		auto end = std::chrono::high_resolution_clock::now();
+		std::chrono::duration<double, std::milli> duration = end - start;
+		std::cout << "Time taken: " << duration.count() << " ms\n";
 	}
 
 	void Application::OnEvent(Event &event) {

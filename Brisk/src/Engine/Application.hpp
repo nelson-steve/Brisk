@@ -10,6 +10,7 @@
 #include "Renderer/GpuAdapter.hpp"
 #include "Events/ApplicationEvent.hpp"
 #include "Platform/Windows/WindowsWindow.hpp"
+#include "AssetManager.hpp"
 //-------------------------------------------
 
 namespace Brisk 
@@ -45,6 +46,7 @@ namespace Brisk
 		std::shared_ptr<Camera> m_EditorCamera;
 		std::shared_ptr<Scene> m_ActiveScene;
 		std::shared_ptr<SceneManager> m_SceneManager;
+		std::shared_ptr<AssetManager> m_AssetManager;
 		std::vector<std::shared_ptr<Scene>> m_Scenes;
 		bool m_LoadingScene;
 	};

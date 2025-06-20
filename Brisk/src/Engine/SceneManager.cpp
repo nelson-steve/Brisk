@@ -14,7 +14,6 @@ namespace Brisk
 
     void SceneManager::Init() {
         pActiveScene = std::make_shared<Scene>();
-        pActiveScene->CreateMeshEntity();
     }
 
     void SceneManager::SetDefaultScene() {

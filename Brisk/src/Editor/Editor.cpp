@@ -252,7 +252,7 @@ namespace Brisk
         ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_DockingEnable;
         //ImGui::GetIO().ConfigFlags |= ImGuiConfigFlags_ViewportsEnable;
 
-        //io.FontDefault = io.Fonts->AddFontFromFileTTF("../Data/Fonts/Nunito/Nunito-Medium.ttf", 18.0f);
+        io.FontDefault = io.Fonts->AddFontFromFileTTF("../Data/Fonts/Nunito/Nunito-Medium.ttf", 18.0f);
 
         LavenderTheme();
         

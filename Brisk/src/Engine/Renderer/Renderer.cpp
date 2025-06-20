@@ -278,37 +278,10 @@ namespace Brisk
         //m_Editor->Create(m_LightingPass, m_CmdBuffer);
     }
 
-    void Renderer::SetupEntity(Entity e) {
-        if (e.HasComponent<MeshComponent>()) {
-            for (auto& subMesh : e.GetComponent<MeshComponent>().subMeshes) {
-                uint32_t index = subMesh.material_index != -1 ? subMesh.material_index : 0;
-
-                RenderCommand::DrawIndexed(m_CmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
-            }
-        }
-        //for (auto& child : e.GetComponent<TransformComponent>().children) {
-        //    SetupEntity(child);
-        //}
-    }
-
-    void Renderer::PreRenderScene() {
-        // Bind unbound resources
-        if (!SceneManager::pActiveScene) return;
-
-        //auto parent = SceneManager::pActiveScene->Reg().view<RootComponent>();
-
-        //for (auto e : parent) {
-        //    Entity entity = { e, SceneManager::pActiveScene.get() };
-        //    SetupEntity(entity);
-        //}
-    }
-
     int times = 0;
     void Renderer::RenderScene(float deltaTime)
     {
         if (!SceneManager::pActiveScene) return;
-
-        //auto parent = SceneManager::pActiveScene->Reg().view<RootComponent>();
 
         m_Fence->Wait();
         m_Fence->Reset();
@@ -335,17 +308,18 @@ namespace Brisk
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
 
-        //for (auto e : parent) {
-        //    Entity entity = { e, SceneManager::pActiveScene.get() };
+        auto meshes = SceneManager::pActiveScene->Reg().view<MeshComponent>();
 
-        //    auto& mesh = entity.GetComponent<MeshComponent>();
-        //    auto& root = entity.GetComponent<RootComponent>();
+        for (auto e : meshes) {
+            Entity entity = { e, SceneManager::pActiveScene.get() };
 
-        //    RenderCommand::BindVertexBuffer(m_CmdBuffer, { root.m_VertexBuffer }, 0);
-        //    RenderCommand::BindIndexBuffer(m_CmdBuffer, root.m_IndexBuffer, 0);
+            auto& mesh = entity.GetComponent<MeshComponent>();
 
-        //    RenderEntity(entity);
-        //}
+            RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
+            RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
+
+            RenderEntity(mesh);
+        }
 
         m_DepthPrePass->End(m_CmdBuffer);
 
@@ -392,20 +366,18 @@ namespace Brisk
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
 
-        //for (auto e : parent) {
-        //    Entity entity = { e, SceneManager::pActiveScene.get() };
-        //    
-        //    auto& mesh = entity.GetComponent<MeshComponent>();
-        //    auto& root = entity.GetComponent<RootComponent>();
+        for (const auto e : meshes) {
+            Entity entity = { e, SceneManager::pActiveScene.get() };
 
-        //    RenderCommand::BindVertexBuffer(m_CmdBuffer, { root.m_VertexBuffer }, 0);
-        //    RenderCommand::BindIndexBuffer(m_CmdBuffer, root.m_IndexBuffer, 0);
+            const auto& mesh = entity.GetComponent<MeshComponent>();
 
-        //    RenderEntity(entity);
-        //}
+            RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
+            RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
+
+            RenderEntity(mesh);
+        }
 
         m_GeometryBufferPass->End(m_CmdBuffer);
-
 
         //m_Editor->Update();
 
@@ -511,10 +483,11 @@ namespace Brisk
         m_GraphicsQueue->Present(presentInfo);
     }
 
-    void Renderer::RenderEntity(Entity e) {
-        if (e.HasComponent<MeshComponent>()) {
-            for (auto& subMesh : e.GetComponent<MeshComponent>().subMeshes) {
-                uint32_t index = subMesh.material_index != -1 ? subMesh.material_index : 0;
+    void Renderer::RenderEntity(const MeshComponent& mesh) {
+        for (auto& subMesh : mesh.p_Mesh->m_Meshes) {
+            for (auto& primitive : subMesh.primitives) {
+
+                uint32_t index = primitive.material_index != -1 ? primitive.material_index : 0;
                 //materials[index]->Bind(m_MainCmdBuffer, m_Pipeline);
 
                 //PushConstants pushConstantsData = {
@@ -529,12 +502,9 @@ namespace Brisk
 
                 //m_Pipeline->BindPushConstant(m_MainCmdBuffer, sizeof(PushConstants), &pushConstantsData);
 
-                RenderCommand::DrawIndexed(m_CmdBuffer, subMesh.index_count, 1, subMesh.first_index, 0, 0);
+                RenderCommand::DrawIndexed(m_CmdBuffer, primitive.index_count, 1, primitive.first_index, 0, 0);
             }
         }
-        //for (auto& child : e.GetComponent<TransformComponent>().children) {
-        //    RenderEntity(child);
-        //}
     }
 
     std::unique_ptr<Renderer> Renderer::Create()

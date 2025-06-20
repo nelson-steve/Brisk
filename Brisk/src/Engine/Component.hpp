@@ -133,16 +133,7 @@ namespace Brisk
 	{
 		std::string name = "Mesh Component";
 
-		std::shared_ptr<MeshAsset> pModel;
-
-		struct SubMesh
-		{
-			uint32_t first_index = 0;
-			uint32_t index_count = 0;
-			uint32_t vertex_count = 0;
-			uint32_t material_index = 0;
-		};
-		std::vector<SubMesh> subMeshes;
+		std::shared_ptr<MeshAsset> p_Mesh;
 
 		MeshComponent() = default;
 		MeshComponent(const MeshComponent&) = default;

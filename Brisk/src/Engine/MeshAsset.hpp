@@ -21,7 +21,7 @@ namespace Brisk
 			glm::vec3 Position;
 			glm::vec3 Normal;
 			glm::vec2 UV0;
-			glm::vec2 UV1;
+			//glm::vec2 UV1;
 			//glm::vec3 Color;
 		};
 
@@ -100,10 +100,10 @@ namespace Brisk
 
 		std::shared_ptr<Buffer> GetIndexBuffer() const { return m_IndexBuffer; }
 		std::shared_ptr<Buffer> GetVertexBuffer() const { return m_VertexBuffer; }
-
 	private:
 		void LoadNodes(Node* parent, uint32_t nodeIndex, const fastgltf::Asset& asset);
-	private:
+	/*private:*/
+	public:
 		std::vector<Node*> m_Nodes;
 		std::vector<Mesh> m_Meshes;
 		std::vector<std::shared_ptr<Texture>> m_Textures;

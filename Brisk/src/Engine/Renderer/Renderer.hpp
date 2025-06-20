@@ -12,6 +12,7 @@
 #include "Engine/Renderer/CommandBufferAllocator.hpp"
 #include "Engine/Renderer/RenderPass.hpp"
 #include "Editor/Editor.hpp"
+#include "Engine/Component.hpp"
 //------------------------
 #include <memory>
 //---------------
@@ -21,15 +22,13 @@ namespace Brisk
 	class Renderer {
 	public:
 		void Init();
-		void PreRenderScene();
 		void RenderScene(float deltaTime);
 
 		static std::shared_ptr<Swapchain> GetSwapchain() { return m_Swapchain; }
 
 		static std::unique_ptr<Renderer> Create();
 	private:
-		void RenderEntity(Entity e);
-		void SetupEntity(Entity e);
+		void RenderEntity(const MeshComponent& mesh);
 
 	private:
 		static std::shared_ptr<Swapchain> m_Swapchain;
@@ -37,7 +36,6 @@ namespace Brisk
 		// Synchronization objects
 		std::shared_ptr<Semaphore> ImageAvailableSemaphore;
 		std::shared_ptr<Semaphore> RenderFinishedSemaphore;
-		//std::shared_ptr<Semaphore> DeferredRenderingFinishedSemaphore;
 		std::shared_ptr<Fence> m_Fence;
 		std::shared_ptr<Queue> m_GraphicsQueue;
 		//-
@@ -63,7 +61,6 @@ namespace Brisk
 
 		std::shared_ptr<Buffer> m_UniformBuffer;
 		std::shared_ptr<CommandBuffer> m_CmdBuffer;
-		//std::shared_ptr<CommandBuffer> m_LightingCmdBuffer;
 		RenderCommand m_RenderCommand;
 		uint32_t m_ImageIndex;
 	};

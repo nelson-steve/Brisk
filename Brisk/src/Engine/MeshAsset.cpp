@@ -124,12 +124,13 @@ namespace Brisk {
 		indicesData.reserve(totalIndexCount);
 		for (const auto& gltfMesh : asset.meshes) {
 			Mesh outMesh{};
-			uint32_t indexStart = indexPos;
-			uint32_t vertexStart = vertexPos;
-			uint32_t indexCount = 0;
-			uint32_t vertexCount = 0;
 			for (auto it = gltfMesh.primitives.begin(); it != gltfMesh.primitives.end(); ++it) {
 				Primitive outPrimitive{};
+				uint32_t indexStart = indexPos;
+				uint32_t vertexStart = vertexPos;
+				uint32_t indexCount = 0;
+				uint32_t vertexCount = 0;
+
 				const fastgltf::Attribute* positionIt = it->findAttribute("POSITION");
 				const fastgltf::Attribute* normalIt = it->findAttribute("NORMAL");
 				const fastgltf::Attribute* tangentIt = it->findAttribute("TANGENT"); // The W component of each TANGENT accessor element MUST be set to 1.0 or -1.0
@@ -217,10 +218,10 @@ namespace Brisk {
 					else
 						data.UV0 = glm::vec2(0.0f);
 
-					if (hasTexcoords1 && i < texcoords1.size())
-						data.UV1 = glm::vec2(texcoords1[i].x(), texcoords1[i].y());
-					else
-						data.UV1 = glm::vec2(0.0f);
+					//if (hasTexcoords1 && i < texcoords1.size())
+					//	data.UV1 = glm::vec2(texcoords1[i].x(), texcoords1[i].y());
+					//else
+					//	data.UV1 = glm::vec2(0.0f);
 
 					vertexPos++;
 					verticesData.push_back(data);
@@ -269,8 +270,8 @@ namespace Brisk {
 				}
 
 				outPrimitive.first_index = indexStart;
-				outPrimitive.index_count = indexStart;
-				outPrimitive.vertex_count = indexStart;
+				outPrimitive.index_count = indexCount;
+				outPrimitive.vertex_count = vertexCount;
 
 				outMesh.primitives.push_back(outPrimitive);
 			}

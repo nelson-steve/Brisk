@@ -113,7 +113,7 @@ namespace Brisk
 		allocatorInfo.physicalDevice = m_PhysicalDevice;
 		allocatorInfo.device = m_Device;
 		allocatorInfo.instance = m_Instance;
-		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_2;
+		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_4;
 		VmaVulkanFunctions vulkanFunctions = {};
 		VkResult res = vmaImportVulkanFunctionsFromVolk(&allocatorInfo, &vulkanFunctions);
 		if (res != VK_SUCCESS) {

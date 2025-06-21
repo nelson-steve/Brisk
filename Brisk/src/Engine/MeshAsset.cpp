@@ -223,6 +223,7 @@ namespace Brisk {
 					//else
 					//	data.UV1 = glm::vec2(0.0f);
 
+					vertexCount++;
 					vertexPos++;
 					verticesData.push_back(data);
 				}
@@ -239,8 +240,8 @@ namespace Brisk {
 					case fastgltf::ComponentType::UnsignedByte: {
 						std::vector<uint8_t> indices(indexAccessor.count);
 						fastgltf::copyFromAccessor<uint8_t>(asset, indexAccessor, indices.data());
-						for (uint16_t i : indices) {
-							indicesData.push_back(static_cast<uint32_t>(i));
+						for (uint8_t i : indices) {
+							indicesData.push_back(static_cast<uint32_t>(i) + vertexStart);
 							indexPos++;
 						}
 						break;
@@ -249,7 +250,7 @@ namespace Brisk {
 						std::vector<uint16_t> indices(indexAccessor.count);
 						fastgltf::copyFromAccessor<uint16_t>(asset, indexAccessor, indices.data());
 						for (uint16_t i : indices) {
-							indicesData.push_back(static_cast<uint32_t>(i));
+							indicesData.push_back(static_cast<uint32_t>(i) + vertexStart);
 							indexPos++;
 						}
 						break;
@@ -257,8 +258,8 @@ namespace Brisk {
 					case fastgltf::ComponentType::UnsignedInt: {
 						std::vector<uint32_t> indices(indexAccessor.count);
 						fastgltf::copyFromAccessor<uint32_t>(asset, indexAccessor, indices.data());
-						for (uint16_t i : indices) {
-							indicesData.push_back(static_cast<uint32_t>(i));
+						for (uint32_t i : indices) {
+							indicesData.push_back(static_cast<uint32_t>(i) + vertexStart);
 							indexPos++;
 						}
 						break;
@@ -269,9 +270,10 @@ namespace Brisk {
 					outPrimitive.has_indices = true;
 				}
 
-				outPrimitive.first_index = indexStart;
-				outPrimitive.index_count = indexCount;
-				outPrimitive.vertex_count = vertexCount;
+				outPrimitive.materialIndex = it->materialIndex.has_value() ? it->materialIndex.value() : -1;
+				outPrimitive.firstIndex = indexStart;
+				outPrimitive.indexCount = indexCount;
+				outPrimitive.vertexCount = vertexCount;
 
 				outMesh.primitives.push_back(outPrimitive);
 			}
@@ -293,6 +295,131 @@ namespace Brisk {
 				Core::BufferUsage::IndexBuffer | Core::BufferUsage::TransferDst,
 				Core::MemoryProperty::DeviceLocal,
 				true);
+		}
+
+		m_Materials.reserve(asset.materials.size());
+		for (const auto& material : asset.materials) {
+			MaterialData outMaterial{};
+			outMaterial.alphaCutoff = material.alphaCutoff;
+			outMaterial.metallicFactor = material.pbrData.metallicFactor;
+			outMaterial.roughnessFactor = material.pbrData.roughnessFactor;
+			outMaterial.ior = material.ior;
+			outMaterial.dispersion = material.dispersion;
+			outMaterial.doubleSided = material.doubleSided;
+			outMaterial.unlit = material.unlit;
+			outMaterial.emissiveStrength = material.emissiveStrength;
+
+			outMaterial.baseColorFactor = glm::make_vec4(material.pbrData.baseColorFactor.data());
+			outMaterial.emissiveFactor = glm::make_vec4(material.emissiveFactor.data());
+
+			if (material.pbrData.baseColorTexture.has_value()){
+			outMaterial.baseColorTextureIndex = material.pbrData.baseColorTexture.value().texCoordIndex;
+			outMaterial.baseColorTextureUV = material.pbrData.baseColorTexture.value().texCoordIndex;
+
+			if (material.pbrData.metallicRoughnessTexture.has_value()) {
+				outMaterial.metallicRoughnessTextureIndex = material.pbrData.metallicRoughnessTexture.value().texCoordIndex;
+				outMaterial.metallicRoughnessTextureUV = material.pbrData.metallicRoughnessTexture.value().texCoordIndex;
+			}
+
+			if (material.normalTexture.has_value()) {
+				outMaterial.normalTextureIndex = material.normalTexture.value().texCoordIndex;
+				outMaterial.normalTextureUV = material.normalTexture.value().texCoordIndex;
+			}
+
+			if (material.occlusionTexture.has_value()) {
+				outMaterial.occlusionTextureIndex = material.occlusionTexture.value().texCoordIndex;
+				outMaterial.occlusionTextureUV = material.occlusionTexture.value().texCoordIndex;
+			}
+
+			if (material.emissiveTexture.has_value()) {
+				outMaterial.emissiveTextureIndex = material.emissiveTexture.value().texCoordIndex;
+				outMaterial.emissiveTextureUV = material.emissiveTexture.value().texCoordIndex;
+			}
+
+			if (material.anisotropy) {
+				outMaterial.anisotropyStrength = material.anisotropy->anisotropyStrength;
+				outMaterial.anisotropyRotation = material.anisotropy->anisotropyRotation;
+				if (material.anisotropy->anisotropyTexture.has_value()) {
+					outMaterial.anisotropyTextureIndex = material.anisotropy->anisotropyTexture.value().texCoordIndex;
+					outMaterial.anisotropyTextureUV = material.anisotropy->anisotropyTexture.value().texCoordIndex;
+				}
+			}
+
+			if (material.clearcoat) {
+				outMaterial.clearcoatFactor = material.clearcoat->clearcoatFactor;
+				if (material.clearcoat->clearcoatTexture.has_value()) {
+					outMaterial.clearcoatTextureIndex = material.clearcoat->clearcoatTexture.value().textureIndex;
+					outMaterial.clearcoatTextureUV = material.clearcoat->clearcoatTexture.value().texCoordIndex;
+				}
+				outMaterial.clearcoatRoughnessFactor = material.clearcoat->clearcoatRoughnessFactor;
+				if (material.clearcoat->clearcoatRoughnessTexture.has_value()) {
+					outMaterial.clearcoatRoughnessTextureIndex = material.clearcoat->clearcoatRoughnessTexture.value().texCoordIndex;
+					outMaterial.clearcoatRoughnessTextureUV = material.clearcoat->clearcoatRoughnessTexture.value().texCoordIndex;
+				}
+				if (material.clearcoat->clearcoatNormalTexture.has_value()) {
+					outMaterial.clearcoatNormalTextureIndex = material.clearcoat->clearcoatNormalTexture.value().texCoordIndex;
+					outMaterial.clearcoatNormalTextureUV = material.clearcoat->clearcoatNormalTexture.value().texCoordIndex;
+				}
+			}
+
+			if (material.iridescence) {
+				outMaterial.iridescenceFactor = material.iridescence->iridescenceFactor;
+				if (material.iridescence->iridescenceTexture.has_value()) {
+					outMaterial.iridescenceTextureIndex = material.iridescence->iridescenceTexture.value().textureIndex;
+					outMaterial.iridescenceTextureUV = material.iridescence->iridescenceTexture.value().texCoordIndex;
+				}
+				outMaterial.iridescenceIor = material.iridescence->iridescenceIor;
+				outMaterial.iridescenceThicknessMinimum = material.iridescence->iridescenceThicknessMinimum;
+				outMaterial.iridescenceThicknessMaximum = material.iridescence->iridescenceThicknessMaximum;
+				if (material.iridescence->iridescenceThicknessTexture.has_value()) {
+					outMaterial.iridescenceThicknessTextureIndex = material.iridescence->iridescenceThicknessTexture.value().textureIndex;
+					outMaterial.iridescenceThicknessTextureUV = material.iridescence->iridescenceThicknessTexture.value().texCoordIndex;
+				}
+			}
+
+			if (material.sheen) {
+				outMaterial.sheenColorFactor = material.sheen->sheenColorFactor;
+				if (material.sheen->sheenColorTexture.has_value()) {
+					outMaterial.sheenColorTextureIndex = material.sheen->sheenColorTexture.value().textureIndex;
+					outMaterial.sheenColorTextureUV = material.sheen->sheenColorTexture.value().texCoordIndex;
+				}
+				outMaterial.sheenRoughnessFactor = material.sheen->sheenRoughnessFactor;
+				if (material.sheen->sheenRoughnessTexture.has_value()) {
+					outMaterial.sheenRoughnessTextureIndex = material.sheen->sheenRoughnessTexture.value().textureIndex;
+					outMaterial.sheenRoughnessTextureUV = material.sheen->sheenRoughnessTexture.value().texCoordIndex;
+				}
+			}
+
+			if (material.specular) {
+				outMaterial.specularFactor = material.specular->specularFactor;
+				if (material.specular->specularTexture.has_value()) {
+					outMaterial.specularTextureIndex = material.specular->specularTexture.value().textureIndex;
+					outMaterial.specularTextureUV = material.specular->specularTexture.value().texCoordIndex;
+				}
+				outMaterial.specularColorFactor = glm::make_vec3(material.specular->specularColorFactor.data());
+				if (material.specular->specularColorTexture.has_value()) {
+					outMaterial.specularColorTextureIndex = material.specular->specularColorTexture.value().textureIndex;
+					outMaterial.specularColorTextureUV = material.specular->specularColorTexture.value().texCoordIndex;
+				}
+			}
+
+			if (material.transmission) {
+				outMaterial.transmissionFactor = material.transmission->transmissionFactor;
+				if (material.transmission->transmissionTexture.has_value()) {
+					outMaterial.transmissionTextureIndex = material.transmission->transmissionTexture.value().textureIndex;
+					outMaterial.transmissionTextureUV = material.transmission->transmissionTexture.value().texCoordIndex;
+				}
+			}
+
+			if (material.volume) {
+				outMaterial.thicknessFactor = material.volume->thicknessFactor;
+				outMaterial.thicknessTextureIndex = material.volume->thicknessTexture.value().textureIndex;
+				outMaterial.thicknessTextureUV = material.volume->thicknessTexture.value().texCoordIndex;
+				outMaterial.attenuationDistance = material.volume->attenuationDistance;
+				outMaterial.attenuationColor = glm::make_vec3(material.volume->attenuationColor.data());
+			}
+
+			m_Materials.push_back(outMaterial);
 		}
 	}
 

@@ -119,7 +119,7 @@ namespace Brisk
                 specs.p_Width = 1920;
                 specs.p_Height = 1080;
                 specs.p_DebugName = "g_Lighting";
-                specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageTransferSrc | Core::TextureUsage::ImageUsageSampled;
+                specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageTransferSrc;
                 specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
                 g_lightingOutput->Init(specs);
             }
@@ -488,20 +488,6 @@ namespace Brisk
             for (auto& primitive : subMesh.primitives) {
 
                 uint32_t index = primitive.material_index != -1 ? primitive.material_index : 0;
-                //materials[index]->Bind(m_MainCmdBuffer, m_Pipeline);
-
-                //PushConstants pushConstantsData = {
-                //    SceneManager::pActiveScene->mMaterials[index].baseColorTextureIndex,   // Index for albedo texture 0
-                //    SceneManager::pActiveScene->mMaterials[index].metallicRoughnessTextureIndex, // Index for metallic texture1
-                //    SceneManager::pActiveScene->mMaterials[index].normalTextureIndex,   // Index for normal texture 4
-                //    SceneManager::pActiveScene->mMaterials[index].emissiveTextureIndex,// Index for roughness texture 2
-                //    SceneManager::pActiveScene->mMaterials[index].occlusionTextureIndex// Index for emissive texture 3
-                //};
-
-                //pushConstantsData.camPos = Engine::s_Application->GetCamera()->GetPosition();
-
-                //m_Pipeline->BindPushConstant(m_MainCmdBuffer, sizeof(PushConstants), &pushConstantsData);
-
                 RenderCommand::DrawIndexed(m_CmdBuffer, primitive.index_count, 1, primitive.first_index, 0, 0);
             }
         }

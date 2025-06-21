@@ -8,12 +8,12 @@ layout(location = 0) out vec4 outPosition;
 layout(location = 1) out vec4 outNormal;
 layout(location = 2) out vec4 outAlbedo;
 
-#extension GL_EXT_nonuniform_qualifier : enable
-layout(set = 3, binding = 0) uniform sampler2D global_textures[];
+//#extension GL_EXT_nonuniform_qualifier : enable
+//layout(set = 3, binding = 0) uniform sampler2D global_textures[];
 
 void main() {
     outPosition = vec4(fragPosition, 1.0);
     outNormal = vec4(normalize(fragNormal), 1.0);
-    outAlbedo = texture(global_textures[nonuniformEXT(0)], fragUV);
-    //outAlbedo = vec4(1.0, 0.0, 0.0, 1.0);
+    //outAlbedo = texture(global_textures[nonuniformEXT(0)], fragUV);
+    outAlbedo = outPosition;
 }

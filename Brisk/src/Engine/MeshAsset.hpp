@@ -3,15 +3,14 @@
 // INCLUDES
 #include "Renderer/Texture.hpp"
 #include "Renderer/Descriptor.hpp"
-//-------------------------------
+//--------------------------------
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
 #include <fastgltf/core.hpp>
-#include <fastgltf/tools.hpp>
 //----------------------------
 #include <iostream>
 #include <filesystem>
-//----------------
+//-------------------
 
 namespace Brisk 
 {

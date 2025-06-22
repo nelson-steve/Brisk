@@ -487,8 +487,8 @@ namespace Brisk
         for (auto& subMesh : mesh.p_Mesh->m_Meshes) {
             for (auto& primitive : subMesh.primitives) {
 
-                uint32_t index = primitive.material_index != -1 ? primitive.material_index : 0;
-                RenderCommand::DrawIndexed(m_CmdBuffer, primitive.index_count, 1, primitive.first_index, 0, 0);
+                uint32_t index = primitive.materialIndex != -1 ? primitive.materialIndex : 0;
+                RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
             }
         }
     }

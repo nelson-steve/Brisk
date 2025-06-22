@@ -4,6 +4,8 @@
 #include "Engine/Renderer/Texture.hpp"
 #include "Engine/Application.hpp"
 
+#include <fastgltf/core.hpp>
+
 #include <stb_image.h>
 #include <volk.h>
 
@@ -31,6 +33,7 @@ namespace Brisk
 
 		virtual void Init(const TextureSpecification& specs) override;
 		virtual void Init(const std::string &path) override;
+		void Init(const fastgltf::Image& image, const fastgltf::Asset& asset);
 		//virtual void Init(tinygltf::Image image, TextureSampler sampler) override;
 	private:
 		VkDescriptorImageInfo m_Descriptor;
@@ -40,6 +43,7 @@ namespace Brisk
 		// Just a workaround to only use 1 sampler
 		static VkSampler m_Sampler;
 		VkFormat m_Format;
+		int m_MipLevels;
 
 		VkDevice m_DeviceCached;
 	};

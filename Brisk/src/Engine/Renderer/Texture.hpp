@@ -3,7 +3,6 @@
 #include "RHI.hpp"
 #include "Engine/Renderer/CommandBuffer.hpp"
 
-
 #include <string>
 #include <memory>
 
@@ -75,6 +74,7 @@ namespace Brisk
 	public:
 		virtual void Init(const TextureSpecification& specs) = 0;
 		virtual void Init(const std::string& path) = 0;
+		//virtual void Init(const fastgltf::Image& image, const fastgltf::Asset& asset) = 0;
 
 		virtual void TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, std::vector<ImageBarrierParams> params) = 0;
 		virtual void CopyImage(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> src, std::shared_ptr<Texture> dest, uint32_t width, uint32_t height) = 0;

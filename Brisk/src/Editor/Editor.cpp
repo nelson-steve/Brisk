@@ -256,15 +256,17 @@ namespace Brisk
 
         LavenderTheme();
         
-        ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Engine::s_Application->GetWindow()->GetWindowHandle(), true);
+        ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Engine::s_Application->GetWindow()->GetWindowHandle(), false);
+
+        auto gpuAdapter = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter());
 
         ImGui_ImplVulkan_InitInfo info{};
-        info.Instance = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetInstance();
-        info.PhysicalDevice = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetPhysicalDevice();
-        info.Device = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice();
+        info.Instance = gpuAdapter->GetInstance();
+        info.PhysicalDevice = gpuAdapter->GetPhysicalDevice();
+        info.Device = gpuAdapter->GetDevice();
         info.QueueFamily = 0;
-        info.Queue = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue();
-        info.DescriptorPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDescriptorPool();
+        info.Queue = gpuAdapter->GetGraphicsQueue();
+        info.DescriptorPool = gpuAdapter->GetDescriptorPool();
         info.RenderPass = std::static_pointer_cast<RenderPassVulkan>(renderpass)->GetRenderPass();
         info.ImageCount = 2;
         info.MinImageCount = 2;
@@ -275,7 +277,7 @@ namespace Brisk
 
         VkCommandBuffer commandBuffer = std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get();
 
-        vkResetCommandPool(info.Device, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetCommandPool(), 0);
+        vkResetCommandPool(info.Device, gpuAdapter->GetCommandPool(), 0);
 
         VkCommandBufferBeginInfo beginInfo = {};
         beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;

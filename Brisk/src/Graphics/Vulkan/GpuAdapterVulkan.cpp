@@ -113,7 +113,7 @@ namespace Brisk
 		allocatorInfo.physicalDevice = m_PhysicalDevice;
 		allocatorInfo.device = m_Device;
 		allocatorInfo.instance = m_Instance;
-		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_4;
+		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_2;
 		VmaVulkanFunctions vulkanFunctions = {};
 		VkResult res = vmaImportVulkanFunctionsFromVolk(&allocatorInfo, &vulkanFunctions);
 		if (res != VK_SUCCESS) {
@@ -213,7 +213,7 @@ namespace Brisk
 		poolInfo.flags = VK_DESCRIPTOR_POOL_CREATE_FREE_DESCRIPTOR_SET_BIT;
 		poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizes.size());
 		poolInfo.pPoolSizes = poolSizes.data();
-		poolInfo.maxSets = 32;
+		poolInfo.maxSets = 1024;
 
 		if (vkCreateDescriptorPool(m_Device, &poolInfo, nullptr, &m_DescriptorPool) != VK_SUCCESS) {
 			throw std::runtime_error("failed to create descriptor pool!");

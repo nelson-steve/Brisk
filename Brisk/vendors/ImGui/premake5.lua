@@ -36,6 +36,11 @@ project "ImGui"
         Vulkan_SDK .. "/Include"
     }
 
+    defines 
+    {
+        "IMGUI_IMPL_VULKAN_USE_VOLK"
+    }
+
     filter "system:windows"
         systemversion "latest"
 

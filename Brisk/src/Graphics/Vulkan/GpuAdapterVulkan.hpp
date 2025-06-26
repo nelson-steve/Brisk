@@ -31,7 +31,7 @@ namespace Brisk
 		void CreateLogicalDevice(/*const GpuRequirements& requirements*/);
 		void Release();
 		VkPhysicalDevice GetPhysicalDevice() { return m_PhysicalDevice; }
-		VkDevice GetDevice() { return m_Device; }
+		VkDevice& GetDevice() { return m_Device; }
 		VkCommandPool GetCommandPool() { return m_CommandPool; }
 		VmaAllocator GetVmaAllocator() { return m_VmaAllocator; }
 		const VkQueue GetGraphicsQueue() const { return m_GraphicsQueue; }

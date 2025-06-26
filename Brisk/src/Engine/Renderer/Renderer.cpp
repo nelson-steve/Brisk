@@ -274,8 +274,8 @@ namespace Brisk
         m_CmdBuffer = CommandBuffer::Create();
         m_CmdBuffer->Allocate();
 
-        //m_Editor = std::make_shared<Editor>();
-        //m_Editor->Create(m_LightingPass, m_CmdBuffer);
+        m_Editor = std::make_shared<Editor>();
+        m_Editor->Create(m_LightingPass, m_CmdBuffer);
     }
 
     int times = 0;
@@ -379,7 +379,7 @@ namespace Brisk
 
         m_GeometryBufferPass->End(m_CmdBuffer);
 
-        //m_Editor->Update();
+        m_Editor->Update();
 
         // --- LIGHTING PASS ---------------------------
 
@@ -404,7 +404,7 @@ namespace Brisk
 
         RenderCommand::Draw(m_CmdBuffer, 3, 0);
 
-        //m_Editor->Render(m_CmdBuffer);
+        m_Editor->Render(m_CmdBuffer);
 
         m_LightingPass->End(m_CmdBuffer);
 

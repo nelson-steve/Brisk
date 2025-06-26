@@ -33,13 +33,12 @@ namespace Brisk
 			/* 4 */"../Data/Models/revolver/revolver.gltf",
 			/* 5 */"../Data/Models/cerberus/cerberus.gltf",
 			/* 6 */"../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf",
-			/* 7 */"../Data/Models/spaceship/scene.gltf",
 		};
 		auto start = std::chrono::high_resolution_clock::now();
 
-		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[2], false);
+		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[3], false);
 
-
+		m_SceneManager->pActiveScene->CreateEntity("name").AddComponent<MeshComponent>().p_Mesh = asset1;
 	}
 
 	void Application::OnEvent(Event &event) {

@@ -5,16 +5,52 @@
 #include "spdlog/spdlog.h"
 #include "spdlog/fmt/ostr.h"
 #pragma warning(pop)
+
+#include "spdlog/sinks/base_sink.h"
+#include <mutex>
+#include <vector>
+#include <string>
+
 //------------------
 
 namespace Brisk 
 {
+    struct ConsoleLogEntry {
+        spdlog::level::level_enum level;
+        std::string message;
+    };
+
+    class ImGuiSink : public spdlog::sinks::base_sink<std::mutex> {
+    public:
+        const std::vector<ConsoleLogEntry>& GetEntries() const { return m_Entries; }
+        void Clear() { m_Entries.clear(); }
+
+    protected:
+        void sink_it_(const spdlog::details::log_msg& msg) override {
+            spdlog::memory_buf_t formatted;
+            formatter_->format(msg, formatted);
+
+            m_Entries.push_back(ConsoleLogEntry{
+                msg.level,
+                fmt::to_string(formatted)
+                });
+        }
+
+        void flush_() override {}
+
+    private:
+        std::vector<ConsoleLogEntry> m_Entries;
+    };
+
+
 	class Log {
 	public:
 		static void Init();
 
 		inline static std::shared_ptr<spdlog::logger>& GetCoreLogger() { return m_CoreLogger; }
 		inline static std::shared_ptr<spdlog::logger>& GetAppLogger() { return m_AppLogger; }
+    public:
+        static std::shared_ptr<ImGuiSink> g_ImGuiSink;
 	private:
 		static std::shared_ptr<spdlog::logger> m_CoreLogger;
 		static std::shared_ptr<spdlog::logger> m_AppLogger;

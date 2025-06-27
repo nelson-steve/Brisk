@@ -92,7 +92,7 @@ namespace Brisk
 			{
 				WindowData& data = *(WindowData*)glfwGetWindowUserPointer(window);
 
-				std::cout << "Mouse button";
+				BRISK_CORE_INFO("Mouse button {}", button);
 				switch (action)
 				{
 					case GLFW_PRESS:

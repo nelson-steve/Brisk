@@ -238,7 +238,7 @@ namespace Brisk
 
     }
 
-	void Editor::Create(std::shared_ptr<RenderPass> renderpass, std::shared_ptr<CommandBuffer> cmd) {
+	void Editor::Create(std::shared_ptr<RenderPass> renderpass, std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> tex) {
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -256,7 +256,7 @@ namespace Brisk
 
         LavenderTheme();
         
-        ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Engine::s_Application->GetWindow()->GetWindowHandle(), false);
+        ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Engine::s_Application->GetWindow()->GetWindowHandle(), true);
 
         auto gpuAdapter = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter());
 
@@ -300,9 +300,9 @@ namespace Brisk
         // 6. Destroy Temporary Font Upload Resources
         //ImGui_ImplVulkan_DestroyFontUploadObjects(); // REQUIRED!
 
-
-        //ScenePanel* scenePanel = new ScenePanel();
-        //m_Panels.insert({ "Scene" , scenePanel });
+        ScenePanel* scenePanel = new ScenePanel();
+        scenePanel->SetImage(tex);
+        m_Panels.insert({ "Scene" , scenePanel });
 
         //AssetsPanel* assetsPanel = new AssetsPanel();
         //m_Panels.insert({ "Assets" , assetsPanel });
@@ -310,8 +310,8 @@ namespace Brisk
         ConsolePanel* consolePanel = new ConsolePanel();
         m_Panels.insert({ "Console" , consolePanel });
 
-        GamePanel* gamePanel = new GamePanel();
-        m_Panels.insert({ "Game" , gamePanel });
+        //GamePanel* gamePanel = new GamePanel();
+        //m_Panels.insert({ "Game" , gamePanel });
 
         HeirarchyPanel* heirarchyPanel = new HeirarchyPanel();
         m_Panels.insert({ "Heirarchy" , heirarchyPanel });

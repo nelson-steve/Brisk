@@ -19,7 +19,7 @@ namespace Brisk
 	class Editor {
 	public:
 		Editor() = default;
-		void Create(std::shared_ptr<RenderPass> renderpass, std::shared_ptr<CommandBuffer> cmd);
+		void Create(std::shared_ptr<RenderPass> renderpass, std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> tex);
 		void Update();
 		void Render(std::shared_ptr<CommandBuffer> cmd);
 		void Release();

@@ -11,6 +11,19 @@ namespace Brisk
         //Engine::s_Renderer->AddRenderTarget({ m_SceneTexture });
     }
 
+    void ScenePanel::SetImage(std::shared_ptr<Texture> tex) {
+        // Initialization (only once)
+        VkSampler sampler = std::static_pointer_cast<TextureVulkan>(tex)->GetSampler();
+        VkImageView view = std::static_pointer_cast<TextureVulkan>(tex)->GetView();
+        m_RenderTargetID = ImGui_ImplVulkan_AddTexture(
+            sampler,
+            view,
+            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        );
+
+        m_SceneTexture = tex;
+    }
+
     void ScenePanel::OnUpdate() {
         ImGui::Begin("Scene");
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();
@@ -35,7 +48,7 @@ namespace Brisk
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-        ImGui::Image((void*)(intptr_t)m_SceneDescriptorSet, imageSize);
+        ImGui::Image(m_RenderTargetID, imageSize);
 
         ImGui::PopStyleColor(2);
         ImGui::PopStyleVar();

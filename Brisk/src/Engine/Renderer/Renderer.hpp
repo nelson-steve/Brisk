@@ -53,11 +53,13 @@ namespace Brisk
 		std::shared_ptr<RenderPass> m_DepthPrePass;
 		std::shared_ptr<RenderPass> m_GeometryBufferPass;
 		std::shared_ptr<RenderPass> m_LightingPass;
+		std::shared_ptr<RenderPass> m_UIPass;
 
 		// Pipelines
 		std::shared_ptr<Pipeline> m_DepthPrePassPipeline;
 		std::shared_ptr<Pipeline> m_GBufferPipeline;
 		std::shared_ptr<Pipeline> m_LightingPipeline;
+		std::shared_ptr<Pipeline> m_UIPipeline;
 
 		std::shared_ptr<Buffer> m_UniformBuffer;
 		std::shared_ptr<CommandBuffer> m_CmdBuffer;

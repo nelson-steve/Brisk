@@ -38,7 +38,8 @@ namespace Brisk
 		Depth,
 		Input,
 		Resolve,
-		Preserve
+		Preserve,
+		Swapchain
 	};
 
 	struct RenderPassDependency {
@@ -61,7 +62,7 @@ namespace Brisk
 	public:
 		virtual void Init(const std::vector<RenderPassDependency>& dependencies, const std::vector<RenderPassAttachment>& outputs) = 0;
 
-		virtual void Begin(std::shared_ptr<CommandBuffer> cmd) = 0;
+		virtual void Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t imageIndex = 0) = 0;
 		virtual void End(std::shared_ptr<CommandBuffer> cmd) = 0;
 
 		int GetClearCount() const { return m_ClearCount; }

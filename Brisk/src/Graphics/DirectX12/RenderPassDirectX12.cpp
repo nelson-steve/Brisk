@@ -36,7 +36,7 @@ namespace Brisk
         }
     }
 
-    void RenderPassDirectX12::Begin(std::shared_ptr<CommandBuffer> cmd) {
+    void RenderPassDirectX12::Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t imageIndex) {
         ComPtr<ID3D12GraphicsCommandList> commandList = std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get();
 
         commandList->OMSetRenderTargets(static_cast<UINT>(m_RTVHandles.size()), m_RTVHandles.data(), FALSE,

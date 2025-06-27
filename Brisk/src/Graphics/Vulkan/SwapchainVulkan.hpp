@@ -36,11 +36,6 @@ namespace Brisk
 		VkExtent2D m_extent;
 		VkPresentModeKHR m_present_mode;
 
-		// depth buffer
-		//VkImage m_DepthImage;
-		//VkDeviceMemory m_DepthImageMemory;
-		//VkImageView m_DepthImageView;
-
 		friend class SwapchainFactory;
 	};
 }

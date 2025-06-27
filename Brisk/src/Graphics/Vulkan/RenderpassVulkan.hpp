@@ -14,7 +14,7 @@ namespace Brisk
 
         virtual void Init(const std::vector<RenderPassDependency>& dependencies, const std::vector<RenderPassAttachment>& outputs) override;
 
-        virtual void Begin(std::shared_ptr<CommandBuffer> cmd) override;
+        virtual void Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t imageIndex = 0) override;
         virtual void End(std::shared_ptr<CommandBuffer> cmd) override;
 
         virtual VkRenderPass GetRenderPass() { return m_RenderPass; }
@@ -23,7 +23,7 @@ namespace Brisk
 
         VkRenderPass m_RenderPass;
         VkDevice device;
-        VkFramebuffer m_Framebuffer;
+        std::vector<VkFramebuffer> m_Framebuffers;
         VkCommandBuffer commandBuffer;
     };
 }

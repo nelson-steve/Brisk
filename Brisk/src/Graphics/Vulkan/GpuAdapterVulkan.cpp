@@ -158,8 +158,17 @@ namespace Brisk
 			layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+			layout->AddBinding(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->Init();
 			m_DeferredTexturesDescriptorLayout = std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout();
+		}
+
+		{
+			std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
+			layout->SetDescriptorType(GpuDescriptorResourceType::Materials);
+			layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+			layout->Init();
+			m_MaterialsDescriptorLayout = std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout();
 		}
 
 		VkDescriptorSetAllocateInfo allocInfo{};
@@ -180,6 +189,12 @@ namespace Brisk
 
 		allocInfo.pSetLayouts = &m_DeferredTexturesDescriptorLayout;
 		if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_DeferredTexturesSet) != VK_SUCCESS)
+		{
+			throw std::runtime_error("failed to allocate descriptor sets!");
+		}
+
+		allocInfo.pSetLayouts = &m_MaterialsDescriptorLayout;
+		if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_MaterialsSet) != VK_SUCCESS)
 		{
 			throw std::runtime_error("failed to allocate descriptor sets!");
 		}
@@ -481,9 +496,9 @@ namespace Brisk
 			{
 				VkWriteDescriptorSet write{};
 				write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 				write.dstSet = m_DeferredTexturesSet;
 				write.dstBinding = bindingIndex;
-				write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 				write.descriptorCount = 1;
 				write.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
 
@@ -494,18 +509,34 @@ namespace Brisk
 			{
 				VkWriteDescriptorSet write{};
 				write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 				write.dstSet = m_BindlessTexturesSet;
 				write.dstBinding = 0;
 				write.dstArrayElement = bindingIndex;
-				write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
 				write.descriptorCount = 1;
 				write.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
 
 				vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
 				break;
 			}
-			default:
+			case Brisk::Materials:
+			{
+				VkWriteDescriptorSet write{};
+				write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+				write.dstSet = m_MaterialsSet;
+				write.dstBinding = bindingIndex;
+				write.descriptorCount = 1;
+				write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
+
+				vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
 				break;
+			}
+			default:
+			{
+				BRISK_CORE_WARN("Adding invalid GPU resource");
+				break;
+			}
 		}
 	}
 }

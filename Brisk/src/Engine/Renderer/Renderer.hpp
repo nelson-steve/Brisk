@@ -44,6 +44,7 @@ namespace Brisk
 		std::shared_ptr<Texture> g_Pos;
 		std::shared_ptr<Texture> g_Normal;
 		std::shared_ptr<Texture> g_Albedo;
+		std::shared_ptr<Texture> g_Material;
 		std::shared_ptr<Texture> g_Depth;
 		std::shared_ptr<Texture> g_lightingOutput;
 
@@ -59,7 +60,6 @@ namespace Brisk
 		std::shared_ptr<Pipeline> m_DepthPrePassPipeline;
 		std::shared_ptr<Pipeline> m_GBufferPipeline;
 		std::shared_ptr<Pipeline> m_LightingPipeline;
-		std::shared_ptr<Pipeline> m_UIPipeline;
 
 		std::shared_ptr<Buffer> m_UniformBuffer;
 		std::shared_ptr<CommandBuffer> m_CmdBuffer;

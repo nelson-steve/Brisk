@@ -17,9 +17,14 @@ namespace Brisk {
 		virtual void Release() override;
 		virtual void UpdatePersistantData(uint32_t size, void* data) override;
 
-		inline const VkBuffer& Get() const {
+		inline const VkBuffer Get() const {
 			return m_Handle;
 		}
+
+		inline const VkDeviceMemory GetMemory() const {
+			return m_Memory;
+		}
+
 		const VkDescriptorBufferInfo* GetDescriptor() {
 			bufferInfo.buffer = m_Handle;
 			bufferInfo.offset = 0;

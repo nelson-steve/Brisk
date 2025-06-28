@@ -426,13 +426,23 @@ namespace Brisk {
 
 				m_Materials.push_back(outMaterial);
 			}
+
 		}
 
+		std::shared_ptr<Buffer> materialStorageBuffer = Buffer::Create();
+		materialStorageBuffer->Init(sizeof(MaterialData)* m_Materials.size(), m_Materials.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, true);
+		
+		Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::Materials, nullptr, materialStorageBuffer, 0);
+
+		int i = 0;
 		for (const auto& tex : asset.textures) {
 			const fastgltf::Image& image = asset.images[tex.imageIndex.value()];
 
 			std::shared_ptr<Texture> texture = Texture::Create();
 			std::static_pointer_cast<TextureVulkan>(texture)->Init(image, asset);
+
+			Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::BindlessTextures, texture, nullptr, i);
+			i++;
 		}
 	}
 }

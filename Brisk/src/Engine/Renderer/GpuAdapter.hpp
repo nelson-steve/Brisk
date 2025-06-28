@@ -15,6 +15,7 @@ namespace Brisk
 		SceneLightsUBO,
 		DeferredTextures,
 		BindlessTextures,
+		Materials,
 	};
 
 	class GpuAdapter  : public std::enable_shared_from_this<GpuAdapter> {

@@ -113,19 +113,16 @@ namespace Brisk
         m_Specs.p_Width = texHeight;
 
         BufferVulkan stagingBuffer;
-        //stagingBuffer.Init(imageSize, VK_BUFFER_USAGE_TRANSFER_SRC_BIT);
-        //stagingBuffer.Allocate(VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
+        stagingBuffer.Init(imageSize, pixels,Core::BufferUsage::TransferSrc, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
 
-        //void* data;
-        //vkMapMemory(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), stagingBuffer.GetMemory(), 0, imageSize, 0, &data);
-        //memcpy(data, pixels, static_cast<size_t>(imageSize));
         VkMappedMemoryRange range[1] = {};
         range[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-        //range[0].memory = stagingBuffer.GetMemory();
+        range[0].memory = stagingBuffer.GetMemory();
         range[0].size = imageSize;
         if (vkFlushMappedMemoryRanges(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, range) != VK_SUCCESS) {
             throw std::runtime_error("error");
         }
+        //stagingBuffer.Release();
         //vkUnmapMemory(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), stagingBuffer.GetMemory());
 
         stbi_image_free(pixels);
@@ -664,6 +661,10 @@ namespace Brisk
 
                     stbi_image_free(imageData);
                 }
+
+                m_Descriptor.sampler = m_Sampler;
+                m_Descriptor.imageView = m_ImageView;
+                m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
                 //std::cout << "Array::No image data.\n";
             },
             [&](const fastgltf::sources::Vector&) {

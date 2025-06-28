@@ -148,7 +148,7 @@ namespace Brisk
             VmaAllocationInfo allocInfo;
             vmaGetAllocationInfo(cachedAllocator, m_Allocation, &allocInfo);
             mappedPtr = allocInfo.pMappedData;
-            isMapped = true;
+            //isMapped = true;
         }
         else {
             mappedPtr = nullptr;

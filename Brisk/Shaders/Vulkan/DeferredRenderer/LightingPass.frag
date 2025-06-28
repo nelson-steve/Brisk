@@ -13,11 +13,13 @@ layout(location = 0) out vec4 outColor;
 layout(set = 2, binding = 0) uniform sampler2D gPosition;
 layout(set = 2, binding = 1) uniform sampler2D gNormal;
 layout(set = 2, binding = 2) uniform sampler2D gAlbedo;
+layout(set = 2, binding = 3) uniform sampler2D gMaterial;
 
 void main() {
     vec3 pos = texture(gPosition, uv).rgb;
     vec3 norm = normalize(texture(gNormal, uv).rgb);
     vec3 albedo = texture(gAlbedo, uv).rgb;
+    vec3 material = texture(gMaterial, uv).rgb;
 
     //vec3 lightDir = normalize(light.lightPos - pos);
     //float diff = max(dot(norm, lightDir), 0.0);
@@ -30,6 +32,6 @@ void main() {
     //
     //vec3 result = (diffuse + specular) * albedo;
     //outColor = vec4(result, 1.0);
-    //outColor = vec4(1.0, 0.0, 1.0, 1.0);
-    outColor = vec4(norm, 1.0);
+    outColor = vec4(1.0, 0.0, 1.0, 1.0);
+    //outColor = vec4(albedo, 1.0);
 }

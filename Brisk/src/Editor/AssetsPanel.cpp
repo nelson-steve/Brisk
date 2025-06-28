@@ -27,21 +27,21 @@ namespace Brisk
     void AssetsPanel::OnCreate() {
         LoadAssets("../Data");
 
-        //TextureVulkan* m_Texture1 = new TextureVulkan();
-        //m_Texture1->Create("../Data/Images/fbx.png");
-        //FBXDescriptorSet = ImGui_ImplVulkan_AddTexture(m_Texture1->GetSampler(), m_Texture1->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        std::shared_ptr<Texture> m_FBX = Texture::Create();
+        m_FBX->Init("../Data/Images/fbx.png");
+       FBXDescriptorSet = ImGui_ImplVulkan_AddTexture(std::static_pointer_cast<TextureVulkan>(m_FBX)->GetSampler(), std::static_pointer_cast<TextureVulkan>(m_FBX)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-        //TextureVulkan* m_Texture2 = new TextureVulkan();
-        //m_Texture2->Create("../Data/Images/folder.png");
-        //FolderDescriptorSet = ImGui_ImplVulkan_AddTexture(m_Texture2->GetSampler(), m_Texture2->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+       std::shared_ptr<Texture> m_Folder = Texture::Create();
+       m_Folder->Init("../Data/Images/folder.png");
+       FolderDescriptorSet = ImGui_ImplVulkan_AddTexture(std::static_pointer_cast<TextureVulkan>(m_Folder)->GetSampler(), std::static_pointer_cast<TextureVulkan>(m_Folder)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-        //TextureVulkan* m_Texture3 = new TextureVulkan();
-        //m_Texture3->Create("../Data/Images/obj.png");
-        //OBJDescriptorSet = ImGui_ImplVulkan_AddTexture(m_Texture3->GetSampler(), m_Texture3->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+       std::shared_ptr<Texture> m_OBJ = Texture::Create();
+       m_OBJ->Init("../Data/Images/obj.png");
+       OBJDescriptorSet = ImGui_ImplVulkan_AddTexture(std::static_pointer_cast<TextureVulkan>(m_OBJ)->GetSampler(), std::static_pointer_cast<TextureVulkan>(m_OBJ)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
 
-        //TextureVulkan* m_Texture4 = new TextureVulkan();
-        //m_Texture4->Create("../Data/Images/photo.png");
-        //PhotoDescriptorSet = ImGui_ImplVulkan_AddTexture(m_Texture4->GetSampler(), m_Texture4->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+       std::shared_ptr<Texture> m_Photo = Texture::Create();
+       m_Photo->Init("../Data/Images/photo.png");
+       PhotoDescriptorSet = ImGui_ImplVulkan_AddTexture(std::static_pointer_cast<TextureVulkan>(m_Photo)->GetSampler(), std::static_pointer_cast<TextureVulkan>(m_Photo)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
     void AssetsPanel::OnUpdate() {

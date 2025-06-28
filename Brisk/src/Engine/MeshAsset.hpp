@@ -24,110 +24,109 @@ namespace Brisk
 			//glm::vec3 Color;
 		};
 
-		struct MaterialData {
-			enum AlphaMode { ALPHAMODE_OPAQUE, ALPHAMODE_MASK, ALPHAMODE_BLEND };
-			AlphaMode alphaMode = ALPHAMODE_OPAQUE;
-			float alphaCutoff = 1.0f;
-			float metallicFactor = 1.0f;
-			float roughnessFactor = 1.0f;
-			float ior = 1.0f;
-			float dispersion = 1.0f;
-			bool doubleSided = false;
-			bool unlit = false;
-			float emissiveStrength = 1.0f;
+#pragma once
+#include <glm/glm.hpp>
+#include <limits>
 
-			glm::vec4 baseColorFactor = glm::vec4(1.0f);
-			glm::vec3 emissiveFactor = glm::vec3(0.0f);
-	
-			uint32_t baseColorTextureIndex;
-			uint32_t baseColorTextureUV;
+        struct MaterialData {
+            // --- General ---
+            int alphaMode;                        
+            float alphaCutoff;                   
+            float metallicFactor;                
+            float roughnessFactor;              
 
-			uint32_t metallicRoughnessTextureIndex;
-			uint32_t metallicRoughnessTextureUV;
+            float ior;                          
+            float dispersion;                   
+            int doubleSided;                    
+            int unlit;                          
 
-			uint32_t normalTextureIndex;
-			uint32_t normalTextureUV;
+            float emissiveStrength;             
+            float _pad0[3];                     // Padding to align next vec4
 
-			uint32_t occlusionTextureIndex;
-			uint32_t occlusionTextureUV;
+            glm::vec4 baseColorFactor;          // 16
+            glm::vec3 emissiveFactor;           // 12
+            float _pad1;                        // Padding to align next uvec2
 
-			uint32_t emissiveTextureIndex;
-			uint32_t emissiveTextureUV;
+            // --- Texture Indices ---
+            uint32_t baseColorTextureIndex;     
+            uint32_t baseColorTextureUV;        
+            uint32_t metallicRoughnessTextureIndex;
+            uint32_t metallicRoughnessTextureUV;
 
-			//struct TexCoordSets {
-			//	uint8_t baseColor = 0;
-			//	uint8_t metallicRoughness = 0;
-			//	uint8_t specularGlossiness = 0;
-			//	uint8_t normal = 0;
-			//	uint8_t occlusion = 0;
-			//	uint8_t emissive = 0;
-			//} texCoordSets;
-			//struct Extension {
-			//	std::shared_ptr<Texture> specularGlossinessTexture;
-			//	std::shared_ptr<Texture> diffuseTexture;
-			//	glm::vec4 diffuseFactor = glm::vec4(1.0f);
-			//	glm::vec3 specularFactor = glm::vec3(0.0f);
-			//} extension;
-			//struct PbrWorkflows {
-			//	bool metallicRoughness = true;
-			//	bool specularGlossiness = false;
-			//} pbrWorkflows;
-			//int index = 0;
+            uint32_t normalTextureIndex;
+            uint32_t normalTextureUV;
+            uint32_t occlusionTextureIndex;
+            uint32_t occlusionTextureUV;
 
-			// anisotropy
-			float anisotropyStrength = 0.0f;
-			float anisotropyRotation = 0.0f;
-			uint32_t anisotropyTextureIndex;
-			uint32_t anisotropyTextureUV;
+            uint32_t emissiveTextureIndex;
+            uint32_t emissiveTextureUV;
 
-			// clear coat
-			float clearcoatFactor = 0.0f;
-			uint32_t clearcoatTextureIndex;
-			uint32_t clearcoatTextureUV;
-			float clearcoatRoughnessFactor = 0.0f;
-			uint32_t clearcoatRoughnessTextureIndex;
-			uint32_t clearcoatRoughnessTextureUV;
-			uint32_t clearcoatNormalTextureIndex;
-			uint32_t clearcoatNormalTextureUV;
+            // --- Anisotropy ---
+            float anisotropyStrength;           
+            float anisotropyRotation;           
+            uint32_t anisotropyTextureIndex;    
+            uint32_t anisotropyTextureUV;       
 
-			// iridiscence
-			float iridescenceFactor = 0.0f;
-			uint32_t iridescenceTextureIndex;
-			uint32_t iridescenceTextureUV;
-			float iridescenceIor = 1.3f;
-			float iridescenceThicknessMinimum = 100.0f;
-			float iridescenceThicknessMaximum = 400.0f;
-			uint32_t iridescenceThicknessTextureIndex;
-			uint32_t iridescenceThicknessTextureUV;
+            // --- Clearcoat ---
+            float clearcoatFactor;              
+            uint32_t clearcoatTextureIndex;     
+            uint32_t clearcoatTextureUV;        
+            float clearcoatRoughnessFactor;     
 
-			// sheen
-			glm::vec3 sheenColorFactor = glm::vec3(1.0f);
-			uint32_t sheenColorTextureIndex;
-			uint32_t sheenColorTextureUV;
-			float sheenRoughnessFactor = 0.0f;
-			uint32_t sheenRoughnessTextureIndex;
-			uint32_t sheenRoughnessTextureUV;
+            uint32_t clearcoatRoughnessTextureIndex;
+            uint32_t clearcoatRoughnessTextureUV;
+            uint32_t clearcoatNormalTextureIndex;
+            uint32_t clearcoatNormalTextureUV;
 
-			// specular
-			float specularFactor = 1.0f;
-			uint32_t specularTextureIndex;
-			uint32_t specularTextureUV;
-			glm::vec3 specularColorFactor = glm::vec3(1.0f);
-			uint32_t specularColorTextureIndex;
-			uint32_t specularColorTextureUV;
+            // --- Iridescence ---
+            float iridescenceFactor;            
+            uint32_t iridescenceTextureIndex;
+            uint32_t iridescenceTextureUV;
+            float iridescenceIor;               
 
-			// transmission
-			float transmissionFactor = 0.0f;
-			uint32_t transmissionTextureIndex;
-			uint32_t transmissionTextureUV;
+            float iridescenceThicknessMinimum;  
+            float iridescenceThicknessMaximum;  
+            uint32_t iridescenceThicknessTextureIndex;
+            uint32_t iridescenceThicknessTextureUV;
 
-			// materialvolume
-			float thicknessFactor = 0.0f;
-			uint32_t thicknessTextureIndex;
-			uint32_t thicknessTextureUV;
-			float attenuationDistance = std::numeric_limits<float>::infinity();
-			glm::vec3 attenuationColor = glm::vec3(1.0);
-		};
+            // --- Sheen ---
+            glm::vec3 sheenColorFactor;         // 12
+            float _pad2;                        // 4
+
+            uint32_t sheenColorTextureIndex;
+            uint32_t sheenColorTextureUV;
+            float sheenRoughnessFactor;         
+            uint32_t sheenRoughnessTextureIndex;
+            uint32_t sheenRoughnessTextureUV;
+            float _pad3;                        // to align next float to 16
+
+            // --- Specular ---
+            float specularFactor;               
+            uint32_t specularTextureIndex;
+            uint32_t specularTextureUV;
+            float _pad4;                        
+
+            glm::vec3 specularColorFactor;      
+            float _pad5;                        
+            uint32_t specularColorTextureIndex;
+            uint32_t specularColorTextureUV;
+
+            // --- Transmission ---
+            float transmissionFactor;           
+            uint32_t transmissionTextureIndex;
+            uint32_t transmissionTextureUV;
+            float _pad6;                        
+
+            // --- Volume ---
+            float thicknessFactor;              
+            uint32_t thicknessTextureIndex;
+            uint32_t thicknessTextureUV;
+            float attenuationDistance;          
+
+            glm::vec3 attenuationColor;         // 12
+            float _pad7;                        // pad to align struct to 16 bytes
+        };
+
 
 		struct Primitive {
 			uint32_t firstIndex = 0;

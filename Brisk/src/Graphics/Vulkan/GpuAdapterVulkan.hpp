@@ -19,6 +19,7 @@ namespace Brisk
 	constexpr uint32_t SET_LIGHTS = 1;
 	constexpr uint32_t SET_DEFERRED_TEXTURES = 2;
 	constexpr uint32_t SET_BINDLESS = 3;
+	constexpr uint32_t SET_MATERIALS = 4;
 	//
 
 	class GpuAdapterVulkan : public GpuAdapter {
@@ -51,6 +52,7 @@ namespace Brisk
 		VkDescriptorSetLayout m_LightsDescriptorLayout;
 		VkDescriptorSetLayout m_DeferredTexturesDescriptorLayout;
 		VkDescriptorSetLayout m_BindlessDescriptorLayout;
+		VkDescriptorSetLayout m_MaterialsDescriptorLayout;
 
 		// Descriptor stuff ------------------------------------//
 		VkDescriptorPool m_DescriptorPool;						//
@@ -68,6 +70,8 @@ namespace Brisk
 		VkDescriptorSet m_DeferredTexturesSet;					//
 		// Bindless textures									//
 		VkDescriptorSet m_BindlessTexturesSet;					//
+		// Materials											//
+		VkDescriptorSet m_MaterialsSet;							//
 		//------------------------------------------------------//
 
 	private:

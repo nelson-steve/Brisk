@@ -304,8 +304,8 @@ namespace Brisk
         scenePanel->SetImage(tex);
         m_Panels.insert({ "Scene" , scenePanel });
 
-        //AssetsPanel* assetsPanel = new AssetsPanel();
-        //m_Panels.insert({ "Assets" , assetsPanel });
+        AssetsPanel* assetsPanel = new AssetsPanel();
+        m_Panels.insert({ "Assets" , assetsPanel });
 
         ConsolePanel* consolePanel = new ConsolePanel();
         m_Panels.insert({ "Console" , consolePanel });

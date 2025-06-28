@@ -15,11 +15,12 @@ namespace Brisk
         m_GraphicsSpecs = specs;
 
         std::vector<VkDescriptorSetLayout> descriptorSetLayouts;
-        descriptorSetLayouts.resize(4);
+        descriptorSetLayouts.resize(5);
         descriptorSetLayouts[0] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
         descriptorSetLayouts[1] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
         descriptorSetLayouts[2] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
         descriptorSetLayouts[3] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
+        descriptorSetLayouts[4] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
         std::vector<VkPushConstantRange> pushConstants;
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
         for (const std::string& path : specs.pShaderPaths) 
@@ -309,6 +310,20 @@ namespace Brisk
                         SET_BINDLESS,
                         1,
                         &std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessTexturesSet,
+                        0,
+                        nullptr
+                    );
+                    break;
+                }
+                case GpuDescriptorResourceType::Materials:
+                {
+                    vkCmdBindDescriptorSets(
+                        std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(),
+                        VK_PIPELINE_BIND_POINT_GRAPHICS,
+                        m_PipelineLayout,
+                        SET_MATERIALS,
+                        1,
+                        &std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_MaterialsSet,
                         0,
                         nullptr
                     );

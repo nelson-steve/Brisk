@@ -79,7 +79,7 @@ namespace Brisk
         };
 
         // Traverse the hierarchy and display each element
-        //for (int i = 0; i < Engine::m_ActiveScene->Elements.size(); i++) {
+        //for (int i = 0; i < SceneManager::pActiveScene->Elements.size(); i++) {
         //    // Only display root elements (elements without parents)
         //    if (Engine::m_ActiveScene->Elements[i].IsRoot) {
         //        DisplayElementWithChildren(i, -1.0f);
@@ -95,7 +95,7 @@ namespace Brisk
                 // Open context menu only if mouse is inside the window
                 ImGui::OpenPopup("ContextMenu");
             else
-                ImGui::OpenPopup("ElementContextMenu");
+                ImGui::OpenPopup("EntityContextMenu");
 
         }
 
@@ -103,14 +103,15 @@ namespace Brisk
         if (ImGui::BeginPopup("ContextMenu")) {
             if (ImGui::MenuItem("Create Empty")) {
             }
-            if (ImGui::MenuItem("Create Element")) {
+            if (ImGui::MenuItem("Create Entity")) {
             }
             ImGui::EndPopup();
         }
 
         // Render the context menu
-        if (ImGui::BeginPopup("ElementContextMenu")) {
-            if (ImGui::MenuItem("Create Element")) {
+        if (ImGui::BeginPopup("EntityContextMenu")) {
+            if (ImGui::MenuItem("Create Entity")) {
+                SceneManager::pActiveScene->CreateEntity("Test");
             }
             ImGui::EndPopup();
         }

@@ -2,9 +2,9 @@
 
 layout(location = 0) in vec3 inPosition;
 
-layout(set = 0, binding = 0) uniform UBO {
-    mat4 lightSpaceMatrix; // Light's view-projection matrix
-    mat4 model;            // Model matrix of the object
+layout(set = 1, binding = 0) uniform UBO {
+    mat4 lightSpaceMatrix;
+    mat4 model;
 } ubo;
 
 void main() {

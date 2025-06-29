@@ -19,6 +19,12 @@ namespace Brisk
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
+        m_LightsUBO = Buffer::Create();
+        m_LightsUBO->Init(sizeof(LightsMVP), nullptr, Core::BufferUsage::UniformBuffer,
+            Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
+
+        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::SceneLightsUBO, nullptr, m_LightsUBO, 0);
+
         // Renderpasses
         {
             // Depth Pre pass

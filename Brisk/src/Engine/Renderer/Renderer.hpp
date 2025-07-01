@@ -33,7 +33,7 @@ namespace Brisk
 
 		static std::unique_ptr<Renderer> Create();
 	private:
-		void RenderEntity(const MeshComponent& mesh);
+		void RenderEntity(const MeshComponent& mesh, bool push = false);
 
 	private:
 		static std::shared_ptr<Swapchain> m_Swapchain;
@@ -45,27 +45,28 @@ namespace Brisk
 		std::shared_ptr<Queue> m_GraphicsQueue;
 
 		// Attachments
-		std::shared_ptr<Texture> g_Pos;
-		std::shared_ptr<Texture> g_Normal;
-		std::shared_ptr<Texture> g_Albedo;
-		std::shared_ptr<Texture> g_Material;
-		std::shared_ptr<Texture> g_Depth;
-		std::shared_ptr<Texture> g_lightingOutput;
+		std::shared_ptr<Texture> m_Pos;
+		std::shared_ptr<Texture> m_Normal;
+		std::shared_ptr<Texture> m_Albedo;
+		std::shared_ptr<Texture> m_Material;
+		std::shared_ptr<Texture> m_Depth;
+		std::shared_ptr<Texture> m_ShadowMap;
+		std::shared_ptr<Texture> m_LightingOutput;
 
 		std::shared_ptr<Editor> m_Editor;
 
 		// RenderPasses
 		std::shared_ptr<RenderPass> m_DepthPrePass;
+		std::shared_ptr<RenderPass> m_ShadowMapPass;
 		std::shared_ptr<RenderPass> m_GeometryBufferPass;
 		std::shared_ptr<RenderPass> m_LightingPass;
 		std::shared_ptr<RenderPass> m_UIPass;
-		std::shared_ptr<RenderPass> m_ShadowMapPass;
 
 		// Pipelines
 		std::shared_ptr<Pipeline> m_DepthPrePassPipeline;
+		std::shared_ptr<Pipeline> m_ShadowMapPipeline;
 		std::shared_ptr<Pipeline> m_GBufferPipeline;
 		std::shared_ptr<Pipeline> m_LightingPipeline;
-		std::shared_ptr<Pipeline> m_ShadowMapPipeline;
 
 		std::shared_ptr<Buffer> m_LightsUBO;
 		std::shared_ptr<CommandBuffer> m_CmdBuffer;

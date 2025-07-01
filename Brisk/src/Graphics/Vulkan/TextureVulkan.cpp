@@ -113,17 +113,7 @@ namespace Brisk
         m_Specs.p_Width = texHeight;
 
         BufferVulkan stagingBuffer;
-        stagingBuffer.Init(imageSize, pixels,Core::BufferUsage::TransferSrc, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
-
-        VkMappedMemoryRange range[1] = {};
-        range[0].sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-        range[0].memory = stagingBuffer.GetMemory();
-        range[0].size = imageSize;
-        if (vkFlushMappedMemoryRanges(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, range) != VK_SUCCESS) {
-            throw std::runtime_error("error");
-        }
-        //stagingBuffer.Release();
-        //vkUnmapMemory(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), stagingBuffer.GetMemory());
+        stagingBuffer.Init(imageSize, pixels, Core::BufferUsage::TransferSrc, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
 
         stbi_image_free(pixels);
 

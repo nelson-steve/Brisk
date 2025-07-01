@@ -21,6 +21,9 @@ namespace Brisk
     private:
         std::vector<VkAttachmentDescription> m_AttachmentsDescriptions;
 
+        uint32_t m_FramebufferWidth;
+        uint32_t m_FramebufferHeight;
+
         VkRenderPass m_RenderPass;
         VkDevice device;
         std::vector<VkFramebuffer> m_Framebuffers;

@@ -5,10 +5,6 @@
 namespace Brisk 
 {
     void ScenePanel::OnCreate() {
-        //m_SceneTexture = BriskTexture::Create(Engine::s_Swapchain->GetExtentWidth(), Engine::s_Swapchain->GetExtentHeight(), BriskTexture::BGR, BriskTexture::TEXTURE2D);
-        //m_SceneDescriptorSet = Editor::AddTexToUI(m_SceneTexture);
-
-        //Engine::s_Renderer->AddRenderTarget({ m_SceneTexture });
     }
 
     void ScenePanel::SetImage(std::shared_ptr<Texture> tex) {
@@ -28,7 +24,7 @@ namespace Brisk
         ImGui::Begin("Scene");
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 
-        float aspectRatio = 1.778f;
+        float aspectRatio = static_cast<float>(m_SceneTexture->GetWidth()) / static_cast<float>(m_SceneTexture->GetHeight());
 
         ImVec2 imageSize;
         if (viewportSize.x / viewportSize.y > aspectRatio) {

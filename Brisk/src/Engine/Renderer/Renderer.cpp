@@ -25,11 +25,31 @@ namespace Brisk
 
         Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::SceneLightsUBO, nullptr, m_LightsUBO, 0);
 
+        glm::vec3 lightDir = glm::normalize(glm::vec3(0.0f, 0.0f, -10.0f)); // example
+        float range = 10.0f;
+        float distance = 2000.0f;
+        float nearPlane = 0.01f;
+        float farPlane = 5000.0f;
+
+
+        glm::mat4 lightView = glm::lookAt(
+            -lightDir * distance,  // light position
+            glm::vec3(0.0f),
+            glm::vec3(0.0f, 1.0f, 0.0f)  // up vector
+        );
+
+        glm::mat4 lightProjection = glm::ortho(-range, range, -range, range, nearPlane, farPlane);
+
+        LightsMVP mvp{};
+        mvp.ViewProjection = lightProjection * lightView;
+        mvp.Model = glm::mat4(1.0f); // Or your object model matrix if needed
+        m_LightsUBO->UpdatePersistantData(sizeof(LightsMVP), &mvp);
+
         // Renderpasses
         {
             // Depth Pre pass
             //----------------------------------------------------------------------------------------------------
-            g_Depth = Texture::Create();
+            m_Depth = Texture::Create();
 
             {
                 Texture::TextureSpecification specs{};
@@ -40,7 +60,7 @@ namespace Brisk
                 specs.p_Usage = Core::TextureUsage::ImageUsageDepthStencilAttachment | Core::TextureUsage::ImageUsageSampled;
                 specs.p_Format = Core::Format::FORMAT_D16_UNORM;
                 specs.p_IsDepth = true;
-                g_Depth->Init(specs);
+                m_Depth->Init(specs);
             }
 
             m_DepthPrePass = RenderPass::Create();
@@ -62,38 +82,77 @@ namespace Brisk
                     }
                 },
                 {   
-                    RenderPassAttachment{ 0, AttachmentType::Depth, g_Depth  } 
+                    RenderPassAttachment{ 0, AttachmentType::Depth, m_Depth  } 
+                }
+            );
+
+            // ShadowMap pass
+            //----------------------------------------------------------------------------------------------------
+            m_ShadowMap = Texture::Create();
+
+            {
+                Texture::TextureSpecification specs{};
+                specs.p_Width = 1920;
+                specs.p_Height = 1080;
+                specs.p_Type = Texture::TextureType::TEXTURE2D;
+                specs.p_DebugName = "g_Depth";
+                specs.p_Usage = Core::TextureUsage::ImageUsageDepthStencilAttachment | Core::TextureUsage::ImageUsageSampled;
+                specs.p_Format = Core::Format::FORMAT_D16_UNORM;
+                specs.p_IsDepth = true;
+                m_ShadowMap->Init(specs);
+            }
+
+            m_ShadowMapPass = RenderPass::Create();
+            m_ShadowMapPass->Init(
+                {
+                    RenderPassDependency {
+                        true,
+                        Core::AccessType::None, // src access
+                        Core::AccessType::ColorAttachmentWrite | Core::AccessType::DepthStencilWrite, // dst access
+                        Core::PipelineStage::FragmentShader | Core::PipelineStage::EarlyFragmentTest, // src stage
+                        Core::PipelineStage::ColorAttachment | Core::PipelineStage::EarlyFragmentTest // dst stage
+                    },
+                    RenderPassDependency {
+                        false,
+                        Core::AccessType::DepthStencilWrite,
+                        Core::AccessType::ShaderRead,
+                        Core::PipelineStage::LateFragmentTest,
+                        Core::PipelineStage::FragmentShader
+                    }
+                },
+                {
+                    RenderPassAttachment{ 0, AttachmentType::Depth, m_ShadowMap  }
                 }
             );
 
             // Geometry pass
             //----------------------------------------------------------------------------------------------------
-            g_Pos = Texture::Create();
-            g_Normal = Texture::Create();
-            g_Albedo = Texture::Create();
-            g_Material = Texture::Create();
+            m_Pos = Texture::Create();
+            m_Normal = Texture::Create();
+            m_Albedo = Texture::Create();
+            m_Material = Texture::Create();
 
             {
                 Texture::TextureSpecification specs{};
                 specs.p_Width = 1920;
                 specs.p_Height = 1080;
                 specs.p_IsDepth = false;
-                specs.p_DebugName = "g_Pos";
+                specs.p_DebugName = "m_Pos";
                 specs.p_Type = Texture::TextureType::TEXTURE2D;
                 specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled;
                 specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
-                g_Pos->Init(specs);
+                m_Pos->Init(specs);
 
-                specs.p_DebugName = "g_Normal";
-                g_Normal->Init(specs);
+                specs.p_DebugName = "m_Normal";
+                m_Normal->Init(specs);
 
-                specs.p_DebugName = "g_Albedo";
+                specs.p_DebugName = "m_Albedo";
                 specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
-                g_Albedo->Init(specs);
+                m_Albedo->Init(specs);
 
-                specs.p_DebugName = "g_Material";
+                specs.p_DebugName = "m_Material";
                 specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
-                g_Material->Init(specs);
+                m_Material->Init(specs);
             }
 
             m_GeometryBufferPass = RenderPass::Create();
@@ -115,16 +174,16 @@ namespace Brisk
                     },                
                 },
                 {   
-                    RenderPassAttachment{ 0, AttachmentType::Color, g_Pos    },
-                    RenderPassAttachment{ 1, AttachmentType::Color, g_Normal },
-                    RenderPassAttachment{ 2, AttachmentType::Color, g_Albedo },
-                    RenderPassAttachment{ 3, AttachmentType::Color, g_Material },
+                    RenderPassAttachment{ 0, AttachmentType::Color, m_Pos    },
+                    RenderPassAttachment{ 1, AttachmentType::Color, m_Normal },
+                    RenderPassAttachment{ 2, AttachmentType::Color, m_Albedo },
+                    RenderPassAttachment{ 3, AttachmentType::Color, m_Material },
                 }
             );
 
             // Lighting pass
             //----------------------------------------------------------------------------------------------------
-            g_lightingOutput = Texture::Create();
+            m_LightingOutput = Texture::Create();
 
             {
                 Texture::TextureSpecification specs{};
@@ -133,36 +192,30 @@ namespace Brisk
                 specs.p_DebugName = "g_Lighting";
                 specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled;
                 specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
-                g_lightingOutput->Init(specs);
+                m_LightingOutput->Init(specs);
             }
 
             m_LightingPass = RenderPass::Create();
             m_LightingPass->Init(
                 {
                     RenderPassDependency {
-                        true,
-                        Core::AccessType::None, // src access
-                        Core::AccessType::ColorAttachmentWrite | Core::AccessType::DepthStencilWrite, // dst access
-                        Core::PipelineStage::FragmentShader | Core::PipelineStage::EarlyFragmentTest, // src stage
-                        Core::PipelineStage::ColorAttachment | Core::PipelineStage::EarlyFragmentTest // dst stage
+                        true, // external
+                        Core::AccessType::ColorAttachmentWrite,  
+                        Core::AccessType::ShaderRead,            
+                        Core::PipelineStage::ColorAttachment,    
+                        Core::PipelineStage::FragmentShader      
                     },
-                    RenderPassDependency {
-                        true,
-                        Core::AccessType::ColorAttachmentWrite, // src access
-                        Core::AccessType::ShaderRead, // dst access
-                        Core::PipelineStage::ColorAttachment, // src stage
-                        Core::PipelineStage::FragmentShader// dst stage
-                    },
+
                     RenderPassDependency {
                         false,
-                        Core::AccessType::ColorAttachmentWrite,
-                        Core::AccessType::TransferRead,
-                        Core::PipelineStage::ColorAttachment,
-                        Core::PipelineStage::TransferStage
-                    },
+                        Core::AccessType::ColorAttachmentWrite,  
+                        Core::AccessType::ShaderRead,            
+                        Core::PipelineStage::ColorAttachment,    
+                        Core::PipelineStage::FragmentShader      
+                    }
                 },
                 {  
-                    RenderPassAttachment{ 0, AttachmentType::Color, g_lightingOutput } 
+                    RenderPassAttachment{ 0, AttachmentType::Color, m_LightingOutput }
                 }
             );
 
@@ -172,26 +225,20 @@ namespace Brisk
             m_UIPass->Init(
                 {
                     RenderPassDependency {
-                        true,
-                        Core::AccessType::None, // src access
-                        Core::AccessType::ColorAttachmentWrite | Core::AccessType::DepthStencilWrite, // dst access
-                        Core::PipelineStage::FragmentShader | Core::PipelineStage::EarlyFragmentTest, // src stage
-                        Core::PipelineStage::ColorAttachment | Core::PipelineStage::EarlyFragmentTest // dst stage
+                        true, // external
+                        Core::AccessType::None,                                  
+                        Core::AccessType::ColorAttachmentWrite,                  
+                        Core::PipelineStage::BottomOfPipe,                       
+                        Core::PipelineStage::ColorAttachment,                    
                     },
-                    RenderPassDependency {
-                        true,
-                        Core::AccessType::ColorAttachmentWrite, // src access
-                        Core::AccessType::ShaderRead, // dst access
-                        Core::PipelineStage::ColorAttachment, // src stage
-                        Core::PipelineStage::FragmentShader// dst stage
-                    },
+
                     RenderPassDependency {
                         false,
-                        Core::AccessType::ColorAttachmentWrite,
-                        Core::AccessType::TransferRead,
-                        Core::PipelineStage::ColorAttachment,
-                        Core::PipelineStage::TransferStage
-                    },
+                        Core::AccessType::ColorAttachmentWrite,                  
+                        Core::AccessType::MemoryRead,                            
+                        Core::PipelineStage::ColorAttachment,                    
+                        Core::PipelineStage::BottomOfPipe,                       
+                    }
                 },
                 {
                     RenderPassAttachment{ 0, AttachmentType::Swapchain, nullptr }
@@ -232,6 +279,40 @@ namespace Brisk
 
                 m_DepthPrePassPipeline = Pipeline::Create();
                 m_DepthPrePassPipeline->Init(pipelineSpecs);
+            }
+            //----------------------------------------------------------------------------------------------------
+
+            // Shadow map pass pipeline
+            //----------------------------------------------------------------------------------------------------
+            {
+                Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
+                Pipeline::VertexDataLayout vertexLayout;
+                vertexLayout.pBinding = 0;
+                vertexLayout.pStride = sizeof(MeshAsset::MeshData);
+                vertexLayout.pAttributes = {
+                    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Position)},
+                };
+                pipelineSpecs.pLayout = vertexLayout;
+                pipelineSpecs.pRenderPass = m_ShadowMapPass;
+
+                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/ShadowMapPassVS.spv");
+                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/ShadowMapPassFS.spv");
+
+                pipelineSpecs.pDepthClampEnable = false;
+                pipelineSpecs.pRasterizationDiscardEnable = false;
+                pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
+                pipelineSpecs.pLineWidth = 1.0f;
+                pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
+                pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
+                pipelineSpecs.pDepthBiasEnable = false;
+                pipelineSpecs.pDepthTestEnable = true;
+                pipelineSpecs.pDepthWriteEnable = true;
+                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS;
+                pipelineSpecs.pDepthBoundsTestEnable = false;
+                pipelineSpecs.pStencilTestEnable = false;
+
+                m_ShadowMapPipeline = Pipeline::Create();
+                m_ShadowMapPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
 
@@ -278,8 +359,9 @@ namespace Brisk
             {
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
                 pipelineSpecs.pRenderPass = m_LightingPass;
-                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/LightingVS.spv");
-                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/LightingFS.spv");
+                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/LightingPassVS.spv");
+                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/LightingPassFS.spv");
+
                 pipelineSpecs.pDepthClampEnable = false;
                 pipelineSpecs.pRasterizationDiscardEnable = false;
                 pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
@@ -287,8 +369,8 @@ namespace Brisk
                 pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
                 pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
                 pipelineSpecs.pDepthBiasEnable = false;
-                pipelineSpecs.pDepthTestEnable = true;
-                pipelineSpecs.pDepthWriteEnable = true;
+                pipelineSpecs.pDepthTestEnable = false;
+                pipelineSpecs.pDepthWriteEnable = false;
                 pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS;
                 pipelineSpecs.pDepthBoundsTestEnable = false;
                 pipelineSpecs.pStencilTestEnable = false;
@@ -299,10 +381,10 @@ namespace Brisk
             //----------------------------------------------------------------------------------------------------
         }
 
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Pos, nullptr, 0);
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Normal, nullptr, 1);
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Albedo, nullptr, 2);
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, g_Material, nullptr, 3);
+        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, m_Pos, nullptr, 0);
+        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, m_Normal, nullptr, 1);
+        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, m_Albedo, nullptr, 2);
+        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, m_Material, nullptr, 3);
 
         m_Fence = Fence::Create();
         m_Fence->Init();
@@ -320,7 +402,7 @@ namespace Brisk
         m_CmdBuffer->Allocate();
 
         m_Editor = std::make_shared<Editor>();
-        m_Editor->Create(m_LightingPass, m_CmdBuffer, g_lightingOutput);
+        m_Editor->Create(m_UIPass, m_CmdBuffer, m_LightingOutput);
     }
 
     void Renderer::RenderScene(float deltaTime)
@@ -343,16 +425,16 @@ namespace Brisk
             params.srcStage = Core::PipelineStage::TopOfPipe;
             params.dstStage = Core::PipelineStage::EarlyFragmentTest;
 
-            g_Depth->TransitionImageLayout(m_CmdBuffer, { params });
+            m_Depth->TransitionImageLayout(m_CmdBuffer, { params });
         }
 
         // --- DEPTH PRE PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
-        m_DepthPrePassPipeline->Bind(m_CmdBuffer);
         m_DepthPrePass->Begin(m_CmdBuffer);
+        m_DepthPrePassPipeline->Bind(m_CmdBuffer);
 
-        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
-        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Depth->GetWidth(), m_Depth->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Depth->GetWidth(), m_Depth->GetHeight());
 
         auto meshes = SceneManager::pActiveScene->Reg().view<MeshComponent>();
 
@@ -373,13 +455,49 @@ namespace Brisk
         {
             Brisk::Texture::ImageBarrierParams params{};
             params.oldLayout = Core::ImageLayout::Undefined;
+            params.newLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
+            params.srcAccess = Core::AccessType::None;
+            params.dstAccess = Core::AccessType::DepthStencilWrite;
+            params.srcStage = Core::PipelineStage::TopOfPipe;
+            params.dstStage = Core::PipelineStage::EarlyFragmentTest;
+
+            m_ShadowMap->TransitionImageLayout(m_CmdBuffer, { params });
+        }
+
+        // --- SHADOW MAP PASS ---------------------------
+        //------------------------------------------------------------------------------------------------------------------------------------------------
+        m_ShadowMapPass->Begin(m_CmdBuffer);
+        m_ShadowMapPipeline->Bind(m_CmdBuffer);
+
+        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_ShadowMap->GetWidth(), m_ShadowMap->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_ShadowMap->GetWidth(), m_ShadowMap->GetHeight());
+
+        meshes = SceneManager::pActiveScene->Reg().view<MeshComponent>();
+
+        for (auto e : meshes) {
+            Entity entity = { e, SceneManager::pActiveScene.get() };
+
+            auto& mesh = entity.GetComponent<MeshComponent>();
+
+            RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
+            RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
+
+            RenderEntity(mesh);
+        }
+
+        m_ShadowMapPass->End(m_CmdBuffer);
+        //------------------------------------------------------------------------------------------------------------------------------------------------
+
+        {
+            Brisk::Texture::ImageBarrierParams params{};
+            params.oldLayout = Core::ImageLayout::Undefined;
             params.newLayout = Core::ImageLayout::ColorAttachmentOptimal;
             params.srcAccess = Core::AccessType::None;
             params.dstAccess = Core::AccessType::ColorAttachmentWrite;
             params.srcStage = Core::PipelineStage::TopOfPipe;
             params.dstStage = Core::PipelineStage::ColorAttachment;
 
-            g_Pos->TransitionImageLayout(m_CmdBuffer, { params });
+            m_Pos->TransitionImageLayout(m_CmdBuffer, { params });
         }
 
         {
@@ -391,7 +509,7 @@ namespace Brisk
             params.srcStage = Core::PipelineStage::TopOfPipe;
             params.dstStage = Core::PipelineStage::ColorAttachment;
 
-            g_Normal->TransitionImageLayout(m_CmdBuffer, { params });
+            m_Normal->TransitionImageLayout(m_CmdBuffer, { params });
         }
 
         {
@@ -403,16 +521,16 @@ namespace Brisk
             params.srcStage = Core::PipelineStage::TopOfPipe;
             params.dstStage = Core::PipelineStage::ColorAttachment;
 
-            g_Albedo->TransitionImageLayout(m_CmdBuffer, { params });
+            m_Albedo->TransitionImageLayout(m_CmdBuffer, { params });
         }
 
         // --- GBUFFER PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
-        m_GBufferPipeline->Bind(m_CmdBuffer);
         m_GeometryBufferPass->Begin(m_CmdBuffer);
+        m_GBufferPipeline->Bind(m_CmdBuffer);
 
-        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
-        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
 
         for (const auto e : meshes) {
             Entity entity = { e, SceneManager::pActiveScene.get() };
@@ -422,7 +540,7 @@ namespace Brisk
             RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
             RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
 
-            RenderEntity(mesh);
+            RenderEntity(mesh, true);
         }
 
         m_GeometryBufferPass->End(m_CmdBuffer);
@@ -441,14 +559,14 @@ namespace Brisk
             params.srcStage = Core::PipelineStage::TopOfPipe;
             params.dstStage = Core::PipelineStage::ColorAttachment;
 
-            g_lightingOutput->TransitionImageLayout(m_CmdBuffer, { params });
+            m_LightingOutput->TransitionImageLayout(m_CmdBuffer, { params });
         }
 
         m_LightingPass->Begin(m_CmdBuffer);
         m_LightingPipeline->Bind(m_CmdBuffer);
 
-        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
-        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight());
 
         RenderCommand::Draw(m_CmdBuffer, 3, 0);
 
@@ -461,12 +579,14 @@ namespace Brisk
             params.newLayout = Core::ImageLayout::ColorAttachmentOptimal;
             params.srcAccess = Core::AccessType::None;
             params.dstAccess = Core::AccessType::ColorAttachmentWrite;
-            params.srcStage = Core::PipelineStage::TopOfPipe;
+            params.srcStage = Core::PipelineStage::ColorAttachment;
             params.dstStage = Core::PipelineStage::ColorAttachment;
 
             m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
         }
 
+        // --- UI PASS ---------------------------
+        //------------------------------------------------------------------------------------------------------------------------------------------------
         m_UIPass->Begin(m_CmdBuffer, m_ImageIndex);
 
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
@@ -475,18 +595,7 @@ namespace Brisk
         m_Editor->Render(m_CmdBuffer);
 
         m_UIPass->End(m_CmdBuffer);
-
-        {
-            Brisk::Texture::ImageBarrierParams params{};
-            params.oldLayout = Core::ImageLayout::ColorAttachmentOptimal;  // Or ColorAttachmentOptimal if you've rendered
-            params.newLayout = Core::ImageLayout::PresentSrc;
-            params.srcAccess = Core::AccessType::ColorAttachmentWrite;        // OK if the image was just acquired
-            params.dstAccess = Core::AccessType::MemoryRead;  // Optional, Present doesn't actually read memory
-            params.srcStage = Core::PipelineStage::ColorAttachment; // or ColorAttachmentOutput
-            params.dstStage = Core::PipelineStage::BottomOfPipe; // or use BottomOfPipe as a "wait-for-everything"
-
-            m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
-        }
+        //------------------------------------------------------------------------------------------------------------------------------------------------
 
         m_CmdBuffer->UnBind();
 
@@ -507,11 +616,17 @@ namespace Brisk
         m_GraphicsQueue->Present(presentInfo);
     }
 
-    void Renderer::RenderEntity(const MeshComponent& mesh) {
+    void Renderer::RenderEntity(const MeshComponent& mesh, bool push) {
         for (auto& subMesh : mesh.p_Mesh->m_Meshes) {
             for (auto& primitive : subMesh.primitives) {
-
                 uint32_t index = primitive.materialIndex != -1 ? primitive.materialIndex : 0;
+
+                if(primitive.materialIndex == -1)
+                    BRISK_CORE_WARN("Invalid material index");
+
+                if(push)
+                    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(uint32_t), &index);
+
                 RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
             }
         }

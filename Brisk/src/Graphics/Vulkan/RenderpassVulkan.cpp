@@ -15,7 +15,6 @@ namespace Brisk
 
         uint32_t attachmentIndex = 0;
         std::vector<std::vector<VkImageView>> imageViews;
-        uint32_t width = 0, height = 0;
 
         bool hasSwapchain = false;
         for (const auto& attachment : outputs) {
@@ -60,19 +59,19 @@ namespace Brisk
                     }
                 }
                 else {
-                    desc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                    desc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
                 }
 
                 attachments.push_back(desc);
 
-                if (width == 0 && height == 0) {
+                if (m_FramebufferWidth == 0 && m_FramebufferHeight == 0) {
                     if (!isSwapchain) {
-                        width = texture->GetWidth();
-                        height = texture->GetHeight();
+                        m_FramebufferWidth = texture->GetWidth();
+                        m_FramebufferHeight = texture->GetHeight();
                     }
                     else {
-                        width = Engine::s_Application->GetRenderer()->GetSwapchain()->GetExtentWidth();
-                        height = Engine::s_Application->GetRenderer()->GetSwapchain()->GetExtentHeight();
+                        m_FramebufferWidth = Engine::s_Application->GetRenderer()->GetSwapchain()->GetExtentWidth();
+                        m_FramebufferHeight = Engine::s_Application->GetRenderer()->GetSwapchain()->GetExtentHeight();
                     }
                 }
 
@@ -164,9 +163,11 @@ namespace Brisk
             framebufferInfo.renderPass = m_RenderPass;
             framebufferInfo.attachmentCount = static_cast<uint32_t>(imageViews[i].size());
             framebufferInfo.pAttachments = imageViews[i].data();
-            framebufferInfo.width = width;
-            framebufferInfo.height = height;
+            framebufferInfo.width = m_FramebufferWidth;
+            framebufferInfo.height = m_FramebufferHeight;
             framebufferInfo.layers = 1;
+
+            BRISK_CORE_INFO("Framebuffer width: {} height: {}", m_FramebufferWidth, m_FramebufferHeight);
 
             if (vkCreateFramebuffer(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS) {
                 throw std::runtime_error("Failed to create Vulkan framebuffer");
@@ -187,12 +188,16 @@ namespace Brisk
             clearValues.push_back(depthClear);
         }
 
+        assert(m_FramebufferWidth != 0 && m_FramebufferHeight != 0);
+
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = m_RenderPass;
         renderPassInfo.framebuffer = m_Framebuffers[imageIndex];
         renderPassInfo.renderArea.offset = { 0, 0 };
-        VkExtent2D extent{ 1920, 1080 };
+        VkExtent2D extent{};
+        extent.width = m_FramebufferWidth;
+        extent.height = m_FramebufferHeight;
         renderPassInfo.renderArea.extent = extent;
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();

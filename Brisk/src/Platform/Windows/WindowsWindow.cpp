@@ -25,6 +25,7 @@ namespace Brisk
 		glfwWindowHint(GLFW_CLIENT_API, GLFW_NO_API);
 		glfwWindowHint(GLFW_RESIZABLE, GLFW_TRUE);
 		//glfwWindowHint(GLFW_MAXIMIZED, GLFW_TRUE);
+		//glfwWindowHint(GLFW_FOCUSED, GLFW_TRUE);
 		m_Window = glfwCreateWindow((int)m_Width, (int)m_Height, Engine::s_EngineSettings.EngineName.c_str(), nullptr, nullptr);
 		if (m_Window == nullptr) {
 			BRISK_APP_ERROR("Could not create window of size width/height: " + std::to_string(m_Width) + "/" + std::to_string(m_Height));

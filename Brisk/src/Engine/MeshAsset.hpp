@@ -24,107 +24,94 @@ namespace Brisk
 			//glm::vec3 Color;
 		};
 
-#pragma once
-#include <glm/glm.hpp>
-#include <limits>
-
         struct MaterialData {
             // --- General ---
-            int alphaMode;                        
-            float alphaCutoff;                   
-            float metallicFactor;                
-            float roughnessFactor;              
+            alignas(4) int alphaMode;
+            alignas(4) float alphaCutoff;                   
+            alignas(4) float metallicFactor;                
+            alignas(4) float roughnessFactor;              
 
-            float ior;                          
-            float dispersion;                   
-            int doubleSided;                    
-            int unlit;                          
+            alignas(4) float ior;                          
+            alignas(4) float dispersion;                   
+            alignas(4) int doubleSided;                    
+            alignas(4) int unlit;                          
 
-            float emissiveStrength;             
-            float _pad0[3];                     // Padding to align next vec4
-
-            glm::vec4 baseColorFactor;          // 16
-            glm::vec3 emissiveFactor;           // 12
-            float _pad1;                        // Padding to align next uvec2
+            alignas(4) float emissiveStrength;             
+            alignas(16) glm::vec4 baseColorFactor;          // 16
+            alignas(16) glm::vec3 emissiveFactor;           // 12
 
             // --- Texture Indices ---
-            uint32_t baseColorTextureIndex;     
-            uint32_t baseColorTextureUV;        
-            uint32_t metallicRoughnessTextureIndex;
-            uint32_t metallicRoughnessTextureUV;
+            alignas(4) int32_t baseColorTextureIndex;     
+            alignas(4) int32_t baseColorTextureUV;        
+            alignas(4) int32_t metallicRoughnessTextureIndex;
+            alignas(4) int32_t metallicRoughnessTextureUV;
 
-            uint32_t normalTextureIndex;
-            uint32_t normalTextureUV;
-            uint32_t occlusionTextureIndex;
-            uint32_t occlusionTextureUV;
+            alignas(4) int32_t normalTextureIndex;
+            alignas(4) int32_t normalTextureUV;
+            alignas(4) int32_t occlusionTextureIndex;
+            alignas(4) int32_t occlusionTextureUV;
 
-            uint32_t emissiveTextureIndex;
-            uint32_t emissiveTextureUV;
+            alignas(4) int32_t emissiveTextureIndex;
+            alignas(4) int32_t emissiveTextureUV;
 
             // --- Anisotropy ---
-            float anisotropyStrength;           
-            float anisotropyRotation;           
-            uint32_t anisotropyTextureIndex;    
-            uint32_t anisotropyTextureUV;       
+            alignas(4) float anisotropyStrength;           
+            alignas(4) float anisotropyRotation;           
+            alignas(4) int32_t anisotropyTextureIndex;    
+            alignas(4) int32_t anisotropyTextureUV;       
 
             // --- Clearcoat ---
-            float clearcoatFactor;              
-            uint32_t clearcoatTextureIndex;     
-            uint32_t clearcoatTextureUV;        
-            float clearcoatRoughnessFactor;     
+            alignas(4) float clearcoatFactor;              
+            alignas(4) int32_t clearcoatTextureIndex;     
+            alignas(4) int32_t clearcoatTextureUV;        
+            alignas(4) float clearcoatRoughnessFactor;     
 
-            uint32_t clearcoatRoughnessTextureIndex;
-            uint32_t clearcoatRoughnessTextureUV;
-            uint32_t clearcoatNormalTextureIndex;
-            uint32_t clearcoatNormalTextureUV;
+            alignas(4) int32_t clearcoatRoughnessTextureIndex;
+            alignas(4) int32_t clearcoatRoughnessTextureUV;
+            alignas(4) int32_t clearcoatNormalTextureIndex;
+            alignas(4) int32_t clearcoatNormalTextureUV;
 
             // --- Iridescence ---
-            float iridescenceFactor;            
-            uint32_t iridescenceTextureIndex;
-            uint32_t iridescenceTextureUV;
-            float iridescenceIor;               
+            alignas(4) float iridescenceFactor;            
+            alignas(4) int32_t iridescenceTextureIndex;
+            alignas(4) int32_t iridescenceTextureUV;
+            alignas(4) float iridescenceIor;               
 
-            float iridescenceThicknessMinimum;  
-            float iridescenceThicknessMaximum;  
-            uint32_t iridescenceThicknessTextureIndex;
-            uint32_t iridescenceThicknessTextureUV;
+            alignas(4) float iridescenceThicknessMinimum;  
+            alignas(4) float iridescenceThicknessMaximum;  
+            alignas(4) int32_t iridescenceThicknessTextureIndex;
+            alignas(4) int32_t iridescenceThicknessTextureUV;
 
             // --- Sheen ---
-            glm::vec3 sheenColorFactor;         // 12
-            float _pad2;                        // 4
+            alignas(16) glm::vec3 sheenColorFactor;         // 12
 
-            uint32_t sheenColorTextureIndex;
-            uint32_t sheenColorTextureUV;
-            float sheenRoughnessFactor;         
-            uint32_t sheenRoughnessTextureIndex;
-            uint32_t sheenRoughnessTextureUV;
-            float _pad3;                        // to align next float to 16
+            alignas(4) int32_t sheenColorTextureIndex;
+            alignas(4) int32_t sheenColorTextureUV;
+            alignas(4) float sheenRoughnessFactor;         
+            alignas(4) int32_t sheenRoughnessTextureIndex;
+            alignas(4) int32_t sheenRoughnessTextureUV;
 
             // --- Specular ---
-            float specularFactor;               
-            uint32_t specularTextureIndex;
-            uint32_t specularTextureUV;
-            float _pad4;                        
+            alignas(4) float specularFactor;               
+            alignas(4) int32_t specularTextureIndex;
+            alignas(4) int32_t specularTextureUV;
 
-            glm::vec3 specularColorFactor;      
-            float _pad5;                        
-            uint32_t specularColorTextureIndex;
-            uint32_t specularColorTextureUV;
+            alignas(16) glm::vec3 specularColorFactor;      
+            alignas(4) int32_t specularColorTextureIndex;
+            alignas(4) int32_t specularColorTextureUV;
 
             // --- Transmission ---
-            float transmissionFactor;           
-            uint32_t transmissionTextureIndex;
-            uint32_t transmissionTextureUV;
-            float _pad6;                        
+            alignas(4) float transmissionFactor;           
+            alignas(4) int32_t transmissionTextureIndex;
+            alignas(4) int32_t transmissionTextureUV;
 
             // --- Volume ---
-            float thicknessFactor;              
-            uint32_t thicknessTextureIndex;
-            uint32_t thicknessTextureUV;
-            float attenuationDistance;          
+            alignas(4) float thicknessFactor;              
+            alignas(4) int32_t thicknessTextureIndex;
+            alignas(4) int32_t thicknessTextureUV;
+            alignas(4) float attenuationDistance;          
 
-            glm::vec3 attenuationColor;         // 12
-            float _pad7;                        // pad to align struct to 16 bytes
+            alignas(16) glm::vec3 attenuationColor;         // 12
         };
 
 

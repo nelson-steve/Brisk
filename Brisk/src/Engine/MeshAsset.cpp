@@ -5,6 +5,7 @@
 #include <fastgltf/math.hpp>
 #include <fastgltf/tools.hpp>
 #include <Graphics/Vulkan/TextureVulkan.hpp>
+#include <Core/Log.hpp>
 //-------------------
 
 namespace Brisk {
@@ -318,26 +319,28 @@ namespace Brisk {
 			outMaterial.emissiveFactor = glm::make_vec4(material.emissiveFactor.data());
 
 			if (material.pbrData.baseColorTexture.has_value()) {
-				outMaterial.baseColorTextureIndex = material.pbrData.baseColorTexture.value().texCoordIndex;
+				outMaterial.baseColorTextureIndex = material.pbrData.baseColorTexture.value().textureIndex;
 				outMaterial.baseColorTextureUV = material.pbrData.baseColorTexture.value().texCoordIndex;
 
+				BRISK_CORE_INFO("Base texture index: {}", outMaterial.baseColorTextureIndex);
+
 				if (material.pbrData.metallicRoughnessTexture.has_value()) {
-					outMaterial.metallicRoughnessTextureIndex = material.pbrData.metallicRoughnessTexture.value().texCoordIndex;
+					outMaterial.metallicRoughnessTextureIndex = material.pbrData.metallicRoughnessTexture.value().textureIndex;
 					outMaterial.metallicRoughnessTextureUV = material.pbrData.metallicRoughnessTexture.value().texCoordIndex;
 				}
 
 				if (material.normalTexture.has_value()) {
-					outMaterial.normalTextureIndex = material.normalTexture.value().texCoordIndex;
+					outMaterial.normalTextureIndex = material.normalTexture.value().textureIndex;
 					outMaterial.normalTextureUV = material.normalTexture.value().texCoordIndex;
 				}
 
 				if (material.occlusionTexture.has_value()) {
-					outMaterial.occlusionTextureIndex = material.occlusionTexture.value().texCoordIndex;
+					outMaterial.occlusionTextureIndex = material.occlusionTexture.value().textureIndex;
 					outMaterial.occlusionTextureUV = material.occlusionTexture.value().texCoordIndex;
 				}
 
 				if (material.emissiveTexture.has_value()) {
-					outMaterial.emissiveTextureIndex = material.emissiveTexture.value().texCoordIndex;
+					outMaterial.emissiveTextureIndex = material.emissiveTexture.value().textureIndex;
 					outMaterial.emissiveTextureUV = material.emissiveTexture.value().texCoordIndex;
 				}
 
@@ -345,7 +348,7 @@ namespace Brisk {
 					outMaterial.anisotropyStrength = material.anisotropy->anisotropyStrength;
 					outMaterial.anisotropyRotation = material.anisotropy->anisotropyRotation;
 					if (material.anisotropy->anisotropyTexture.has_value()) {
-						outMaterial.anisotropyTextureIndex = material.anisotropy->anisotropyTexture.value().texCoordIndex;
+						outMaterial.anisotropyTextureIndex = material.anisotropy->anisotropyTexture.value().textureIndex;
 						outMaterial.anisotropyTextureUV = material.anisotropy->anisotropyTexture.value().texCoordIndex;
 					}
 				}
@@ -358,11 +361,11 @@ namespace Brisk {
 					}
 					outMaterial.clearcoatRoughnessFactor = material.clearcoat->clearcoatRoughnessFactor;
 					if (material.clearcoat->clearcoatRoughnessTexture.has_value()) {
-						outMaterial.clearcoatRoughnessTextureIndex = material.clearcoat->clearcoatRoughnessTexture.value().texCoordIndex;
+						outMaterial.clearcoatRoughnessTextureIndex = material.clearcoat->clearcoatRoughnessTexture.value().textureIndex;
 						outMaterial.clearcoatRoughnessTextureUV = material.clearcoat->clearcoatRoughnessTexture.value().texCoordIndex;
 					}
 					if (material.clearcoat->clearcoatNormalTexture.has_value()) {
-						outMaterial.clearcoatNormalTextureIndex = material.clearcoat->clearcoatNormalTexture.value().texCoordIndex;
+						outMaterial.clearcoatNormalTextureIndex = material.clearcoat->clearcoatNormalTexture.value().textureIndex;
 						outMaterial.clearcoatNormalTextureUV = material.clearcoat->clearcoatNormalTexture.value().texCoordIndex;
 					}
 				}
@@ -430,7 +433,7 @@ namespace Brisk {
 		}
 
 		std::shared_ptr<Buffer> materialStorageBuffer = Buffer::Create();
-		materialStorageBuffer->Init(sizeof(MaterialData)* m_Materials.size(), m_Materials.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, true);
+		materialStorageBuffer->Init(sizeof(m_Materials[0]) * m_Materials.size(), m_Materials.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 		
 		Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::Materials, nullptr, materialStorageBuffer, 0);
 

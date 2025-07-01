@@ -24,10 +24,8 @@ struct MaterialData {
     int unlit;
 
     float emissiveStrength;
-    float _pad0;
     vec4 baseColorFactor;
     vec3 emissiveFactor;
-    float _pad1;
 
     uint baseColorTextureIndex;
     uint baseColorTextureUV;
@@ -68,29 +66,24 @@ struct MaterialData {
     uint iridescenceThicknessTextureUV;
 
     vec3 sheenColorFactor;
-    float _pad2;
 
     uint sheenColorTextureIndex;
     uint sheenColorTextureUV;
     float sheenRoughnessFactor;
     uint sheenRoughnessTextureIndex;
     uint sheenRoughnessTextureUV;
-    float _pad3;
 
     float specularFactor;
     uint specularTextureIndex;
     uint specularTextureUV;
-    float _pad4;
 
     vec3 specularColorFactor;
-    float _pad5;
     uint specularColorTextureIndex;
     uint specularColorTextureUV;
 
     float transmissionFactor;
     uint transmissionTextureIndex;
     uint transmissionTextureUV;
-    float _pad6;
 
     float thicknessFactor;
     uint thicknessTextureIndex;
@@ -98,20 +91,18 @@ struct MaterialData {
     float attenuationDistance;
 
     vec3 attenuationColor;
-    float _pad7;
 };
 
-layout(set = 4, binding = 0, std430) readonly buffer MaterialsBuffer {
+layout(std430, set = 4, binding = 0) readonly buffer SSBO {
     MaterialData materials[];
 };
 
-//layout(push_constant) uniform PushConstants {
-//    uint materialIndex;
-//} pushConstants;
+layout(push_constant) uniform PushConstants {
+    uint materialIndex;
+} pc;
 
 void main() {
-    //MaterialData material = materials[pushConstants.materialIndex];
-    MaterialData material = materials[0];
+    MaterialData material = materials[pc.materialIndex];
 
     // Position and normal
     outPosition = vec4(fragPosition, 1.0);

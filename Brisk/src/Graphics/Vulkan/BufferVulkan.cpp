@@ -88,6 +88,16 @@ namespace Brisk
                 throw std::runtime_error("Failed to create device local buffer");
             }
 
+            VkDebugUtilsObjectNameInfoEXT nameInfo = {};
+            nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+            nameInfo.objectType = VK_OBJECT_TYPE_BUFFER;
+            nameInfo.objectHandle = (uint64_t)m_Handle;
+            nameInfo.pObjectName = "storage buffer";
+
+#if _DEBUG
+            vkSetDebugUtilsObjectNameEXT(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
+#endif
+
             {
                 VkCommandBufferAllocateInfo allocInfoCmd{};
                 allocInfoCmd.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
@@ -148,7 +158,7 @@ namespace Brisk
             VmaAllocationInfo allocInfo;
             vmaGetAllocationInfo(cachedAllocator, m_Allocation, &allocInfo);
             mappedPtr = allocInfo.pMappedData;
-            //isMapped = true;
+            isMapped = true;
         }
         else {
             mappedPtr = nullptr;

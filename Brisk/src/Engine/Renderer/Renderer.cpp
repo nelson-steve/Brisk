@@ -27,9 +27,9 @@ namespace Brisk
 
         glm::vec3 lightDir = glm::normalize(glm::vec3(0.0f, 0.0f, -10.0f)); // example
         float range = 10.0f;
-        float distance = 2000.0f;
-        float nearPlane = 0.01f;
-        float farPlane = 5000.0f;
+        float distance = 200.0f;
+        float nearPlane = 0.1f;
+        float farPlane = 1000.0f;
 
 
         glm::mat4 lightView = glm::lookAt(
@@ -49,7 +49,7 @@ namespace Brisk
         {
             // Depth Pre pass
             //----------------------------------------------------------------------------------------------------
-            m_Depth = Texture::Create();
+            m_DepthPre = Texture::Create();
 
             {
                 Texture::TextureSpecification specs{};
@@ -60,7 +60,7 @@ namespace Brisk
                 specs.p_Usage = Core::TextureUsage::ImageUsageDepthStencilAttachment | Core::TextureUsage::ImageUsageSampled;
                 specs.p_Format = Core::Format::FORMAT_D16_UNORM;
                 specs.p_IsDepth = true;
-                m_Depth->Init(specs);
+                m_DepthPre->Init(specs);
             }
 
             m_DepthPrePass = RenderPass::Create();
@@ -82,7 +82,7 @@ namespace Brisk
                     }
                 },
                 {   
-                    RenderPassAttachment{ 0, AttachmentType::Depth, m_Depth  } 
+                    RenderPassAttachment{ 0, AttachmentType::Depth, m_DepthPre  }
                 }
             );
 
@@ -131,11 +131,20 @@ namespace Brisk
             m_Normal = Texture::Create();
             m_Albedo = Texture::Create();
             m_Material = Texture::Create();
+            m_Emissive = Texture::Create();
+            m_Depth = Texture::Create();
 
             {
                 Texture::TextureSpecification specs{};
                 specs.p_Width = 1920;
                 specs.p_Height = 1080;
+                specs.p_Type = Texture::TextureType::TEXTURE2D;
+                specs.p_DebugName = "g_Depth";
+                specs.p_Usage = Core::TextureUsage::ImageUsageDepthStencilAttachment    ;
+                specs.p_Format = Core::Format::FORMAT_D16_UNORM;
+                specs.p_IsDepth = true;
+                m_Depth->Init(specs);
+
                 specs.p_IsDepth = false;
                 specs.p_DebugName = "m_Pos";
                 specs.p_Type = Texture::TextureType::TEXTURE2D;
@@ -153,6 +162,10 @@ namespace Brisk
                 specs.p_DebugName = "m_Material";
                 specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
                 m_Material->Init(specs);
+
+                specs.p_DebugName = "m_Emissive";
+                specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
+                m_Emissive->Init(specs);
             }
 
             m_GeometryBufferPass = RenderPass::Create();
@@ -178,6 +191,8 @@ namespace Brisk
                     RenderPassAttachment{ 1, AttachmentType::Color, m_Normal },
                     RenderPassAttachment{ 2, AttachmentType::Color, m_Albedo },
                     RenderPassAttachment{ 3, AttachmentType::Color, m_Material },
+                    RenderPassAttachment{ 4, AttachmentType::Color, m_Emissive },
+                    RenderPassAttachment{ 5, AttachmentType::Depth, m_Depth },
                 }
             );
 
@@ -343,14 +358,22 @@ namespace Brisk
                 pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
                 pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
                 pipelineSpecs.pDepthBiasEnable = false;
-                pipelineSpecs.pDepthTestEnable = false;
-                pipelineSpecs.pDepthWriteEnable = false;
+                pipelineSpecs.pDepthTestEnable = true;
+                pipelineSpecs.pDepthWriteEnable = true;
                 pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS;
                 pipelineSpecs.pDepthBoundsTestEnable = false;
                 pipelineSpecs.pStencilTestEnable = false;
 
                 m_GBufferPipeline = Pipeline::Create();
                 m_GBufferPipeline->Init(pipelineSpecs);
+
+                pipelineSpecs.pCullMode = Pipeline::CullMode::NONE;
+                m_GBufferDoubleSidedPipeline = Pipeline::Create();
+                m_GBufferDoubleSidedPipeline->Init(pipelineSpecs);
+
+                pipelineSpecs.pTransparent = true;
+                m_GBufferAlphaBlendPipeline = Pipeline::Create();
+                m_GBufferAlphaBlendPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
 
@@ -385,6 +408,7 @@ namespace Brisk
         Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, m_Normal, nullptr, 1);
         Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, m_Albedo, nullptr, 2);
         Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, m_Material, nullptr, 3);
+        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, m_Emissive, nullptr, 4);
 
         m_Fence = Fence::Create();
         m_Fence->Init();
@@ -425,7 +449,7 @@ namespace Brisk
             params.srcStage = Core::PipelineStage::TopOfPipe;
             params.dstStage = Core::PipelineStage::EarlyFragmentTest;
 
-            m_Depth->TransitionImageLayout(m_CmdBuffer, { params });
+            m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
         }
 
         // --- DEPTH PRE PASS ---------------------------
@@ -433,8 +457,8 @@ namespace Brisk
         m_DepthPrePass->Begin(m_CmdBuffer);
         m_DepthPrePassPipeline->Bind(m_CmdBuffer);
 
-        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Depth->GetWidth(), m_Depth->GetHeight(), 0, 1);
-        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Depth->GetWidth(), m_Depth->GetHeight());
+        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_DepthPre->GetWidth(), m_DepthPre->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_DepthPre->GetWidth(), m_DepthPre->GetHeight());
 
         auto meshes = SceneManager::pActiveScene->Reg().view<MeshComponent>();
 
@@ -446,7 +470,7 @@ namespace Brisk
             RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
             RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
 
-            RenderEntity(mesh);
+            RenderEntity(mesh, (int)fastgltf::AlphaMode::Opaque);
         }
 
         m_DepthPrePass->End(m_CmdBuffer);
@@ -482,7 +506,7 @@ namespace Brisk
             RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
             RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
 
-            RenderEntity(mesh);
+            RenderEntity(mesh, (int)fastgltf::AlphaMode::Opaque);
         }
 
         m_ShadowMapPass->End(m_CmdBuffer);
@@ -527,11 +551,10 @@ namespace Brisk
         // --- GBUFFER PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_GeometryBufferPass->Begin(m_CmdBuffer);
-        m_GBufferPipeline->Bind(m_CmdBuffer);
-
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
 
+        m_GBufferPipeline->Bind(m_CmdBuffer);
         for (const auto e : meshes) {
             Entity entity = { e, SceneManager::pActiveScene.get() };
 
@@ -540,8 +563,32 @@ namespace Brisk
             RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
             RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
 
-            RenderEntity(mesh, true);
+            RenderEntity(mesh, (int)fastgltf::AlphaMode::Opaque, true);
         }
+
+        m_GBufferAlphaBlendPipeline->Bind(m_CmdBuffer);
+        for (const auto e : meshes) {
+            Entity entity = { e, SceneManager::pActiveScene.get() };
+
+            const auto& mesh = entity.GetComponent<MeshComponent>();
+
+            RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
+            RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
+
+            RenderEntity(mesh, (int)fastgltf::AlphaMode::Blend, true);
+        }
+
+        //m_GBufferAlphaBlendPipeline->Bind(m_CmdBuffer);
+        //for (const auto e : meshes) {
+        //    Entity entity = { e, SceneManager::pActiveScene.get() };
+
+        //    const auto& mesh = entity.GetComponent<MeshComponent>();
+
+        //    RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
+        //    RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
+
+        //    RenderEntity(mesh, (int)fastgltf::AlphaMode::Opaque);
+        //}
 
         m_GeometryBufferPass->End(m_CmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------
@@ -616,18 +663,21 @@ namespace Brisk
         m_GraphicsQueue->Present(presentInfo);
     }
 
-    void Renderer::RenderEntity(const MeshComponent& mesh, bool push) {
+    void Renderer::RenderEntity(const MeshComponent& mesh, int alphaMode, bool push) {
         for (auto& subMesh : mesh.p_Mesh->m_Meshes) {
             for (auto& primitive : subMesh.primitives) {
                 uint32_t index = primitive.materialIndex != -1 ? primitive.materialIndex : 0;
 
-                if(primitive.materialIndex == -1)
+                if(primitive.materialIndex < 0)
                     BRISK_CORE_WARN("Invalid material index");
 
                 if(push)
                     m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(uint32_t), &index);
 
-                RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
+                if ((fastgltf::AlphaMode)mesh.p_Mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)alphaMode) 
+                {
+                    RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
+                }
             }
         }
     }

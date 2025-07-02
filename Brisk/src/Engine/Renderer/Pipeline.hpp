@@ -32,6 +32,7 @@ namespace Brisk
         };
 
         enum CullMode {
+            NONE,
             BACK,
             FRONT,
         };
@@ -79,6 +80,7 @@ namespace Brisk
             CompareOp pCompareOp;
             bool pDepthBoundsTestEnable;
             bool pStencilTestEnable;
+            bool pTransparent;
             std::shared_ptr<RenderPass> pRenderPass;
             std::vector<std::string> pShaderPaths;
         };

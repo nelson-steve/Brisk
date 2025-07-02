@@ -33,7 +33,7 @@ namespace Brisk
 
 		static std::unique_ptr<Renderer> Create();
 	private:
-		void RenderEntity(const MeshComponent& mesh, bool push = false);
+		void RenderEntity(const MeshComponent& mesh, int alphaMode, bool push = false);
 
 	private:
 		static std::shared_ptr<Swapchain> m_Swapchain;
@@ -49,6 +49,8 @@ namespace Brisk
 		std::shared_ptr<Texture> m_Normal;
 		std::shared_ptr<Texture> m_Albedo;
 		std::shared_ptr<Texture> m_Material;
+		std::shared_ptr<Texture> m_Emissive;
+		std::shared_ptr<Texture> m_DepthPre;
 		std::shared_ptr<Texture> m_Depth;
 		std::shared_ptr<Texture> m_ShadowMap;
 		std::shared_ptr<Texture> m_LightingOutput;
@@ -66,6 +68,8 @@ namespace Brisk
 		std::shared_ptr<Pipeline> m_DepthPrePassPipeline;
 		std::shared_ptr<Pipeline> m_ShadowMapPipeline;
 		std::shared_ptr<Pipeline> m_GBufferPipeline;
+		std::shared_ptr<Pipeline> m_GBufferDoubleSidedPipeline;
+		std::shared_ptr<Pipeline> m_GBufferAlphaBlendPipeline;
 		std::shared_ptr<Pipeline> m_LightingPipeline;
 
 		std::shared_ptr<Buffer> m_LightsUBO;

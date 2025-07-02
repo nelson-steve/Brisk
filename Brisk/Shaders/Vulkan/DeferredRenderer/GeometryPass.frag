@@ -9,6 +9,7 @@ layout(location = 0) out vec4 outPosition;
 layout(location = 1) out vec4 outNormal;
 layout(location = 2) out vec4 outAlbedo;
 layout(location = 3) out vec4 outMaterial;
+layout(location = 4) out vec4 outEmissive;
 
 layout(set = 3, binding = 0) uniform sampler2D global_textures[];
 
@@ -27,67 +28,67 @@ struct MaterialData {
     vec4 baseColorFactor;
     vec3 emissiveFactor;
 
-    uint baseColorTextureIndex;
-    uint baseColorTextureUV;
-    uint metallicRoughnessTextureIndex;
-    uint metallicRoughnessTextureUV;
+    int baseColorTextureIndex;
+    int baseColorTextureUV;
+    int metallicRoughnessTextureIndex;
+    int metallicRoughnessTextureUV;
 
-    uint normalTextureIndex;
-    uint normalTextureUV;
-    uint occlusionTextureIndex;
-    uint occlusionTextureUV;
+    int normalTextureIndex;
+    int normalTextureUV;
+    int occlusionTextureIndex;
+    int occlusionTextureUV;
 
-    uint emissiveTextureIndex;
-    uint emissiveTextureUV;
+    int emissiveTextureIndex;
+    int emissiveTextureUV;
 
     float anisotropyStrength;
     float anisotropyRotation;
-    uint anisotropyTextureIndex;
-    uint anisotropyTextureUV;
+    int anisotropyTextureIndex;
+    int anisotropyTextureUV;
 
     float clearcoatFactor;
-    uint clearcoatTextureIndex;
-    uint clearcoatTextureUV;
+    int clearcoatTextureIndex;
+    int clearcoatTextureUV;
     float clearcoatRoughnessFactor;
 
-    uint clearcoatRoughnessTextureIndex;
-    uint clearcoatRoughnessTextureUV;
-    uint clearcoatNormalTextureIndex;
+    int clearcoatRoughnessTextureIndex;
+    int clearcoatRoughnessTextureUV;
+    int clearcoatNormalTextureIndex;
     uint clearcoatNormalTextureUV;
 
     float iridescenceFactor;
-    uint iridescenceTextureIndex;
-    uint iridescenceTextureUV;
+    int iridescenceTextureIndex;
+    int iridescenceTextureUV;
     float iridescenceIor;
 
     float iridescenceThicknessMinimum;
     float iridescenceThicknessMaximum;
-    uint iridescenceThicknessTextureIndex;
-    uint iridescenceThicknessTextureUV;
+    int iridescenceThicknessTextureIndex;
+    int iridescenceThicknessTextureUV;
 
     vec3 sheenColorFactor;
 
-    uint sheenColorTextureIndex;
-    uint sheenColorTextureUV;
+    int sheenColorTextureIndex;
+    int sheenColorTextureUV;
     float sheenRoughnessFactor;
-    uint sheenRoughnessTextureIndex;
-    uint sheenRoughnessTextureUV;
+    int sheenRoughnessTextureIndex;
+    int sheenRoughnessTextureUV;
 
     float specularFactor;
-    uint specularTextureIndex;
-    uint specularTextureUV;
+    int specularTextureIndex;
+    int specularTextureUV;
 
     vec3 specularColorFactor;
-    uint specularColorTextureIndex;
-    uint specularColorTextureUV;
+    int specularColorTextureIndex;
+    int specularColorTextureUV;
 
     float transmissionFactor;
-    uint transmissionTextureIndex;
-    uint transmissionTextureUV;
+    int transmissionTextureIndex;
+    int transmissionTextureUV;
 
     float thicknessFactor;
-    uint thicknessTextureIndex;
-    uint thicknessTextureUV;
+    int thicknessTextureIndex;
+    int thicknessTextureUV;
     float attenuationDistance;
 
     vec3 attenuationColor;
@@ -98,21 +99,31 @@ layout(std430, set = 4, binding = 0) readonly buffer SSBO {
 };
 
 layout(push_constant) uniform PushConstants {
-    uint materialIndex;
+    int materialIndex;
 } pc;
 
 void main() {
     MaterialData material = materials[pc.materialIndex];
 
-    // Position and normal
-    outPosition = vec4(fragPosition, 1.0);
-    vec3 normal = normalize(fragNormal);
-
     // Base Color
     vec4 baseColor = material.baseColorFactor;
     if (material.baseColorTextureIndex != -1) {
         baseColor *= texture(global_textures[nonuniformEXT(material.baseColorTextureIndex)], fragUV);
+
+        if (material.alphaMode == 1) { // MASK
+            if (baseColor.a < material.alphaCutoff) {
+                discard;
+            }
+        } else if (material.alphaMode == 2) { // BLEND
+            outAlbedo.a = baseColor.a; // Pass alpha to lighting pass
+            // You typically render this in a **separate transparent pass**.
+            return; // Skip writing to G-buffer in opaque pass
+        }
     }
+
+    // Position and normal
+    outPosition = vec4(fragPosition, 1.0);
+    vec3 normal = normalize(fragNormal);
 
     // Metallic & Roughness
     float metallic = material.metallicFactor;
@@ -131,11 +142,11 @@ void main() {
     }
 
     // Emissive
-    vec3 emissive = material.emissiveFactor;
+    outEmissive = vec4(material.emissiveFactor, 1.0);
     if (material.emissiveTextureIndex != -1) {
-        emissive *= texture(global_textures[nonuniformEXT(material.emissiveTextureIndex)], fragUV).rgb;
+        outEmissive *= texture(global_textures[nonuniformEXT(material.emissiveTextureIndex)], fragUV);
     }
-    emissive *= material.emissiveStrength;
+    outEmissive *= material.emissiveStrength;
 
     // Occlusion (for lighting pass)
     float occlusion = 1.0;

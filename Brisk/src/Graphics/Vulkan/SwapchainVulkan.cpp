@@ -83,7 +83,8 @@ namespace Brisk
 
 		swapChainCreateInfo.preTransform = surfaceCapabilities.currentTransform;
 		swapChainCreateInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
-		swapChainCreateInfo.presentMode = VK_PRESENT_MODE_IMMEDIATE_KHR;
+		bool vSync = false;
+		swapChainCreateInfo.presentMode = vSync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR;
 		swapChainCreateInfo.clipped = VK_TRUE;
 		swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
 		VK_LOG(vkCreateSwapchainKHR(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &swapChainCreateInfo, nullptr, &m_Swapchain));

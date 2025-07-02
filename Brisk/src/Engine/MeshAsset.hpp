@@ -119,7 +119,7 @@ namespace Brisk
 			uint32_t firstIndex = 0;
 			uint32_t indexCount = 0;
 			uint32_t vertexCount = 0;
-			int materialIndex;
+            int32_t materialIndex = -1;
 			bool has_indices = false;
 		};
 

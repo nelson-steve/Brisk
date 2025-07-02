@@ -28,6 +28,7 @@ namespace Brisk
 	void Camera::UpdateProjection() {
 		m_AspectRatio = m_ViewportWidth / m_ViewportHeight;
 		m_Projection = glm::perspective(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip);
+		//m_Projection[1][1] *= -1;
 	}
 
 	void Camera::UpdateView() {
@@ -50,7 +51,7 @@ namespace Brisk
 	}
 
 	float Camera::RotationSpeed() const {
-		return 0.3f;
+		return 2.8f;
 	}
 
 	float Camera::ZoomSpeed() const {
@@ -64,7 +65,8 @@ namespace Brisk
 	void Camera::OnUpdate(float t) {
 		assert(m_Window != nullptr);
 		if (glfwGetKey(m_Window, GLFW_KEY_LEFT_ALT) && m_MouseMoved) {
-			glm::vec2 delta = m_MouseOffset * 0.003f;
+			glm::vec2 delta = (m_MouseOffset - m_InitialMousePosition) * 0.3f * t;
+			m_InitialMousePosition = m_MouseOffset;
 		
 			if (glfwGetMouseButton(m_Window, GLFW_MOUSE_BUTTON_MIDDLE))
 				MousePan(delta);
@@ -76,13 +78,8 @@ namespace Brisk
 		}
 		UpdateView();
 
-		//if (glfwGetKey(m_Window, GLFW_KEY_R)) {
-			//TODO: Add reset
-		//}
-
 		MVP mvp{};
-		//mvp.Model = glm::mat4(1.0f);
-		mvp.Model = glm::scale(glm::mat4(1.0f), glm::vec3(0.2, 0.2, 0.2));
+		mvp.Model = glm::mat4(1.0f);
 		mvp.View = m_ViewMatrix;
 		mvp.Projection = m_Projection;
 		mvp.CamPos = m_Position;

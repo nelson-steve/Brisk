@@ -4,6 +4,8 @@
 #include "Engine/Renderer/Buffer.hpp"
 //-----------------------------------
 #define GLM_ENABLE_EXPERIMENTAL
+#define GLM_FORCE_RADIANS
+#define GLM_FORCE_DEPTH_ZERO_TO_ONE
 #include "glm/glm.hpp"
 #include "glm/gtx/quaternion.hpp"
 //------------------------------
@@ -70,7 +72,7 @@ namespace Brisk
 		GLFWwindow* m_Window; // cache window ptr
 		bool m_MouseMoved = false;
 		glm::vec2 m_MouseOffset{ 0.0f };
-		float m_FOV = 45.0f, m_AspectRatio = 1.778f, m_NearClip = 0.1f, m_FarClip = 1000.0f;
+		float m_FOV = 45.0f, m_AspectRatio = 1.778f, m_NearClip = 1.f, m_FarClip = 1000.0f;
 
 		glm::mat4 m_Projection = glm::mat4(1.0f);
 		glm::mat4 m_ViewMatrix = glm::mat4(1.0f);

@@ -179,8 +179,20 @@ namespace Brisk
         std::vector<VkPipelineColorBlendAttachmentState> colorAttachments;
         for (int i = 0; i < specs.pRenderPass->GetColorAttachmentCount(); i++) {
             VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-            colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-            colorBlendAttachment.blendEnable = VK_FALSE;
+            if (!specs.pTransparent) {
+                colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+                colorBlendAttachment.blendEnable = VK_FALSE;
+            }
+            else {
+                colorBlendAttachment.blendEnable = VK_TRUE;
+                colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+                colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+                colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+                colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+                colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+                colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+                colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+            }
             colorAttachments.push_back(colorBlendAttachment);
         }
 

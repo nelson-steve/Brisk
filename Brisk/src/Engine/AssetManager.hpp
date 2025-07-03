@@ -66,6 +66,18 @@ namespace Brisk {
 
         void ClearAssets()
         {
+            auto it = m_AssetMap.find(typeid(MeshAsset));
+            if (it != m_AssetMap.end()) {
+                for (auto& [name, assetPtr] : it->second) {
+                    // Cast back to MeshAsset
+                    auto mesh = std::static_pointer_cast<MeshAsset>(assetPtr);
+                    if (mesh) {
+                        mesh->Release(); // or mesh->Destroy(), etc.
+                    }
+                }
+            }
+
+
             m_AssetMap.clear();
         }
 

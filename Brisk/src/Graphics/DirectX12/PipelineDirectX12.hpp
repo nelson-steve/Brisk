@@ -21,7 +21,7 @@ namespace Brisk
 
 		virtual void BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t, void* data) override;
 
-		virtual void Destroy() override;
+		virtual void Release() override;
 	private:
 		ComPtr<ID3D12RootSignature> m_RootSignature;
 		ComPtr<ID3D12PipelineState> m_PipelineState;

@@ -27,6 +27,7 @@ namespace Brisk
 	class Renderer {
 	public:
 		void Init();
+		void Release();
 		void RenderScene(float deltaTime);
 
 		static std::shared_ptr<Swapchain> GetSwapchain() { return m_Swapchain; }

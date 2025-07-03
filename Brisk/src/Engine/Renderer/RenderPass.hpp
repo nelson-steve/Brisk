@@ -61,6 +61,7 @@ namespace Brisk
 		DEFINE_BASE_CLASS_CONSTRUCTOR(RenderPass)
 	public:
 		virtual void Init(const std::vector<RenderPassDependency>& dependencies, const std::vector<RenderPassAttachment>& outputs) = 0;
+		virtual void Release() = 0;
 
 		virtual void Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t imageIndex = 0) = 0;
 		virtual void End(std::shared_ptr<CommandBuffer> cmd) = 0;

@@ -36,7 +36,7 @@ namespace Brisk
 		};
 		auto start = std::chrono::high_resolution_clock::now();
 
-		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[2], false);
+		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[3], false);
 
 		m_SceneManager->pActiveScene->CreateEntity("name").AddComponent<MeshComponent>().p_Mesh = asset1;
 	}
@@ -77,5 +77,12 @@ namespace Brisk
 	}
 
 	void Application::Close() {
+		m_Adapter->WaitIdle();
+		m_Adapter->ReleasePools();
+		m_EditorCamera->Release();
+		m_Window->DestroyWindow();
+		m_AssetManager->ClearAssets();
+		m_Renderer->Release();
+		m_Adapter->Release();
 	}
 }

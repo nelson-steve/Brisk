@@ -27,8 +27,11 @@ namespace Brisk
 			return std::dynamic_pointer_cast<T>(shared_from_this());
 		}
 		virtual void AddResource(GpuDescriptorResourceType type, std::shared_ptr<Texture> texture, std::shared_ptr<Buffer> buffer, int bindingIndex) = 0;
+		virtual void WaitIdle() = 0;
 
 		virtual void Init() = 0;
+		virtual void Release() = 0;
+		virtual void ReleasePools() = 0;
 
 		static std::shared_ptr<GpuAdapter> Create();
 	};

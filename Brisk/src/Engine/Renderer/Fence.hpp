@@ -12,6 +12,7 @@ namespace Brisk
         DEFINE_BASE_CLASS_CONSTRUCTOR(Fence)
     public:
         virtual void Init() = 0;
+        virtual void Release() = 0;
 
         virtual void Wait() = 0;
         virtual void Reset() = 0;

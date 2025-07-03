@@ -1,6 +1,6 @@
 #include "AssetsPanel.hpp"
-#include "Graphics/Vulkan/TextureVulkan.hpp"
 
+#include "Graphics/Vulkan/TextureVulkan.hpp"
 #include "ImGuiBackends/imgui_impl_vulkan.h"
 
 #include <filesystem>
@@ -27,21 +27,20 @@ namespace Brisk
     void AssetsPanel::OnCreate() {
         LoadAssets("../Data");
 
-        std::shared_ptr<Texture> m_FBX = Texture::Create();
+        m_FBX = Texture::Create();
+        m_Folder = Texture::Create();
+        m_OBJ = Texture::Create();
+        m_Photo = Texture::Create();
+
         m_FBX->Init("../Data/Images/fbx.png");
-       FBXDescriptorSet = ImGui_ImplVulkan_AddTexture(std::static_pointer_cast<TextureVulkan>(m_FBX)->GetSampler(), std::static_pointer_cast<TextureVulkan>(m_FBX)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        m_Folder->Init("../Data/Images/folder.png");
+        m_OBJ->Init("../Data/Images/obj.png");
+        m_Photo->Init("../Data/Images/photo.png");
 
-       std::shared_ptr<Texture> m_Folder = Texture::Create();
-       m_Folder->Init("../Data/Images/folder.png");
-       FolderDescriptorSet = ImGui_ImplVulkan_AddTexture(std::static_pointer_cast<TextureVulkan>(m_Folder)->GetSampler(), std::static_pointer_cast<TextureVulkan>(m_Folder)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-       std::shared_ptr<Texture> m_OBJ = Texture::Create();
-       m_OBJ->Init("../Data/Images/obj.png");
-       OBJDescriptorSet = ImGui_ImplVulkan_AddTexture(std::static_pointer_cast<TextureVulkan>(m_OBJ)->GetSampler(), std::static_pointer_cast<TextureVulkan>(m_OBJ)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
-
-       std::shared_ptr<Texture> m_Photo = Texture::Create();
-       m_Photo->Init("../Data/Images/photo.png");
-       PhotoDescriptorSet = ImGui_ImplVulkan_AddTexture(std::static_pointer_cast<TextureVulkan>(m_Photo)->GetSampler(), std::static_pointer_cast<TextureVulkan>(m_Photo)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        FBXDescriptorSet = ImGui_ImplVulkan_AddTexture(std::static_pointer_cast<TextureVulkan>(m_FBX)->GetSampler(), std::static_pointer_cast<TextureVulkan>(m_FBX)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        FolderDescriptorSet = ImGui_ImplVulkan_AddTexture(std::static_pointer_cast<TextureVulkan>(m_Folder)->GetSampler(), std::static_pointer_cast<TextureVulkan>(m_Folder)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        OBJDescriptorSet = ImGui_ImplVulkan_AddTexture(std::static_pointer_cast<TextureVulkan>(m_OBJ)->GetSampler(), std::static_pointer_cast<TextureVulkan>(m_OBJ)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
+        PhotoDescriptorSet = ImGui_ImplVulkan_AddTexture(std::static_pointer_cast<TextureVulkan>(m_Photo)->GetSampler(), std::static_pointer_cast<TextureVulkan>(m_Photo)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
     }
 
     void AssetsPanel::OnUpdate() {
@@ -116,6 +115,9 @@ namespace Brisk
     }
 
     void AssetsPanel::OnDestroy() {
-        //m_SceneTexture->Release();
+        m_FBX->Release();
+        m_Folder->Release();
+        m_OBJ->Release();
+        m_Photo->Release();
     }
 }

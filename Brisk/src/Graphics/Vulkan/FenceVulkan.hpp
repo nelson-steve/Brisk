@@ -11,12 +11,13 @@ namespace Brisk
     class FenceVulkan : public Fence {
     public:
         virtual void Init() override;
+        virtual void Release() override;
 
         virtual void Wait() override;
         virtual void Reset() override;
 
-        VkFence Get() { return mFence; }
+        VkFence Get() { return m_Fence; }
     private:
-        VkFence mFence;
+        VkFence m_Fence;
     };
 }

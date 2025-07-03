@@ -41,73 +41,73 @@ namespace Brisk
             alignas(16) glm::vec3 emissiveFactor;           // 12
 
             // --- Texture Indices ---
-            alignas(4) int32_t baseColorTextureIndex;     
+            alignas(4) int32_t baseColorTextureIndex = -1;
             alignas(4) int32_t baseColorTextureUV;        
-            alignas(4) int32_t metallicRoughnessTextureIndex;
+            alignas(4) int32_t metallicRoughnessTextureIndex = -1;
             alignas(4) int32_t metallicRoughnessTextureUV;
 
-            alignas(4) int32_t normalTextureIndex;
+            alignas(4) int32_t normalTextureIndex = -1;
             alignas(4) int32_t normalTextureUV;
-            alignas(4) int32_t occlusionTextureIndex;
+            alignas(4) int32_t occlusionTextureIndex = -1;
             alignas(4) int32_t occlusionTextureUV;
 
-            alignas(4) int32_t emissiveTextureIndex;
+            alignas(4) int32_t emissiveTextureIndex = -1;
             alignas(4) int32_t emissiveTextureUV;
 
             // --- Anisotropy ---
             alignas(4) float anisotropyStrength;           
             alignas(4) float anisotropyRotation;           
-            alignas(4) int32_t anisotropyTextureIndex;    
+            alignas(4) int32_t anisotropyTextureIndex = -1;
             alignas(4) int32_t anisotropyTextureUV;       
 
             // --- Clearcoat ---
             alignas(4) float clearcoatFactor;              
-            alignas(4) int32_t clearcoatTextureIndex;     
+            alignas(4) int32_t clearcoatTextureIndex = -1;
             alignas(4) int32_t clearcoatTextureUV;        
             alignas(4) float clearcoatRoughnessFactor;     
 
-            alignas(4) int32_t clearcoatRoughnessTextureIndex;
+            alignas(4) int32_t clearcoatRoughnessTextureIndex = -1;
             alignas(4) int32_t clearcoatRoughnessTextureUV;
-            alignas(4) int32_t clearcoatNormalTextureIndex;
+            alignas(4) int32_t clearcoatNormalTextureIndex = -1;
             alignas(4) int32_t clearcoatNormalTextureUV;
 
             // --- Iridescence ---
             alignas(4) float iridescenceFactor;            
-            alignas(4) int32_t iridescenceTextureIndex;
+            alignas(4) int32_t iridescenceTextureIndex = -1;
             alignas(4) int32_t iridescenceTextureUV;
             alignas(4) float iridescenceIor;               
 
             alignas(4) float iridescenceThicknessMinimum;  
             alignas(4) float iridescenceThicknessMaximum;  
-            alignas(4) int32_t iridescenceThicknessTextureIndex;
+            alignas(4) int32_t iridescenceThicknessTextureIndex = -1;
             alignas(4) int32_t iridescenceThicknessTextureUV;
 
             // --- Sheen ---
             alignas(16) glm::vec3 sheenColorFactor;         // 12
 
-            alignas(4) int32_t sheenColorTextureIndex;
+            alignas(4) int32_t sheenColorTextureIndex = -1;
             alignas(4) int32_t sheenColorTextureUV;
             alignas(4) float sheenRoughnessFactor;         
-            alignas(4) int32_t sheenRoughnessTextureIndex;
+            alignas(4) int32_t sheenRoughnessTextureIndex = -1;
             alignas(4) int32_t sheenRoughnessTextureUV;
 
             // --- Specular ---
             alignas(4) float specularFactor;               
-            alignas(4) int32_t specularTextureIndex;
+            alignas(4) int32_t specularTextureIndex = -1;
             alignas(4) int32_t specularTextureUV;
 
             alignas(16) glm::vec3 specularColorFactor;      
-            alignas(4) int32_t specularColorTextureIndex;
+            alignas(4) int32_t specularColorTextureIndex = -1;
             alignas(4) int32_t specularColorTextureUV;
 
             // --- Transmission ---
             alignas(4) float transmissionFactor;           
-            alignas(4) int32_t transmissionTextureIndex;
+            alignas(4) int32_t transmissionTextureIndex = -1;
             alignas(4) int32_t transmissionTextureUV;
 
             // --- Volume ---
             alignas(4) float thicknessFactor;              
-            alignas(4) int32_t thicknessTextureIndex;
+            alignas(4) int32_t thicknessTextureIndex = -1;
             alignas(4) int32_t thicknessTextureUV;
             alignas(4) float attenuationDistance;          
 
@@ -144,6 +144,8 @@ namespace Brisk
 		~MeshAsset();
 		void Load(const std::filesystem::path& path);
 
+        void Release();
+
 		std::shared_ptr<Buffer> GetIndexBuffer() const { return m_IndexBuffer; }
 		std::shared_ptr<Buffer> GetVertexBuffer() const { return m_VertexBuffer; }
 	private:
@@ -156,5 +158,6 @@ namespace Brisk
 		std::vector<MaterialData> m_Materials;
 		std::shared_ptr<Buffer> m_VertexBuffer;
 		std::shared_ptr<Buffer> m_IndexBuffer;
+        std::shared_ptr<Buffer> m_MaterialStorageBuffer;
 	};
 }

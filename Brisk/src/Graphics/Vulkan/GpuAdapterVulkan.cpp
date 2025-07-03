@@ -441,7 +441,30 @@ namespace Brisk
 	}
 
 	void GpuAdapterVulkan::Release() {
+		vmaDestroyAllocator(m_VmaAllocator);
+
+		m_Surface->Release(m_Instance);
+
 		vkDestroyDevice(m_Device, nullptr);
+		vkDestroyInstance(m_Instance, nullptr);
+	}
+
+	void GpuAdapterVulkan::ReleasePools() {
+		vkDestroyDescriptorSetLayout(m_Device, m_DummyDescriptorLayout, nullptr);
+		vkDestroyDescriptorSetLayout(m_Device, m_MVPDescriptorLayout, nullptr);
+		vkDestroyDescriptorSetLayout(m_Device, m_LightsDescriptorLayout, nullptr);
+		vkDestroyDescriptorSetLayout(m_Device, m_DeferredTexturesDescriptorLayout, nullptr);
+		vkDestroyDescriptorSetLayout(m_Device, m_BindlessDescriptorLayout, nullptr);
+		vkDestroyDescriptorSetLayout(m_Device, m_MaterialsDescriptorLayout, nullptr);
+
+		vkDestroyCommandPool(m_Device, m_CommandPool, nullptr);
+
+		vkDestroyDescriptorPool(m_Device, m_DescriptorPool, nullptr);
+		vkDestroyDescriptorPool(m_Device, m_BindlessDescriptorPool, nullptr);
+	}
+
+	void GpuAdapterVulkan::WaitIdle() {
+		vkDeviceWaitIdle(m_Device);
 	}
 
 	bool GpuAdapterVulkan::IsDeviceSuitable(VkPhysicalDevice device) {

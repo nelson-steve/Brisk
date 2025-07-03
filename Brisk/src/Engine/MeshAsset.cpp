@@ -306,6 +306,8 @@ namespace Brisk {
 		m_Materials.reserve(asset.materials.size());
 		for (const auto& material : asset.materials) {
 			MaterialData outMaterial{};
+			BRISK_CORE_INFO("Apha mode: {}", (int)material.alphaMode);
+			outMaterial.alphaMode = (int)material.alphaMode;
 			outMaterial.alphaCutoff = material.alphaCutoff;
 			outMaterial.metallicFactor = material.pbrData.metallicFactor;
 			outMaterial.roughnessFactor = material.pbrData.roughnessFactor;
@@ -432,10 +434,10 @@ namespace Brisk {
 
 		}
 
-		std::shared_ptr<Buffer> materialStorageBuffer = Buffer::Create();
-		materialStorageBuffer->Init(sizeof(m_Materials[0]) * m_Materials.size(), m_Materials.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+		m_MaterialStorageBuffer = Buffer::Create();
+		m_MaterialStorageBuffer->Init(sizeof(m_Materials[0]) * m_Materials.size(), m_Materials.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 		
-		Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::Materials, nullptr, materialStorageBuffer, 0);
+		Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::Materials, nullptr, m_MaterialStorageBuffer, 0);
 
 		int i = 0;
 		for (const auto& tex : asset.textures) {
@@ -443,9 +445,20 @@ namespace Brisk {
 
 			std::shared_ptr<Texture> texture = Texture::Create();
 			std::static_pointer_cast<TextureVulkan>(texture)->Init(image, asset);
+			m_Textures.push_back(texture);
 
 			Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::BindlessTextures, texture, nullptr, i);
 			i++;
 		}
+	}
+
+	void MeshAsset::Release() {
+		for (auto texture : m_Textures) {
+			texture->Release();
+		}
+
+		m_MaterialStorageBuffer->Release();
+		m_VertexBuffer->Release();
+		m_IndexBuffer->Release();
 	}
 }

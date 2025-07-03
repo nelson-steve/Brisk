@@ -74,6 +74,7 @@ namespace Brisk
 	public:
 		virtual void Init(const TextureSpecification& specs) = 0;
 		virtual void Init(const std::string& path) = 0;
+		virtual void Release() = 0;
 		//virtual void Init(const fastgltf::Image& image, const fastgltf::Asset& asset) = 0;
 
 		virtual void TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, std::vector<ImageBarrierParams> params) = 0;

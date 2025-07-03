@@ -76,7 +76,7 @@ namespace Brisk
             cubemap->TransitionImageLayout(cmd, { postComputeBarrier });
 
             cmd->UnBind();
-            m_ComputePipeline->Destroy();
+            m_ComputePipeline->Release();
 
         }
 

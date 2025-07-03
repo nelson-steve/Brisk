@@ -2,6 +2,7 @@
 #include "UtilitiesVulkan.hpp"
 #include "GpuAdapterVulkan.hpp"
 #include "CommandBufferVulkan.hpp"
+#include "Engine/Renderer/Buffer.hpp"
 
 namespace Brisk 
 {
@@ -167,7 +168,7 @@ namespace Brisk
             throw std::runtime_error("failed to create descriptor pool!");
         }
 
-        // Init Sampler
+        if (m_Sampler == VK_NULL_HANDLE)
         {
             VkSamplerCreateInfo samplerInfo{};
             samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
@@ -275,9 +276,11 @@ namespace Brisk
             vkQueueSubmit(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue(), 1, &submit, VK_NULL_HANDLE);
             vkQueueWaitIdle(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue());
 
+            stagingBuffer.Release();
+
             vkFreeCommandBuffers(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), pool, 1, &cmd);
+            vkDestroyCommandPool(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), pool, nullptr);
         }
-        // Release staging buffer
     }
     void TextureVulkan::TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, std::vector<ImageBarrierParams> params) {
         VkPipelineStageFlags srcFlag = UtilitiesVulkan::PipelineStageToVkPipelineStageFlags(params[0].srcStage);
@@ -510,6 +513,8 @@ namespace Brisk
                         vkResetFences(m_DeviceCached, 1, &fence);
                         vkResetCommandBuffer(oneTimeCmdBuffer, 0);
                         vkDestroyBuffer(m_DeviceCached, stagingBuffer, nullptr);
+                        vkFreeMemory(m_DeviceCached, stagingMemory, nullptr);
+                        vkDestroyFence(m_DeviceCached, fence, nullptr);
                     }
 
                     // TODO: implement this
@@ -692,5 +697,15 @@ namespace Brisk
         //    m_cubemap.image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL,
         //    m_env_texuture.image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL,
         //    1, &copyRegion);
+    }
+
+    void TextureVulkan::Release() {
+        if (m_Sampler != VK_NULL_HANDLE) {
+            vkDestroySampler(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_Sampler, nullptr);
+            m_Sampler = VK_NULL_HANDLE;
+        }
+        vkDestroyImageView(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_ImageView, nullptr);
+        vkDestroyImage(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_Image, nullptr);
+        vkFreeMemory(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_Memory, nullptr);
     }
 }

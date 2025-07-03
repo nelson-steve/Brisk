@@ -27,7 +27,7 @@ namespace Brisk
 
 		virtual void BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data) override;
 
-		void Destroy();
+		virtual void Release() override;
 
 		const VkPipeline GetPipeline() const { return m_Pipeline; }
 		const VkPipelineLayout GetLayout() const { return m_PipelineLayout; }
@@ -35,5 +35,7 @@ namespace Brisk
 		std::vector<VkShaderModule> m_Modules;
 		VkPipelineLayout m_PipelineLayout;
 		VkPipeline m_Pipeline;
+
+		std::vector<VkDescriptorSetLayout> m_DescriptorSetLayouts;
 	};
 }

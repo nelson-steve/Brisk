@@ -77,7 +77,7 @@ namespace Brisk
 
 	}
 
-	void PipelineDirectX12::Destroy() {
+	void PipelineDirectX12::Release() {
 
 	}
 }

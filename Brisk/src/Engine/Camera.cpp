@@ -12,17 +12,21 @@ namespace Brisk
 		m_Projection(glm::perspective(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip)) {
 		UpdateView();
 
-		mMVPBuffer = Buffer::Create();
-		mMVPBuffer->Init(sizeof(MVP), nullptr, Core::BufferUsage::UniformBuffer,
+		m_MVPBuffer = Buffer::Create();
+		m_MVPBuffer->Init(sizeof(MVP), nullptr, Core::BufferUsage::UniformBuffer,
 			Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
 
-		Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::MVPUBO, nullptr, mMVPBuffer, 0);
+		Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::MVPUBO, nullptr, m_MVPBuffer, 0);
 	}
 
 	Camera::Camera(float fov, float aspectRatio, float nearClip, float farClip, GLFWwindow* window)
 		: m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip), m_Window(window) {
 		m_Projection = glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip);
 		UpdateView();
+	}
+
+	void Camera::Release() {
+		m_MVPBuffer->Release();
 	}
 
 	void Camera::UpdateProjection() {
@@ -85,7 +89,7 @@ namespace Brisk
 		mvp.CamPos = m_Position;
 		//mvp.Projection[1][1] *= -1;
 
-		mMVPBuffer->UpdatePersistantData(sizeof(MVP), &mvp);
+		m_MVPBuffer->UpdatePersistantData(sizeof(MVP), &mvp);
 	}
 
 	bool Camera::OnMouseScroll(float yOffset) {

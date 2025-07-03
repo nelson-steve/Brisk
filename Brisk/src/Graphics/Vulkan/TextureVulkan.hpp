@@ -23,7 +23,6 @@ namespace Brisk
 		VkDescriptorImageInfo GetDescriptor() const { return m_Descriptor; }
 		const VkDescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
 
-
 		virtual void TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, std::vector<ImageBarrierParams> params) override;
 		virtual void CopyImage(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> src, std::shared_ptr<Texture> dest, uint32_t width, uint32_t height) override;
 
@@ -34,6 +33,8 @@ namespace Brisk
 		virtual void Init(const TextureSpecification& specs) override;
 		virtual void Init(const std::string &path) override;
 		void Init(const fastgltf::Image& image, const fastgltf::Asset& asset);
+
+		virtual void Release() override;
 		//virtual void Init(tinygltf::Image image, TextureSampler sampler) override;
 	private:
 		VkDescriptorImageInfo m_Descriptor;

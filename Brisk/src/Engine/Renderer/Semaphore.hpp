@@ -12,6 +12,7 @@ namespace Brisk
         DEFINE_BASE_CLASS_CONSTRUCTOR(Semaphore)
     public:
         virtual void Init() = 0;
+        virtual void Release() = 0;
 
         static std::shared_ptr<Semaphore> Create();
     };

@@ -29,6 +29,8 @@ namespace Brisk
 		Camera(GLFWwindow* window);
 		Camera(float fov, float aspectRatio, float nearClip, float farClip, GLFWwindow* window);
 
+		void Release();
+
 		//void OnUpdate(float t, GLFWwindow* window);
 		void OnUpdate(float t);
 
@@ -54,7 +56,7 @@ namespace Brisk
 		float GetPitch() const { return m_Pitch; }
 		float GetYaw() const { return m_Yaw; }
 
-		std::shared_ptr<Buffer> mMVPBuffer;
+		std::shared_ptr<Buffer> m_MVPBuffer;
 	private:
 		void UpdateProjection();
 		void UpdateView();

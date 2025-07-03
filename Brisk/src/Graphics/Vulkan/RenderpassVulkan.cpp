@@ -208,4 +208,11 @@ namespace Brisk
     void RenderPassVulkan::End(std::shared_ptr<CommandBuffer> cmd) {
         vkCmdEndRenderPass(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get());
     }
+
+    void RenderPassVulkan::Release() {
+        for(auto framebuffer : m_Framebuffers)
+            vkDestroyFramebuffer(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), framebuffer, nullptr);
+
+        vkDestroyRenderPass(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_RenderPass, nullptr);
+    }
 }

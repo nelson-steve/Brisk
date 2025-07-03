@@ -15,6 +15,8 @@ namespace Brisk
 		usage = UtilitiesVulkan::BufferUsageToVkFormat(usageFlags);
 		m_Size = size;
 
+        BRISK_CORE_INFO("Creating vma buffer");
+
         bool hostVisible = false;
         bool hostCoherent = false;
         bool hostCached = false;
@@ -203,6 +205,7 @@ namespace Brisk
 	}
 
 	void BufferVulkan::Release() {
+        BRISK_CORE_INFO("Destroying vma buffer");
 		vmaDestroyBuffer(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), m_Handle, m_Allocation);
 	}
 }

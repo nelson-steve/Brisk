@@ -1,6 +1,7 @@
 #pragma once
 
 #include "IEditorPanel.hpp"
+#include "Engine/Renderer/Texture.hpp"
 
 #include <string>
 #include <vector>
@@ -21,5 +22,10 @@ namespace Brisk
         virtual void OnDestroy() override;
     private:
         void ShowAssetFolder(const Asset& asset);
+
+        std::shared_ptr<Texture> m_FBX;
+        std::shared_ptr<Texture> m_Folder;
+        std::shared_ptr<Texture> m_OBJ;
+        std::shared_ptr<Texture> m_Photo;
     };
 }

@@ -30,19 +30,22 @@ namespace Brisk
 		bool IsDeviceSuitable(VkPhysicalDevice device/*, const GpuRequirements& requirements*/);
 		inline void SetPhysicalDevice(VkPhysicalDevice physicalDevice) { m_PhysicalDevice = physicalDevice; }
 		void CreateLogicalDevice(/*const GpuRequirements& requirements*/);
-		void Release();
-		VkPhysicalDevice GetPhysicalDevice() { return m_PhysicalDevice; }
+		virtual void Release() override;
+		virtual void ReleasePools() override;
+
+		VkPhysicalDevice GetPhysicalDevice() const { return m_PhysicalDevice; }
 		VkDevice& GetDevice() { return m_Device; }
-		VkCommandPool GetCommandPool() { return m_CommandPool; }
-		VmaAllocator GetVmaAllocator() { return m_VmaAllocator; }
-		const VkQueue GetGraphicsQueue() const { return m_GraphicsQueue; }
-		const VkQueue GetTransferQueue() const { return m_TransferQueue; }
-		const uint32_t GetGraphicsQueueFamily() const { return m_GraphicsQueueFamily; }
-		const uint32_t GetTransferQueueFamily() const { return m_TransferQueueFamily; }
-		const VkDescriptorPool GetDescriptorPool() const { return m_DescriptorPool; }
-		const VkInstance GetInstance() const { return m_Instance; }
+		VkCommandPool GetCommandPool() const { return m_CommandPool; }
+		VmaAllocator GetVmaAllocator() const { return m_VmaAllocator; }
+		VkQueue GetGraphicsQueue() const { return m_GraphicsQueue; }
+		VkQueue GetTransferQueue() const { return m_TransferQueue; }
+		uint32_t GetGraphicsQueueFamily() const { return m_GraphicsQueueFamily; }
+		uint32_t GetTransferQueueFamily() const { return m_TransferQueueFamily; }
+		VkDescriptorPool GetDescriptorPool() const { return m_DescriptorPool; }
+		VkInstance GetInstance() const { return m_Instance; }
 
 		virtual void AddResource(GpuDescriptorResourceType type, std::shared_ptr<Texture> texture, std::shared_ptr<Buffer> buffer, int bindingIndex) override;
+		virtual void WaitIdle() override;
 
 		std::shared_ptr<SurfaceVulkan> GetSurface() { return m_Surface; }
 

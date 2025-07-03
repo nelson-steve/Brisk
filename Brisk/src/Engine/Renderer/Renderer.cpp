@@ -682,6 +682,43 @@ namespace Brisk
         }
     }
 
+    void Renderer::Release() {
+        m_Pos->Release();
+        m_Normal->Release();
+        m_Albedo->Release();
+        m_Material->Release();
+        m_Emissive->Release();
+        m_DepthPre->Release();
+        m_Depth->Release();
+        m_ShadowMap->Release();
+        m_LightingOutput->Release();
+
+        m_DepthPrePass->Release();
+        m_ShadowMapPass->Release();
+        m_GeometryBufferPass->Release();
+        m_LightingPass->Release();
+        m_UIPass->Release();
+
+        m_DepthPrePassPipeline->Release();
+        m_ShadowMapPipeline->Release();
+        m_GBufferPipeline->Release();
+        m_GBufferDoubleSidedPipeline->Release();
+        m_GBufferAlphaBlendPipeline->Release();
+        m_LightingPipeline->Release();
+
+        m_Editor->Release();
+
+        m_LightsUBO->Release();
+
+        m_Swapchain->Release();
+
+        ImageAvailableSemaphore->Release();
+        RenderFinishedSemaphore->Release();
+
+        m_Fence->Release();
+
+    }
+
     std::unique_ptr<Renderer> Renderer::Create()
     {
         return std::make_unique<Renderer>();

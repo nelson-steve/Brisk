@@ -26,6 +26,10 @@ namespace Brisk {
     public:
         inline const VkSurfaceKHR GetSurface() const { return m_Surface; }
         inline VkSurfaceKHR& GetRef() { return m_Surface; }
+
+        inline void Release(VkInstance instance) {
+            vkDestroySurfaceKHR(instance, m_Surface, nullptr);
+        }
     //private:
     //    SurfaceVulkan() = default;
     private:

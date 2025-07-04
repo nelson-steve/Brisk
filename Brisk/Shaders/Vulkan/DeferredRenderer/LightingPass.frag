@@ -44,43 +44,48 @@ float GeometrySmith(vec3 N, vec3 V, vec3 L, float roughness) {
 }
 
 vec3 FresnelSchlick(float cosTheta, vec3 F0) {
-    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+    return F0 + (1.0 - F0) * pow(clamp(1.0 - cosTheta, 0.0, 1.0), 5.0);
 }
 
 // --- Main ---
 
 void main() {
     vec3 pos      = texture(gPosition, uv).rgb;
-    vec3 N        = normalize(texture(gNormal, uv).rgb);
+    vec3 N   = normalize(texture(gNormal, uv).rgb);
     vec3 albedo   = texture(gAlbedo, uv).rgb;
     float alpha   = texture(gAlbedo, uv).a;
     vec3 emissive = texture(gEmissive, uv).rgb;
-
     vec4 matData = texture(gMaterial, uv);
+
     float metallic  = matData.r;
     //float roughness = clamp(matData.g, 0.05, 1.0); // Avoid 0 roughness
     float roughness = max(matData.g, 0.001);
     float occlusion = matData.b;
     bool unlit = (matData.a > 0.5);
 
-    if (unlit) {
-        outColor = vec4(albedo + emissive, 1.0);
-        return;
-    }
+    //if (unlit) {
+    //    outColor = vec4(albedo + emissive, 1.0);
+    //    return;
+    //}
 
     // Camera and light setup
-    vec3 lightPos = vec3(2.0, 2.0, 2.0);
+    vec3 lightPos = vec3(0.0, 3.0, 0.0);
     vec3 lightColor = vec3(1.0);
 
     vec3 L = normalize(lightPos - pos);
     vec3 V = normalize(vec3(0.0, 0.0, 10.0) - pos);
     vec3 H = normalize(V + L);
 
+    float distance = length(lightPos - pos);
+    float attenuation = 1.0 / (distance * distance);
+    vec3 radiance = lightColor * attenuation;
+
     float NdotL = max(dot(N, L), 0.0);
     float NdotV = max(dot(N, V), 0.0);
 
     // Fresnel reflectance at normal incidence
-    vec3 F0 = mix(vec3(0.04), albedo, metallic);
+    //vec3 F0 = mix(vec3(0.04), albedo, metallic);
+    vec3 F0 = albedo;
 
     // BRDF components
     float  D = DistributionGGX(N, H, roughness);
@@ -94,25 +99,27 @@ void main() {
 
     // kS = specular, kD = diffuse
     vec3 kS = F;
-    vec3 kD = (1.0 - kS) * (1.0 - metallic);
-    //vec3 kD = vec3(1.0) - kS;
+    vec3 kD = vec3(1.0) - kS;
     kD *= 1.0 - metallic;
 
     vec3 diffuse = (albedo / PI);
 
-    vec3 radiance = lightColor; // No attenuation yet
+    //vec3 radiance = lightColor; // No attenuation yet
 
     vec3 color = (kD * diffuse + specular) * radiance * NdotL;
 
     // Apply ambient occlusion
-    color *= occlusion;
+    //color *= occlusion;
+
+    //vec3 ambient = vec3(0.03) * albedo * occlusion;
+    //
+    //color = color + ambient;
 
     // Add emissive
     color += emissive;
 
     // Tone mapping (simple Reinhard)
     color = color / (color + vec3(1.0));
-
     // Gamma correction
     color = pow(color, vec3(1.0 / 2.2));
 

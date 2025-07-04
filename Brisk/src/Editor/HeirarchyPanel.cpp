@@ -20,14 +20,12 @@ namespace Brisk
 
         bool isElementSelected = false;
         // Function to recursively display elements and their children
-        std::function<void(int, float)> DisplayElementWithChildren = [&](int elementIndex, float parentXPos) {
-            //auto& element = Engine::m_ActiveScene->Elements[elementIndex];
-
+        std::function<void(WorldTransformComponent, float)> DisplayElementWithChildren = [&](WorldTransformComponent transform, float parentXPos) {
             ImGuiTreeNodeFlags flags = 0;
             //if (elementIndex == Engine::m_ActiveScene->SelectedElement)
-                flags |= ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_OpenOnArrow;
+                //flags |= ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_OpenOnArrow;
             //else
-                flags |= ImGuiTreeNodeFlags_OpenOnArrow ;
+                //flags |= ImGuiTreeNodeFlags_OpenOnArrow ;
             //if (Engine::m_ActiveScene->Elements[elementIndex].children.size() <= 0) {
             //    flags |= ImGuiTreeNodeFlags_Leaf; // Mark as a leaf node (no arrow)
             //}
@@ -77,6 +75,16 @@ namespace Brisk
                 ImGui::TreePop();
             }
         };
+
+        auto objects = SceneManager::pActiveScene->Reg().view<WorldTransformComponent, TagComponent>();
+        for (auto entity : objects) {
+            auto& name = SceneManager::pActiveScene->Reg().get<TagComponent>(entity).Tag;
+
+            bool isSelected = (entity == SceneManager::pActiveScene->GetSelectedEntity());
+            if (ImGui::Selectable(name.c_str(), isSelected)) {
+                SceneManager::pActiveScene->SetSelectedEntity(entity);
+            }
+        }
 
         // Traverse the hierarchy and display each element
         //for (int i = 0; i < SceneManager::pActiveScene->Elements.size(); i++) {

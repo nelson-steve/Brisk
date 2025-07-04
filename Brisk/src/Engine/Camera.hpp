@@ -2,6 +2,7 @@
 
 // INCLUDES
 #include "Engine/Renderer/Buffer.hpp"
+#include "Component.hpp"
 //-----------------------------------
 #define GLM_ENABLE_EXPERIMENTAL
 #define GLM_FORCE_RADIANS
@@ -56,6 +57,8 @@ namespace Brisk
 		float GetPitch() const { return m_Pitch; }
 		float GetYaw() const { return m_Yaw; }
 
+		void SetMeshTransform(WorldTransformComponent t) { m_MeshTransform = t; }
+
 		std::shared_ptr<Buffer> m_MVPBuffer;
 	private:
 		void UpdateProjection();
@@ -87,5 +90,7 @@ namespace Brisk
 		float m_Pitch = 0.0f, m_Yaw = 0.0f;
 
 		float m_ViewportWidth = 1920, m_ViewportHeight = 1080;
+
+		WorldTransformComponent m_MeshTransform;
 	};
 }

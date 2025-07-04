@@ -1,6 +1,7 @@
 // INCLUDES
 #include "Camera.hpp"
 #include "Engine/Engine.hpp"
+#include "Core/Log.hpp"
 //-------------------
 #include <GLFW/glfw3.h>
 //----------------
@@ -83,7 +84,7 @@ namespace Brisk
 		UpdateView();
 
 		MVP mvp{};
-		mvp.Model = glm::mat4(1.0f);
+		mvp.Model = m_MeshTransform.GetTransform();
 		mvp.View = m_ViewMatrix;
 		mvp.Projection = m_Projection;
 		mvp.CamPos = m_Position;

@@ -102,7 +102,7 @@ namespace Brisk
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
 			float lineHeight = GImGui->Font->FontSize + GImGui->Style.FramePadding.y * 2.0f;
 			ImGui::Separator();
-			//bool open = ImGui::TreeNodeEx((void*)typeid(Transform).hash_code(), treeNodeFlags, "Transform");
+			bool open = ImGui::TreeNodeEx((void*)typeid(WorldTransformComponent).hash_code(), treeNodeFlags, "Transform");
 			ImGui::PopStyleVar(
 			);
 			ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
@@ -120,20 +120,17 @@ namespace Brisk
 				ImGui::EndPopup();
 			}
 
-			//if (open)
-			//{
-			//	DrawVec3Control("Position", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pPosition);
-			//	DrawVec3Control("Rotation", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pRotation);
-			//	DrawVec3Control("Scale", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pScale);
-			//	ImGui::TreePop();
-			//}
+			if (open)
+			{
+				
+				DrawVec3Control("Position", SceneManager::pActiveScene->Reg().get<WorldTransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Position);
+				DrawVec3Control("Rotation", SceneManager::pActiveScene->Reg().get<WorldTransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Position);
+				DrawVec3Control("Scale", SceneManager::pActiveScene->Reg().get<WorldTransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Scale);
+				ImGui::TreePop();
+			}
 
 			//if (removeComponent)
 			//	entity.RemoveComponent<T>();
-
-			//DrawVec3Control("Position", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pPosition);
-			//DrawVec3Control("Rotation", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pRotation);
-			//DrawVec3Control("Scale", Engine::m_ActiveScene->Elements[Engine::m_ActiveScene->SelectedElement].GetModule<Transform>()->pScale);
 		}
         ImGui::End();
     }

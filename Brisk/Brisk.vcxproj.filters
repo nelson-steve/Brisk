@@ -298,6 +298,7 @@
       <Filter>Platform\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\VmaUsage.h" />
+    <ClInclude Include="src\Editor\MaterialPanel.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Log.cpp">
@@ -502,5 +503,6 @@
     <ClCompile Include="src\VolkUsage.cpp" />
     <ClCompile Include="src\stbimage.cc" />
     <ClCompile Include="src\volk.c" />
+    <ClCompile Include="src\Editor\MaterialPanel.cpp" />
   </ItemGroup>
 </Project>

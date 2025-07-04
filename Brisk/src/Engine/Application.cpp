@@ -38,7 +38,8 @@ namespace Brisk
 
 		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[3], false);
 
-		m_SceneManager->pActiveScene->CreateEntity("name").AddComponent<MeshComponent>().p_Mesh = asset1;
+		Entity e = m_SceneManager->pActiveScene->CreateEntity("Damaged Helmet");
+		e.AddComponent<MeshComponent>().p_Mesh = asset1;
 	}
 
 	void Application::OnEvent(Event &event) {

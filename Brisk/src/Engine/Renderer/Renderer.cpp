@@ -460,12 +460,15 @@ namespace Brisk
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_DepthPre->GetWidth(), m_DepthPre->GetHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_DepthPre->GetWidth(), m_DepthPre->GetHeight());
 
-        auto meshes = SceneManager::pActiveScene->Reg().view<MeshComponent>();
+        auto meshes = SceneManager::pActiveScene->Reg().view<MeshComponent, WorldTransformComponent>();
 
         for (auto e : meshes) {
             Entity entity = { e, SceneManager::pActiveScene.get() };
 
             auto& mesh = entity.GetComponent<MeshComponent>();
+            auto& transform = entity.GetComponent<WorldTransformComponent>();
+
+            Engine::s_Application->GetCamera()->SetMeshTransform(transform);
 
             RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
             RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
@@ -496,12 +499,13 @@ namespace Brisk
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_ShadowMap->GetWidth(), m_ShadowMap->GetHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_ShadowMap->GetWidth(), m_ShadowMap->GetHeight());
 
-        meshes = SceneManager::pActiveScene->Reg().view<MeshComponent>();
-
         for (auto e : meshes) {
             Entity entity = { e, SceneManager::pActiveScene.get() };
 
             auto& mesh = entity.GetComponent<MeshComponent>();
+            auto& transform = entity.GetComponent<WorldTransformComponent>();
+
+            Engine::s_Application->GetCamera()->SetMeshTransform(transform);
 
             RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
             RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
@@ -559,6 +563,9 @@ namespace Brisk
             Entity entity = { e, SceneManager::pActiveScene.get() };
 
             const auto& mesh = entity.GetComponent<MeshComponent>();
+            auto& transform = entity.GetComponent<WorldTransformComponent>();
+
+            Engine::s_Application->GetCamera()->SetMeshTransform(transform);
 
             RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
             RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);

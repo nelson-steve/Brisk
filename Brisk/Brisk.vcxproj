@@ -109,6 +109,7 @@
     <ClInclude Include="src\Editor\HeirarchyPanel.hpp" />
     <ClInclude Include="src\Editor\IEditorPanel.hpp" />
     <ClInclude Include="src\Editor\InspectorPanel.hpp" />
+    <ClInclude Include="src\Editor\MaterialPanel.hpp" />
     <ClInclude Include="src\Editor\ScenePanel.hpp" />
     <ClInclude Include="src\Engine\Application.hpp" />
     <ClInclude Include="src\Engine\AssetManager.hpp" />
@@ -194,6 +195,7 @@
     <ClCompile Include="src\Editor\GamePanel.cpp" />
     <ClCompile Include="src\Editor\HeirarchyPanel.cpp" />
     <ClCompile Include="src\Editor\InspectorPanel.cpp" />
+    <ClCompile Include="src\Editor\MaterialPanel.cpp" />
     <ClCompile Include="src\Editor\ScenePanel.cpp" />
     <ClCompile Include="src\Engine\Application.cpp" />
     <ClCompile Include="src\Engine\Camera.cpp" />

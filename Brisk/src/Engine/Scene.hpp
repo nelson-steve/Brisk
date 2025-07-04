@@ -38,6 +38,9 @@ namespace Brisk
 		Entity CreateEntity(const std::string& name);
 		void DestroyEntity(Entity entity);
 
+		void SetSelectedEntity(entt::entity e) { m_SelectedEntity = e; }
+		entt::entity GetSelectedEntity() { return m_SelectedEntity; }
+
 		void OnViewportResize(uint32_t width, uint32_t height);
 
 		SceneSetting& GetSceneSetting() { return m_SceneSetting; }
@@ -55,6 +58,7 @@ namespace Brisk
 		void OnComponentAdded(Entity entity, T& component);
 	private:
 		entt::registry m_Registry;
+		entt::entity m_SelectedEntity;
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
 		bool m_IsRunning = false;
 		bool m_IsPaused = false;

@@ -73,6 +73,7 @@ namespace Brisk
 	{
 		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<LocalTransformComponent>();
+		entity.AddComponent<WorldTransformComponent>();
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
 		return entity;

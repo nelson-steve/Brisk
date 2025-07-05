@@ -6,24 +6,6 @@
 
 namespace Brisk
 {
-    //void RenderTransformUI(Transform& transform) {
-    //    ImGui::Begin("Transform");
-
-    //     Position
-    //    ImGui::Text("Position");
-    //    ImGui::DragFloat3("##Position", &transform.pPosition[0], 0.1f);
-
-    //    // Rotation
-    //    ImGui::Text("Rotation");
-    //    ImGui::DragFloat3("##Rotation", &transform.pRotation[0], 0.1f);
-
-    //    // Scale
-    //    ImGui::Text("Scale");
-    //    ImGui::DragFloat3("##Scale", &transform.pScale[0], 0.1f);
-
-    //    ImGui::End();
-    //}
-
 	static void DrawVec3Control(const std::string& label, glm::vec3& values, float resetValue = 0.0f, float columnWidth = 100.0f)
 	{
 		ImGuiIO& io = ImGui::GetIO();
@@ -95,7 +77,7 @@ namespace Brisk
 
     void InspectorPanel::OnUpdate() {
         ImGui::Begin("Inspector");
-		//if (Engine::m_ActiveScene->SelectedElement != -1) 
+		if (SceneManager::pActiveScene->GetSelectedEntity() != entt::null /*&& SceneManager::pActiveScene->Reg().valid(SceneManager::pActiveScene->GetSelectedEntity())*/)
 		{
 			const ImGuiTreeNodeFlags treeNodeFlags = ImGuiTreeNodeFlags_DefaultOpen | ImGuiTreeNodeFlags_Framed | ImGuiTreeNodeFlags_SpanAvailWidth | ImGuiTreeNodeFlags_AllowItemOverlap | ImGuiTreeNodeFlags_FramePadding;
 			ImVec2 contentRegionAvailable = ImGui::GetContentRegionAvail();

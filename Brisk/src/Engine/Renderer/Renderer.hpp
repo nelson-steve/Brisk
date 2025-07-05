@@ -35,6 +35,7 @@ namespace Brisk
 		static std::unique_ptr<Renderer> Create();
 	private:
 		void RenderEntity(const MeshComponent& mesh, int alphaMode, bool push = false);
+		void Render(bool pushMaterialIndex = false, bool pushModelMatrix = false);
 
 	private:
 		static std::shared_ptr<Swapchain> m_Swapchain;
@@ -77,5 +78,7 @@ namespace Brisk
 		std::shared_ptr<CommandBuffer> m_CmdBuffer;
 		RenderCommand m_RenderCommand;
 		uint32_t m_ImageIndex;
+
+		std::unordered_map<MeshAsset*, std::vector<Entity>> m_RenderGroups;
 	};
 }

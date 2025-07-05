@@ -5,21 +5,23 @@ layout(location = 1) in vec3 inNormal;
 layout(location = 2) in vec2 inUV;
 
 layout(set = 0, binding = 0) uniform UBO {
-    mat4 model;
-    mat4 view;
-    mat4 proj;
+    mat4 projView;
     vec3 CamPos;
 } ubo;
+
+layout(push_constant) uniform PushConstants {
+    mat4 model;
+    int materialIndex;
+} pc;
 
 layout(location = 0) out vec3 fragPosition;
 layout(location = 1) out vec3 fragNormal;
 layout(location = 2) out vec2 fragUV;
 
 void main() {
-    mat4 modelView = ubo.view * ubo.model;
-    fragPosition = vec3(ubo.model * vec4(inPosition, 1.0));
-    fragNormal = mat3(transpose(inverse(ubo.model))) * inNormal;
+    fragPosition = vec3(pc.model * vec4(inPosition, 1.0));
+    fragNormal = mat3(transpose(inverse(pc.model))) * inNormal;
     fragUV = inUV;
 
-    gl_Position = ubo.proj * ubo.view * ubo.model * vec4(inPosition, 1.0);
+    gl_Position = ubo.projView * pc.model * vec4(inPosition, 1.0);
 }

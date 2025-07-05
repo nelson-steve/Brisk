@@ -6,6 +6,7 @@
 #include "HeirarchyPanel.hpp"
 #include "InspectorPanel.hpp"
 #include "ScenePanel.hpp"
+#include "MaterialPanel.hpp"
 #include <Graphics/Vulkan/GpuAdapterVulkan.hpp>
 #include <Graphics/Vulkan/RenderpassVulkan.hpp>
 
@@ -309,6 +310,9 @@ namespace Brisk
 
         ConsolePanel* consolePanel = new ConsolePanel();
         m_Panels.insert({ "Console" , consolePanel });
+
+        MaterialPanel* materialPanel = new MaterialPanel();
+        m_Panels.insert({ "Material" , materialPanel });
 
         //GamePanel* gamePanel = new GamePanel();
         //m_Panels.insert({ "Game" , gamePanel });

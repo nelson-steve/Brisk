@@ -83,12 +83,10 @@ namespace Brisk
 		}
 		UpdateView();
 
+
 		MVP mvp{};
-		mvp.Model = m_MeshTransform.GetTransform();
-		mvp.View = m_ViewMatrix;
-		mvp.Projection = m_Projection;
+		mvp.ProjectionView = m_Projection * m_ViewMatrix;
 		mvp.CamPos = m_Position;
-		//mvp.Projection[1][1] *= -1;
 
 		m_MVPBuffer->UpdatePersistantData(sizeof(MVP), &mvp);
 	}

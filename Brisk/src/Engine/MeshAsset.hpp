@@ -143,7 +143,6 @@ namespace Brisk
 		MeshAsset() = default;
 		~MeshAsset();
 		void Load(const std::filesystem::path& path);
-
         void Release();
 
 		std::shared_ptr<Buffer> GetIndexBuffer() const { return m_IndexBuffer; }

@@ -2,6 +2,7 @@
 #include "Application.hpp"
 #include "Scene.hpp"
 #include "Core/Core.hpp"
+#include "MeshAsset.hpp"
 #include "Events/Event.hpp"
 #include <Graphics/Vulkan/GpuAdapterVulkan.hpp>
 #include "Component.hpp"
@@ -30,16 +31,40 @@ namespace Brisk
 			/* 1 */"../Data/Models/revolver/revolver.gltf",
 			/* 2 */"../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf",
 			/* 3 */"../Data/Models/damaged_helmet/DamagedHelmet.gltf",
-			/* 4 */"../Data/Models/revolver/revolver.gltf",
-			/* 5 */"../Data/Models/cerberus/cerberus.gltf",
-			/* 6 */"../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf",
+			/* 4 */"../Data/Models/gltf_models/FlightHelmet/glTF/FlightHelmet.gltf",
+			/* 5 */"../Data/Models/revolver/revolver.gltf",
+			/* 6 */"../Data/Models/cerberus/cerberus.gltf",
+			/* 7 */"../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf",
 		};
 		auto start = std::chrono::high_resolution_clock::now();
 
-		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[3], false);
+		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[4], false);
 
-		Entity e = m_SceneManager->pActiveScene->CreateEntity("Damaged Helmet");
-		e.AddComponent<MeshComponent>().p_Mesh = asset1;
+		Entity entity = m_SceneManager->pActiveScene->CreateEntity("Flight Helmet");
+		for (auto& node: asset1->m_Nodes)
+			AddMeshToScene(node, entity, asset1);
+	}
+
+	void Application::AddMeshToScene(MeshAsset::Node* node, std::optional<Entity> parent, std::shared_ptr<MeshAsset> meshAsset) {
+		Entity entity = m_SceneManager->pActiveScene->CreateEntity(node->name);
+
+		if (node->meshIndex != UINT32_MAX) {
+			MeshComponent& mc = entity.AddComponent<MeshComponent>();
+			mc.p_Mesh = meshAsset;
+			mc.p_SubMeshIndex = node->meshIndex;
+			mc.p_Name = node->name;
+		}
+
+		if (parent.has_value()) {
+			entity.AddComponent<ParentComponent>().parent = parent.value();
+			if(parent.value().HasComponent<ChildrenComponent>())
+				parent.value().GetComponent<ChildrenComponent>().children.push_back(entity);
+			else
+				parent.value().AddComponent<ChildrenComponent>().children.push_back(entity);
+		}
+
+		for (auto n : node->children)
+			AddMeshToScene(n, entity, meshAsset);
 	}
 
 	void Application::OnEvent(Event &event) {

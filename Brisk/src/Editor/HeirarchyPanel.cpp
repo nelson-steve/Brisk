@@ -1,113 +1,68 @@
 #include "HeirarchyPanel.hpp"
 #include "Engine/Engine.hpp"
 #include <functional>
+#include <Core/Log.hpp>
 
 namespace Brisk 
 {
     void HeirarchyPanel::OnCreate() {
     }
 
+    void HeirarchyPanel::DrawEntityNode(Entity entity) {
+        auto& reg = SceneManager::pActiveScene->Reg();
+        auto& name = reg.get<TagComponent>(entity).Tag;
+
+        ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
+
+        bool hasChildren = entity.HasComponent<ChildrenComponent>();
+        if (!hasChildren)
+            flags |= ImGuiTreeNodeFlags_Leaf;
+
+        if (SceneManager::pActiveScene->GetSelectedEntity() == entity)
+            flags |= ImGuiTreeNodeFlags_Selected;
+
+        bool open = ImGui::TreeNodeEx((void*)(uint64_t)entity.m_EntityHandle, flags, "%s", name.c_str());
+
+        if (ImGui::IsItemClicked(ImGuiMouseButton_Left) || ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
+            SceneManager::pActiveScene->SetSelectedEntity(entity);
+        }
+
+        if (ImGui::BeginPopupContextItem()) {
+            if (ImGui::MenuItem("Delete Entity")) {
+            }
+            ImGui::EndPopup();
+        }
+
+        if (open) {
+            if (hasChildren) {
+                auto& children = reg.get<ChildrenComponent>(entity).children;
+                for (auto child : children)
+                    DrawEntityNode(child);
+            }
+            ImGui::TreePop();
+        }
+    }
+
+
     void HeirarchyPanel::OnUpdate(){
         ImGui::Begin("Hierarchy");
 
-        // Get the draw list to draw lines
-        ImDrawList* drawList = ImGui::GetWindowDrawList();
-        ImVec2 windowPos = ImGui::GetWindowPos();  // Get window position to offset drawing
-
-        ImVec2 mousePos = ImGui::GetMousePos();
-        //ImVec2 windowPos = ImGui::GetWindowPos();
-        ImVec2 windowSize = ImGui::GetWindowSize();
-
-        bool isElementSelected = false;
-        // Function to recursively display elements and their children
-        std::function<void(WorldTransformComponent, float)> DisplayElementWithChildren = [&](WorldTransformComponent transform, float parentXPos) {
-            ImGuiTreeNodeFlags flags = 0;
-            //if (elementIndex == Engine::m_ActiveScene->SelectedElement)
-                //flags |= ImGuiTreeNodeFlags_Selected | ImGuiTreeNodeFlags_OpenOnArrow;
-            //else
-                //flags |= ImGuiTreeNodeFlags_OpenOnArrow ;
-            //if (Engine::m_ActiveScene->Elements[elementIndex].children.size() <= 0) {
-            //    flags |= ImGuiTreeNodeFlags_Leaf; // Mark as a leaf node (no arrow)
-            //}
-            // Start the tree node for the element
-            //if (ImGui::TreeNodeEx((void*)(uint64_t)(uint32_t)elementIndex,  flags, element.name.c_str())) 
-            {
-                // Get the position of the current element to draw the line from parent to child
-                ImVec2 nodePos = ImGui::GetCursorScreenPos();  // Screen position of the node (for line drawing)
-                ImVec2 nodeTextPos = ImGui::GetItemRectMin();  // Top-left position of the text (for line alignment)
-                ImVec2 nodeBottomPos = ImGui::GetItemRectMax();  // Bottom-right of the text
-
-                // If there is a parent, draw a line from parent to this child
-                if (parentXPos != -1.0f) {
-                    ImVec2 parentPos = ImVec2(parentXPos-1000.0f, (nodeTextPos.y + nodeBottomPos.y) * 0.5f);  // Midpoint of the parent node vertically
-                    ImVec2 childPos = ImVec2(nodeTextPos.x - 0.0f, (nodeTextPos.y + nodeBottomPos.y) * 0.5f);  // Midpoint of child node
-                    drawList->AddLine(parentPos, childPos, IM_COL32(150, 150, 150, 255), 4.0f);  // Draw line from parent to child
-                }   
-
-                if (ImGui::BeginPopupContextItem())
-                {
-                    if (ImGui::MenuItem("Delete Entity"))
-                        ;
-                        //entityDeleted = true;
-
-                    ImGui::EndPopup();
-                }
-
-                // If right-clicked, set as the target for context menu
-                if (ImGui::IsItemClicked(ImGuiMouseButton_Left)) {
-                    isElementSelected = true;
-                    //Engine::m_ActiveScene->SelectedElement = elementIndex;
-                }
-                else if (ImGui::IsItemClicked(ImGuiMouseButton_Right)) {
-                    isElementSelected = true;
-                    //Engine::m_ActiveScene->SelectedElement = elementIndex;
-                }
-                else {
-                    isElementSelected = false;
-
-                }
-
-                // Recursively display children
-                //for (int childIndex : element.children) {
-                //    DisplayElementWithChildren(childIndex, nodeTextPos.x);
-                //}
-
-                ImGui::TreePop();
+        SceneManager::pActiveScene->Reg().view<TagComponent>().each([&](entt::entity entity, TagComponent& name) {
+            if (!SceneManager::pActiveScene->Reg().any_of<ParentComponent>(entity)) {
+                Entity outEntity = { entity, SceneManager::pActiveScene.get() };
+                DrawEntityNode(outEntity);
             }
-        };
+        });
 
-        auto objects = SceneManager::pActiveScene->Reg().view<WorldTransformComponent, TagComponent>();
-        for (auto entity : objects) {
-            auto& name = SceneManager::pActiveScene->Reg().get<TagComponent>(entity).Tag;
-
-            bool isSelected = (entity == SceneManager::pActiveScene->GetSelectedEntity());
-            if (ImGui::Selectable(name.c_str(), isSelected)) {
-                SceneManager::pActiveScene->SetSelectedEntity(entity);
-            }
-        }
-
-        // Traverse the hierarchy and display each element
-        //for (int i = 0; i < SceneManager::pActiveScene->Elements.size(); i++) {
-        //    // Only display root elements (elements without parents)
-        //    if (Engine::m_ActiveScene->Elements[i].IsRoot) {
-        //        DisplayElementWithChildren(i, -1.0f);
-        //    }
-        //}
 
         // Check if right-click is inside the window and not on any item
         bool isHovered = ImGui::IsWindowHovered(ImGuiHoveredFlags_AllowWhenBlockedByPopup);
         bool isRightClick = ImGui::IsMouseReleased(ImGuiMouseButton_Right);
 
         if (isHovered && isRightClick) {
-            if(isElementSelected)
-                // Open context menu only if mouse is inside the window
-                ImGui::OpenPopup("ContextMenu");
-            else
-                ImGui::OpenPopup("EntityContextMenu");
-
+            ImGui::OpenPopup("ContextMenu");
         }
 
-        // Render the context menu
         if (ImGui::BeginPopup("ContextMenu")) {
             if (ImGui::MenuItem("Create Empty")) {
             }
@@ -116,7 +71,6 @@ namespace Brisk
             ImGui::EndPopup();
         }
 
-        // Render the context menu
         if (ImGui::BeginPopup("EntityContextMenu")) {
             if (ImGui::MenuItem("Create Entity")) {
                 SceneManager::pActiveScene->CreateEntity("Test");

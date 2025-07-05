@@ -21,9 +21,7 @@ namespace Brisk
 	class Camera {
 	public:
 		struct alignas(16) MVP {
-			glm::mat4 Model;
-			glm::mat4 View;
-			glm::mat4 Projection;
+			glm::mat4 ProjectionView;
 			glm::vec3 CamPos;
 		};
 
@@ -57,7 +55,9 @@ namespace Brisk
 		float GetPitch() const { return m_Pitch; }
 		float GetYaw() const { return m_Yaw; }
 
-		void SetMeshTransform(WorldTransformComponent t) { m_MeshTransform = t; }
+		void SetMeshTransform(glm::mat4 t) {
+			m_MeshTransform = t;
+		}
 
 		std::shared_ptr<Buffer> m_MVPBuffer;
 	private:
@@ -91,6 +91,6 @@ namespace Brisk
 
 		float m_ViewportWidth = 1920, m_ViewportHeight = 1080;
 
-		WorldTransformComponent m_MeshTransform;
+		glm::mat4 m_MeshTransform;
 	};
 }

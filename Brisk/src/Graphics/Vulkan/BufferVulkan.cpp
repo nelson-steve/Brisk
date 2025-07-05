@@ -15,8 +15,6 @@ namespace Brisk
 		usage = UtilitiesVulkan::BufferUsageToVkFormat(usageFlags);
 		m_Size = size;
 
-        BRISK_CORE_INFO("Creating vma buffer");
-
         bool hostVisible = false;
         bool hostCoherent = false;
         bool hostCached = false;

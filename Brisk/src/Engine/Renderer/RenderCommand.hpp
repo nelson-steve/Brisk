@@ -23,6 +23,7 @@ namespace Brisk
 		inline static void DrawIndexed(std::shared_ptr<CommandBuffer> cmd, uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance){
 			s_RendererAPI->DrawIndexed(cmd, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 		}
+		// TODO : Specify index buffer data type
 		inline static void BindIndexBuffer(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Buffer> buffer, uint32_t firstBinding) {
 			s_RendererAPI->BindIndexBuffer(cmd, buffer, firstBinding);
 		}

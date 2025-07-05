@@ -433,6 +433,14 @@ namespace Brisk
     {
         if (!SceneManager::pActiveScene) return;
 
+        auto view = SceneManager::pActiveScene->Reg().view<MeshComponent, WorldTransformComponent>();
+
+        for (auto e : view) {
+            Entity entity = { e, SceneManager::pActiveScene.get() };
+            auto& meshComp = entity.GetComponent<MeshComponent>();
+            m_RenderGroups[meshComp.p_Mesh.get()].push_back(entity);
+        }
+
         m_Fence->Wait();
         m_Fence->Reset();
 
@@ -462,19 +470,21 @@ namespace Brisk
 
         auto meshes = SceneManager::pActiveScene->Reg().view<MeshComponent, WorldTransformComponent>();
 
-        for (auto e : meshes) {
-            Entity entity = { e, SceneManager::pActiveScene.get() };
+        Render(false);
 
-            auto& mesh = entity.GetComponent<MeshComponent>();
-            auto& transform = entity.GetComponent<WorldTransformComponent>();
+        //for (auto e : meshes) {
+        //    Entity entity = { e, SceneManager::pActiveScene.get() };
 
-            Engine::s_Application->GetCamera()->SetMeshTransform(transform);
+        //    auto& mesh = entity.GetComponent<MeshComponent>();
+        //    auto& transform = entity.GetComponent<WorldTransformComponent>();
 
-            RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
-            RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
+        //    Engine::s_Application->GetCamera()->SetMeshTransform(transform);
 
-            RenderEntity(mesh, (int)fastgltf::AlphaMode::Opaque);
-        }
+        //    RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
+        //    RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
+
+        //    RenderEntity(mesh, (int)fastgltf::AlphaMode::Opaque);
+        //}
 
         m_DepthPrePass->End(m_CmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------
@@ -499,19 +509,21 @@ namespace Brisk
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_ShadowMap->GetWidth(), m_ShadowMap->GetHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_ShadowMap->GetWidth(), m_ShadowMap->GetHeight());
 
-        for (auto e : meshes) {
-            Entity entity = { e, SceneManager::pActiveScene.get() };
+        Render(false);
 
-            auto& mesh = entity.GetComponent<MeshComponent>();
-            auto& transform = entity.GetComponent<WorldTransformComponent>();
+        //for (auto e : meshes) {
+        //    Entity entity = { e, SceneManager::pActiveScene.get() };
 
-            Engine::s_Application->GetCamera()->SetMeshTransform(transform);
+        //    auto& mesh = entity.GetComponent<MeshComponent>();
+        //    auto& transform = entity.GetComponent<WorldTransformComponent>();
 
-            RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
-            RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
+        //    Engine::s_Application->GetCamera()->SetMeshTransform(transform);
 
-            RenderEntity(mesh, (int)fastgltf::AlphaMode::Opaque);
-        }
+        //    RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
+        //    RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
+
+        //    RenderEntity(mesh, (int)fastgltf::AlphaMode::Opaque);
+        //}
 
         m_ShadowMapPass->End(m_CmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------
@@ -559,31 +571,32 @@ namespace Brisk
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
 
         m_GBufferPipeline->Bind(m_CmdBuffer);
-        for (const auto e : meshes) {
-            Entity entity = { e, SceneManager::pActiveScene.get() };
+        Render(true, true);
+        //for (const auto e : meshes) {
+        //    Entity entity = { e, SceneManager::pActiveScene.get() };
 
-            const auto& mesh = entity.GetComponent<MeshComponent>();
-            auto& transform = entity.GetComponent<WorldTransformComponent>();
+        //    const auto& mesh = entity.GetComponent<MeshComponent>();
+        //    auto& transform = entity.GetComponent<WorldTransformComponent>();
 
-            Engine::s_Application->GetCamera()->SetMeshTransform(transform);
+        //    Engine::s_Application->GetCamera()->SetMeshTransform(transform);
 
-            RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
-            RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
+        //    RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
+        //    RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
 
-            RenderEntity(mesh, (int)fastgltf::AlphaMode::Opaque, true);
-        }
+        //    RenderEntity(mesh, (int)fastgltf::AlphaMode::Opaque, true);
+        //}
 
-        m_GBufferAlphaBlendPipeline->Bind(m_CmdBuffer);
-        for (const auto e : meshes) {
-            Entity entity = { e, SceneManager::pActiveScene.get() };
+        //m_GBufferAlphaBlendPipeline->Bind(m_CmdBuffer);
+        //for (const auto e : meshes) {
+        //    Entity entity = { e, SceneManager::pActiveScene.get() };
 
-            const auto& mesh = entity.GetComponent<MeshComponent>();
+        //    const auto& mesh = entity.GetComponent<MeshComponent>();
 
-            RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
-            RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
+        //    RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
+        //    RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
 
-            RenderEntity(mesh, (int)fastgltf::AlphaMode::Blend, true);
-        }
+        //    RenderEntity(mesh, (int)fastgltf::AlphaMode::Blend, true);
+        //}
 
         //m_GBufferAlphaBlendPipeline->Bind(m_CmdBuffer);
         //for (const auto e : meshes) {
@@ -668,6 +681,57 @@ namespace Brisk
 
         // Present
         m_GraphicsQueue->Present(presentInfo);
+
+        m_RenderGroups.clear();
+    }
+
+    glm::mat4 GetWorldTransform(Entity entity) {
+        glm::mat4 local = entity.GetComponent<WorldTransformComponent>().GetTransform();
+
+        if (entity.HasComponent<ParentComponent>()) {
+            Entity parent = entity.GetComponent<ParentComponent>().parent;
+            return GetWorldTransform(parent) * local;
+        }
+
+        return local;
+    }
+
+    void Renderer::Render(bool pushMaterialIndex, bool pushModelMatrix) {
+        for (auto& [mesh, entities] : m_RenderGroups) {
+            RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh->GetVertexBuffer() }, 0);
+            RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh->GetIndexBuffer(), 0);
+
+            for (Entity e : entities) {
+                auto& meshComp = e.GetComponent<MeshComponent>();
+                auto& transform = e.GetComponent<WorldTransformComponent>();
+
+                glm::mat4 t = GetWorldTransform(e);
+
+                auto& submesh = mesh->m_Meshes[meshComp.p_SubMeshIndex];
+                for (auto& primitive : submesh.primitives) {
+                    uint32_t index = primitive.materialIndex != -1 ? primitive.materialIndex : 0;
+
+                    struct pcData{
+                        glm::mat4 model;
+                        uint32_t index;
+                    } pc;
+
+                    pc.index = primitive.materialIndex;
+                    pc.model = t;
+
+                    if (primitive.materialIndex < 0)
+                        BRISK_CORE_WARN("Invalid material index");
+
+                    if (pushMaterialIndex && pushModelMatrix)
+                        m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, true);
+
+                    if ((fastgltf::AlphaMode)mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)0U)
+                    {
+                        RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
+                    }
+                }
+            }
+        }
     }
 
     void Renderer::RenderEntity(const MeshComponent& mesh, int alphaMode, bool push) {
@@ -678,8 +742,8 @@ namespace Brisk
                 if(primitive.materialIndex < 0)
                     BRISK_CORE_WARN("Invalid material index");
 
-                if(push)
-                    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(uint32_t), &index);
+                //if(push)
+                //    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(uint32_t), &index, false);
 
                 if ((fastgltf::AlphaMode)mesh.p_Mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)alphaMode) 
                 {

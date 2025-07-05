@@ -19,7 +19,7 @@ namespace Brisk
 
 		virtual void Bind(std::shared_ptr<CommandBuffer> cmd) override;
 
-		virtual void BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t, void* data) override;
+		virtual void BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t, void* data, uint32_t offset, bool vertexShader) override;
 
 		virtual void Release() override;
 	private:

@@ -348,8 +348,9 @@ namespace Brisk
         }
     }
 
-    void PipelineVulkan::BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data) {
-        vkCmdPushConstants(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), m_PipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, size, data);
+    void PipelineVulkan::BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data, uint32_t offset, bool vertexShader) {
+        if(vertexShader)
+            vkCmdPushConstants(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, size, data);
     }
 
     void PipelineVulkan::Release() {

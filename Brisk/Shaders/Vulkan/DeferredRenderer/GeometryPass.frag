@@ -99,6 +99,7 @@ layout(std430, set = 4, binding = 0) readonly buffer SSBO {
 };
 
 layout(push_constant) uniform PushConstants {
+    mat4 model;
     int materialIndex;
 } pc;
 

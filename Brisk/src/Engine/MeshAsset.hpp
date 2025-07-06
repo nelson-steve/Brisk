@@ -37,8 +37,8 @@ namespace Brisk
             alignas(4) int unlit;                          
 
             alignas(4) float emissiveStrength;             
-            alignas(16) glm::vec4 baseColorFactor;          // 16
-            alignas(16) glm::vec3 emissiveFactor;           // 12
+            alignas(16) glm::vec4 baseColorFactor;
+            alignas(16) glm::vec3 emissiveFactor;
 
             // --- Texture Indices ---
             alignas(4) int32_t baseColorTextureIndex = -1;
@@ -83,7 +83,7 @@ namespace Brisk
             alignas(4) int32_t iridescenceThicknessTextureUV;
 
             // --- Sheen ---
-            alignas(16) glm::vec3 sheenColorFactor;         // 12
+            alignas(16) glm::vec3 sheenColorFactor;
 
             alignas(4) int32_t sheenColorTextureIndex = -1;
             alignas(4) int32_t sheenColorTextureUV;
@@ -111,7 +111,7 @@ namespace Brisk
             alignas(4) int32_t thicknessTextureUV;
             alignas(4) float attenuationDistance;          
 
-            alignas(16) glm::vec3 attenuationColor;         // 12
+            alignas(16) glm::vec3 attenuationColor;
         };
 
 

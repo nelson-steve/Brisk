@@ -123,5 +123,5 @@ void main() {
     // Gamma correction
     color = pow(color, vec3(1.0 / 2.2));
 
-    outColor = vec4(color, alpha);
+    outColor = vec4(albedo, alpha);
 }

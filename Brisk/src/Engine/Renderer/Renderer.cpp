@@ -132,7 +132,7 @@ namespace Brisk
             m_Albedo = Texture::Create();
             m_Material = Texture::Create();
             m_Emissive = Texture::Create();
-            m_Depth = Texture::Create();
+            //m_Depth = Texture::Create();
 
             {
                 Texture::TextureSpecification specs{};
@@ -143,7 +143,7 @@ namespace Brisk
                 specs.p_Usage = Core::TextureUsage::ImageUsageDepthStencilAttachment    ;
                 specs.p_Format = Core::Format::FORMAT_D16_UNORM;
                 specs.p_IsDepth = true;
-                m_Depth->Init(specs);
+                //m_Depth->Init(specs);
 
                 specs.p_IsDepth = false;
                 specs.p_DebugName = "m_Pos";
@@ -192,7 +192,7 @@ namespace Brisk
                     RenderPassAttachment{ 2, AttachmentType::Color, m_Albedo },
                     RenderPassAttachment{ 3, AttachmentType::Color, m_Material },
                     RenderPassAttachment{ 4, AttachmentType::Color, m_Emissive },
-                    RenderPassAttachment{ 5, AttachmentType::Depth, m_Depth },
+                    //RenderPassAttachment{ 5, AttachmentType::Depth, m_Depth },
                 }
             );
 
@@ -214,13 +214,12 @@ namespace Brisk
             m_LightingPass->Init(
                 {
                     RenderPassDependency {
-                        true, // external
-                        Core::AccessType::ColorAttachmentWrite,  
-                        Core::AccessType::ShaderRead,            
-                        Core::PipelineStage::ColorAttachment,    
-                        Core::PipelineStage::FragmentShader      
+                        true,
+                        Core::AccessType::None, // src access
+                        Core::AccessType::ColorAttachmentWrite | Core::AccessType::DepthStencilWrite, // dst access
+                        Core::PipelineStage::FragmentShader | Core::PipelineStage::EarlyFragmentTest, // src stage
+                        Core::PipelineStage::ColorAttachment | Core::PipelineStage::EarlyFragmentTest // dst stage
                     },
-
                     RenderPassDependency {
                         false,
                         Core::AccessType::ColorAttachmentWrite,  
@@ -240,11 +239,11 @@ namespace Brisk
             m_UIPass->Init(
                 {
                     RenderPassDependency {
-                        true, // external
-                        Core::AccessType::None,                                  
-                        Core::AccessType::ColorAttachmentWrite,                  
-                        Core::PipelineStage::BottomOfPipe,                       
-                        Core::PipelineStage::ColorAttachment,                    
+                        true,
+                        Core::AccessType::None, // src access
+                        Core::AccessType::ColorAttachmentWrite | Core::AccessType::DepthStencilWrite, // dst access
+                        Core::PipelineStage::FragmentShader | Core::PipelineStage::EarlyFragmentTest, // src stage
+                        Core::PipelineStage::ColorAttachment | Core::PipelineStage::EarlyFragmentTest // dst stage
                     },
 
                     RenderPassDependency {
@@ -291,6 +290,7 @@ namespace Brisk
                 pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS;
                 pipelineSpecs.pDepthBoundsTestEnable = false;
                 pipelineSpecs.pStencilTestEnable = false;
+                pipelineSpecs.pDebugName = "DepthPrePas pipeline";
 
                 m_DepthPrePassPipeline = Pipeline::Create();
                 m_DepthPrePassPipeline->Init(pipelineSpecs);
@@ -325,6 +325,7 @@ namespace Brisk
                 pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS;
                 pipelineSpecs.pDepthBoundsTestEnable = false;
                 pipelineSpecs.pStencilTestEnable = false;
+                pipelineSpecs.pDebugName = "ShadowMap pipeline";
 
                 m_ShadowMapPipeline = Pipeline::Create();
                 m_ShadowMapPipeline->Init(pipelineSpecs);
@@ -359,10 +360,11 @@ namespace Brisk
                 pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
                 pipelineSpecs.pDepthBiasEnable = false;
                 pipelineSpecs.pDepthTestEnable = true;
-                pipelineSpecs.pDepthWriteEnable = true;
+                pipelineSpecs.pDepthWriteEnable = false;
                 pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS;
                 pipelineSpecs.pDepthBoundsTestEnable = false;
                 pipelineSpecs.pStencilTestEnable = false;
+                pipelineSpecs.pDebugName = "GeometryPass pipeline";
 
                 m_GBufferPipeline = Pipeline::Create();
                 m_GBufferPipeline->Init(pipelineSpecs);
@@ -397,6 +399,7 @@ namespace Brisk
                 pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS;
                 pipelineSpecs.pDepthBoundsTestEnable = false;
                 pipelineSpecs.pStencilTestEnable = false;
+                pipelineSpecs.pDebugName = "LightingPass pipeline";
 
                 m_LightingPipeline = Pipeline::Create();
                 m_LightingPipeline->Init(pipelineSpecs);
@@ -470,21 +473,7 @@ namespace Brisk
 
         auto meshes = SceneManager::pActiveScene->Reg().view<MeshComponent, WorldTransformComponent>();
 
-        Render(false);
-
-        //for (auto e : meshes) {
-        //    Entity entity = { e, SceneManager::pActiveScene.get() };
-
-        //    auto& mesh = entity.GetComponent<MeshComponent>();
-        //    auto& transform = entity.GetComponent<WorldTransformComponent>();
-
-        //    Engine::s_Application->GetCamera()->SetMeshTransform(transform);
-
-        //    RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
-        //    RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
-
-        //    RenderEntity(mesh, (int)fastgltf::AlphaMode::Opaque);
-        //}
+        Render(true, true);
 
         m_DepthPrePass->End(m_CmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------
@@ -510,20 +499,6 @@ namespace Brisk
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_ShadowMap->GetWidth(), m_ShadowMap->GetHeight());
 
         Render(false);
-
-        //for (auto e : meshes) {
-        //    Entity entity = { e, SceneManager::pActiveScene.get() };
-
-        //    auto& mesh = entity.GetComponent<MeshComponent>();
-        //    auto& transform = entity.GetComponent<WorldTransformComponent>();
-
-        //    Engine::s_Application->GetCamera()->SetMeshTransform(transform);
-
-        //    RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
-        //    RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
-
-        //    RenderEntity(mesh, (int)fastgltf::AlphaMode::Opaque);
-        //}
 
         m_ShadowMapPass->End(m_CmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------
@@ -572,44 +547,6 @@ namespace Brisk
 
         m_GBufferPipeline->Bind(m_CmdBuffer);
         Render(true, true);
-        //for (const auto e : meshes) {
-        //    Entity entity = { e, SceneManager::pActiveScene.get() };
-
-        //    const auto& mesh = entity.GetComponent<MeshComponent>();
-        //    auto& transform = entity.GetComponent<WorldTransformComponent>();
-
-        //    Engine::s_Application->GetCamera()->SetMeshTransform(transform);
-
-        //    RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
-        //    RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
-
-        //    RenderEntity(mesh, (int)fastgltf::AlphaMode::Opaque, true);
-        //}
-
-        //m_GBufferAlphaBlendPipeline->Bind(m_CmdBuffer);
-        //for (const auto e : meshes) {
-        //    Entity entity = { e, SceneManager::pActiveScene.get() };
-
-        //    const auto& mesh = entity.GetComponent<MeshComponent>();
-
-        //    RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
-        //    RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
-
-        //    RenderEntity(mesh, (int)fastgltf::AlphaMode::Blend, true);
-        //}
-
-        //m_GBufferAlphaBlendPipeline->Bind(m_CmdBuffer);
-        //for (const auto e : meshes) {
-        //    Entity entity = { e, SceneManager::pActiveScene.get() };
-
-        //    const auto& mesh = entity.GetComponent<MeshComponent>();
-
-        //    RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh.p_Mesh->GetVertexBuffer() }, 0);
-        //    RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh.p_Mesh->GetIndexBuffer(), 0);
-
-        //    RenderEntity(mesh, (int)fastgltf::AlphaMode::Opaque);
-        //}
-
         m_GeometryBufferPass->End(m_CmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -646,7 +583,7 @@ namespace Brisk
             params.newLayout = Core::ImageLayout::ColorAttachmentOptimal;
             params.srcAccess = Core::AccessType::None;
             params.dstAccess = Core::AccessType::ColorAttachmentWrite;
-            params.srcStage = Core::PipelineStage::ColorAttachment;
+            params.srcStage = Core::PipelineStage::BottomOfPipe;
             params.dstStage = Core::PipelineStage::ColorAttachment;
 
             m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
@@ -760,7 +697,7 @@ namespace Brisk
         m_Material->Release();
         m_Emissive->Release();
         m_DepthPre->Release();
-        m_Depth->Release();
+        //m_Depth->Release();
         m_ShadowMap->Release();
         m_LightingOutput->Release();
 

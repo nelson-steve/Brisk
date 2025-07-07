@@ -53,7 +53,7 @@ namespace Brisk
 		std::shared_ptr<Texture> m_Material;
 		std::shared_ptr<Texture> m_Emissive;
 		std::shared_ptr<Texture> m_DepthPre;
-		std::shared_ptr<Texture> m_Depth;
+		//std::shared_ptr<Texture> m_Depth;
 		std::shared_ptr<Texture> m_ShadowMap;
 		std::shared_ptr<Texture> m_LightingOutput;
 

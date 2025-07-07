@@ -42,7 +42,6 @@ namespace Brisk
 
         VkMemoryRequirements memRequirements;
         vkGetImageMemoryRequirements(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_Image, &memRequirements);
-        //vkGetImageMemoryRequirements(static_cast<VkDevice>(Engine::s_Application->GetNativeDevice()), m_Image, &memRequirements);
 
         VkMemoryAllocateInfo allocInfo{};
         allocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -60,17 +59,32 @@ namespace Brisk
         imageView.pNext = nullptr;
         imageView.flags = 0;
         imageView.image = m_Image;
-        imageView.viewType = specs.p_Type == Texture::TextureType::TEXTURE3D ? VK_IMAGE_VIEW_TYPE_3D : VK_IMAGE_VIEW_TYPE_2D;
+        if (specs.p_Type == TextureType::CUBEMAP)
+            imageView.viewType = VK_IMAGE_VIEW_TYPE_CUBE;
+        else if (specs.p_Type == TextureType::TEXTURE3D)
+            imageView.viewType = VK_IMAGE_VIEW_TYPE_3D;
+        else
+            imageView.viewType = VK_IMAGE_VIEW_TYPE_2D;
         imageView.format = m_Format;
         imageView.subresourceRange.aspectMask = specs.p_IsDepth ? VK_IMAGE_ASPECT_DEPTH_BIT : VK_IMAGE_ASPECT_COLOR_BIT;
         imageView.subresourceRange.baseMipLevel = 0;
-        imageView.subresourceRange.levelCount = 1;
+        imageView.subresourceRange.levelCount = specs.p_MipLevels;
         imageView.subresourceRange.baseArrayLayer = 0;
         imageView.subresourceRange.layerCount = specs.p_ArrayLayers;
 
         if (vkCreateImageView(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &imageView, nullptr, &m_ImageView) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor pool!");
         }
+
+        nameInfo = {};
+        nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+        nameInfo.objectType = VK_OBJECT_TYPE_IMAGE_VIEW;
+        nameInfo.objectHandle = (uint64_t)m_ImageView;
+        nameInfo.pObjectName = specs.p_DebugName.c_str();
+
+#if _DEBUG
+        vkSetDebugUtilsObjectNameEXT(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
+#endif
 
         // Init Sampler
         if(m_Sampler == VK_NULL_HANDLE)
@@ -80,12 +94,13 @@ namespace Brisk
             samplerInfo.magFilter = VK_FILTER_LINEAR;
             samplerInfo.minFilter = VK_FILTER_LINEAR;
             samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-            samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT; // outside image bounds just use border color
+            samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            samplerInfo.minLod = -1000;
-            samplerInfo.maxLod = 1000;
+            samplerInfo.minLod = 0.0f;
+            samplerInfo.maxLod = static_cast<float>(specs.p_MipLevels);
             samplerInfo.maxAnisotropy = 1.0f;
+            samplerInfo.anisotropyEnable = VK_TRUE;
             if (vkCreateSampler(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &samplerInfo, nullptr, &m_Sampler) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create descriptor pool!");
             }
@@ -93,13 +108,7 @@ namespace Brisk
 
         m_Descriptor.sampler = m_Sampler;
         m_Descriptor.imageView = m_ImageView;
-/*        if ((specs.p_Usage & Texture::TextureUsage::ImageUsageColorAttachment) != Texture::TextureUsage::Undefined) {
-            m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
-        }
-        else */
-        if ((specs.p_Usage & Core::TextureUsage::ImageUsageSampled) != Core::TextureUsage::Undefined) {
-            m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-        }
+        m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     }
 
     void TextureVulkan::Init(const std::string& path) {
@@ -178,7 +187,7 @@ namespace Brisk
             samplerInfo.addressModeU = VK_SAMPLER_ADDRESS_MODE_REPEAT; // outside image bounds just use border color
             samplerInfo.addressModeV = VK_SAMPLER_ADDRESS_MODE_REPEAT;
             samplerInfo.addressModeW = VK_SAMPLER_ADDRESS_MODE_REPEAT;
-            samplerInfo.minLod = -1000;
+            samplerInfo.minLod = 0;
             samplerInfo.maxLod = 1000;
             samplerInfo.maxAnisotropy = 1.0f;
             if (vkCreateSampler(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &samplerInfo, nullptr, &m_Sampler) != VK_SUCCESS) {

@@ -81,6 +81,7 @@ namespace Brisk
             bool pDepthBoundsTestEnable;
             bool pStencilTestEnable;
             bool pTransparent;
+            std::string pDebugName;
             std::shared_ptr<RenderPass> pRenderPass;
             std::vector<std::string> pShaderPaths;
         };

@@ -1,7 +1,6 @@
 #include "InspectorPanel.hpp"
 #include "Engine/Engine.hpp"
 
-//#include <glm/glm.hpp>
 #include <imgui_internal.h>
 
 namespace Brisk

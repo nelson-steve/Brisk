@@ -36,8 +36,6 @@ namespace Brisk
             std::shared_ptr<CommandBuffer> cmd = CommandBuffer::Create();
             cmd->Bind();
 
-            //std::shared_ptr<Shader> m_ComputeShader = Shader::Create();
-            //std::shared_ptr<Shader> m_ComputeShader = std::make_shared<Shader>();
             Texture::ImageBarrierParams preComputeBarrier = {
                 //cubemap,
                 Core::ImageLayout::Undefined,
@@ -55,7 +53,6 @@ namespace Brisk
             cubemap->TransitionImageLayout(cmd, { preComputeBarrier });
 
             m_ComputePipeline->Bind(cmd);
-            //m_ComputeShader->Bind(cmd, m_ComputePipeline);
             uint32_t texSize = 1024;
             ComputeCommand::CmdDispatch(cmd, texSize / 32, texSize / 32, 6);
 
@@ -189,9 +186,6 @@ namespace Brisk
             //pipelineSpecs.pRenderPass->Init(renderPassSpecs);
 
             //pipelineSpecs.pDescriptorLayouts.push_back(materialLayout);
-
-            //pipelineSpecs.pShaderModules.push_back(vertexShaderModule);
-            //pipelineSpecs.pShaderModules.push_back(fragmentShaderModule);
 
             pipelineSpecs.pDepthClampEnable = false;
             pipelineSpecs.pRasterizationDiscardEnable = false;

@@ -25,8 +25,6 @@ namespace Brisk
 		void Release();
 
 		const glm::vec2& GetViewportSize() const { return m_ViewportSize; }
-
-		//static VkDescriptorSet AddTexToUI(BriskTexture* texture);
 	private:
 		std::unordered_map<std::string, IEditorPanel*> m_Panels;
 		ImGui_ImplVulkanH_Window s_MainWindowData;

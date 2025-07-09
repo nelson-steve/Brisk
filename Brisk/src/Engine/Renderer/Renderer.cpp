@@ -240,19 +240,19 @@ namespace Brisk
                 {
                     RenderPassDependency {
                         true,
-                        Core::AccessType::None, // src access
-                        Core::AccessType::ColorAttachmentWrite | Core::AccessType::DepthStencilWrite, // dst access
-                        Core::PipelineStage::FragmentShader | Core::PipelineStage::EarlyFragmentTest, // src stage
-                        Core::PipelineStage::ColorAttachment | Core::PipelineStage::EarlyFragmentTest // dst stage
+                        Core::AccessType::None,
+                        Core::AccessType::ColorAttachmentWrite, 
+                        Core::PipelineStage::ColorAttachment, 
+                        Core::PipelineStage::ColorAttachment 
                     },
 
-                    RenderPassDependency {
-                        false,
-                        Core::AccessType::ColorAttachmentWrite,                  
-                        Core::AccessType::MemoryRead,                            
-                        Core::PipelineStage::ColorAttachment,                    
-                        Core::PipelineStage::BottomOfPipe,                       
-                    }
+                    //RenderPassDependency {
+                    //    false,
+                    //    Core::AccessType::ColorAttachmentWrite,                  
+                    //    Core::AccessType::MemoryRead,                            
+                    //    Core::PipelineStage::ColorAttachment,                    
+                    //    Core::PipelineStage::BottomOfPipe,                       
+                    //}
                 },
                 {
                     RenderPassAttachment{ 0, AttachmentType::Swapchain, nullptr }
@@ -577,17 +577,17 @@ namespace Brisk
         m_LightingPass->End(m_CmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------
 
-        {
-            Brisk::Texture::ImageBarrierParams params{};
-            params.oldLayout = Core::ImageLayout::Undefined;
-            params.newLayout = Core::ImageLayout::ColorAttachmentOptimal;
-            params.srcAccess = Core::AccessType::None;
-            params.dstAccess = Core::AccessType::ColorAttachmentWrite;
-            params.srcStage = Core::PipelineStage::BottomOfPipe;
-            params.dstStage = Core::PipelineStage::ColorAttachment;
+        //{
+        //    Brisk::Texture::ImageBarrierParams params{};
+        //    params.oldLayout = Core::ImageLayout::Undefined;
+        //    params.newLayout = Core::ImageLayout::ColorAttachmentOptimal;
+        //    params.srcAccess = Core::AccessType::MemoryRead;
+        //    params.dstAccess = Core::AccessType::ColorAttachmentWrite;
+        //    params.srcStage = Core::PipelineStage::TopOfPipe;
+        //    params.dstStage = Core::PipelineStage::ColorAttachment;
 
-            m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
-        }
+        //    m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
+        //}
 
         // --- UI PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------

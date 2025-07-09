@@ -115,7 +115,7 @@ namespace Brisk
                 subpassDependency.dstStageMask = UtilitiesVulkan::PipelineStageToVkPipelineStageFlags(dependency.dstStage);
                 subpassDependency.srcAccessMask = UtilitiesVulkan::AccessTypeToVkAccessFlags(dependency.srcAccess);
                 subpassDependency.dstAccessMask = UtilitiesVulkan::AccessTypeToVkAccessFlags(dependency.dstAccess);
-                subpassDependency.dependencyFlags = VK_DEPENDENCY_BY_REGION_BIT;
+                subpassDependency.dependencyFlags = 0;
 
                 subpassDependencies.push_back(subpassDependency);
             }

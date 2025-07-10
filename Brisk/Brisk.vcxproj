@@ -59,7 +59,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>VK_NO_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;VMA_VOLK_HEADER_PATH="volk.h";BRISK_PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendors\GLFW\include;vendors\imgui;vendors\Volk;vendors\spdlog\include;vendors\stb_image\include;vendors\json\include;vendors\entt\include;vendors\glm;vendors\VMA\include;vendors\SPIRV-Reflect;vendors\simdjson;vendors\fastgltf\include;C:\VulkanSDK\1.4.309.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendors\GLFW\include;vendors\imgui;vendors\Volk;vendors\spdlog\include;vendors\stb_image\include;vendors\json\include;vendors\entt\include;vendors\glm;vendors\VMA\include;vendors\SPIRV-Reflect;vendors\simdjson;vendors\fastgltf\include;C:\VulkanSDK\1.4.313.2\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <DebugInformationFormat>EditAndContinue</DebugInformationFormat>
       <Optimization>Disabled</Optimization>
       <MinimalRebuild>false</MinimalRebuild>
@@ -71,7 +71,7 @@
       <SubSystem>Console</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\VulkanSDK\1.4.309.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.4.313.2\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
@@ -79,7 +79,7 @@
       <PrecompiledHeader>NotUsing</PrecompiledHeader>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>VK_NO_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;VMA_VOLK_HEADER_PATH="volk.h";BRISK_PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <AdditionalIncludeDirectories>src;vendors\GLFW\include;vendors\imgui;vendors\Volk;vendors\spdlog\include;vendors\stb_image\include;vendors\json\include;vendors\entt\include;vendors\glm;vendors\VMA\include;vendors\SPIRV-Reflect;vendors\simdjson;vendors\fastgltf\include;C:\VulkanSDK\1.4.309.0\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
+      <AdditionalIncludeDirectories>src;vendors\GLFW\include;vendors\imgui;vendors\Volk;vendors\spdlog\include;vendors\stb_image\include;vendors\json\include;vendors\entt\include;vendors\glm;vendors\VMA\include;vendors\SPIRV-Reflect;vendors\simdjson;vendors\fastgltf\include;C:\VulkanSDK\1.4.313.2\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
       <Optimization>Full</Optimization>
       <FunctionLevelLinking>true</FunctionLevelLinking>
       <IntrinsicFunctions>true</IntrinsicFunctions>
@@ -94,7 +94,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalDependencies>d3d12.lib;dxgi.lib;dxguid.lib;%(AdditionalDependencies)</AdditionalDependencies>
-      <AdditionalLibraryDirectories>C:\VulkanSDK\1.4.309.0\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
+      <AdditionalLibraryDirectories>C:\VulkanSDK\1.4.313.2\Lib;%(AdditionalLibraryDirectories)</AdditionalLibraryDirectories>
     </Link>
   </ItemDefinitionGroup>
   <ItemGroup>

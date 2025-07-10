@@ -581,14 +581,14 @@ namespace Brisk
                     //    }
                     //}
 
-                    //VkCommandBufferBeginInfo beginBlitInfo = {};
-                    //beginBlitInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-                    //beginBlitInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;  // One-time submission flag
-                    //beginBlitInfo.pInheritanceInfo = nullptr;
+                    VkCommandBufferBeginInfo beginBlitInfo = {};
+                    beginBlitInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+                    beginBlitInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;  // One-time submission flag
+                    beginBlitInfo.pInheritanceInfo = nullptr;
 
-                    //if (vkBeginCommandBuffer(oneTimeCmdBuffer, &beginBlitInfo) != VK_SUCCESS) {
-                    //    throw std::runtime_error("failed to allocate command buffers!");
-                    //}
+                    if (vkBeginCommandBuffer(oneTimeCmdBuffer, &beginBlitInfo) != VK_SUCCESS) {
+                        throw std::runtime_error("failed to allocate command buffers!");
+                    }
 
                     //
 
@@ -597,32 +597,32 @@ namespace Brisk
                     layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
 
                     {
-                        //VkImageMemoryBarrier imageMemoryBarrier{};
-                        //imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-                        //imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-                        //imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                        //imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-                        //imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-                        //imageMemoryBarrier.image = m_Image;
-                        //imageMemoryBarrier.subresourceRange = subresource_range;
-                        //vkCmdPipelineBarrier(oneTimeCmdBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
+                        VkImageMemoryBarrier imageMemoryBarrier{};
+                        imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+                        imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+                        imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                        imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+                        imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+                        imageMemoryBarrier.image = m_Image;
+                        imageMemoryBarrier.subresourceRange = subresource_range;
+                        vkCmdPipelineBarrier(oneTimeCmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
                     }
 
                     //m_graphics_device->FlushCommandBuffer(blit_cmd, copy_queue, true);
                     {
                         // Step 5: End Command Buffer Recording
-                        //if (vkEndCommandBuffer(oneTimeCmdBuffer) != VK_SUCCESS) {
-                        //    throw std::runtime_error("failed to allocate command buffers!");
-                        //}
+                        if (vkEndCommandBuffer(oneTimeCmdBuffer) != VK_SUCCESS) {
+                            throw std::runtime_error("failed to allocate command buffers!");
+                        }
 
-                        //VkSubmitInfo submitInfo = {};
-                        //submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-                        //submitInfo.commandBufferCount = 1;
-                        //submitInfo.pCommandBuffers = &oneTimeCmdBuffer;
+                        VkSubmitInfo submitInfo = {};
+                        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+                        submitInfo.commandBufferCount = 1;
+                        submitInfo.pCommandBuffers = &oneTimeCmdBuffer;
 
-                        //if (vkQueueSubmit(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue().Handle, 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
-                        //    throw std::runtime_error("failed to allocate command buffers!");
-                        //}
+                        if (vkQueueSubmit(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+                            throw std::runtime_error("failed to allocate command buffers!");
+                        }
                     }
 
                     //if (m_Sampler == VK_NULL_HANDLE) {

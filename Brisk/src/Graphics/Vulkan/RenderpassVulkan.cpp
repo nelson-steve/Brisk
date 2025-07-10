@@ -103,14 +103,10 @@ namespace Brisk
             std::vector<VkSubpassDependency> subpassDependencies;
             for (const auto& dependency : dependencies) {
                 VkSubpassDependency subpassDependency{};
-                if (dependency.srcExternalPass) {
-                    subpassDependency.srcSubpass = VK_SUBPASS_EXTERNAL;
-                    subpassDependency.dstSubpass = 0;
-                }
-                else {
-                    subpassDependency.srcSubpass = 0;
-                    subpassDependency.dstSubpass = VK_SUBPASS_EXTERNAL;
-                }
+
+                subpassDependency.srcSubpass = dependency.srcSubpass == -1 ? VK_SUBPASS_EXTERNAL : dependency.srcSubpass;
+                subpassDependency.dstSubpass = dependency.dstSubpass == -1 ? VK_SUBPASS_EXTERNAL : dependency.dstSubpass;
+
                 subpassDependency.srcStageMask = UtilitiesVulkan::PipelineStageToVkPipelineStageFlags(dependency.srcStage);
                 subpassDependency.dstStageMask = UtilitiesVulkan::PipelineStageToVkPipelineStageFlags(dependency.dstStage);
                 subpassDependency.srcAccessMask = UtilitiesVulkan::AccessTypeToVkAccessFlags(dependency.srcAccess);

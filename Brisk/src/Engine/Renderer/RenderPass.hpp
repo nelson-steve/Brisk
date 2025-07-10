@@ -43,7 +43,8 @@ namespace Brisk
 	};
 
 	struct RenderPassDependency {
-		bool srcExternalPass = true;
+		int32_t srcSubpass = -1; // -1 -> external subpass
+		int32_t dstSubpass = -1; // -1 -> external subpass
 		Core::AccessType srcAccess = Core::AccessType::None;
 		Core::AccessType dstAccess = Core::AccessType::None;
 		Core::PipelineStage srcStage = Core::PipelineStage::None;

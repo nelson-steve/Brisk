@@ -477,7 +477,7 @@ namespace Brisk
                         image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
                         image_memory_barrier.image = m_Image;
                         image_memory_barrier.subresourceRange = subresource_range;
-                        vkCmdPipelineBarrier(oneTimeCmdBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
+                        vkCmdPipelineBarrier(oneTimeCmdBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
                     }
 
                     VkBufferImageCopy buffer_copy_region = {};
@@ -500,7 +500,7 @@ namespace Brisk
                         image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
                         image_memory_barrier.image = m_Image;
                         image_memory_barrier.subresourceRange = subresource_range;
-                        vkCmdPipelineBarrier(oneTimeCmdBuffer, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, VK_PIPELINE_STAGE_ALL_COMMANDS_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
+                        vkCmdPipelineBarrier(oneTimeCmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
                     }
 
 

@@ -184,8 +184,8 @@ namespace Brisk
                         Core::PipelineStage::ColorAttachment // dst stage
                     },
                     RenderPassDependency {
-                        -1,
                         0,
+                        -1,
                         Core::AccessType::ColorAttachmentWrite, // src access
                         Core::AccessType::ShaderRead, // dst access
                         Core::PipelineStage::ColorAttachment, // src stage
@@ -238,6 +238,14 @@ namespace Brisk
                     RenderPassDependency {
                         -1,
                         0,
+                        Core::AccessType::ColorAttachmentWrite, // src access
+                        Core::AccessType::ShaderRead, // dst access
+                        Core::PipelineStage::ColorAttachment, // src stage
+                        Core::PipelineStage::FragmentShader // dst stage
+                    },
+                    RenderPassDependency {
+                        0,
+                        -1,
                         Core::AccessType::ColorAttachmentWrite, // src access
                         Core::AccessType::ShaderRead, // dst access
                         Core::PipelineStage::ColorAttachment, // src stage

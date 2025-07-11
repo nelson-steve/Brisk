@@ -113,19 +113,37 @@ namespace Brisk
 
     void TextureVulkan::Init(const std::string& path) {
         int texWidth, texHeight, texChannels;
-        stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-        VkDeviceSize imageSize = texWidth * texHeight * 4;
+        void* m_Pixels;
+        VkDeviceSize imageSize;
+        if (stbi_is_hdr(path.c_str())) {
+            float* pixels = stbi_loadf(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+            imageSize = (texWidth * (4 * sizeof(float))) * texHeight;
+            if (!pixels) {
+                throw std::runtime_error("failed to load texture image!");
+            }
+            m_Pixels = pixels;
+        }
+        else {
+            bool m_is_hdr = false;
+            stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
+            imageSize = (texWidth * (4 * sizeof(unsigned char))) * texHeight;
+            if (!pixels) {
+                throw std::runtime_error("failed to load texture image!");
+            }
+            m_Pixels = pixels;
+        }
 
-        if (!pixels) {
+
+        if (!m_Pixels) {
             throw std::runtime_error("failed to load texture image!");
         }
         m_Specs.p_Width = texWidth;
         m_Specs.p_Width = texHeight;
 
         BufferVulkan stagingBuffer;
-        stagingBuffer.Init(imageSize, pixels, Core::BufferUsage::TransferSrc, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
+        stagingBuffer.Init(imageSize, m_Pixels, Core::BufferUsage::TransferSrc, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
 
-        stbi_image_free(pixels);
+        stbi_image_free(m_Pixels);
 
         VkImageCreateInfo imageinfo{ VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO };
         imageinfo.pNext = nullptr;

@@ -16,7 +16,7 @@ namespace Brisk
         std::shared_ptr<Texture> cubemap = Texture::Create();
         cubemap->Init(cubemapSpecs);
         std::shared_ptr<Texture> hdr = Texture::Create();
-        hdr->Init("path to hdr skybox");
+        hdr->Init("../Data/Images/IBL/Skybox.png");
 
         int mapLevel = 1;
 		std::shared_ptr<DescriptorLayout> descriptorLayout = DescriptorLayout::Create();

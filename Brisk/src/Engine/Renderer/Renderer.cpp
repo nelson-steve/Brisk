@@ -536,7 +536,7 @@ namespace Brisk
 
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
-
+            
         m_Editor->Render(m_CmdBuffer);
 
         m_UIPass->End(m_CmdBuffer);

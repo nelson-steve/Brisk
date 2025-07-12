@@ -367,15 +367,27 @@ namespace Brisk
                 std::cout << "Time taken: " << duration.count() << " ms\n";
                 int bufferSize = width * height * 4;
 
-                VkCommandBuffer cmd;
+                VkCommandBuffer copyCmd;
+                VkCommandBuffer blitCmd;
                 VkCommandBufferAllocateInfo allocInfo = {};
                 allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
                 allocInfo.commandPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetCommandPool();
                 allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
                 allocInfo.commandBufferCount = 1;
 
-                if (vkAllocateCommandBuffers(deviceCached, &allocInfo, &cmd) != VK_SUCCESS) {
+                if (vkAllocateCommandBuffers(deviceCached, &allocInfo, &copyCmd) != VK_SUCCESS) {
                     throw std::runtime_error("Failed to allocate command buffer!");
+                }
+                if (vkAllocateCommandBuffers(deviceCached, &allocInfo, &blitCmd) != VK_SUCCESS) {
+                    throw std::runtime_error("Failed to allocate command buffer!");
+                }
+
+                VkSemaphoreCreateInfo semaphoreInfo{};
+                semaphoreInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
+
+                VkSemaphore copyFinishedSemaphore;
+                if (vkCreateSemaphore(deviceCached, &semaphoreInfo, nullptr, &copyFinishedSemaphore) != VK_SUCCESS) {
+                    throw std::runtime_error("Failed to create semaphore!");
                 }
 
                 VkFence fence;
@@ -399,67 +411,30 @@ namespace Brisk
                     assert(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT);
                     assert(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT);
 
-                    {
-                        // Create staging buffer
-                        VkBufferCreateInfo stagingBufferInfo{};
-                        stagingBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-                        stagingBufferInfo.size = bufferSize;
-                        stagingBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-                        stagingBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-
-                        VmaAllocationCreateInfo stagingAllocInfo{};
-                        stagingAllocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
-
-                        VkBuffer stagingBuffer;
-                        VmaAllocation stagingAllocation;
-                        if (vmaCreateBuffer(cachedAllocator, &stagingBufferInfo, &stagingAllocInfo, &stagingBuffer, &stagingAllocation, nullptr) != VK_SUCCESS) {
-                            throw std::runtime_error("Failed to create staging buffer");
-                        }
-                    }
-
-                    VkMemoryAllocateInfo memAllocInfo{};
-                    memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
-                    VkMemoryRequirements memReqs{};
-
+                    // Create staging buffer
                     VkBuffer stagingBuffer;
-                    VkDeviceMemory stagingMemory;
+                    VmaAllocation stagingAllocation;
+                    VkBufferCreateInfo stagingBufferInfo{};
+                    stagingBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+                    stagingBufferInfo.size = bufferSize;
+                    stagingBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+                    stagingBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-                    VkBufferCreateInfo bufferCreateInfo{};
-                    bufferCreateInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-                    bufferCreateInfo.size = bufferSize;
-                    bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-                    bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-                    if (vkCreateBuffer(deviceCached, &bufferCreateInfo, nullptr, &stagingBuffer)) {
-                        throw std::runtime_error("failed to create buffer!");
+                    VmaAllocationCreateInfo stagingAllocInfo{};
+                    stagingAllocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
+                    if (vmaCreateBuffer(cachedAllocator, &stagingBufferInfo, &stagingAllocInfo, &stagingBuffer, &stagingAllocation, nullptr) != VK_SUCCESS) {
+                        throw std::runtime_error("Failed to create staging buffer");
                     }
 
-                    VkDebugUtilsObjectNameInfoEXT nameInfo = {};
-                    nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
-                    nameInfo.objectType = VK_OBJECT_TYPE_BUFFER;
-                    nameInfo.objectHandle = (uint64_t)stagingBuffer;
-                    nameInfo.pObjectName = "staging buffer";
-
-#if _DEBUG
-                    vkSetDebugUtilsObjectNameEXT(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
-#endif
-
-                    vkGetBufferMemoryRequirements(deviceCached, stagingBuffer, &memReqs);
-                    memAllocInfo.allocationSize = memReqs.size;
-                    memAllocInfo.memoryTypeIndex = UtilitiesVulkan::FindMemoryType(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetPhysicalDevice(), memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-                    if (vkAllocateMemory(deviceCached, &memAllocInfo, nullptr, &stagingMemory)) {
-                        throw std::runtime_error("failed to load texture image!");
-                    }
-                    if (vkBindBufferMemory(deviceCached, stagingBuffer, stagingMemory, 0)) {
-                        throw std::runtime_error("failed to load texture image!");
-                    }
-
-                    uint8_t* data;
-                    if (vkMapMemory(deviceCached, stagingMemory, 0, memReqs.size, 0, (void**)&data)) {
+                    // Filling staging buffer with data
+                    void* data;
+                    if (vmaMapMemory(cachedAllocator, stagingAllocation, &data) != VK_SUCCESS) {
                         throw std::runtime_error("failed to map memory!");
                     }
                     memcpy(data, imageData, bufferSize);
-                    vkUnmapMemory(deviceCached, stagingMemory);
+                    vmaUnmapMemory(cachedAllocator, stagingAllocation);
 
+                    // Creating the image
                     VkImageCreateInfo image_create_info{};
                     image_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
                     image_create_info.imageType = VK_IMAGE_TYPE_2D;
@@ -474,33 +449,22 @@ namespace Brisk
                     image_create_info.extent.width = m_Specs.p_Width;
                     image_create_info.extent.height = m_Specs.p_Height;
                     image_create_info.extent.depth = 1;
-                    image_create_info.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
+                    image_create_info.usage = VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
 
-                    VmaAllocationCreateInfo vmaAllocInfo{};
-                    vmaAllocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
-                    VmaAllocation stagingAllocation;
-                    if (vmaCreateImage(cachedAllocator, &image_create_info, &vmaAllocInfo, &m_Image, &stagingAllocation, nullptr)) {
-                        throw std::runtime_error("failed to create image!");
-                    }
-                    vkGetImageMemoryRequirements(deviceCached, m_Image, &memReqs);
-                    memAllocInfo.allocationSize = memReqs.size;
-                    memAllocInfo.memoryTypeIndex = UtilitiesVulkan::FindMemoryType(physicalDevice, memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-                    if (vkAllocateMemory(deviceCached, &memAllocInfo, nullptr, &m_Memory)) {
-                        throw std::runtime_error("failed to allocate memory!");
-                    }
-                    if (vkBindImageMemory(deviceCached, m_Image, m_Memory, 0)) {
-                        throw std::runtime_error("failed to find memory!");
+                    VmaAllocationCreateInfo imageAllocInfo{};
+                    imageAllocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
+                    if (vmaCreateImage(cachedAllocator, &image_create_info, &imageAllocInfo, &m_Image, &m_ImageAllocation, nullptr)) {
+                        throw std::runtime_error("Failed to create image!");
                     }
 
-                    {
-                        VkCommandBufferBeginInfo beginInfo = {};
-                        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-                        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;  // One-time submission flag
-                        beginInfo.pInheritanceInfo = nullptr;
+                    // Copying data from staging buffer to image
+                    VkCommandBufferBeginInfo beginInfo = {};
+                    beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+                    beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+                    beginInfo.pInheritanceInfo = nullptr;
 
-                        if (vkBeginCommandBuffer(cmd, &beginInfo) != VK_SUCCESS) {
-                            throw std::runtime_error("failed to allocate command buffers!");
-                        }
+                    if (vkBeginCommandBuffer(copyCmd, &beginInfo) != VK_SUCCESS) {
+                        throw std::runtime_error("Failed to begin command buffer!");
                     }
 
                     VkImageSubresourceRange subresource_range = {};
@@ -508,187 +472,155 @@ namespace Brisk
                     subresource_range.levelCount = 1;
                     subresource_range.layerCount = 1;
 
-                    {
-                        VkImageMemoryBarrier image_memory_barrier{};
-                        image_memory_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-                        image_memory_barrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                        image_memory_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-                        image_memory_barrier.srcAccessMask = 0;
-                        image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-                        image_memory_barrier.image = m_Image;
-                        image_memory_barrier.subresourceRange = subresource_range;
-                        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
+                    // Transition image to TransferDst layout
+                    VkImageMemoryBarrier transferDstImageMemoryBarrier{};
+                    transferDstImageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+                    transferDstImageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                    transferDstImageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+                    transferDstImageMemoryBarrier.srcAccessMask = 0;
+                    transferDstImageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+                    transferDstImageMemoryBarrier.image = m_Image;
+                    transferDstImageMemoryBarrier.subresourceRange = subresource_range;
+                    vkCmdPipelineBarrier(copyCmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &transferDstImageMemoryBarrier);
+
+                    VkBufferImageCopy bufferRegion = {};
+                    bufferRegion.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                    bufferRegion.imageSubresource.mipLevel = 0;
+                    bufferRegion.imageSubresource.baseArrayLayer = 0;
+                    bufferRegion.imageSubresource.layerCount = 1;
+                    bufferRegion.imageExtent.width = m_Specs.p_Width;
+                    bufferRegion.imageExtent.height = m_Specs.p_Height;
+                    bufferRegion.imageExtent.depth = 1;
+
+                    vkCmdCopyBufferToImage(copyCmd, stagingBuffer, m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &bufferRegion);
+
+                    // Transition image to TransferSrc for generating mipmaps
+                    VkImageMemoryBarrier transferSrcImageMemoryBarrier{};
+                    transferSrcImageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+                    transferSrcImageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+                    transferSrcImageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+                    transferSrcImageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+                    transferSrcImageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+                    transferSrcImageMemoryBarrier.image = m_Image;
+                    transferSrcImageMemoryBarrier.subresourceRange = subresource_range;
+                    vkCmdPipelineBarrier(copyCmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &transferSrcImageMemoryBarrier);
+
+                    if (vkEndCommandBuffer(copyCmd) != VK_SUCCESS) {
+                        throw std::runtime_error("Failed to end command buffer!");
                     }
 
-                    VkBufferImageCopy buffer_copy_region = {};
-                    buffer_copy_region.imageSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-                    buffer_copy_region.imageSubresource.mipLevel = 0;
-                    buffer_copy_region.imageSubresource.baseArrayLayer = 0;
-                    buffer_copy_region.imageSubresource.layerCount = 1;
-                    buffer_copy_region.imageExtent.width = m_Specs.p_Width;
-                    buffer_copy_region.imageExtent.height = m_Specs.p_Height;
-                    buffer_copy_region.imageExtent.depth = 1;
+                    VkCommandBufferBeginInfo beginBlitInfo = {};
+                    beginBlitInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+                    beginBlitInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+                    beginBlitInfo.pInheritanceInfo = nullptr;
 
-                    vkCmdCopyBufferToImage(cmd, stagingBuffer, m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &buffer_copy_region);
-
-                    {
-                        VkImageMemoryBarrier image_memory_barrier{};
-                        image_memory_barrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-                        image_memory_barrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-                        image_memory_barrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-                        image_memory_barrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-                        image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-                        image_memory_barrier.image = m_Image;
-                        image_memory_barrier.subresourceRange = subresource_range;
-                        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
+                    if (vkBeginCommandBuffer(blitCmd, &beginBlitInfo) != VK_SUCCESS) {
+                        throw std::runtime_error("failed to allocate command buffers!");
                     }
 
+                    for (uint32_t i = 1; i < m_MipLevels; i++) {
+                        VkImageBlit imageBlit{};
 
+                        imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                        imageBlit.srcSubresource.layerCount = 1;
+                        imageBlit.srcSubresource.mipLevel = i - 1;
+                        imageBlit.srcOffsets[1].x = int32_t(m_Specs.p_Width >> (i - 1));
+                        imageBlit.srcOffsets[1].y = int32_t(m_Specs.p_Height >> (i - 1));
+                        imageBlit.srcOffsets[1].z = 1;
+
+                        imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                        imageBlit.dstSubresource.layerCount = 1;
+                        imageBlit.dstSubresource.mipLevel = i;
+                        imageBlit.dstOffsets[1].x = int32_t(m_Specs.p_Width >> i);
+                        imageBlit.dstOffsets[1].y = int32_t(m_Specs.p_Height >> i);
+                        imageBlit.dstOffsets[1].z = 1;
+
+                        VkImageSubresourceRange mipSubRange = {};
+                        mipSubRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+                        mipSubRange.baseMipLevel = i;
+                        mipSubRange.levelCount = 1;
+                        mipSubRange.layerCount = 1;
+
+                        VkImageMemoryBarrier mipTransferDstImageMemoryBarrier{};
+                        mipTransferDstImageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+                        mipTransferDstImageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                        mipTransferDstImageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+                        mipTransferDstImageMemoryBarrier.srcAccessMask = 0;
+                        mipTransferDstImageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+                        mipTransferDstImageMemoryBarrier.image = m_Image;
+                        mipTransferDstImageMemoryBarrier.subresourceRange = mipSubRange;
+                        vkCmdPipelineBarrier(blitCmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &mipTransferDstImageMemoryBarrier);
+
+                        vkCmdBlitImage(blitCmd, m_Image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageBlit, VK_FILTER_LINEAR);
+
+                        VkImageMemoryBarrier mipTransferSrcImageMemoryBarrier{};
+                        mipTransferSrcImageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+                        mipTransferSrcImageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
+                        mipTransferSrcImageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+                        mipTransferSrcImageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
+                        mipTransferSrcImageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+                        mipTransferSrcImageMemoryBarrier.image = m_Image;
+                        mipTransferSrcImageMemoryBarrier.subresourceRange = mipSubRange;
+                        vkCmdPipelineBarrier(blitCmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &mipTransferSrcImageMemoryBarrier);
+                    }
+
+                    subresource_range.levelCount = m_MipLevels;
+                    VkImageLayout layout;
+
+                    VkImageMemoryBarrier readOnlyImageMemoryBarrier{};
+                    readOnlyImageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
+                    readOnlyImageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
+                    readOnlyImageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                    readOnlyImageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
+                    readOnlyImageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
+                    readOnlyImageMemoryBarrier.image = m_Image;
+                    readOnlyImageMemoryBarrier.subresourceRange = subresource_range;
+                    vkCmdPipelineBarrier(blitCmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &readOnlyImageMemoryBarrier);
+
+                    if (vkEndCommandBuffer(blitCmd) != VK_SUCCESS) {
+                        throw std::runtime_error("Failed to end command buffer!");
+                    }
+
+                    // Submit copy cmd
                     {
-                        if (vkEndCommandBuffer(cmd) != VK_SUCCESS) {
-                            throw std::runtime_error("failed to allocate command buffers!");
-                        }
-
-                        VkSubmitInfo submitInfo = {};
-                        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+                        VkSubmitInfo submitInfo = { VK_STRUCTURE_TYPE_SUBMIT_INFO };
                         submitInfo.commandBufferCount = 1;
-                        submitInfo.pCommandBuffers = &cmd;
+                        submitInfo.pCommandBuffers = &copyCmd;
+                        submitInfo.signalSemaphoreCount = 1;
+                        submitInfo.pSignalSemaphores = &copyFinishedSemaphore;
 
-                        if (vkQueueSubmit(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue(), 1, &submitInfo, fence) != VK_SUCCESS) {
+                        if (vkQueueSubmit(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetTransferQueue(), 1, &submitInfo, fence) != VK_SUCCESS) {
                             throw std::runtime_error("failed to allocate command buffers!");
                         }
 
                         vkWaitForFences(deviceCached, 1, &fence, VK_TRUE, UINT64_MAX);
                         vkResetFences(deviceCached, 1, &fence);
-                        vkResetCommandBuffer(cmd, 0);
-                        vkDestroyBuffer(deviceCached, stagingBuffer, nullptr);
-                        vkFreeMemory(deviceCached, stagingMemory, nullptr);
-                        vkDestroyFence(deviceCached, fence, nullptr);
                     }
 
-                    // TODO: implement this
-                    //device->flushCommandBuffer(copyCmd, copyQueue, true);
-
-                    // Generate the mip chain (glTF uses jpg and png, so we need to create this manually)
-                    //VkCommandBuffer blit_cmd = m_graphics_device->CreateCommandBuffer(VK_COMMAND_BUFFER_LEVEL_PRIMARY, true);
-                    //for (uint32_t i = 1; i < m_mip_levels; i++) {
-                    //    VkImageBlit imageBlit{};
-
-                    //    imageBlit.srcSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-                    //    imageBlit.srcSubresource.layerCount = 1;
-                    //    imageBlit.srcSubresource.mipLevel = i - 1;
-                    //    imageBlit.srcOffsets[1].x = int32_t(m_width >> (i - 1));
-                    //    imageBlit.srcOffsets[1].y = int32_t(m_height >> (i - 1));
-                    //    imageBlit.srcOffsets[1].z = 1;
-
-                    //    imageBlit.dstSubresource.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-                    //    imageBlit.dstSubresource.layerCount = 1;
-                    //    imageBlit.dstSubresource.mipLevel = i;
-                    //    imageBlit.dstOffsets[1].x = int32_t(m_width >> i);
-                    //    imageBlit.dstOffsets[1].y = int32_t(m_height >> i);
-                    //    imageBlit.dstOffsets[1].z = 1;
-
-                    //    VkImageSubresourceRange mipSubRange = {};
-                    //    mipSubRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
-                    //    mipSubRange.baseMipLevel = i;
-                    //    mipSubRange.levelCount = 1;
-                    //    mipSubRange.layerCount = 1;
-
-                    //    {
-                    //        VkImageMemoryBarrier imageMemoryBarrier{};
-                    //        imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-                    //        imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_UNDEFINED;
-                    //        imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-                    //        imageMemoryBarrier.srcAccessMask = 0;
-                    //        imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-                    //        imageMemoryBarrier.image = m_texture_image;
-                    //        imageMemoryBarrier.subresourceRange = mipSubRange;
-                    //        vkCmdPipelineBarrier(blit_cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
-                    //    }
-
-                    //    vkCmdBlitImage(blit_cmd, m_texture_image, VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL, m_texture_image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &imageBlit, VK_FILTER_LINEAR);
-
-                    //    {
-                    //        VkImageMemoryBarrier imageMemoryBarrier{};
-                    //        imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-                    //        imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL;
-                    //        imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-                    //        imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
-                    //        imageMemoryBarrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-                    //        imageMemoryBarrier.image = m_texture_image;
-                    //        imageMemoryBarrier.subresourceRange = mipSubRange;
-                    //        vkCmdPipelineBarrier(blit_cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
-                    //    }
-                    //}
-
-                    VkCommandBufferBeginInfo beginBlitInfo = {};
-                    beginBlitInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-                    beginBlitInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;  // One-time submission flag
-                    beginBlitInfo.pInheritanceInfo = nullptr;
-
-                    if (vkBeginCommandBuffer(cmd, &beginBlitInfo) != VK_SUCCESS) {
-                        throw std::runtime_error("failed to allocate command buffers!");
-                    }
-
-                    //
-
-                    //subresource_range.levelCount = m_mip_levels;
-                    VkImageLayout layout;
-                    layout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-
+                    // Submit blit cmd
                     {
-                        VkImageMemoryBarrier imageMemoryBarrier{};
-                        imageMemoryBarrier.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
-                        imageMemoryBarrier.oldLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-                        imageMemoryBarrier.newLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                        imageMemoryBarrier.srcAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
-                        imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
-                        imageMemoryBarrier.image = m_Image;
-                        imageMemoryBarrier.subresourceRange = subresource_range;
-                        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
-                    }
-
-                    //m_graphics_device->FlushCommandBuffer(blit_cmd, copy_queue, true);
-                    {
-                        // Step 5: End Command Buffer Recording
-                        if (vkEndCommandBuffer(cmd) != VK_SUCCESS) {
-                            throw std::runtime_error("failed to allocate command buffers!");
-                        }
-
-                        VkSubmitInfo submitInfo = {};
-                        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+                        VkPipelineStageFlags waitStage = VK_PIPELINE_STAGE_TRANSFER_BIT;
+                        VkSubmitInfo submitInfo { VK_STRUCTURE_TYPE_SUBMIT_INFO };
                         submitInfo.commandBufferCount = 1;
-                        submitInfo.pCommandBuffers = &cmd;
+                        submitInfo.pCommandBuffers = &blitCmd;
+                        submitInfo.waitSemaphoreCount = 1;
+                        submitInfo.pWaitSemaphores = &copyFinishedSemaphore;
+                        submitInfo.pWaitDstStageMask = &waitStage;
 
-                        if (vkQueueSubmit(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
+                        if (vkQueueSubmit(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetTransferQueue(), 1, &submitInfo, fence) != VK_SUCCESS) {
                             throw std::runtime_error("failed to allocate command buffers!");
                         }
-                    }
 
-                    //if (m_Sampler == VK_NULL_HANDLE) {
-                    //    VkSamplerCreateInfo samplerInfo{};
-                    //    samplerInfo.sType = VK_STRUCTURE_TYPE_SAMPLER_CREATE_INFO;
-                    //    samplerInfo.magFilter = VkFilter::VK_FILTER_LINEAR;
-                    //    samplerInfo.minFilter = VkFilter::VK_FILTER_LINEAR;
-                    //    //samplerInfo.magFilter = (VkFilter)sampler.mag_filter;
-                    //    //samplerInfo.minFilter = (VkFilter)sampler.min_filter;
-                    //    samplerInfo.mipmapMode = VK_SAMPLER_MIPMAP_MODE_LINEAR;
-                    //    //samplerInfo.addressModeU = sampler.address_modeU;
-                    //    //samplerInfo.addressModeV = sampler.address_modeV;
-                    //    //samplerInfo.addressModeW = sampler.address_modeW;
-                    //    samplerInfo.addressModeU = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                    //    samplerInfo.addressModeV = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                    //    samplerInfo.addressModeW = VkSamplerAddressMode::VK_SAMPLER_ADDRESS_MODE_REPEAT;
-                    //    samplerInfo.compareOp = VK_COMPARE_OP_NEVER;
-                    //    samplerInfo.borderColor = VK_BORDER_COLOR_FLOAT_OPAQUE_WHITE;
-                    //    samplerInfo.maxAnisotropy = 1.0;
-                    //    samplerInfo.anisotropyEnable = VK_FALSE;
-                    //    samplerInfo.maxLod = (float)1;
-                    //    samplerInfo.maxAnisotropy = 8.0f;
-                    //    if (vkCreateSampler(m_DeviceCached, &samplerInfo, nullptr, &m_Sampler)) {
-                    //        throw std::runtime_error("failed to create sampler!");
-                    //    }
-                    //}
+                        vkWaitForFences(deviceCached, 1, &fence, VK_TRUE, UINT64_MAX);
+                        vkResetFences(deviceCached, 1, &fence);
+                    }
+                        
+                    vmaDestroyBuffer(cachedAllocator, stagingBuffer, stagingAllocation);
+                    vkResetCommandBuffer(copyCmd, 0);
+                    vkResetCommandBuffer(blitCmd, 0);
+                    vkDestroySemaphore(deviceCached, copyFinishedSemaphore, nullptr);
+                    vkDestroyFence(deviceCached, fence, nullptr);
+                    vkQueueWaitIdle(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetTransferQueue());
 
                     VkImageViewCreateInfo viewInfo{};
                     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -753,8 +685,9 @@ namespace Brisk
             vkDestroySampler(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_Sampler, nullptr);
             m_Sampler = VK_NULL_HANDLE;
         }
+
+        VmaAllocator cachedAllocator = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator();
+        vmaDestroyImage(cachedAllocator, m_Image, m_ImageAllocation);
         vkDestroyImageView(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_ImageView, nullptr);
-        vkDestroyImage(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_Image, nullptr);
-        vkFreeMemory(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_Memory, nullptr);
     }
 }

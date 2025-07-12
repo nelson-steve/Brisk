@@ -39,8 +39,9 @@ namespace Brisk
 	private:
 		VkDescriptorImageInfo m_Descriptor;
 		VkImage m_Image;
+		VmaAllocation m_ImageAllocation;
 		VkImageView m_ImageView;
-		VkDeviceMemory m_Memory;
+
 		// Just a workaround to only use 1 sampler
 		static VkSampler m_Sampler;
 		VkFormat m_Format;

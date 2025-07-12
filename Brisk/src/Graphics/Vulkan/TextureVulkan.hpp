@@ -45,7 +45,5 @@ namespace Brisk
 		static VkSampler m_Sampler;
 		VkFormat m_Format;
 		int m_MipLevels;
-
-		VkDevice m_DeviceCached;
 	};
 }

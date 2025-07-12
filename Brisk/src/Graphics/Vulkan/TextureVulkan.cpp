@@ -343,60 +343,79 @@ namespace Brisk
     }
 
     void TextureVulkan::Init(const fastgltf::Image& image, const fastgltf::Asset& asset) {
-        m_DeviceCached = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice();
+        VkDevice deviceCached = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice();
         VkPhysicalDevice physicalDevice = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetPhysicalDevice();
         int width;
         int height;
         int nrChannels;
         std::visit(fastgltf::visitor{
             [&](const std::monostate&) {
-                std::cout << "monostate::No image data.\n";
+                BRISK_CORE_ERROR("monostate::No image data : {}", image.name);
             },
             [&](const fastgltf::sources::URI&) {
-                std::cout << "URI::No image data.\n";
+                BRISK_CORE_ERROR("URI::No image data. : {}", image.name);
             },
             [&](const fastgltf::sources::Array& arrays) {
                 auto start = std::chrono::high_resolution_clock::now();
+
+                // Loading data from using stbi from memory
                 unsigned char* imageData = stbi_load_from_memory((stbi_uc*)arrays.bytes.data(),
                     static_cast<int>(arrays.bytes.size_bytes()),
                     &width, &height, &nrChannels, 4);
                 auto end = std::chrono::high_resolution_clock::now();
                 std::chrono::duration<double, std::milli> duration = end - start;
                 std::cout << "Time taken: " << duration.count() << " ms\n";
-                //int bufferSize = arrays.bytes.size_bytes();
                 int bufferSize = width * height * 4;
 
-                VkCommandBuffer oneTimeCmdBuffer;
+                VkCommandBuffer cmd;
                 VkCommandBufferAllocateInfo allocInfo = {};
                 allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
                 allocInfo.commandPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetCommandPool();
-                allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;  // Primary command buffer
+                allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
                 allocInfo.commandBufferCount = 1;
 
-                if (vkAllocateCommandBuffers(m_DeviceCached, &allocInfo, &oneTimeCmdBuffer) != VK_SUCCESS) {
-                    throw std::runtime_error("failed to allocate command buffers!");
+                if (vkAllocateCommandBuffers(deviceCached, &allocInfo, &cmd) != VK_SUCCESS) {
+                    throw std::runtime_error("Failed to allocate command buffer!");
                 }
 
                 VkFence fence;
-                VkFenceCreateInfo fenceCreateInfo = {};
-                fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-
-                VkResult result = vkCreateFence(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &fenceCreateInfo, nullptr, &fence);
-                if (result != VK_SUCCESS) {
+                VkFenceCreateInfo fenceCreateInfo { VK_STRUCTURE_TYPE_FENCE_CREATE_INFO };
+                if (vkCreateFence(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &fenceCreateInfo, nullptr, &fence) != VK_SUCCESS) {
                     throw std::runtime_error("Failed to create fence");
                 }
 
-                if (imageData) {
-                    VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
-                    VkFormatProperties formatProperties;
+                VmaAllocator cachedAllocator = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator();
 
+                if (imageData) {
                     m_Specs.p_Width = width;
                     m_Specs.p_Height = height;
-                    //m_MipLevels = static_cast<uint32_t>(floor(log2(std::max(width, height))) + 1.0);
 
+                    // Calculating mip levels based on width and height
+                    m_MipLevels = static_cast<uint32_t>(floor(log2(std::max(width, height))) + 1.0);
+
+                    VkFormat format = VK_FORMAT_R8G8B8A8_UNORM;
+                    VkFormatProperties formatProperties;
                     vkGetPhysicalDeviceFormatProperties(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetPhysicalDevice(), format, &formatProperties);
                     assert(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_SRC_BIT);
                     assert(formatProperties.optimalTilingFeatures & VK_FORMAT_FEATURE_BLIT_DST_BIT);
+
+                    {
+                        // Create staging buffer
+                        VkBufferCreateInfo stagingBufferInfo{};
+                        stagingBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+                        stagingBufferInfo.size = bufferSize;
+                        stagingBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+                        stagingBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+                        VmaAllocationCreateInfo stagingAllocInfo{};
+                        stagingAllocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
+
+                        VkBuffer stagingBuffer;
+                        VmaAllocation stagingAllocation;
+                        if (vmaCreateBuffer(cachedAllocator, &stagingBufferInfo, &stagingAllocInfo, &stagingBuffer, &stagingAllocation, nullptr) != VK_SUCCESS) {
+                            throw std::runtime_error("Failed to create staging buffer");
+                        }
+                    }
 
                     VkMemoryAllocateInfo memAllocInfo{};
                     memAllocInfo.sType = VK_STRUCTURE_TYPE_MEMORY_ALLOCATE_INFO;
@@ -410,7 +429,7 @@ namespace Brisk
                     bufferCreateInfo.size = bufferSize;
                     bufferCreateInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
                     bufferCreateInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
-                    if (vkCreateBuffer(m_DeviceCached, &bufferCreateInfo, nullptr, &stagingBuffer)) {
+                    if (vkCreateBuffer(deviceCached, &bufferCreateInfo, nullptr, &stagingBuffer)) {
                         throw std::runtime_error("failed to create buffer!");
                     }
 
@@ -424,29 +443,28 @@ namespace Brisk
                     vkSetDebugUtilsObjectNameEXT(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
 #endif
 
-                    vkGetBufferMemoryRequirements(m_DeviceCached, stagingBuffer, &memReqs);
+                    vkGetBufferMemoryRequirements(deviceCached, stagingBuffer, &memReqs);
                     memAllocInfo.allocationSize = memReqs.size;
                     memAllocInfo.memoryTypeIndex = UtilitiesVulkan::FindMemoryType(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetPhysicalDevice(), memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_HOST_VISIBLE_BIT | VK_MEMORY_PROPERTY_HOST_COHERENT_BIT);
-                    if (vkAllocateMemory(m_DeviceCached, &memAllocInfo, nullptr, &stagingMemory)) {
+                    if (vkAllocateMemory(deviceCached, &memAllocInfo, nullptr, &stagingMemory)) {
                         throw std::runtime_error("failed to load texture image!");
                     }
-                    if (vkBindBufferMemory(m_DeviceCached, stagingBuffer, stagingMemory, 0)) {
+                    if (vkBindBufferMemory(deviceCached, stagingBuffer, stagingMemory, 0)) {
                         throw std::runtime_error("failed to load texture image!");
                     }
 
                     uint8_t* data;
-                    if (vkMapMemory(m_DeviceCached, stagingMemory, 0, memReqs.size, 0, (void**)&data)) {
+                    if (vkMapMemory(deviceCached, stagingMemory, 0, memReqs.size, 0, (void**)&data)) {
                         throw std::runtime_error("failed to map memory!");
                     }
                     memcpy(data, imageData, bufferSize);
-                    vkUnmapMemory(m_DeviceCached, stagingMemory);
+                    vkUnmapMemory(deviceCached, stagingMemory);
 
                     VkImageCreateInfo image_create_info{};
                     image_create_info.sType = VK_STRUCTURE_TYPE_IMAGE_CREATE_INFO;
                     image_create_info.imageType = VK_IMAGE_TYPE_2D;
                     image_create_info.format = format;
-                    //image_create_info.mipLevels = m_mip_levels;
-                    image_create_info.mipLevels = 1;
+                    image_create_info.mipLevels = m_MipLevels;
                     image_create_info.arrayLayers = 1;
                     image_create_info.samples = VK_SAMPLE_COUNT_1_BIT;
                     image_create_info.tiling = VK_IMAGE_TILING_OPTIMAL;
@@ -457,16 +475,20 @@ namespace Brisk
                     image_create_info.extent.height = m_Specs.p_Height;
                     image_create_info.extent.depth = 1;
                     image_create_info.usage = VK_IMAGE_USAGE_TRANSFER_DST_BIT | VK_IMAGE_USAGE_TRANSFER_SRC_BIT | VK_IMAGE_USAGE_SAMPLED_BIT;
-                    if (vkCreateImage(m_DeviceCached, &image_create_info, nullptr, &m_Image)) {
+
+                    VmaAllocationCreateInfo vmaAllocInfo{};
+                    vmaAllocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
+                    VmaAllocation stagingAllocation;
+                    if (vmaCreateImage(cachedAllocator, &image_create_info, &vmaAllocInfo, &m_Image, &stagingAllocation, nullptr)) {
                         throw std::runtime_error("failed to create image!");
                     }
-                    vkGetImageMemoryRequirements(m_DeviceCached, m_Image, &memReqs);
+                    vkGetImageMemoryRequirements(deviceCached, m_Image, &memReqs);
                     memAllocInfo.allocationSize = memReqs.size;
                     memAllocInfo.memoryTypeIndex = UtilitiesVulkan::FindMemoryType(physicalDevice, memReqs.memoryTypeBits, VK_MEMORY_PROPERTY_DEVICE_LOCAL_BIT);
-                    if (vkAllocateMemory(m_DeviceCached, &memAllocInfo, nullptr, &m_Memory)) {
+                    if (vkAllocateMemory(deviceCached, &memAllocInfo, nullptr, &m_Memory)) {
                         throw std::runtime_error("failed to allocate memory!");
                     }
-                    if (vkBindImageMemory(m_DeviceCached, m_Image, m_Memory, 0)) {
+                    if (vkBindImageMemory(deviceCached, m_Image, m_Memory, 0)) {
                         throw std::runtime_error("failed to find memory!");
                     }
 
@@ -476,7 +498,7 @@ namespace Brisk
                         beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;  // One-time submission flag
                         beginInfo.pInheritanceInfo = nullptr;
 
-                        if (vkBeginCommandBuffer(oneTimeCmdBuffer, &beginInfo) != VK_SUCCESS) {
+                        if (vkBeginCommandBuffer(cmd, &beginInfo) != VK_SUCCESS) {
                             throw std::runtime_error("failed to allocate command buffers!");
                         }
                     }
@@ -495,7 +517,7 @@ namespace Brisk
                         image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_WRITE_BIT;
                         image_memory_barrier.image = m_Image;
                         image_memory_barrier.subresourceRange = subresource_range;
-                        vkCmdPipelineBarrier(oneTimeCmdBuffer, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
+                        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
                     }
 
                     VkBufferImageCopy buffer_copy_region = {};
@@ -507,7 +529,7 @@ namespace Brisk
                     buffer_copy_region.imageExtent.height = m_Specs.p_Height;
                     buffer_copy_region.imageExtent.depth = 1;
 
-                    vkCmdCopyBufferToImage(oneTimeCmdBuffer, stagingBuffer, m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &buffer_copy_region);
+                    vkCmdCopyBufferToImage(cmd, stagingBuffer, m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &buffer_copy_region);
 
                     {
                         VkImageMemoryBarrier image_memory_barrier{};
@@ -518,30 +540,30 @@ namespace Brisk
                         image_memory_barrier.dstAccessMask = VK_ACCESS_TRANSFER_READ_BIT;
                         image_memory_barrier.image = m_Image;
                         image_memory_barrier.subresourceRange = subresource_range;
-                        vkCmdPipelineBarrier(oneTimeCmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
+                        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_TRANSFER_BIT, 0, 0, nullptr, 0, nullptr, 1, &image_memory_barrier);
                     }
 
 
                     {
-                        if (vkEndCommandBuffer(oneTimeCmdBuffer) != VK_SUCCESS) {
+                        if (vkEndCommandBuffer(cmd) != VK_SUCCESS) {
                             throw std::runtime_error("failed to allocate command buffers!");
                         }
 
                         VkSubmitInfo submitInfo = {};
                         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
                         submitInfo.commandBufferCount = 1;
-                        submitInfo.pCommandBuffers = &oneTimeCmdBuffer;
+                        submitInfo.pCommandBuffers = &cmd;
 
                         if (vkQueueSubmit(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue(), 1, &submitInfo, fence) != VK_SUCCESS) {
                             throw std::runtime_error("failed to allocate command buffers!");
                         }
 
-                        vkWaitForFences(m_DeviceCached, 1, &fence, VK_TRUE, UINT64_MAX);
-                        vkResetFences(m_DeviceCached, 1, &fence);
-                        vkResetCommandBuffer(oneTimeCmdBuffer, 0);
-                        vkDestroyBuffer(m_DeviceCached, stagingBuffer, nullptr);
-                        vkFreeMemory(m_DeviceCached, stagingMemory, nullptr);
-                        vkDestroyFence(m_DeviceCached, fence, nullptr);
+                        vkWaitForFences(deviceCached, 1, &fence, VK_TRUE, UINT64_MAX);
+                        vkResetFences(deviceCached, 1, &fence);
+                        vkResetCommandBuffer(cmd, 0);
+                        vkDestroyBuffer(deviceCached, stagingBuffer, nullptr);
+                        vkFreeMemory(deviceCached, stagingMemory, nullptr);
+                        vkDestroyFence(deviceCached, fence, nullptr);
                     }
 
                     // TODO: implement this
@@ -604,7 +626,7 @@ namespace Brisk
                     beginBlitInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;  // One-time submission flag
                     beginBlitInfo.pInheritanceInfo = nullptr;
 
-                    if (vkBeginCommandBuffer(oneTimeCmdBuffer, &beginBlitInfo) != VK_SUCCESS) {
+                    if (vkBeginCommandBuffer(cmd, &beginBlitInfo) != VK_SUCCESS) {
                         throw std::runtime_error("failed to allocate command buffers!");
                     }
 
@@ -623,20 +645,20 @@ namespace Brisk
                         imageMemoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT;
                         imageMemoryBarrier.image = m_Image;
                         imageMemoryBarrier.subresourceRange = subresource_range;
-                        vkCmdPipelineBarrier(oneTimeCmdBuffer, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
+                        vkCmdPipelineBarrier(cmd, VK_PIPELINE_STAGE_TRANSFER_BIT, VK_PIPELINE_STAGE_FRAGMENT_SHADER_BIT, 0, 0, nullptr, 0, nullptr, 1, &imageMemoryBarrier);
                     }
 
                     //m_graphics_device->FlushCommandBuffer(blit_cmd, copy_queue, true);
                     {
                         // Step 5: End Command Buffer Recording
-                        if (vkEndCommandBuffer(oneTimeCmdBuffer) != VK_SUCCESS) {
+                        if (vkEndCommandBuffer(cmd) != VK_SUCCESS) {
                             throw std::runtime_error("failed to allocate command buffers!");
                         }
 
                         VkSubmitInfo submitInfo = {};
                         submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
                         submitInfo.commandBufferCount = 1;
-                        submitInfo.pCommandBuffers = &oneTimeCmdBuffer;
+                        submitInfo.pCommandBuffers = &cmd;
 
                         if (vkQueueSubmit(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE) != VK_SUCCESS) {
                             throw std::runtime_error("failed to allocate command buffers!");
@@ -677,7 +699,7 @@ namespace Brisk
                     viewInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
                     viewInfo.subresourceRange.layerCount = 1;
                     viewInfo.subresourceRange.levelCount = 1;
-                    if (vkCreateImageView(m_DeviceCached, &viewInfo, nullptr, &m_ImageView)) {
+                    if (vkCreateImageView(deviceCached, &viewInfo, nullptr, &m_ImageView)) {
                         throw std::runtime_error("failed to create image view!");
                     }
 

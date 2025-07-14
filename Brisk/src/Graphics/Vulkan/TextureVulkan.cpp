@@ -564,7 +564,7 @@ namespace Brisk
                         submitInfo.signalSemaphoreCount = 1;
                         submitInfo.pSignalSemaphores = &copyFinishedSemaphore;
 
-                        if (vkQueueSubmit(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetTransferQueue(), 1, &submitInfo, fence) != VK_SUCCESS) {
+                        if (vkQueueSubmit(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue(), 1, &submitInfo, fence) != VK_SUCCESS) {
                             throw std::runtime_error("Failed to submit copy command!");
                         }
 
@@ -582,7 +582,7 @@ namespace Brisk
                         submitInfo.pWaitSemaphores = &copyFinishedSemaphore;
                         submitInfo.pWaitDstStageMask = &waitStage;
 
-                        if (vkQueueSubmit(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetTransferQueue(), 1, &submitInfo, fence) != VK_SUCCESS) {
+                        if (vkQueueSubmit(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue(), 1, &submitInfo, fence) != VK_SUCCESS) {
                             throw std::runtime_error("Failed to submit blit command!");
                         }
 
@@ -595,7 +595,7 @@ namespace Brisk
                     vkResetCommandBuffer(blitCmd, 0);
                     vkDestroySemaphore(deviceCached, copyFinishedSemaphore, nullptr);
                     vkDestroyFence(deviceCached, fence, nullptr);
-                    vkQueueWaitIdle(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetTransferQueue());
+                    vkQueueWaitIdle(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue());
 
                     VkImageViewCreateInfo viewInfo{};
                     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;

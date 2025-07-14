@@ -171,7 +171,7 @@ namespace Brisk
         VkPipelineDepthStencilStateCreateInfo depthStencil{ VK_STRUCTURE_TYPE_PIPELINE_DEPTH_STENCIL_STATE_CREATE_INFO };
         depthStencil.depthTestEnable = specs.pDepthTestEnable;
         depthStencil.depthWriteEnable = specs.pDepthWriteEnable;
-        depthStencil.depthCompareOp = VK_COMPARE_OP_LESS;
+        depthStencil.depthCompareOp = specs.pCompareOp == CompareOp::COMPARE_OP_LESS ? VK_COMPARE_OP_LESS : VK_COMPARE_OP_LESS_OR_EQUAL;
         depthStencil.depthBoundsTestEnable = specs.pDepthBoundsTestEnable;
         depthStencil.stencilTestEnable = specs.pStencilTestEnable;
         depthStencil.back.compareOp = VK_COMPARE_OP_ALWAYS;

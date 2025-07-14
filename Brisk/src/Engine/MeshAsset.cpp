@@ -139,10 +139,10 @@ namespace Brisk {
 
 				const fastgltf::Attribute* positionIt = it->findAttribute("POSITION");
 				const fastgltf::Attribute* normalIt = it->findAttribute("NORMAL");
-				const fastgltf::Attribute* tangentIt = it->findAttribute("TANGENT"); // The W component of each TANGENT accessor element MUST be set to 1.0 or -1.0
 				const fastgltf::Attribute* texCoord0It = it->findAttribute("TEXCOORD_0");
 				const fastgltf::Attribute* texCoord1It = it->findAttribute("TEXCOORD_1");
 				const fastgltf::Attribute* colorIt = it->findAttribute("COLOR_0");
+				const fastgltf::Attribute* tangentIt = it->findAttribute("TANGENT"); // The W component of each TANGENT accessor element MUST be set to 1.0 or -1.0
 				const fastgltf::Attribute* jointsIt = it->findAttribute("JOINTS_0");
 				const fastgltf::Attribute* weightsIt = it->findAttribute("WEIGHTS_0");
 
@@ -209,25 +209,117 @@ namespace Brisk {
 					}
 				}
 
+				// Load color
+				std::vector<fastgltf::math::fvec3> color;
+				bool hasColor = (colorIt != it->attributes.end());
+				if (hasColor) {
+					auto& colorAccessor = asset.accessors[colorIt->accessorIndex];
+					if (colorAccessor.componentType == fastgltf::ComponentType::Float &&
+						colorAccessor.type == fastgltf::AccessorType::Vec3 &&
+						colorAccessor.bufferViewIndex.has_value()) {
+						color.resize(colorAccessor.count);
+						fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, colorAccessor, color.data());
+					}
+					else {
+						hasColor = false;
+					}
+				}
+
+				// Load tangent
+				std::vector<fastgltf::math::fvec4> tangent;
+				bool hasTangent = (tangentIt != it->attributes.end());
+				if (hasTangent) {
+					auto& tangentAccessor = asset.accessors[tangentIt->accessorIndex];
+					if (tangentAccessor.componentType == fastgltf::ComponentType::Float &&
+						tangentAccessor.type == fastgltf::AccessorType::Vec4 &&
+						tangentAccessor.bufferViewIndex.has_value()) {
+						tangent.resize(tangentAccessor.count);
+						fastgltf::copyFromAccessor<fastgltf::math::fvec4>(asset, tangentAccessor, tangent.data());
+					}
+					else {
+						hasTangent = false;
+					}
+				}
+
+				// Load tangent
+				std::vector<fastgltf::math::uvec4> jointIndices;
+				bool hasjointIndices = (jointsIt != it->attributes.end());
+				if (hasjointIndices) {
+					auto& jointIndicesAccessor = asset.accessors[jointsIt->accessorIndex];
+					if (jointIndicesAccessor.componentType == fastgltf::ComponentType::UnsignedInt &&
+						jointIndicesAccessor.type == fastgltf::AccessorType::Vec4 &&
+						jointIndicesAccessor.bufferViewIndex.has_value()) {
+						jointIndices.resize(jointIndicesAccessor.count);
+						fastgltf::copyFromAccessor<fastgltf::math::uvec4>(asset, jointIndicesAccessor, jointIndices.data());
+					}
+					else {
+						hasjointIndices = false;
+					}
+				}
+
+				// Load tangent
+				std::vector<fastgltf::math::uvec4> jointWeights;
+				bool hasjointWeights = (weightsIt != it->attributes.end());
+				if (hasjointWeights) {
+					auto& jointWeightsAccessor = asset.accessors[weightsIt->accessorIndex];
+					if (jointWeightsAccessor.componentType == fastgltf::ComponentType::UnsignedInt &&
+						jointWeightsAccessor.type == fastgltf::AccessorType::Vec4 &&
+						jointWeightsAccessor.bufferViewIndex.has_value()) {
+						jointWeights.resize(jointWeightsAccessor.count);
+						fastgltf::copyFromAccessor<fastgltf::math::uvec4>(asset, jointWeightsAccessor, jointWeights.data());
+					}
+					else {
+						hasjointWeights = false;
+					}
+				}
+
 				// Combine into vertex struct
 				for (size_t i = 0; i < positions.size(); ++i) {
 					MeshData data{};
+					// Positions
 					data.Position = glm::vec3(positions[i].x(), positions[i].y(), positions[i].z());
 
+					// Normals
 					if (hasNormals && i < normals.size())
 						data.Normal = glm::vec3(normals[i].x(), normals[i].y(), normals[i].z());
 					else
 						data.Normal = glm::vec3(0.0f);
 
+					//  UV0
 					if (hasTexcoords0 && i < texcoords0.size())
 						data.UV0 = glm::vec2(texcoords0[i].x(), texcoords0[i].y());
 					else
 						data.UV0 = glm::vec2(0.0f);
 
-					//if (hasTexcoords1 && i < texcoords1.size())
-					//	data.UV1 = glm::vec2(texcoords1[i].x(), texcoords1[i].y());
-					//else
-					//	data.UV1 = glm::vec2(0.0f);
+					// UV1
+					if (hasTexcoords1 && i < texcoords1.size())
+						data.UV1 = glm::vec2(texcoords1[i].x(), texcoords1[i].y());
+					else
+						data.UV1 = glm::vec2(0.0f);
+
+					// Colors
+					if (hasColor && i < color.size())
+						data.Color = glm::vec3(color[i].x(), color[i].y(), color[i].z());
+					else
+						data.Color = glm::vec3(0.0f);
+
+					// Tangents
+					if (hasTangent && i < tangent.size())
+						data.Tangent = glm::vec4(tangent[i].x(), tangent[i].y(), tangent[i].z(), tangent[i].w());
+					else
+						data.Tangent = glm::vec4(0.0f);
+
+					// JointIndices
+					if (hasjointIndices && i < jointIndices.size())
+						data.JointIndices = glm::uvec4(jointIndices[i].x(), jointIndices[i].y(), jointIndices[i].z(), jointIndices[i].w());
+					else
+						data.JointIndices = glm::uvec4(0.0f);
+
+					// JointWeights
+					if (hasjointWeights && i < jointWeights.size())
+						data.JointWeights = glm::vec4(jointWeights[i].x(), jointWeights[i].y(), jointWeights[i].z(), jointWeights[i].w());
+					else
+						data.JointWeights = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
 					vertexCount++;
 					vertexPos++;

@@ -51,11 +51,23 @@ namespace Brisk
 		Core::PipelineStage dstStage = Core::PipelineStage::None;
 	};
 
+	enum class LoadOp {
+		Clear,
+		Load,
+		DontCare
+	};
+
+	enum class StoreOp {
+		Store,
+		DontCare
+	};
 
 	struct RenderPassAttachment {
 		uint32_t pBinding;
 		AttachmentType pAttachmentType;
 		std::shared_ptr<Texture> pImage;
+		LoadOp pLoadOp;
+		StoreOp pStoreOp;
 	};
 
 	class RenderPass {

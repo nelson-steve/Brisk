@@ -25,24 +25,24 @@ namespace Brisk
 
         Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::SceneLightsUBO, nullptr, m_LightsUBO, 0);
 
-        glm::vec3 lightDir = glm::normalize(glm::vec3(0.0f, 0.0f, -10.0f)); // example
-        float range = 10.0f;
-        float distance = 200.0f;
+        glm::vec3 lightDir = glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f));
+        float distance = 2000.0f;
+
+        glm::vec3 up = glm::abs(glm::dot(lightDir, glm::vec3(0, 1, 0))) > 0.99f
+            ? glm::vec3(0, 0, 1)
+            : glm::vec3(0, 1, 0);
+
+        glm::vec3 lightPos = -lightDir * distance;
+        glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), up);
+
+        float orthoRange = 500.0f;
         float nearPlane = 0.1f;
         float farPlane = 1000.0f;
+        glm::mat4 lightProj = glm::ortho(-orthoRange, orthoRange, -orthoRange, orthoRange, nearPlane, farPlane);
 
-
-        glm::mat4 lightView = glm::lookAt(
-            -lightDir * distance,  // light position
-            glm::vec3(0.0f),
-            glm::vec3(0.0f, 1.0f, 0.0f)  // up vector
-        );
-
-        glm::mat4 lightProjection = glm::ortho(-range, range, -range, range, nearPlane, farPlane);
-
-        LightsMVP mvp{};
-        mvp.ViewProjection = lightProjection * lightView;
-        mvp.Model = glm::mat4(1.0f); // Or your object model matrix if needed
+        LightsMVP mvp{};    
+        mvp.ViewProjection = lightProj * lightView;
+        mvp.Model = glm::mat4(1.0f);
         m_LightsUBO->UpdatePersistantData(sizeof(LightsMVP), &mvp);
 
         // Renderpasses
@@ -74,17 +74,26 @@ namespace Brisk
                         Core::PipelineStage::BottomOfPipe, // src stage
                         Core::PipelineStage::EarlyFragmentTest // dst stage
                     },
+                    RenderPassDependency {
+                        0,
+                        -1,
+                        Core::AccessType::DepthStencilWrite, // src access
+                        Core::AccessType::DepthStencilRead, // dst access
+                        Core::PipelineStage::LateFragmentTest, // src stage
+                        Core::PipelineStage::EarlyFragmentTest // dst stage
+                    },
                     //RenderPassDependency {
-                    //    0, 
-                    //    0, 
-                    //    Core::AccessType::DepthStencilWrite,  // src access 
-                    //    Core::AccessType::DepthStencilWrite,  // dst access 
-                    //    Core::PipelineStage::EarlyFragmentTest, // src stage
-                    //    Core::PipelineStage::EarlyFragmentTest, // dst stage
-                    //}
+                    //    0,
+                    //    0,
+                    //    Core::AccessType::DepthStencilWrite, // src access
+                    //    Core::AccessType::DepthStencilWrite, // dst access
+                    //    Core::PipelineStage::LateFragmentTest, // src stage
+                    //    Core::PipelineStage::LateFragmentTest // dst stage
+                    //},
+
                 },
                 {   
-                    RenderPassAttachment{ 0, AttachmentType::Depth, m_DepthPre  }
+                    RenderPassAttachment{ 0, AttachmentType::Depth, m_DepthPre, LoadOp::Clear, StoreOp::Store }
                 }
             );
 
@@ -117,7 +126,7 @@ namespace Brisk
                     },
                 },
                 {
-                    RenderPassAttachment{ 0, AttachmentType::Depth, m_ShadowMap  }
+                    RenderPassAttachment{ 0, AttachmentType::Depth, m_ShadowMap, LoadOp::Clear, StoreOp::Store }
                 }
             );
 
@@ -128,7 +137,6 @@ namespace Brisk
             m_Albedo = Texture::Create();
             m_Material = Texture::Create();
             m_Emissive = Texture::Create();
-            //m_Depth = Texture::Create();
 
             {
                 Texture::TextureSpecification specs{};
@@ -139,7 +147,6 @@ namespace Brisk
                 specs.p_Usage = Core::TextureUsage::ImageUsageDepthStencilAttachment    ;
                 specs.p_Format = Core::Format::FORMAT_D16_UNORM;
                 specs.p_IsDepth = true;
-                //m_Depth->Init(specs);
 
                 specs.p_IsDepth = false;
                 specs.p_DebugName = "m_Pos";
@@ -170,14 +177,6 @@ namespace Brisk
                     RenderPassDependency {
                         -1,
                         0,
-                        Core::AccessType::DepthStencilWrite, // src access
-                        Core::AccessType::DepthStencilRead, // dst access
-                        Core::PipelineStage::LateFragmentTest, // src stage
-                        Core::PipelineStage::EarlyFragmentTest // dst stage
-                    },
-                    RenderPassDependency {
-                        -1,
-                        0,
                         Core::AccessType::None, // src access
                         Core::AccessType::ColorAttachmentWrite, // dst access
                         Core::PipelineStage::ColorAttachment, // src stage
@@ -193,12 +192,12 @@ namespace Brisk
                     },
                 },
                 {   
-                    RenderPassAttachment{ 0, AttachmentType::Color, m_Pos    },
-                    RenderPassAttachment{ 1, AttachmentType::Color, m_Normal },
-                    RenderPassAttachment{ 2, AttachmentType::Color, m_Albedo },
-                    RenderPassAttachment{ 3, AttachmentType::Color, m_Material },
-                    RenderPassAttachment{ 4, AttachmentType::Color, m_Emissive },
-                    //RenderPassAttachment{ 5, AttachmentType::Depth, m_Depth },
+                    RenderPassAttachment{ 0, AttachmentType::Color, m_Pos,      LoadOp::Clear, StoreOp::Store    },
+                    RenderPassAttachment{ 1, AttachmentType::Color, m_Normal,   LoadOp::Clear, StoreOp::Store    },
+                    RenderPassAttachment{ 2, AttachmentType::Color, m_Albedo,   LoadOp::Clear, StoreOp::Store    },
+                    RenderPassAttachment{ 3, AttachmentType::Color, m_Material, LoadOp::Clear, StoreOp::Store    },
+                    RenderPassAttachment{ 4, AttachmentType::Color, m_Emissive, LoadOp::Clear, StoreOp::Store    },
+                    RenderPassAttachment{ 5, AttachmentType::Depth, m_DepthPre, LoadOp::Load, StoreOp::DontCare  },
                 }
             );
 
@@ -228,22 +227,6 @@ namespace Brisk
                         Core::PipelineStage::ColorAttachment // dst stage
                     },
                     RenderPassDependency {
-                        -1,
-                        0,
-                        Core::AccessType::ColorAttachmentWrite, // src access
-                        Core::AccessType::ShaderRead, // dst access
-                        Core::PipelineStage::ColorAttachment, // src stage
-                        Core::PipelineStage::FragmentShader // dst stage
-                    },
-                    RenderPassDependency {
-                        -1,
-                        0,
-                        Core::AccessType::ColorAttachmentWrite, // src access
-                        Core::AccessType::ShaderRead, // dst access
-                        Core::PipelineStage::ColorAttachment, // src stage
-                        Core::PipelineStage::FragmentShader // dst stage
-                    },
-                    RenderPassDependency {
                         0,
                         -1,
                         Core::AccessType::ColorAttachmentWrite, // src access
@@ -253,7 +236,7 @@ namespace Brisk
                     },
                 },
                 {
-                    RenderPassAttachment{ 0, AttachmentType::Color, m_LightingOutput }
+                    RenderPassAttachment{ 0, AttachmentType::Color, m_LightingOutput, LoadOp::Clear, StoreOp::Store }
                 }
             );
 
@@ -280,7 +263,7 @@ namespace Brisk
                     },
                 },
                 {
-                    RenderPassAttachment{ 0, AttachmentType::Swapchain, nullptr }
+                    RenderPassAttachment{ 0, AttachmentType::Swapchain, nullptr, LoadOp::Clear, StoreOp::Store }
                 }
             );
         }
@@ -365,11 +348,14 @@ namespace Brisk
                 vertexLayout.pBinding = 0;
                 vertexLayout.pStride = sizeof(MeshAsset::MeshData);
                 vertexLayout.pAttributes = {
-                    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Position)},
-                    {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Normal)},
-                    {0, 2, Core::Format::FORMAT_R32G32_SFLOAT,    offsetof(MeshAsset::MeshData, MeshAsset::MeshData::UV0)},
-                    //{0, 3, Core::Format::FORMAT_R32G32_SFLOAT,    offsetof(MeshAsset::MeshData, MeshAsset::MeshData::UV1)},
-                    //{0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Color)},
+                    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Position)},
+                    {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Normal)},
+                    {0, 2, Core::Format::FORMAT_R32G32_SFLOAT,       offsetof(MeshAsset::MeshData, MeshAsset::MeshData::UV0)},
+                    {0, 3, Core::Format::FORMAT_R32G32_SFLOAT,       offsetof(MeshAsset::MeshData, MeshAsset::MeshData::UV1)},
+                    {0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Color)},
+                    {0, 5, Core::Format::FORMAT_R32G32B32A32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Tangent)},
+                    {0, 6, Core::Format::FORMAT_R32G32B32A32_UINT,   offsetof(MeshAsset::MeshData, MeshAsset::MeshData::JointIndices)},
+                    {0, 7, Core::Format::FORMAT_R32G32B32A32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::JointWeights)},
                 };
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_GeometryBufferPass;
@@ -386,7 +372,7 @@ namespace Brisk
                 pipelineSpecs.pDepthBiasEnable = false;
                 pipelineSpecs.pDepthTestEnable = true;
                 pipelineSpecs.pDepthWriteEnable = false;
-                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS;
+                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_EQUAL;
                 pipelineSpecs.pDepthBoundsTestEnable = false;
                 pipelineSpecs.pStencilTestEnable = false;
                 pipelineSpecs.pDebugName = "GeometryPass pipeline";
@@ -476,6 +462,19 @@ namespace Brisk
         m_CmdBuffer->Reset();
         m_CmdBuffer->Bind();
 
+        // --- SHADOW MAP PASS ---------------------------
+        //------------------------------------------------------------------------------------------------------------------------------------------------
+        m_ShadowMapPass->Begin(m_CmdBuffer);
+        m_ShadowMapPipeline->Bind(m_CmdBuffer);
+
+        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_ShadowMap->GetWidth(), m_ShadowMap->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_ShadowMap->GetWidth(), m_ShadowMap->GetHeight());
+
+        Render(false);
+
+        m_ShadowMapPass->End(m_CmdBuffer);
+        //------------------------------------------------------------------------------------------------------------------------------------------------
+
         // --- DEPTH PRE PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_DepthPrePass->Begin(m_CmdBuffer);
@@ -491,18 +490,14 @@ namespace Brisk
         m_DepthPrePass->End(m_CmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------
 
-        // --- SHADOW MAP PASS ---------------------------
-        //------------------------------------------------------------------------------------------------------------------------------------------------
-        m_ShadowMapPass->Begin(m_CmdBuffer);
-        m_ShadowMapPipeline->Bind(m_CmdBuffer);
-
-        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_ShadowMap->GetWidth(), m_ShadowMap->GetHeight(), 0, 1);
-        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_ShadowMap->GetWidth(), m_ShadowMap->GetHeight());
-
-        Render(false);
-
-        m_ShadowMapPass->End(m_CmdBuffer);
-        //------------------------------------------------------------------------------------------------------------------------------------------------
+        //Texture::ImageBarrierParams params{};
+        //params.oldLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
+        //params.newLayout = Core::ImageLayout::DepthStencilReadOnlyOptimal;
+        //params.srcAccess = Core::AccessType::DepthStencilWrite;
+        //params.dstAccess = Core::AccessType::DepthStencilRead;
+        //params.srcStage = Core::PipelineStage::LateFragmentTest;
+        //params.dstStage = Core::PipelineStage::EarlyFragmentTest;
+        //m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
 
         // --- GBUFFER PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------

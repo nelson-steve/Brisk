@@ -36,13 +36,23 @@ namespace Brisk
 			/* 6 */"../Data/Models/cerberus/cerberus.gltf",
 			/* 7 */"../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf",
 		};
-		auto start = std::chrono::high_resolution_clock::now();
 
-		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[4], false);
+		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[2], false);
 
 		Entity entity = m_SceneManager->pActiveScene->CreateEntity("Flight Helmet");
 		for (auto& node: asset1->m_Nodes)
 			AddMeshToScene(node, entity, asset1);
+
+		//entity = m_SceneManager->pActiveScene->CreateEntity("Flight Helmet1");
+		//for (auto& node : asset1->m_Nodes)
+		//	AddMeshToScene(node, entity, asset1);
+
+		//entity = m_SceneManager->pActiveScene->CreateEntity("Flight Helmet2");
+		//for (auto& node : asset1->m_Nodes)
+		//	AddMeshToScene(node, entity, asset1);
+
+		Entity lightEntity = m_SceneManager->pActiveScene->CreateEntity("Light");
+		lightEntity.AddComponent<LightComponent>();
 	}
 
 	void Application::AddMeshToScene(MeshAsset::Node* node, std::optional<Entity> parent, std::shared_ptr<MeshAsset> meshAsset) {

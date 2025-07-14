@@ -41,21 +41,32 @@ namespace Brisk
                 VkAttachmentDescription desc{};
                 desc.format = isSwapchain ? std::static_pointer_cast<SwapchainVulkan>(Engine::s_Application->GetRenderer()->GetSwapchain())->GetFormat().format : texture->GetFormat();
                 desc.samples = VK_SAMPLE_COUNT_1_BIT;
-                desc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-                desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+
+                if(attachment.pLoadOp == LoadOp::Clear)
+                    desc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
+                else if (attachment.pLoadOp == LoadOp::Load)
+                    desc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
+                else if (attachment.pLoadOp == LoadOp::DontCare)
+                    desc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+
+                if (attachment.pStoreOp == StoreOp::Store)
+                    desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
+                else if (attachment.pStoreOp == StoreOp::DontCare)
+                    desc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+
                 desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
                 desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-                desc.initialLayout = VK_IMAGE_LAYOUT_UNDEFINED;
+                desc.initialLayout = attachment.pLoadOp == LoadOp::Load ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_UNDEFINED;
 
                 if (!isSwapchain) {
                     if ((attachment.pImage->GetSpecs().p_Usage & Core::TextureUsage::ImageUsageColorAttachment) != Core::TextureUsage::Undefined) {
-                        desc.finalLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
+                        desc.finalLayout = attachment.pLoadOp == LoadOp::Load ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
                     }
                     if ((attachment.pImage->GetSpecs().p_Usage & Core::TextureUsage::ImageUsageTransferSrc) != Core::TextureUsage::Undefined) {
                         desc.finalLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
                     }
                     if (attachment.pImage->IsDepth()) {
-                        desc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_READ_ONLY_OPTIMAL;
+                        desc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
                     }
                 }
                 else {

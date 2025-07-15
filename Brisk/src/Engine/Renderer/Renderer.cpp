@@ -19,31 +19,31 @@ namespace Brisk
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
-        m_LightsUBO = Buffer::Create();
-        m_LightsUBO->Init(sizeof(LightsMVP), nullptr, Core::BufferUsage::UniformBuffer,
-            Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
+        //m_LightsUBO = Buffer::Create();
+        //m_LightsUBO->Init(sizeof(LightsMVP), nullptr, Core::BufferUsage::UniformBuffer,
+        //    Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
 
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::SceneLightsUBO, nullptr, m_LightsUBO, 0);
+        //Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::SceneLightsUBO, nullptr, m_LightsUBO, 0);
 
-        glm::vec3 lightDir = glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f));
-        float distance = 2000.0f;
+        //glm::vec3 lightDir = glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f));
+        //float distance = 2000.0f;
 
-        glm::vec3 up = glm::abs(glm::dot(lightDir, glm::vec3(0, 1, 0))) > 0.99f
-            ? glm::vec3(0, 0, 1)
-            : glm::vec3(0, 1, 0);
+        //glm::vec3 up = glm::abs(glm::dot(lightDir, glm::vec3(0, 1, 0))) > 0.99f
+        //    ? glm::vec3(0, 0, 1)
+        //    : glm::vec3(0, 1, 0);
 
-        glm::vec3 lightPos = -lightDir * distance;
-        glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), up);
+        //glm::vec3 lightPos = -lightDir * distance;
+        //glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), up);
 
-        float orthoRange = 500.0f;
-        float nearPlane = 0.1f;
-        float farPlane = 1000.0f;
-        glm::mat4 lightProj = glm::ortho(-orthoRange, orthoRange, -orthoRange, orthoRange, nearPlane, farPlane);
+        //float orthoRange = 500.0f;
+        //float nearPlane = 0.1f;
+        //float farPlane = 1000.0f;
+        //glm::mat4 lightProj = glm::ortho(-orthoRange, orthoRange, -orthoRange, orthoRange, nearPlane, farPlane);
 
-        LightsMVP mvp{};    
-        mvp.ViewProjection = lightProj * lightView;
-        mvp.Model = glm::mat4(1.0f);
-        m_LightsUBO->UpdatePersistantData(sizeof(LightsMVP), &mvp);
+        //LightsMVP mvp{};    
+        //mvp.ViewProjection = lightProj * lightView;
+        //mvp.Model = glm::mat4(1.0f);
+        //m_LightsUBO->UpdatePersistantData(sizeof(LightsMVP), &mvp);
 
         // Renderpasses
         {
@@ -464,15 +464,15 @@ namespace Brisk
 
         // --- SHADOW MAP PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
-        m_ShadowMapPass->Begin(m_CmdBuffer);
-        m_ShadowMapPipeline->Bind(m_CmdBuffer);
+        //m_ShadowMapPass->Begin(m_CmdBuffer);
+        //m_ShadowMapPipeline->Bind(m_CmdBuffer);
 
-        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_ShadowMap->GetWidth(), m_ShadowMap->GetHeight(), 0, 1);
-        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_ShadowMap->GetWidth(), m_ShadowMap->GetHeight());
+        //RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_ShadowMap->GetWidth(), m_ShadowMap->GetHeight(), 0, 1);
+        //RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_ShadowMap->GetWidth(), m_ShadowMap->GetHeight());
 
-        Render(false);
+        //Render(false);
 
-        m_ShadowMapPass->End(m_CmdBuffer);
+        //m_ShadowMapPass->End(m_CmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------
 
         // --- DEPTH PRE PASS ---------------------------
@@ -489,15 +489,6 @@ namespace Brisk
 
         m_DepthPrePass->End(m_CmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------
-
-        //Texture::ImageBarrierParams params{};
-        //params.oldLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
-        //params.newLayout = Core::ImageLayout::DepthStencilReadOnlyOptimal;
-        //params.srcAccess = Core::AccessType::DepthStencilWrite;
-        //params.dstAccess = Core::AccessType::DepthStencilRead;
-        //params.srcStage = Core::PipelineStage::LateFragmentTest;
-        //params.dstStage = Core::PipelineStage::EarlyFragmentTest;
-        //m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
 
         // --- GBUFFER PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
@@ -633,7 +624,6 @@ namespace Brisk
         m_Material->Release();
         m_Emissive->Release();
         m_DepthPre->Release();
-        //m_Depth->Release();
         m_ShadowMap->Release();
         m_LightingOutput->Release();
 
@@ -660,7 +650,6 @@ namespace Brisk
         RenderFinishedSemaphore->Release();
 
         m_Fence->Release();
-
     }
 
     std::unique_ptr<Renderer> Renderer::Create()

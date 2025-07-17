@@ -1,0 +1,80 @@
+#version 450
+layout(local_size_x = 8, local_size_y = 8, local_size_z = 4) in;
+
+#define MAX_LIGHTS 1024
+#define MAX_LIGHTS_PER_CLUSTER 128
+
+layout(std140, binding = 0) uniform CameraData {
+    mat4 view;
+    mat4 projection;
+    mat4 invView;
+    mat4 invProj;
+    vec2 screenDimensions;
+    float zNear;
+    float zFar;
+    uint numLights;
+};
+
+struct Light {
+    vec4 position; // xyz = pos, w = radius
+};
+
+layout(std430, binding = 1) buffer LightBuffer {
+    Light lights[];
+};
+
+struct AABB {
+    vec4 minPoint;
+    vec4 maxPoint;
+};
+
+layout(std430, binding = 2) buffer ClusterAABBBuffer {
+    AABB clusterAABBs[];
+};
+
+layout(std430, binding = 3) buffer ClusterLightIndexList {
+    uint lightIndices[]; // flattened light indices
+};
+
+layout(std430, binding = 4) buffer ClusterLightOffsetList {
+    uvec2 lightOffsets[]; // start, count per cluster
+};
+
+// atomic counter for each cluster
+layout(std430, binding = 5) buffer AtomicCounters {
+    uint counters[];
+};
+
+// Squared distance between point and AABB
+float distanceToAABB(vec3 p, AABB aabb) {
+    vec3 clamped = clamp(p, aabb.minPoint.xyz, aabb.maxPoint.xyz);
+    return length(p - clamped);
+}
+
+void main() {
+    uint clusterIndex = gl_GlobalInvocationID.z * gl_NumWorkGroups.y * gl_WorkGroupSize.y +
+                        gl_GlobalInvocationID.y * gl_NumWorkGroups.x * gl_WorkGroupSize.x +
+                        gl_GlobalInvocationID.x;
+
+    if (clusterIndex >= clusterAABBs.length()) return;
+
+    AABB aabb = clusterAABBs[clusterIndex];
+
+    uint offset = atomicAdd(counters[clusterIndex], 0);
+    lightOffsets[clusterIndex].x = offset;
+    uint count = 0;
+
+    for (uint i = 0; i < numLights; ++i) {
+        Light l = lights[i];
+        float dist = distanceToAABB(l.position.xyz, aabb);
+        if (dist < l.position.w) {
+            if (count < MAX_LIGHTS_PER_CLUSTER) {
+                lightIndices[offset + count] = i;
+                count++;
+            }
+        }
+    }
+
+    lightOffsets[clusterIndex].y = count;
+    atomicAdd(counters[clusterIndex], count);
+}

@@ -9,6 +9,9 @@ if not exist "Compiled" mkdir Compiled
 echo Compiling ClusterAABBGenerate.comp...
 glslc ClusterAABBGenerate.comp -o Compiled/ClusterAABBGenerateCS.spv || goto :error
 
+echo Compiling AssignLightsToClusters.comp...
+glslc AssignLightsToClusters.comp -o Compiled/AssignLightsToClustersCS.spv || goto :error
+
 echo All shaders compiled successfully!
 pause
 exit /b

@@ -418,11 +418,23 @@ namespace Brisk
             }
             //----------------------------------------------------------------------------------------------------
 
-            // Clustered lighting -- AAB Generator
+            // -- Clustered lighting --
+            // AAB Generator
             //----------------------------------------------------------------------------------------------------
             {
                 Pipeline::ComputePipelineSpecs pipelineSpecs{};
                 pipelineSpecs.pShaderPath = "Shaders/Vulkan/ClusteredLighting/Compiled/ClusterAABBGenerateCS.spv";
+
+                m_AABBGeneratorPipeline = Pipeline::Create();
+                m_AABBGeneratorPipeline->Init(pipelineSpecs);
+            }
+            //----------------------------------------------------------------------------------------------------
+
+            // Assign lights to clusters
+            //----------------------------------------------------------------------------------------------------
+            {
+                Pipeline::ComputePipelineSpecs pipelineSpecs{};
+                pipelineSpecs.pShaderPath = "Shaders/Vulkan/ClusteredLighting/Compiled/AssignLightsToClustersCS.spv";
 
                 m_AABBGeneratorPipeline = Pipeline::Create();
                 m_AABBGeneratorPipeline->Init(pipelineSpecs);

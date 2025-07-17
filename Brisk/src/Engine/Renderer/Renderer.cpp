@@ -19,6 +19,7 @@ namespace Brisk
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
+#ifdef DISABLED_CODE
         //m_LightsUBO = Buffer::Create();
         //m_LightsUBO->Init(sizeof(LightsMVP), nullptr, Core::BufferUsage::UniformBuffer,
         //    Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
@@ -44,7 +45,7 @@ namespace Brisk
         //mvp.ViewProjection = lightProj * lightView;
         //mvp.Model = glm::mat4(1.0f);
         //m_LightsUBO->UpdatePersistantData(sizeof(LightsMVP), &mvp);
-
+#endif
         // Renderpasses
         {
             // Depth Pre pass
@@ -414,6 +415,17 @@ namespace Brisk
 
                 m_LightingPipeline = Pipeline::Create();
                 m_LightingPipeline->Init(pipelineSpecs);
+            }
+            //----------------------------------------------------------------------------------------------------
+
+            // Clustered lighting -- AAB Generator
+            //----------------------------------------------------------------------------------------------------
+            {
+                Pipeline::ComputePipelineSpecs pipelineSpecs{};
+                pipelineSpecs.pShaderPath = "Shaders/Vulkan/ClusteredLighting/Compiled/ClusterAABBGenerateCS.spv";
+
+                m_AABBGeneratorPipeline = Pipeline::Create();
+                m_AABBGeneratorPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
         }

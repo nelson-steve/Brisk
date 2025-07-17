@@ -73,6 +73,8 @@ namespace Brisk
 		std::shared_ptr<Pipeline> m_GBufferAlphaBlendPipeline;
 		std::shared_ptr<Pipeline> m_LightingPipeline;
 
+		std::shared_ptr<Pipeline> m_AABBGeneratorPipeline;
+
 		std::shared_ptr<Buffer> m_LightsUBO;
 		std::shared_ptr<CommandBuffer> m_CmdBuffer;
 		RenderCommand m_RenderCommand;

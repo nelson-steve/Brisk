@@ -88,6 +88,7 @@ namespace Brisk
 
         struct ComputePipelineSpecs {
             std::vector<std::shared_ptr<DescriptorLayout>> pDescriptorLayouts;
+            std::string pShaderPath;
         };
     public:
         virtual void Init(const GraphicsPipelineSpecs& specs) = 0;

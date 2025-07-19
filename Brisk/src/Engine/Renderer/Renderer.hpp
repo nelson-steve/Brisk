@@ -19,6 +19,19 @@
 
 namespace Brisk 
 {
+	struct TileAABB {
+		alignas(16) glm::vec4 minPoint;
+		alignas(16) glm::vec4 maxPoint;
+	};
+
+	struct ClusterInfo {	
+		alignas(16) glm::mat4 inverseProjection;
+		alignas(16) glm::uvec4 tileSizes;
+		alignas(8)  glm::uvec2 screenDimensions;
+		alignas(4)  float zNear;
+		alignas(4)  float zFar;
+	};
+
 	struct alignas(16) LightsMVP {
 		glm::mat4 ViewProjection;
 		glm::mat4 Model;
@@ -75,7 +88,9 @@ namespace Brisk
 
 		std::shared_ptr<Pipeline> m_AABBGeneratorPipeline;
 
-		std::shared_ptr<Buffer> m_LightsUBO;
+		//std::shared_ptr<Buffer> m_LightsUBO;
+		std::shared_ptr<Buffer> m_ClusterInfoUBO;
+		std::shared_ptr<Buffer> m_ClusterTilesSSBO;
 		std::shared_ptr<CommandBuffer> m_CmdBuffer;
 		RenderCommand m_RenderCommand;
 		uint32_t m_ImageIndex;

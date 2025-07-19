@@ -6,11 +6,11 @@ struct TileAABB {
     vec4 maxPoint;
 };
 
-layout (std430, binding = 1) buffer clusterAABB {
+layout (std430, set = 5, binding = 0) buffer clusterAABB {
     TileAABB cluster[ ];
 };
 
-layout (std430, binding = 2) buffer needBetterName{
+layout (std140, set = 5, binding = 1) buffer ClusterInfo {
     mat4 inverseProjection;
     uvec4 tileSizes;
     uvec2 screenDimensions;

@@ -19,6 +19,21 @@ namespace Brisk
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
+        m_ClusterTilesSSBO = Buffer::Create();
+        m_ClusterTilesSSBO->Init(sizeof(TileAABB), nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+
+        ClusterInfo clusterInfo{};
+        clusterInfo.inverseProjection = glm::inverse(Engine::s_Application->GetCamera()->GetProjection());
+        clusterInfo.tileSizes = glm::uvec4(32, 32, 24, 0);;
+        clusterInfo.screenDimensions = glm::uvec2(1920, 1080);
+        clusterInfo.zNear = 0.1f;
+        clusterInfo.zFar = 100.0f;
+        m_ClusterInfoUBO = Buffer::Create();
+        m_ClusterInfoUBO->Init(sizeof(ClusterInfo), &clusterInfo, Core::BufferUsage::UniformBuffer, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, false);
+
+        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::ClusteredLighting, nullptr, m_ClusterTilesSSBO, 0);
+        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::ClusteredLighting, nullptr, m_ClusterInfoUBO, 1);
+
 #ifdef DISABLED_CODE
         //m_LightsUBO = Buffer::Create();
         //m_LightsUBO->Init(sizeof(LightsMVP), nullptr, Core::BufferUsage::UniformBuffer,
@@ -83,15 +98,6 @@ namespace Brisk
                         Core::PipelineStage::LateFragmentTest, // src stage
                         Core::PipelineStage::EarlyFragmentTest // dst stage
                     },
-                    //RenderPassDependency {
-                    //    0,
-                    //    0,
-                    //    Core::AccessType::DepthStencilWrite, // src access
-                    //    Core::AccessType::DepthStencilWrite, // dst access
-                    //    Core::PipelineStage::LateFragmentTest, // src stage
-                    //    Core::PipelineStage::LateFragmentTest // dst stage
-                    //},
-
                 },
                 {   
                     RenderPassAttachment{ 0, AttachmentType::Depth, m_DepthPre, LoadOp::Clear, StoreOp::Store }
@@ -666,7 +672,7 @@ namespace Brisk
 
         m_Editor->Release();
 
-        m_LightsUBO->Release();
+        //m_LightsUBO->Release();
 
         m_Swapchain->Release();
 

@@ -20,6 +20,7 @@ namespace Brisk
 	constexpr uint32_t SET_DEFERRED_TEXTURES = 2;
 	constexpr uint32_t SET_BINDLESS = 3;
 	constexpr uint32_t SET_MATERIALS = 4;
+	constexpr uint32_t SET_CLUSTERED_LIGHTING = 5;
 	//
 
 	class GpuAdapterVulkan : public GpuAdapter {
@@ -75,6 +76,8 @@ namespace Brisk
 		VkDescriptorSet m_BindlessTexturesSet;					//
 		// Materials											//
 		VkDescriptorSet m_MaterialsSet;							//
+		// Clustered Lighting								    //
+		VkDescriptorSet m_ClusteredLightingSet;					//
 		//------------------------------------------------------//
 
 	private:

@@ -564,6 +564,19 @@ namespace Brisk
 				vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
 				break;
 			}
+			case Brisk::ClusteredLighting:
+			{
+				VkWriteDescriptorSet write{};
+				write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+				write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
+				write.dstSet = m_ClusteredLightingSet;
+				write.dstBinding = bindingIndex;
+				write.descriptorCount = 1;
+				write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
+
+				vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+				break;
+			}
 			default:
 			{
 				BRISK_CORE_WARN("Adding invalid GPU resource");

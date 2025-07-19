@@ -10,13 +10,13 @@
 
 namespace Brisk
 {
-	struct PushConstants {
-		uint32_t albedoIndex;
-		uint32_t metallicRoughnessIndex;
-		uint32_t normalIndex;
-		uint32_t emissiveIndex;
-		uint32_t occlusionIndex;
-	};
+	/*struct ShaderResource {
+		std::string p_Name;
+		uint32_t p_Set;
+		uint32_t p_Binding;
+		VkDescriptorType p_Type;
+		VkShaderStageFlags p_Stages;
+	};*/
 
 	class PipelineVulkan : public Pipeline {
 	public:

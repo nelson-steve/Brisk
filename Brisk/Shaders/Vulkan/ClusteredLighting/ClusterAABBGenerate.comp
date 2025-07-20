@@ -7,20 +7,24 @@ struct TileAABB {
 };
 
 layout (std430, set = 5, binding = 0) buffer clusterAABB {
-    TileAABB cluster[ ];
-};
+    TileAABB clusters[];
+} ssbo_ClusterAABB;
 
-layout (std140, set = 5, binding = 1) buffer ClusterInfo {
-    mat4 inverseProjection;
+layout (set = 5, binding = 1) uniform ClusterInfo {
+    mat4 view;
+    mat4 projection;
+    mat4 invView;
+    mat4 invProj;
     uvec4 tileSizes;
-    uvec2 screenDimensions;
+    vec2 screenDimensions;
     float zNear;
     float zFar;
-};
+    uint numLights;
+} u_ClusterInfo;
 
 vec4 ClipToView(vec4 clip) {
     //View space transform
-    vec4 view = inverseProjection * clip;
+    vec4 view = u_ClusterInfo.invProj * clip;
 
     //Perspective projection
     view = view / view.w;
@@ -30,7 +34,7 @@ vec4 ClipToView(vec4 clip) {
 
 vec4 ScreenToView(vec4 screen) {
     //Convert to NDC
-    vec2 texCoord = screen.xy / screenDimensions.xy;
+    vec2 texCoord = screen.xy / u_ClusterInfo.screenDimensions.xy;
 
     //Convert to clipSpace
     // vec4 clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y)* 2.0 - 1.0, screen.z, screen.w);
@@ -58,7 +62,7 @@ vec3 LineIntersectionToZPlane(vec3 A, vec3 B, float zDistance) {
 void main() {
     const vec3 eyePos = vec3(0.0);
 
-    uint tileSizePx = tileSizes[3];
+    uint tileSizePx = u_ClusterInfo.tileSizes[3];
     uint tileIndex = gl_WorkGroupID.x +
                      gl_WorkGroupID.y * gl_NumWorkGroups.x +
                      gl_WorkGroupID.z * (gl_NumWorkGroups.x * gl_NumWorkGroups.y);
@@ -69,8 +73,8 @@ void main() {
     vec3 maxPoint_VS = ScreenToView(maxPoint_SS).xyz;
     vec3 minPoint_VS = ScreenToView(minPoint_SS).xyz;
 
-    float tileNear = -zNear * pow(zFar/zNear, gl_WorkGroupID.z/float(gl_NumWorkGroups.z));
-    float tileFar  = -zNear * pow(zFar/zNear, (gl_WorkGroupID.z + 1)/float(gl_NumWorkGroups.z));
+    float tileNear = -u_ClusterInfo.zNear * pow(u_ClusterInfo.zFar/u_ClusterInfo.zNear, gl_WorkGroupID.z/float(gl_NumWorkGroups.z));
+    float tileFar  = -u_ClusterInfo.zNear * pow(u_ClusterInfo.zFar/u_ClusterInfo.zNear, (gl_WorkGroupID.z + 1)/float(gl_NumWorkGroups.z));
 
     vec3 minPointNear = LineIntersectionToZPlane(eyePos, minPoint_VS, tileNear);
     vec3 minPointFar  = LineIntersectionToZPlane(eyePos, minPoint_VS, tileFar);
@@ -80,6 +84,6 @@ void main() {
     vec3 minPointAABB = min(min(minPointNear, minPointFar),min(maxPointNear, maxPointFar));
     vec3 maxPointAABB = max(max(minPointNear, minPointFar),max(maxPointNear, maxPointFar));
 
-    cluster[tileIndex].minPoint  = vec4(minPointAABB , 0.0);
-    cluster[tileIndex].maxPoint  = vec4(maxPointAABB , 0.0);
+    ssbo_ClusterAABB.clusters[tileIndex].minPoint  = vec4(minPointAABB , 0.0);
+    ssbo_ClusterAABB.clusters[tileIndex].maxPoint  = vec4(maxPointAABB , 0.0);
 }

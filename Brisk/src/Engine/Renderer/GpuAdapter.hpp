@@ -10,15 +10,6 @@
 
 namespace Brisk
 {
-	enum GpuDescriptorResourceType {
-		MVPUBO,
-		SceneLightsUBO,
-		DeferredTextures,
-		BindlessTextures,
-		Materials,
-		ClusteredLighting,
-	};
-
 	class GpuAdapter  : public std::enable_shared_from_this<GpuAdapter> {
 		DEFINE_BASE_CLASS_CONSTRUCTOR(GpuAdapter)
 	public:
@@ -27,7 +18,6 @@ namespace Brisk
 			//Engine::s_Application->GetGpuAdapter()->GetDevice<T>()->GetDevice();
 			return std::dynamic_pointer_cast<T>(shared_from_this());
 		}
-		virtual void AddResource(GpuDescriptorResourceType type, std::shared_ptr<Texture> texture, std::shared_ptr<Buffer> buffer, int bindingIndex) = 0;
 		virtual void WaitIdle() = 0;
 
 		virtual void Init() = 0;

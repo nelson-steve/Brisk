@@ -5,11 +5,41 @@
 #include "ComputeCommand.hpp"
 #include "Engine/Component.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
+#include <random>
 //------------------------------------------------
 
 namespace Brisk
 {
     std::shared_ptr<Swapchain> Renderer::m_Swapchain;
+
+    std::vector<LightData> GenerateRandomLights(uint32_t count, float range = 10.0f) {
+        std::vector<LightData> lights;
+        lights.reserve(count);
+
+        std::random_device rd;
+        std::mt19937 rng(rd());
+
+        std::uniform_real_distribution<float> posDist(-range, range);
+        std::uniform_real_distribution<float> radiusDist(0.5f, 3.0f); // light radius
+        std::uniform_real_distribution<float> colorDist(0.5f, 1.0f);  // bright colors
+        std::uniform_real_distribution<float> intensityDist(1.0f, 5.0f); // intensity
+
+        for (uint32_t i = 0; i < count; ++i) {
+            glm::vec3 pos = glm::vec3(posDist(rng), posDist(rng), posDist(rng));
+            float radius = radiusDist(rng);
+
+            glm::vec3 color = glm::vec3(colorDist(rng), colorDist(rng), colorDist(rng));
+            float intensity = intensityDist(rng);
+
+            LightData light;
+            light.position = glm::vec4(pos, radius);
+            light.color = glm::vec4(color, intensity);
+
+            lights.push_back(light);
+        }
+
+        return lights;
+    }
 
     void Renderer::Init()
     {
@@ -18,21 +48,6 @@ namespace Brisk
 
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
-
-        m_ClusterTilesSSBO = Buffer::Create();
-        m_ClusterTilesSSBO->Init(sizeof(TileAABB), nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
-
-        ClusterInfo clusterInfo{};
-        clusterInfo.inverseProjection = glm::inverse(Engine::s_Application->GetCamera()->GetProjection());
-        clusterInfo.tileSizes = glm::uvec4(32, 32, 24, 0);;
-        clusterInfo.screenDimensions = glm::uvec2(1920, 1080);
-        clusterInfo.zNear = 0.1f;
-        clusterInfo.zFar = 100.0f;
-        m_ClusterInfoUBO = Buffer::Create();
-        m_ClusterInfoUBO->Init(sizeof(ClusterInfo), &clusterInfo, Core::BufferUsage::UniformBuffer, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, false);
-
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::ClusteredLighting, nullptr, m_ClusterTilesSSBO, 0);
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::ClusteredLighting, nullptr, m_ClusterInfoUBO, 1);
 
 #ifdef DISABLED_CODE
         //m_LightsUBO = Buffer::Create();
@@ -442,17 +457,74 @@ namespace Brisk
                 Pipeline::ComputePipelineSpecs pipelineSpecs{};
                 pipelineSpecs.pShaderPath = "Shaders/Vulkan/ClusteredLighting/Compiled/AssignLightsToClustersCS.spv";
 
-                m_AABBGeneratorPipeline = Pipeline::Create();
-                m_AABBGeneratorPipeline->Init(pipelineSpecs);
+                m_AssignLightsToClustersPipeline = Pipeline::Create();
+                m_AssignLightsToClustersPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
         }
 
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, m_Pos, nullptr, 0);
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, m_Normal, nullptr, 1);
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, m_Albedo, nullptr, 2);
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, m_Material, nullptr, 3);
-        Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::DeferredTextures, m_Emissive, nullptr, 4);
+        m_MVPBuffer = Buffer::Create();
+        m_MVPBuffer->Init(sizeof(MVP), nullptr, Core::BufferUsage::UniformBuffer,
+            Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
+        {
+            m_ClusterTilesSSBO = Buffer::Create();
+            m_ClusterTilesSSBO->Init(sizeof(TileAABB) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+
+            ClusterInfo clusterInfo{};
+            clusterInfo.Projection = Engine::s_Application->GetCamera()->GetProjection();
+            clusterInfo.View = Engine::s_Application->GetCamera()->GetViewMatrix();
+            clusterInfo.InverseProj = glm::inverse(Engine::s_Application->GetCamera()->GetProjection());
+            clusterInfo.InverseView = glm::inverse(Engine::s_Application->GetCamera()->GetViewMatrix());
+            clusterInfo.TileSizes = glm::uvec4(32, 32, 24, 0);;
+            clusterInfo.ScreenDimensions = glm::uvec2(1920, 1080);
+            clusterInfo.zNear = 0.1f;
+            clusterInfo.zFar = 100.0f;
+            clusterInfo.numLights = NUM_LIGHTS;
+            m_ClusterInfoUBO = Buffer::Create();
+            m_ClusterInfoUBO->Init(sizeof(ClusterInfo), &clusterInfo, Core::BufferUsage::UniformBuffer, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, false);
+
+            m_AABBGeneratorPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
+            m_AABBGeneratorPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
+        }
+
+        {
+            m_CameraData = Buffer::Create();
+            m_CameraData->Init(sizeof(MVP), nullptr, Core::BufferUsage::UniformBuffer,
+                Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
+
+            std::vector<LightData> lights = GenerateRandomLights(NUM_LIGHTS, 50.f);
+
+            m_LightsList = Buffer::Create();
+            m_LightsList->Init(sizeof(LightData) * lights.size(), lights.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+
+            //m_ClusterAABB = Buffer::Create();
+            //m_ClusterAABB->Init(sizeof(TileAABB), nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+
+            m_ClusterLightIndexList = Buffer::Create();
+            m_ClusterLightIndexList->Init(sizeof(uint32_t) * MAX_LIGHTS * MAX_LIGHTS_PER_CLUSTER, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+
+            m_ClusterLightOffsetList = Buffer::Create();
+            m_ClusterLightOffsetList->Init(sizeof(LightOffset) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+
+            m_AtomicCounters = Buffer::Create();
+            m_AtomicCounters->Init(sizeof(uint32_t) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+
+            m_AssignLightsToClustersPipeline->UpdateResources("u_CameraData", {}, m_CameraData);
+            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_LightsList", {}, m_LightsList);
+            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
+            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterLightIndexList", {}, m_ClusterLightIndexList);
+            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterLightOffsetList", {}, m_ClusterLightOffsetList);
+            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_AtomicCounters", {}, m_AtomicCounters);
+        }
+
+        m_DepthPrePassPipeline->UpdateResources("u_MVP", {}, m_MVPBuffer);
+
+        m_LightingPipeline->UpdateResources("sampler_Position", { m_Pos      }, nullptr);
+        m_LightingPipeline->UpdateResources("sampler_Normal",   { m_Normal   }, nullptr);
+        m_LightingPipeline->UpdateResources("sampler_Albedo",   { m_Albedo   }, nullptr);
+        m_LightingPipeline->UpdateResources("sampler_Material", { m_Material }, nullptr);
+        m_LightingPipeline->UpdateResources("sampler_Emissive", { m_Emissive }, nullptr);
+        m_LightingPipeline->UpdateResources("sampler_Depth",    { m_DepthPre }, nullptr);
 
         m_Fence = Fence::Create();
         m_Fence->Init();
@@ -476,6 +548,12 @@ namespace Brisk
     void Renderer::RenderScene(float deltaTime)
     {
         if (!SceneManager::pActiveScene) return;
+
+        MVP mvp{};
+        mvp.ProjectionView = Engine::s_Application->GetCamera()->GetViewProjection();
+        mvp.CamPos = Engine::s_Application->GetCamera()->GetPosition();
+
+        m_MVPBuffer->UpdatePersistantData(sizeof(MVP), &mvp);
 
         auto view = SceneManager::pActiveScene->Reg().view<MeshComponent, WorldTransformComponent>();
 
@@ -515,7 +593,9 @@ namespace Brisk
 
         auto meshes = SceneManager::pActiveScene->Reg().view<MeshComponent, WorldTransformComponent>();
 
-        Render(true, true);
+        for (auto& [mesh, entities] : m_RenderGroups) {
+            Render(mesh, entities, true, true);
+        }
 
         m_DepthPrePass->End(m_CmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------
@@ -526,8 +606,11 @@ namespace Brisk
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
 
-        m_GBufferPipeline->Bind(m_CmdBuffer);
-        Render(true, true);
+        for (auto& [mesh, entities] : m_RenderGroups) {
+            m_GBufferPipeline->UpdateResources("ssbo_Materials", {}, mesh->m_MaterialStorageBuffer);
+            m_GBufferPipeline->Bind(m_CmdBuffer);
+            Render(mesh, entities, true, true);
+        }
         m_GeometryBufferPass->End(m_CmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -590,39 +673,37 @@ namespace Brisk
         return local;
     }
 
-    void Renderer::Render(bool pushMaterialIndex, bool pushModelMatrix) {
-        for (auto& [mesh, entities] : m_RenderGroups) {
-            RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh->GetVertexBuffer() }, 0);
-            RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh->GetIndexBuffer(), 0);
+    void Renderer::Render(MeshAsset* mesh, std::vector<Entity> entities, bool pushMaterialIndex, bool pushModelMatrix) {
+        RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh->GetVertexBuffer() }, 0);
+        RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh->GetIndexBuffer(), 0);
 
-            for (Entity e : entities) {
-                auto& meshComp = e.GetComponent<MeshComponent>();
-                auto& transform = e.GetComponent<WorldTransformComponent>();
+        for (Entity e : entities) {
+            auto& meshComp = e.GetComponent<MeshComponent>();
+            auto& transform = e.GetComponent<WorldTransformComponent>();
 
-                glm::mat4 t = GetWorldTransform(e);
+            glm::mat4 t = GetWorldTransform(e);
 
-                auto& submesh = mesh->m_Meshes[meshComp.p_SubMeshIndex];
-                for (auto& primitive : submesh.primitives) {
-                    uint32_t index = primitive.materialIndex != -1 ? primitive.materialIndex : 0;
+            auto& submesh = mesh->m_Meshes[meshComp.p_SubMeshIndex];
+            for (auto& primitive : submesh.primitives) {
+                uint32_t index = primitive.materialIndex != -1 ? primitive.materialIndex : 0;
 
-                    struct pcData{
-                        glm::mat4 model;
-                        uint32_t index;
-                    } pc;
+                struct pcData {
+                    glm::mat4 model;
+                    uint32_t index;
+                } pc;
 
-                    pc.index = primitive.materialIndex;
-                    pc.model = t;
+                pc.index = primitive.materialIndex;
+                pc.model = t;
 
-                    if (primitive.materialIndex < 0)
-                        BRISK_CORE_WARN("Invalid material index");
+                if (primitive.materialIndex < 0)
+                    BRISK_CORE_WARN("Invalid material index");
 
-                    if (pushMaterialIndex && pushModelMatrix)
-                        m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, true);
+                if (pushMaterialIndex && pushModelMatrix)
+                    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, true);
 
-                    if ((fastgltf::AlphaMode)mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)0U)
-                    {
-                        RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
-                    }
+                if ((fastgltf::AlphaMode)mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)0U)
+                {
+                    RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
                 }
             }
         }

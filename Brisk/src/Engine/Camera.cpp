@@ -12,12 +12,6 @@ namespace Brisk
 		: m_Window(window), 
 		m_Projection(glm::perspective(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip)) {
 		UpdateView();
-
-		m_MVPBuffer = Buffer::Create();
-		m_MVPBuffer->Init(sizeof(MVP), nullptr, Core::BufferUsage::UniformBuffer,
-			Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
-
-		Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::MVPUBO, nullptr, m_MVPBuffer, 0);
 	}
 
 	Camera::Camera(float fov, float aspectRatio, float nearClip, float farClip, GLFWwindow* window)
@@ -27,7 +21,6 @@ namespace Brisk
 	}
 
 	void Camera::Release() {
-		m_MVPBuffer->Release();
 	}
 
 	void Camera::UpdateProjection() {
@@ -82,13 +75,6 @@ namespace Brisk
 			m_MouseMoved = false;
 		}
 		UpdateView();
-
-
-		MVP mvp{};
-		mvp.ProjectionView = m_Projection * m_ViewMatrix;
-		mvp.CamPos = m_Position;
-
-		m_MVPBuffer->UpdatePersistantData(sizeof(MVP), &mvp);
 	}
 
 	bool Camera::OnMouseScroll(float yOffset) {

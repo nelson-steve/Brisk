@@ -19,13 +19,4 @@ namespace Brisk
 		}
 #endif
 	}
-
-	void DescriptorLayout::SetDescriptorType(GpuDescriptorResourceType type) {
-		m_Type = type;
-	}
-
-	GpuDescriptorResourceType DescriptorLayout::GetDescriptorType() {
-		return m_Type;
-	}
-
 }

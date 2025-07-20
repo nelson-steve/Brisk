@@ -45,7 +45,7 @@ namespace Brisk
 		VkDescriptorPool GetDescriptorPool() const { return m_DescriptorPool; }
 		VkInstance GetInstance() const { return m_Instance; }
 
-		virtual void AddResource(GpuDescriptorResourceType type, std::shared_ptr<Texture> texture, std::shared_ptr<Buffer> buffer, int bindingIndex) override;
+		//virtual void AddResource(GpuDescriptorResourceType type, std::shared_ptr<Texture> texture, std::shared_ptr<Buffer> buffer, int bindingIndex) override;
 		virtual void WaitIdle() override;
 
 		std::shared_ptr<SurfaceVulkan> GetSurface() { return m_Surface; }
@@ -57,6 +57,7 @@ namespace Brisk
 		VkDescriptorSetLayout m_DeferredTexturesDescriptorLayout;
 		VkDescriptorSetLayout m_BindlessDescriptorLayout;
 		VkDescriptorSetLayout m_MaterialsDescriptorLayout;
+		VkDescriptorSetLayout m_ClusteredLightingDescriptorLayout;
 
 		// Descriptor stuff ------------------------------------//
 		VkDescriptorPool m_DescriptorPool;						//

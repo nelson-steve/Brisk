@@ -6,6 +6,7 @@
 namespace Brisk
 {
 	Engine::EngineSettings Engine::s_EngineSettings;
+	uint32_t Engine::s_TexturesOffset = 0;
 	std::shared_ptr<Application> Engine::s_Application;
 
 	void Engine::InitSystems() {

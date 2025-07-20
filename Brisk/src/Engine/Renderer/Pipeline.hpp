@@ -93,19 +93,16 @@ namespace Brisk
     public:
         virtual void Init(const GraphicsPipelineSpecs& specs) = 0;
         virtual void Init(const ComputePipelineSpecs& specs) = 0;
-
-        virtual void Bind(std::shared_ptr<CommandBuffer> cmd) = 0;
-
-        virtual void BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t, void* data, uint32_t offset, bool vertexShader) = 0;
-
         virtual void Release() = 0;
+
+        virtual void UpdateResources(const std::string& name, std::vector<std::shared_ptr<Texture>> textures, std::shared_ptr<Buffer> buffer) = 0;
+        virtual void Bind(std::shared_ptr<CommandBuffer> cmd) = 0;
+        virtual void BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t, void* data, uint32_t offset, bool vertexShader) = 0;
 
         static std::shared_ptr<Pipeline> Create();
 
         // TODO: Shouldn't be public
         GraphicsPipelineSpecs m_GraphicsSpecs;
         ComputePipelineSpecs m_ComputeSpecs;
-    protected:
-        std::vector<GpuDescriptorResourceType> p_ResourceTypes;
     };
 }

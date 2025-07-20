@@ -16,13 +16,13 @@ namespace Brisk
 		m_Adapter = GpuAdapter::Create();
 		m_Adapter->Init();
 
+		m_EditorCamera = std::make_shared<Camera>((GLFWwindow*)m_Window->GetWindowHandle());
+
 		m_Renderer = Renderer::Create();
 		m_Renderer->Init();
 
 		m_SceneManager = std::make_unique<SceneManager>();
 		m_SceneManager->Init();
-
-		m_EditorCamera = std::make_shared<Camera>((GLFWwindow*)m_Window->GetWindowHandle());
 
 		m_AssetManager = std::make_shared<AssetManager>();
 

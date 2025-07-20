@@ -4,49 +4,51 @@ layout(local_size_x = 8, local_size_y = 8, local_size_z = 4) in;
 #define MAX_LIGHTS 1024
 #define MAX_LIGHTS_PER_CLUSTER 128
 
-layout(std140, binding = 0) uniform CameraData {
-    mat4 view;
-    mat4 projection;
-    mat4 invView;
-    mat4 invProj;
-    vec2 screenDimensions;
-    float zNear;
-    float zFar;
-    uint numLights;
-};
-
-struct Light {
-    vec4 position; // xyz = pos, w = radius
-};
-
-layout(std430, binding = 1) buffer LightBuffer {
-    Light lights[];
-};
-
-struct AABB {
+struct TileAABB {
     vec4 minPoint;
     vec4 maxPoint;
 };
 
-layout(std430, binding = 2) buffer ClusterAABBBuffer {
-    AABB clusterAABBs[];
+layout (std430, set = 5, binding = 0) buffer clusterAABB {
+    TileAABB clusters[];
+} ssbo_ClusterAABB;
+
+layout(set = 5, binding = 1) uniform CameraData {
+    mat4 view;
+    mat4 projection;
+    mat4 invView;
+    mat4 invProj;
+    uvec4 tileSizes;
+    vec2 screenDimensions;
+    float zNear;
+    float zFar;
+    uint numLights;
+} u_CameraData;
+
+struct LightData {
+    vec4 position; // xyz = pos, w = radius
+    vec4 color;    // xyz = color, w = intensity
 };
 
-layout(std430, binding = 3) buffer ClusterLightIndexList {
+layout(std430, set = 1, binding = 0) readonly buffer LightsList {
+    LightData lights[MAX_LIGHTS];
+} ssbo_LightsList;
+
+layout(std430, set = 5,  binding = 2) buffer ClusterLightIndexList {
     uint lightIndices[]; // flattened light indices
-};
+} ssbo_ClusterLightIndexList;
 
-layout(std430, binding = 4) buffer ClusterLightOffsetList {
+layout(std430, set = 5,  binding = 3) buffer ClusterLightOffsetList {
     uvec2 lightOffsets[]; // start, count per cluster
-};
+} ssbo_ClusterLightOffsetList;
 
 // atomic counter for each cluster
-layout(std430, binding = 5) buffer AtomicCounters {
+layout(std430, set = 5,  binding = 4) buffer AtomicCounters {
     uint counters[];
-};
+} ssbo_AtomicCounters;
 
 // Squared distance between point and AABB
-float distanceToAABB(vec3 p, AABB aabb) {
+float distanceToAABB(vec3 p, TileAABB aabb) {
     vec3 clamped = clamp(p, aabb.minPoint.xyz, aabb.maxPoint.xyz);
     return length(p - clamped);
 }
@@ -56,25 +58,25 @@ void main() {
                         gl_GlobalInvocationID.y * gl_NumWorkGroups.x * gl_WorkGroupSize.x +
                         gl_GlobalInvocationID.x;
 
-    if (clusterIndex >= clusterAABBs.length()) return;
+    if (clusterIndex >= ssbo_ClusterAABB.clusters.length()) return;
 
-    AABB aabb = clusterAABBs[clusterIndex];
+    TileAABB aabb = ssbo_ClusterAABB.clusters[clusterIndex];
 
-    uint offset = atomicAdd(counters[clusterIndex], 0);
-    lightOffsets[clusterIndex].x = offset;
+    uint offset = atomicAdd(ssbo_AtomicCounters.counters[clusterIndex], 0);
+    ssbo_ClusterLightOffsetList.lightOffsets[clusterIndex].x = offset;
     uint count = 0;
 
-    for (uint i = 0; i < numLights; ++i) {
-        Light l = lights[i];
+    for (uint i = 0; i < u_CameraData.numLights; ++i) {
+        LightData l = ssbo_LightsList.lights[i];
         float dist = distanceToAABB(l.position.xyz, aabb);
         if (dist < l.position.w) {
             if (count < MAX_LIGHTS_PER_CLUSTER) {
-                lightIndices[offset + count] = i;
+                ssbo_ClusterLightIndexList.lightIndices[offset + count] = i;
                 count++;
             }
         }
     }
 
-    lightOffsets[clusterIndex].y = count;
-    atomicAdd(counters[clusterIndex], count);
+    ssbo_ClusterLightOffsetList.lightOffsets[clusterIndex].y = count;
+    atomicAdd(ssbo_AtomicCounters.counters[clusterIndex], count);
 }

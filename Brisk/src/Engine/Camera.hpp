@@ -20,11 +20,6 @@ namespace Brisk
 {
 	class Camera {
 	public:
-		struct alignas(16) MVP {
-			glm::mat4 ProjectionView;
-			glm::vec3 CamPos;
-		};
-
 		Camera(GLFWwindow* window);
 		Camera(float fov, float aspectRatio, float nearClip, float farClip, GLFWwindow* window);
 
@@ -58,8 +53,6 @@ namespace Brisk
 		void SetMeshTransform(glm::mat4 t) {
 			m_MeshTransform = t;
 		}
-
-		std::shared_ptr<Buffer> m_MVPBuffer;
 	private:
 		void UpdateProjection();
 		void UpdateView();

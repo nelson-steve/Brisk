@@ -20,8 +20,6 @@ namespace Brisk
 		ComPtr<IDXGIFactory6> GetDXGIFactory() const { return m_DxgiFactory; }
 
 		ID3D12CommandQueue* GetCommandQueue() const { return m_CommandQueue.Get(); }
-
-		virtual void AddResource(GpuDescriptorResourceType type, std::shared_ptr<Texture> texture, std::shared_ptr<Buffer> buffer, int bindingIndex) override { assert(false); }
 	private:
 		ComPtr<IDXGIFactory6> m_DxgiFactory;
 		ComPtr<ID3D12Device> m_Device;

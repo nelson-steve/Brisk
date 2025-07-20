@@ -191,7 +191,7 @@ namespace Brisk
             }
         }
 
-        if (!mapPersistant && isMapped) {
+        if (!mapPersistant && isMapped && !hostCoherent) {
             vmaUnmapMemory(cachedAllocator, m_Allocation);
             mappedPtr = nullptr;
             isMapped = false;

@@ -394,6 +394,7 @@ namespace Brisk {
 				Core::MemoryProperty::DeviceLocal,
 				true);
 		}
+		uint32_t texturesOffset = Engine::s_TexturesOffset;
 
 		m_Materials.reserve(asset.materials.size());
 		for (const auto& material : asset.materials) {
@@ -413,110 +414,110 @@ namespace Brisk {
 			outMaterial.emissiveFactor = glm::make_vec4(material.emissiveFactor.data());
 
 			if (material.pbrData.baseColorTexture.has_value()) {
-				outMaterial.baseColorTextureIndex = material.pbrData.baseColorTexture.value().textureIndex;
-				outMaterial.baseColorTextureUV = material.pbrData.baseColorTexture.value().texCoordIndex;
+				outMaterial.baseColorTextureIndex = material.pbrData.baseColorTexture.value().textureIndex + texturesOffset;
+				outMaterial.baseColorTextureUV = material.pbrData.baseColorTexture.value().texCoordIndex + texturesOffset;
 
 				BRISK_CORE_INFO("Base texture index: {}", outMaterial.baseColorTextureIndex);
 
 				if (material.pbrData.metallicRoughnessTexture.has_value()) {
-					outMaterial.metallicRoughnessTextureIndex = material.pbrData.metallicRoughnessTexture.value().textureIndex;
-					outMaterial.metallicRoughnessTextureUV = material.pbrData.metallicRoughnessTexture.value().texCoordIndex;
+					outMaterial.metallicRoughnessTextureIndex = material.pbrData.metallicRoughnessTexture.value().textureIndex + texturesOffset;
+					outMaterial.metallicRoughnessTextureUV = material.pbrData.metallicRoughnessTexture.value().texCoordIndex + texturesOffset;
 				}
 
 				if (material.normalTexture.has_value()) {
-					outMaterial.normalTextureIndex = material.normalTexture.value().textureIndex;
-					outMaterial.normalTextureUV = material.normalTexture.value().texCoordIndex;
+					outMaterial.normalTextureIndex = material.normalTexture.value().textureIndex + texturesOffset;
+					outMaterial.normalTextureUV = material.normalTexture.value().texCoordIndex + texturesOffset;
 				}
 
 				if (material.occlusionTexture.has_value()) {
-					outMaterial.occlusionTextureIndex = material.occlusionTexture.value().textureIndex;
-					outMaterial.occlusionTextureUV = material.occlusionTexture.value().texCoordIndex;
+					outMaterial.occlusionTextureIndex = material.occlusionTexture.value().textureIndex + texturesOffset;
+					outMaterial.occlusionTextureUV = material.occlusionTexture.value().texCoordIndex + texturesOffset;
 				}
 
 				if (material.emissiveTexture.has_value()) {
-					outMaterial.emissiveTextureIndex = material.emissiveTexture.value().textureIndex;
-					outMaterial.emissiveTextureUV = material.emissiveTexture.value().texCoordIndex;
+					outMaterial.emissiveTextureIndex = material.emissiveTexture.value().textureIndex + texturesOffset;
+					outMaterial.emissiveTextureUV = material.emissiveTexture.value().texCoordIndex + texturesOffset;
 				}
 
 				if (material.anisotropy) {
 					outMaterial.anisotropyStrength = material.anisotropy->anisotropyStrength;
 					outMaterial.anisotropyRotation = material.anisotropy->anisotropyRotation;
 					if (material.anisotropy->anisotropyTexture.has_value()) {
-						outMaterial.anisotropyTextureIndex = material.anisotropy->anisotropyTexture.value().textureIndex;
-						outMaterial.anisotropyTextureUV = material.anisotropy->anisotropyTexture.value().texCoordIndex;
+						outMaterial.anisotropyTextureIndex = material.anisotropy->anisotropyTexture.value().textureIndex + texturesOffset;
+						outMaterial.anisotropyTextureUV = material.anisotropy->anisotropyTexture.value().texCoordIndex + texturesOffset;
 					}
 				}
 
 				if (material.clearcoat) {
 					outMaterial.clearcoatFactor = material.clearcoat->clearcoatFactor;
 					if (material.clearcoat->clearcoatTexture.has_value()) {
-						outMaterial.clearcoatTextureIndex = material.clearcoat->clearcoatTexture.value().textureIndex;
-						outMaterial.clearcoatTextureUV = material.clearcoat->clearcoatTexture.value().texCoordIndex;
+						outMaterial.clearcoatTextureIndex = material.clearcoat->clearcoatTexture.value().textureIndex + texturesOffset;
+						outMaterial.clearcoatTextureUV = material.clearcoat->clearcoatTexture.value().texCoordIndex + texturesOffset;
 					}
 					outMaterial.clearcoatRoughnessFactor = material.clearcoat->clearcoatRoughnessFactor;
 					if (material.clearcoat->clearcoatRoughnessTexture.has_value()) {
-						outMaterial.clearcoatRoughnessTextureIndex = material.clearcoat->clearcoatRoughnessTexture.value().textureIndex;
-						outMaterial.clearcoatRoughnessTextureUV = material.clearcoat->clearcoatRoughnessTexture.value().texCoordIndex;
+						outMaterial.clearcoatRoughnessTextureIndex = material.clearcoat->clearcoatRoughnessTexture.value().textureIndex + texturesOffset;
+						outMaterial.clearcoatRoughnessTextureUV = material.clearcoat->clearcoatRoughnessTexture.value().texCoordIndex + texturesOffset;
 					}
 					if (material.clearcoat->clearcoatNormalTexture.has_value()) {
-						outMaterial.clearcoatNormalTextureIndex = material.clearcoat->clearcoatNormalTexture.value().textureIndex;
-						outMaterial.clearcoatNormalTextureUV = material.clearcoat->clearcoatNormalTexture.value().texCoordIndex;
+						outMaterial.clearcoatNormalTextureIndex = material.clearcoat->clearcoatNormalTexture.value().textureIndex + texturesOffset;
+						outMaterial.clearcoatNormalTextureUV = material.clearcoat->clearcoatNormalTexture.value().texCoordIndex + texturesOffset;
 					}
 				}
 
 				if (material.iridescence) {
 					outMaterial.iridescenceFactor = material.iridescence->iridescenceFactor;
 					if (material.iridescence->iridescenceTexture.has_value()) {
-						outMaterial.iridescenceTextureIndex = material.iridescence->iridescenceTexture.value().textureIndex;
-						outMaterial.iridescenceTextureUV = material.iridescence->iridescenceTexture.value().texCoordIndex;
+						outMaterial.iridescenceTextureIndex = material.iridescence->iridescenceTexture.value().textureIndex + texturesOffset;
+						outMaterial.iridescenceTextureUV = material.iridescence->iridescenceTexture.value().texCoordIndex + texturesOffset;
 					}
 					outMaterial.iridescenceIor = material.iridescence->iridescenceIor;
 					outMaterial.iridescenceThicknessMinimum = material.iridescence->iridescenceThicknessMinimum;
 					outMaterial.iridescenceThicknessMaximum = material.iridescence->iridescenceThicknessMaximum;
 					if (material.iridescence->iridescenceThicknessTexture.has_value()) {
-						outMaterial.iridescenceThicknessTextureIndex = material.iridescence->iridescenceThicknessTexture.value().textureIndex;
-						outMaterial.iridescenceThicknessTextureUV = material.iridescence->iridescenceThicknessTexture.value().texCoordIndex;
+						outMaterial.iridescenceThicknessTextureIndex = material.iridescence->iridescenceThicknessTexture.value().textureIndex + texturesOffset;
+						outMaterial.iridescenceThicknessTextureUV = material.iridescence->iridescenceThicknessTexture.value().texCoordIndex + texturesOffset;
 					}
 				}
 
 				if (material.sheen) {
 					outMaterial.sheenColorFactor = glm::make_vec3(material.sheen->sheenColorFactor.data());
 					if (material.sheen->sheenColorTexture.has_value()) {
-						outMaterial.sheenColorTextureIndex = material.sheen->sheenColorTexture.value().textureIndex;
-						outMaterial.sheenColorTextureUV = material.sheen->sheenColorTexture.value().texCoordIndex;
+						outMaterial.sheenColorTextureIndex = material.sheen->sheenColorTexture.value().textureIndex + texturesOffset;
+						outMaterial.sheenColorTextureUV = material.sheen->sheenColorTexture.value().texCoordIndex + texturesOffset;
 					}
 					outMaterial.sheenRoughnessFactor = material.sheen->sheenRoughnessFactor;
 					if (material.sheen->sheenRoughnessTexture.has_value()) {
-						outMaterial.sheenRoughnessTextureIndex = material.sheen->sheenRoughnessTexture.value().textureIndex;
-						outMaterial.sheenRoughnessTextureUV = material.sheen->sheenRoughnessTexture.value().texCoordIndex;
+						outMaterial.sheenRoughnessTextureIndex = material.sheen->sheenRoughnessTexture.value().textureIndex + texturesOffset;
+						outMaterial.sheenRoughnessTextureUV = material.sheen->sheenRoughnessTexture.value().texCoordIndex + texturesOffset;
 					}
 				}
 
 				if (material.specular) {
 					outMaterial.specularFactor = material.specular->specularFactor;
 					if (material.specular->specularTexture.has_value()) {
-						outMaterial.specularTextureIndex = material.specular->specularTexture.value().textureIndex;
-						outMaterial.specularTextureUV = material.specular->specularTexture.value().texCoordIndex;
+						outMaterial.specularTextureIndex = material.specular->specularTexture.value().textureIndex + texturesOffset;
+						outMaterial.specularTextureUV = material.specular->specularTexture.value().texCoordIndex + texturesOffset;
 					}
 					outMaterial.specularColorFactor = glm::make_vec3(material.specular->specularColorFactor.data());
 					if (material.specular->specularColorTexture.has_value()) {
-						outMaterial.specularColorTextureIndex = material.specular->specularColorTexture.value().textureIndex;
-						outMaterial.specularColorTextureUV = material.specular->specularColorTexture.value().texCoordIndex;
+						outMaterial.specularColorTextureIndex = material.specular->specularColorTexture.value().textureIndex + texturesOffset;
+						outMaterial.specularColorTextureUV = material.specular->specularColorTexture.value().texCoordIndex + texturesOffset;
 					}
 				}
 
 				if (material.transmission) {
 					outMaterial.transmissionFactor = material.transmission->transmissionFactor;
 					if (material.transmission->transmissionTexture.has_value()) {
-						outMaterial.transmissionTextureIndex = material.transmission->transmissionTexture.value().textureIndex;
-						outMaterial.transmissionTextureUV = material.transmission->transmissionTexture.value().texCoordIndex;
+						outMaterial.transmissionTextureIndex = material.transmission->transmissionTexture.value().textureIndex + texturesOffset;
+						outMaterial.transmissionTextureUV = material.transmission->transmissionTexture.value().texCoordIndex + texturesOffset;
 					}
 				}
 
 				if (material.volume) {
 					outMaterial.thicknessFactor = material.volume->thicknessFactor;
-					outMaterial.thicknessTextureIndex = material.volume->thicknessTexture.value().textureIndex;
-					outMaterial.thicknessTextureUV = material.volume->thicknessTexture.value().texCoordIndex;
+					outMaterial.thicknessTextureIndex = material.volume->thicknessTexture.value().textureIndex + texturesOffset;
+					outMaterial.thicknessTextureUV = material.volume->thicknessTexture.value().texCoordIndex + texturesOffset;
 					outMaterial.attenuationDistance = material.volume->attenuationDistance;
 					outMaterial.attenuationColor = glm::make_vec3(material.volume->attenuationColor.data());
 				}
@@ -528,8 +529,6 @@ namespace Brisk {
 
 		m_MaterialStorageBuffer = Buffer::Create();
 		m_MaterialStorageBuffer->Init(sizeof(m_Materials[0]) * m_Materials.size(), m_Materials.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
-		
-		Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::Materials, nullptr, m_MaterialStorageBuffer, 0);
 
 		int i = 0;
 		for (const auto& tex : asset.textures) {
@@ -538,10 +537,11 @@ namespace Brisk {
 			std::shared_ptr<Texture> texture = Texture::Create();
 			std::static_pointer_cast<TextureVulkan>(texture)->Init(image, asset);
 			m_Textures.push_back(texture);
-
-			Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::BindlessTextures, texture, nullptr, i);
 			i++;
 		}
+
+		Engine::s_TexturesOffset += m_Textures.size();
+		Engine::s_Application->GetRenderer()->AddGlobalTexture(m_Textures);
 	}
 
 	void MeshAsset::Release() {

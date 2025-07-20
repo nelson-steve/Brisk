@@ -2,39 +2,44 @@
 
 #define MAX_LIGHTS 1024
 #define MAX_LIGHTS_PER_CLUSTER 128
+#define NUM_CLUSTERS_X 16
+#define NUM_CLUSTERS_Y 9
+#define NUM_CLUSTERS_Z 24
+#define NUM_TOTAL_CLUSTERS (NUM_CLUSTERS_X * NUM_CLUSTERS_Y * NUM_CLUSTERS_Z)
 
 layout(location = 0) in vec2 uv;
 layout(location = 0) out vec4 outColor;
 
 // G-Buffer textures
-layout(set = 2, binding = 0) uniform sampler2D gPosition;
-layout(set = 2, binding = 1) uniform sampler2D gNormal;
-layout(set = 2, binding = 2) uniform sampler2D gAlbedo;
-layout(set = 2, binding = 3) uniform sampler2D gMaterial; // metallic roughness occlusion
-layout(set = 2, binding = 4) uniform sampler2D gEmissive;
+layout(set = 2, binding = 0) uniform sampler2D sampler_Position;
+layout(set = 2, binding = 1) uniform sampler2D sampler_Normal;
+layout(set = 2, binding = 2) uniform sampler2D sampler_Albedo;
+layout(set = 2, binding = 3) uniform sampler2D sampler_Material; // metallic roughness occlusion
+layout(set = 2, binding = 4) uniform sampler2D sampler_Emissive;
+layout(set = 2, binding = 5) uniform sampler2D sampler_Depth;
 
 struct LightData {
     vec4 position; // xyz = pos, w = radius
     vec4 color;    // xyz = color, w = intensity
-}
+};
 
 layout(std430, set = 1, binding = 0) readonly buffer LightsList {
-    LightData lights[MAX_LIGHTS];
-};
+    LightData lights[];
+} ssbo_LightsList;
 
-layout(set = 1, binding = 1) readonly buffer LightIndices {
+layout(std430, set = 5, binding = 2) readonly buffer LightIndices {
     uint lightIndexList[];  // Global array of all light indices
-};
+} ssbo_LightIndices;
 
 layout(push_constant) uniform ClusterInfo {
-    vec2 u_ScreenSize;
-    float u_NearZ;
-    float u_FarZ;
-} clusterInfo;
+    vec2 ScreenSize;
+    float NearZ;
+    float FarZ;
+} pc_ClusterInfo;
 
-layout(set = 1, binding = 2) readonly buffer ClusterLightRanges {
-    uvec2 clusterLightRange[NUM_TOTAL_CLUSTERS]; // start + count per cluster
-};
+layout(std430, set = 5,  binding = 3) buffer ClusterLightOffsetList {
+    uvec2 lightOffsets[]; // start, count per cluster
+} ssbo_ClusterLightOffsetList;
 
 uvec3 GetClusterIndex(vec2 screenSize, float nearZ, float farZ, vec2 fragCoord, float linearDepth)
 {
@@ -50,10 +55,10 @@ uvec3 GetClusterIndex(vec2 screenSize, float nearZ, float farZ, vec2 fragCoord, 
 
 vec3 applyLight(vec3 fragPos, vec3 normal, uint lightIdx)
 {
-    vec3 lightPos = lights[lightIdx].position.xyz;
-    float radius  = lights[lightIdx].position.w;
-    vec3 lightCol = lights[lightIdx].color.rgb;
-    float intensity = lights[lightIdx].color.w;
+    vec3 lightPos = ssbo_LightsList.lights[lightIdx].position.xyz;
+    float radius  = ssbo_LightsList.lights[lightIdx].position.w;
+    vec3 lightCol = ssbo_LightsList.lights[lightIdx].color.rgb;
+    float intensity = ssbo_LightsList.lights[lightIdx].color.w;
 
     vec3 toLight = lightPos - fragPos;
     float dist = length(toLight);
@@ -104,16 +109,17 @@ vec3 FresnelSchlick(float cosTheta, vec3 F0) {
 // --- Main ---
 
 void main() {
-    vec3 pos      = texture(gPosition, uv).rgb;
-    vec3 N   = normalize(texture(gNormal, uv).rgb);
-    vec3 albedo   = texture(gAlbedo, uv).rgb;
-    float alpha   = texture(gAlbedo, uv).a;
-    vec3 emissive = texture(gEmissive, uv).rgb;
-    vec4 matData = texture(gMaterial, uv);
+    vec3 pos      = texture(sampler_Position, uv).rgb;
+    vec3 N        = normalize(texture(sampler_Normal, uv).rgb);
+    vec3 albedo   = texture(sampler_Albedo, uv).rgb;
+    float alpha   = texture(sampler_Albedo, uv).a;
+    vec3 emissive = texture(sampler_Emissive, uv).rgb;
+    vec4 matData  = texture(sampler_Material, uv);
+    float depth   = texture(sampler_Depth, uv).r;
 
-    float linearDepth = (2.0 * clusterInfo.u_NearZ) / (clusterInfo.u_FarZ + clusterInfo.u_NearZ - depth * (clusterInfo.u_FarZ - clusterInfo.u_NearZ));
+    float linearDepth = (2.0 * pc_ClusterInfo.NearZ) / (pc_ClusterInfo.FarZ + pc_ClusterInfo.NearZ - depth * (pc_ClusterInfo.FarZ - pc_ClusterInfo.NearZ));
 
-    uvec3 cluster = GetClusterIndex(u_ScreenSize, u_NearZ, u_FarZ, gl_FragCoord.xy, linearDepth);
+    uvec3 cluster = GetClusterIndex(pc_ClusterInfo.ScreenSize, pc_ClusterInfo.NearZ, pc_ClusterInfo.FarZ, gl_FragCoord.xy, linearDepth);
     uint clusterIndex = cluster.x + cluster.y * NUM_CLUSTERS_X + cluster.z * NUM_CLUSTERS_X * NUM_CLUSTERS_Y;
 
     outColor = vec4(albedo, alpha);

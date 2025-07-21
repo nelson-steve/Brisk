@@ -30,7 +30,6 @@ namespace Brisk
         std::vector<VkPipelineStageFlags> waitStages(submitInfo.pWaitStages.size());
 
         for (size_t i = 0; i < submitInfo.pWaitStages.size(); ++i) {
-            //waitStages[i] = VK_PIPELINE_STAGE_TOP_OF_PIPE_BIT;
             waitStages[i] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         }
 

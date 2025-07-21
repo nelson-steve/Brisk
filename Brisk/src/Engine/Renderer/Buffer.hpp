@@ -2,6 +2,7 @@
 
 // INCLUDES
 #include "RHI.hpp"
+#include "CommandBuffer.hpp"
 //----------------
 #include <cstdint>
 #include <vector>
@@ -16,6 +17,7 @@ namespace Brisk
 		virtual void Release() = 0;
 		virtual void UpdatePersistantData(uint32_t size, void* data) = 0;
 		
+		virtual void MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd) = 0;
 
 		static std::shared_ptr<Buffer> Create();
 	protected:

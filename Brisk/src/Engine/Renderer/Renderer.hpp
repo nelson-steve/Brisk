@@ -38,7 +38,7 @@ namespace Brisk
 		alignas(16) glm::vec4 maxPoint;
 	};
 
-	struct ClusterInfo {	
+	struct ClusterInfo {
 		alignas(16) glm::mat4 View;
 		alignas(16) glm::mat4 Projection;
 		alignas(16) glm::mat4 InverseView;
@@ -48,6 +48,7 @@ namespace Brisk
 		alignas(4)  float zNear;
 		alignas(4)  float zFar;
 		alignas(4)  uint32_t numLights;
+		alignas(4)  uint32_t _padding0;
 	};
 
 	struct alignas(16) LightsMVP {
@@ -125,7 +126,7 @@ namespace Brisk
 
 		std::shared_ptr<Buffer> m_CameraData;
 		std::shared_ptr<Buffer> m_LightsList;
-		std::shared_ptr<Buffer> m_ClusterAABB;
+		//std::shared_ptr<Buffer> m_ClusterAABB;
 		std::shared_ptr<Buffer> m_ClusterLightIndexList;
 		std::shared_ptr<Buffer> m_ClusterLightOffsetList;
 		std::shared_ptr<Buffer> m_AtomicCounters;

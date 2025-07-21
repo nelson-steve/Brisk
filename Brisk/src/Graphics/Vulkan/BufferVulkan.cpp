@@ -6,6 +6,7 @@
 #include "Engine/Application.hpp"
 //-------------------------------
 #include <memory>
+#include "CommandBufferVulkan.hpp"
 //---------------
 namespace Brisk 
 {
@@ -201,6 +202,21 @@ namespace Brisk
 	void BufferVulkan::UpdatePersistantData(uint32_t size, void* data) {
 		memcpy(mappedPtr, data, m_Size);
 	}
+
+    void BufferVulkan::MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd) {
+        VkMemoryBarrier memoryBarrier{ VK_STRUCTURE_TYPE_MEMORY_BARRIER };
+        memoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
+        memoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+        vkCmdPipelineBarrier(
+            std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(),
+            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, // srcStage
+            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, // dstStage
+            0,
+            1, &memoryBarrier,
+            0, nullptr,
+            0, nullptr
+        );
+    }
 
 	void BufferVulkan::Release() {
         BRISK_CORE_INFO("Destroying vma buffer");

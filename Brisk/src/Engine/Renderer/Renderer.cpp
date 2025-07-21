@@ -358,7 +358,7 @@ namespace Brisk
                 pipelineSpecs.pDebugName = "ShadowMap pipeline";
 
                 m_ShadowMapPipeline = Pipeline::Create();
-                m_ShadowMapPipeline->Init(pipelineSpecs);
+                //m_ShadowMapPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
 
@@ -475,10 +475,10 @@ namespace Brisk
             clusterInfo.View = Engine::s_Application->GetCamera()->GetViewMatrix();
             clusterInfo.InverseProj = glm::inverse(Engine::s_Application->GetCamera()->GetProjection());
             clusterInfo.InverseView = glm::inverse(Engine::s_Application->GetCamera()->GetViewMatrix());
-            clusterInfo.TileSizes = glm::uvec4(32, 32, 24, 0);;
+            clusterInfo.TileSizes = glm::uvec4(16, 9, 24, 0);
             clusterInfo.ScreenDimensions = glm::uvec2(1920, 1080);
             clusterInfo.zNear = 0.1f;
-            clusterInfo.zFar = 100.0f;
+            clusterInfo.zFar = 1000.0f;
             clusterInfo.numLights = NUM_LIGHTS;
             m_ClusterInfoUBO = Buffer::Create();
             m_ClusterInfoUBO->Init(sizeof(ClusterInfo), &clusterInfo, Core::BufferUsage::UniformBuffer, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, false);
@@ -492,7 +492,7 @@ namespace Brisk
             m_CameraData->Init(sizeof(MVP), nullptr, Core::BufferUsage::UniformBuffer,
                 Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
 
-            std::vector<LightData> lights = GenerateRandomLights(NUM_LIGHTS, 50.f);
+            std::vector<LightData> lights = GenerateRandomLights(NUM_LIGHTS);
 
             m_LightsList = Buffer::Create();
             m_LightsList->Init(sizeof(LightData) * lights.size(), lights.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
@@ -509,7 +509,7 @@ namespace Brisk
             m_AtomicCounters = Buffer::Create();
             m_AtomicCounters->Init(sizeof(uint32_t) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
-            m_AssignLightsToClustersPipeline->UpdateResources("u_CameraData", {}, m_CameraData);
+            m_AssignLightsToClustersPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
             m_AssignLightsToClustersPipeline->UpdateResources("ssbo_LightsList", {}, m_LightsList);
             m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
             m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterLightIndexList", {}, m_ClusterLightIndexList);
@@ -581,6 +581,23 @@ namespace Brisk
         //Render(false);
 
         //m_ShadowMapPass->End(m_CmdBuffer);
+        // 
+        //------------------------------------------------------------------------------------------------------------------------------------------------
+
+        // --- CLUSTERS AABB GENERATOR COMPUTE TASK ---------------------------
+        //------------------------------------------------------------------------------------------------------------------------------------------------
+        m_AABBGeneratorPipeline->Bind(m_CmdBuffer);
+
+        ComputeCommand::CmdDispatch(m_CmdBuffer, 16, 9, 24);
+        //------------------------------------------------------------------------------------------------------------------------------------------------
+
+        m_ClusterTilesSSBO->MemoryPipelineBarrier(m_CmdBuffer);
+
+        // --- ASSIGN LIGHTS TO CLUSTERS COMPUTE TASK ---------------------------
+        //------------------------------------------------------------------------------------------------------------------------------------------------
+        m_AssignLightsToClustersPipeline->Bind(m_CmdBuffer);
+
+        ComputeCommand::CmdDispatch(m_CmdBuffer, 2, 2, 6);
         //------------------------------------------------------------------------------------------------------------------------------------------------
 
         // --- DEPTH PRE PASS ---------------------------

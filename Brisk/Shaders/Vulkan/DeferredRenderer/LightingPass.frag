@@ -7,6 +7,12 @@
 #define NUM_CLUSTERS_Z 24
 #define NUM_TOTAL_CLUSTERS (NUM_CLUSTERS_X * NUM_CLUSTERS_Y * NUM_CLUSTERS_Z)
 
+#define ScreenX 1920
+#define ScreenY 1080
+#define NearZ 0.1
+#define FarZ 1000
+
+
 layout(location = 0) in vec2 uv;
 layout(location = 0) out vec4 outColor;
 
@@ -31,11 +37,13 @@ layout(std430, set = 5, binding = 2) readonly buffer LightIndices {
     uint lightIndexList[];  // Global array of all light indices
 } ssbo_LightIndices;
 
+/*
 layout(push_constant) uniform ClusterInfo {
     vec2 ScreenSize;
     float NearZ;
     float FarZ;
 } pc_ClusterInfo;
+*/
 
 layout(std430, set = 5,  binding = 3) buffer ClusterLightOffsetList {
     uvec2 lightOffsets[]; // start, count per cluster
@@ -117,10 +125,26 @@ void main() {
     vec4 matData  = texture(sampler_Material, uv);
     float depth   = texture(sampler_Depth, uv).r;
 
-    float linearDepth = (2.0 * pc_ClusterInfo.NearZ) / (pc_ClusterInfo.FarZ + pc_ClusterInfo.NearZ - depth * (pc_ClusterInfo.FarZ - pc_ClusterInfo.NearZ));
+    float linearDepth = (2.0 * NearZ) / (FarZ + NearZ - depth * (FarZ - NearZ));
 
-    uvec3 cluster = GetClusterIndex(pc_ClusterInfo.ScreenSize, pc_ClusterInfo.NearZ, pc_ClusterInfo.FarZ, gl_FragCoord.xy, linearDepth);
+    uvec3 cluster = GetClusterIndex(vec2(ScreenX, ScreenY), NearZ, FarZ, gl_FragCoord.xy, linearDepth);
     uint clusterIndex = cluster.x + cluster.y * NUM_CLUSTERS_X + cluster.z * NUM_CLUSTERS_X * NUM_CLUSTERS_Y;
 
-    outColor = vec4(albedo, alpha);
+    // --- Fetch light offset and count for this cluster ---
+    uvec2 offsetCount = ssbo_ClusterLightOffsetList.lightOffsets[clusterIndex];
+    uint offset = offsetCount.x;
+    uint count  = offsetCount.y;
+
+    vec3 litColor = vec3(0.0);
+
+    for (uint i = 0; i < count; ++i) {
+        uint lightIdx = ssbo_LightIndices.lightIndexList[offset + i];
+        litColor += applyLight(pos, N, lightIdx);
+    }
+
+    // Final color = emissive + lit * albedo
+    vec3 finalColor = emissive + litColor * albedo;
+    outColor = vec4(finalColor, alpha);
+
+    //outColor = vec4(albedo, alpha);
 }

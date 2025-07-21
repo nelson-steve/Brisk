@@ -88,7 +88,16 @@ namespace Brisk
                     binding.pImmutableSamplers = nullptr;
                     bindings.push_back(binding);
                 }
-                if (!isBindless && set->set != 5) {
+                if (set->set == 5) {
+                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_ClusteredLightingDescriptorLayout;
+                }
+                else if (set->set == 1) {
+                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_LightsDescriptorLayout;
+                }
+                else if (isBindless) {
+                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout;
+                }
+                else {
                     VkDescriptorSetLayoutCreateInfo layoutInfo{};
                     layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
                     layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -99,12 +108,6 @@ namespace Brisk
                         throw std::runtime_error("Failed to create descriptor set layout!");
                     }
                     m_DescriptorSetLayouts[setIndex] = descriptorSetLayout;
-                }
-                else if (set->set == 5) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_ClusteredLightingDescriptorLayout;
-                }
-                else {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout;
                 }
             }
 
@@ -259,6 +262,7 @@ namespace Brisk
 
     void PipelineVulkan::Init(const ComputePipelineSpecs& specs) {
         m_ComputeSpecs = specs;
+        m_IsCompute = true;
 
         m_DescriptorSetLayouts.resize(6);
         m_DescriptorSetLayouts[0] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
@@ -333,7 +337,17 @@ namespace Brisk
                 binding.pImmutableSamplers = nullptr;
                 bindings.push_back(binding);
             }
-            if (!isBindless) {
+
+            if (set->set == 5) {
+                m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_ClusteredLightingDescriptorLayout;
+            }
+            else if (set->set == 1) {
+                m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_LightsDescriptorLayout;
+            }
+            else if (isBindless) {
+                m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout;
+            }
+            else {
                 VkDescriptorSetLayoutCreateInfo layoutInfo{};
                 layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
                 layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -344,9 +358,6 @@ namespace Brisk
                     throw std::runtime_error("Failed to create descriptor set layout!");
                 }
                 m_DescriptorSetLayouts[setIndex] = descriptorSetLayout;
-            }
-            else {
-                m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout;
             }
         }
 
@@ -385,7 +396,7 @@ namespace Brisk
     void PipelineVulkan::BindInternal(std::shared_ptr<CommandBuffer> cmd, VkDescriptorSet set, uint32_t setIndex) {
         vkCmdBindDescriptorSets(
             std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(),
-            VK_PIPELINE_BIND_POINT_GRAPHICS,
+            m_IsCompute ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS,
             m_PipelineLayout,
             setIndex,
             1,
@@ -396,39 +407,68 @@ namespace Brisk
     }
 
     void PipelineVulkan::Bind(std::shared_ptr<CommandBuffer> cmd) {
-        vkCmdBindPipeline(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), VK_PIPELINE_BIND_POINT_GRAPHICS, m_Pipeline);
+        vkCmdBindPipeline(
+            std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 
+            m_IsCompute ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, 
+            m_Pipeline);
+
+        // Totally production code
+        bool once1 = false;
+        bool once2 = false;
+        bool once3 = false;
+        bool once4 = false;
+        bool once5 = false;
+        bool once6 = false;
 
         for (const ShaderResource& resource : m_ShaderResources) {
             switch (resource.p_Set)
             {
                 case SET_MVP:
                 {
-                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_MVPUBOSet, resource.p_Set);
+                    if (!once1) {
+                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_MVPUBOSet, resource.p_Set);
+                        once1 = true;
+                    }
                     break;
                 }
                 case SET_LIGHTS:
                 {
-                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_SceneLightsSet, resource.p_Set);
+                    if (!once2) {
+                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_SceneLightsSet, resource.p_Set);
+                        once2 = true;
+                    }
                     break;
                 }
                 case SET_DEFERRED_TEXTURES:
                 {
-                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DeferredTexturesSet, resource.p_Set);
+                    if (!once3) {
+                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DeferredTexturesSet, resource.p_Set);
+                        once3 = true;
+                    }
                     break;
                 }
                 case SET_BINDLESS:
                 {
-                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessTexturesSet, resource.p_Set);
+                    if (!once4) {
+                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessTexturesSet, resource.p_Set);
+                        once4 = true;
+                    }
                     break;
                 }
                 case SET_MATERIALS:
                 {
-                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_MaterialsSet, resource.p_Set);
+                    if (!once5) {
+                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_MaterialsSet, resource.p_Set);
+                        once5 = true;
+                    }
                     break;
                 }
                 case SET_CLUSTERED_LIGHTING:
                 {
-                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_ClusteredLightingSet, resource.p_Set);
+                    if (!once6) {
+                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_ClusteredLightingSet, resource.p_Set);
+                        once6 = true;
+                    }
                     break;
                 }
                 default:

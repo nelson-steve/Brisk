@@ -10,7 +10,7 @@ layout (std430, set = 5, binding = 0) buffer clusterAABB {
     TileAABB clusters[];
 } ssbo_ClusterAABB;
 
-layout (set = 5, binding = 1) uniform ClusterInfo {
+layout (std140, set = 5, binding = 1) uniform ClusterInfo {
     mat4 view;
     mat4 projection;
     mat4 invView;
@@ -20,6 +20,7 @@ layout (set = 5, binding = 1) uniform ClusterInfo {
     float zNear;
     float zFar;
     uint numLights;
+    uint _padding0;
 } u_ClusterInfo;
 
 vec4 ClipToView(vec4 clip) {
@@ -34,7 +35,7 @@ vec4 ClipToView(vec4 clip) {
 
 vec4 ScreenToView(vec4 screen) {
     //Convert to NDC
-    vec2 texCoord = screen.xy / u_ClusterInfo.screenDimensions.xy;
+    vec2 texCoord = screen.xy / vec2(1920, 1080);
 
     //Convert to clipSpace
     // vec4 clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y)* 2.0 - 1.0, screen.z, screen.w);

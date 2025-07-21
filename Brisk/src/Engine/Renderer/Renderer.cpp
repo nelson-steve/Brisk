@@ -616,6 +616,16 @@ namespace Brisk
 
         m_Editor->Update();
 
+        Texture::ImageBarrierParams params{};
+        params.oldLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
+        params.newLayout = Core::ImageLayout::ShaderReadOnlyOptimal;
+        params.srcAccess = Core::AccessType::DepthStencilWrite;
+        params.dstAccess = Core::AccessType::ShaderRead;
+        params.srcStage = Core::PipelineStage::LateFragmentTest;
+        params.dstStage = Core::PipelineStage::FragmentShader;
+
+        m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
+
         // --- LIGHTING PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_LightingPass->Begin(m_CmdBuffer);

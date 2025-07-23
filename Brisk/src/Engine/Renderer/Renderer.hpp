@@ -83,6 +83,7 @@ namespace Brisk
 		static std::shared_ptr<Swapchain> m_Swapchain;
 
 		// Synchronization objects
+		std::shared_ptr<Semaphore> ClusteredTaskSemaphore;
 		std::shared_ptr<Semaphore> ImageAvailableSemaphore;
 		std::shared_ptr<Semaphore> RenderFinishedSemaphore;
 		std::shared_ptr<Fence> m_Fence;
@@ -118,7 +119,6 @@ namespace Brisk
 		std::shared_ptr<Pipeline> m_AABBGeneratorPipeline;
 		std::shared_ptr<Pipeline> m_AssignLightsToClustersPipeline;
 
-		//std::shared_ptr<Buffer> m_LightsUBO;
 		std::shared_ptr<Buffer> m_MVPBuffer;
 
 		std::shared_ptr<Buffer> m_ClusterInfoUBO;
@@ -126,12 +126,12 @@ namespace Brisk
 
 		std::shared_ptr<Buffer> m_CameraData;
 		std::shared_ptr<Buffer> m_LightsList;
-		//std::shared_ptr<Buffer> m_ClusterAABB;
 		std::shared_ptr<Buffer> m_ClusterLightIndexList;
 		std::shared_ptr<Buffer> m_ClusterLightOffsetList;
 		std::shared_ptr<Buffer> m_AtomicCounters;
 
 		std::shared_ptr<CommandBuffer> m_CmdBuffer;
+		std::shared_ptr<CommandBuffer> m_ClusteredCmdBuffer;
 		RenderCommand m_RenderCommand;
 		uint32_t m_ImageIndex;
 

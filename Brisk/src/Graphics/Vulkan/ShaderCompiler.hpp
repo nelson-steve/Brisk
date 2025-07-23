@@ -68,26 +68,12 @@ namespace Brisk
         std::cout << "SPIR-V written to: " << filename << std::endl;
     }
 
-    int main() {
-        // Example GLSL code for a simple fragment shader
-        const std::string shaderCode = R"(
-    #version 450
-    layout(location = 0) out vec4 FragColor;
+    // Example Usage
+    //std::vector<uint32_t> spirv;
 
-    void main() {
-        FragColor = vec4(1.0, 0.0, 0.0, 1.0); // Red color
-    }
-    )";
-
-        std::vector<uint32_t> spirv;
-
-        // Compile the shader to SPIR-V
-        if (CompileShaderToSPIRV(shaderCode, "simple_fragment_shader", VK_SHADER_STAGE_FRAGMENT_BIT, spirv)) {
-            // Write the SPIR-V binary to a file
-            WriteSPIRVToFile("simple_fragment_shader.spv", spirv);
-        }
-
-        return 0;
-    }
-
+    //// Compile the shader to SPIR-V
+    //if (CompileShaderToSPIRV(shaderCode, "simple_fragment_shader", VK_SHADER_STAGE_FRAGMENT_BIT, spirv)) {
+    //    // Write the SPIR-V binary to a file
+    //    WriteSPIRVToFile("simple_fragment_shader.spv", spirv);
+    //}
 }

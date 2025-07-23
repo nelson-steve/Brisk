@@ -20,7 +20,7 @@ namespace Brisk
         std::mt19937 rng(rd());
 
         std::uniform_real_distribution<float> posDist(-range, range);
-        std::uniform_real_distribution<float> radiusDist(0.5f, 3.0f); // light radius
+        std::uniform_real_distribution<float> radiusDist(0.5f, 10.0f); // light radius
         std::uniform_real_distribution<float> colorDist(0.5f, 1.0f);  // bright colors
         std::uniform_real_distribution<float> intensityDist(1.0f, 5.0f); // intensity
 
@@ -492,16 +492,13 @@ namespace Brisk
             m_CameraData->Init(sizeof(MVP), nullptr, Core::BufferUsage::UniformBuffer,
                 Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
 
-            std::vector<LightData> lights = GenerateRandomLights(NUM_LIGHTS);
+            std::vector<LightData> lights = GenerateRandomLights(NUM_LIGHTS, 100);
 
             m_LightsList = Buffer::Create();
             m_LightsList->Init(sizeof(LightData) * lights.size(), lights.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
-            //m_ClusterAABB = Buffer::Create();
-            //m_ClusterAABB->Init(sizeof(TileAABB), nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
-
             m_ClusterLightIndexList = Buffer::Create();
-            m_ClusterLightIndexList->Init(sizeof(uint32_t) * MAX_LIGHTS * MAX_LIGHTS_PER_CLUSTER, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            m_ClusterLightIndexList->Init(sizeof(uint32_t) * 6144 * MAX_LIGHTS_PER_CLUSTER, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
             m_ClusterLightOffsetList = Buffer::Create();
             m_ClusterLightOffsetList->Init(sizeof(LightOffset) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
@@ -532,6 +529,9 @@ namespace Brisk
         ImageAvailableSemaphore = Semaphore::Create();
         ImageAvailableSemaphore->Init();
 
+        ClusteredTaskSemaphore = Semaphore::Create();
+        ClusteredTaskSemaphore->Init();
+
         RenderFinishedSemaphore = Semaphore::Create();
         RenderFinishedSemaphore->Init();
 
@@ -540,6 +540,8 @@ namespace Brisk
 
         m_CmdBuffer = CommandBuffer::Create();
         m_CmdBuffer->Allocate();
+        m_ClusteredCmdBuffer = CommandBuffer::Create();
+        m_ClusteredCmdBuffer->Allocate();
 
         m_Editor = std::make_shared<Editor>();
         m_Editor->Create(m_UIPass, m_CmdBuffer, m_LightingOutput);
@@ -566,6 +568,27 @@ namespace Brisk
         m_Fence->Wait();
         m_Fence->Reset();
 
+        m_ClusteredCmdBuffer->Reset();
+        m_ClusteredCmdBuffer->Bind();
+
+        // --- CLUSTERS AABB GENERATOR COMPUTE TASK ---------------------------
+        //------------------------------------------------------------------------------------------------------------------------------------------------
+        m_AABBGeneratorPipeline->Bind(m_ClusteredCmdBuffer);
+
+        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 16, 9, 24);
+        //------------------------------------------------------------------------------------------------------------------------------------------------
+
+        m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer);
+
+        // --- ASSIGN LIGHTS TO CLUSTERS COMPUTE TASK ---------------------------
+        //------------------------------------------------------------------------------------------------------------------------------------------------
+        m_AssignLightsToClustersPipeline->Bind(m_ClusteredCmdBuffer);
+
+        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 2, 2, 6);
+        //------------------------------------------------------------------------------------------------------------------------------------------------
+
+        m_ClusteredCmdBuffer->UnBind();
+
         m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &m_ImageIndex);
         m_CmdBuffer->Reset();
         m_CmdBuffer->Bind();
@@ -582,22 +605,6 @@ namespace Brisk
 
         //m_ShadowMapPass->End(m_CmdBuffer);
         // 
-        //------------------------------------------------------------------------------------------------------------------------------------------------
-
-        // --- CLUSTERS AABB GENERATOR COMPUTE TASK ---------------------------
-        //------------------------------------------------------------------------------------------------------------------------------------------------
-        m_AABBGeneratorPipeline->Bind(m_CmdBuffer);
-
-        ComputeCommand::CmdDispatch(m_CmdBuffer, 16, 9, 24);
-        //------------------------------------------------------------------------------------------------------------------------------------------------
-
-        m_ClusterTilesSSBO->MemoryPipelineBarrier(m_CmdBuffer);
-
-        // --- ASSIGN LIGHTS TO CLUSTERS COMPUTE TASK ---------------------------
-        //------------------------------------------------------------------------------------------------------------------------------------------------
-        m_AssignLightsToClustersPipeline->Bind(m_CmdBuffer);
-
-        ComputeCommand::CmdDispatch(m_CmdBuffer, 2, 2, 6);
         //------------------------------------------------------------------------------------------------------------------------------------------------
 
         // --- DEPTH PRE PASS ---------------------------
@@ -670,10 +677,18 @@ namespace Brisk
 
         m_CmdBuffer->UnBind();
 
+        Queue::SubmitInfo clusteredSubmitInfo{};
+        clusteredSubmitInfo.pSignalSemaphores.push_back(ClusteredTaskSemaphore);
+        clusteredSubmitInfo.pCmdBuffers.push_back(m_ClusteredCmdBuffer);
+
+        m_GraphicsQueue->Submit(clusteredSubmitInfo, nullptr);
+
         Queue::SubmitInfo lightingSubmitInfo{};
         lightingSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
+        lightingSubmitInfo.pWaitSemaphores.push_back(ClusteredTaskSemaphore);
         lightingSubmitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore);
-         lightingSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+        lightingSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+        lightingSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
         lightingSubmitInfo.pCmdBuffers.push_back(m_CmdBuffer);
 
         m_GraphicsQueue->Submit(lightingSubmitInfo, m_Fence);
@@ -779,8 +794,6 @@ namespace Brisk
         m_LightingPipeline->Release();
 
         m_Editor->Release();
-
-        //m_LightsUBO->Release();
 
         m_Swapchain->Release();
 

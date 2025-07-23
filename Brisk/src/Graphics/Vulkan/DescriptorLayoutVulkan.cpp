@@ -33,34 +33,4 @@ namespace Brisk
             throw std::runtime_error("failed to create descriptor set layout!");
         }
 	}
-
-	//void DescriptorVulkan::Allocate() {
- //       VkDescriptorSetAllocateInfo allocInfo{};
- //       allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
- //       allocInfo.descriptorPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDescriptorPool();
- //       allocInfo.descriptorSetCount = static_cast<uint32_t>(m_DescriptorLayouts.size());
- //       allocInfo.pSetLayouts = m_DescriptorLayouts.data();
-
- //       if (vkAllocateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfo, &m_Set) != VK_SUCCESS) {
- //           throw std::runtime_error("failed to allocate descriptor sets!");
- //       }
-	//}
-
-	//void DescriptorVulkan::Update(std::shared_ptr<Buffer> buffer) {
- //       VkDescriptorBufferInfo bufferInfo{};
- //       //bufferInfo.buffer = buffer->Get();
- //       bufferInfo.offset = 0;
- //       bufferInfo.range = sizeof(MVPBuffer);
-
- //       VkWriteDescriptorSet descriptorWrite{};
- //       descriptorWrite.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
- //       descriptorWrite.dstSet = m_Set;
- //       descriptorWrite.dstBinding = 0;
- //       descriptorWrite.dstArrayElement = 0;
- //       descriptorWrite.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
- //       descriptorWrite.descriptorCount = 1;
- //       descriptorWrite.pBufferInfo = &bufferInfo;
-
- //       vkUpdateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &descriptorWrite, 0, nullptr);
-	//}
 }

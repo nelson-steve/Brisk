@@ -29,6 +29,8 @@ namespace Brisk
         std::vector<VkSemaphore> signalSemaphores(submitInfo.pSignalSemaphores.size());
         std::vector<VkPipelineStageFlags> waitStages(submitInfo.pWaitStages.size());
 
+        assert(waitSemaphores.size() == waitStages.size());
+
         for (size_t i = 0; i < submitInfo.pWaitStages.size(); ++i) {
             waitStages[i] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
         }

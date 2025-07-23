@@ -32,7 +32,7 @@ namespace Brisk
 		/// <summary>
 		/// Engine wide update
 		/// </summary>
-		static void Update();
+		static void Run();
 		/// <summary>
 		/// Ends all Engine systems
 		/// </summary>

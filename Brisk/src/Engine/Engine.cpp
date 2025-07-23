@@ -18,7 +18,7 @@ namespace Brisk
 		s_Application->CreateApplication();
 	}
 
-	void Engine::Update() {
+	void Engine::Run() {
 		auto currentTime = std::chrono::high_resolution_clock::now();
 		while (!s_Application->ShouldClose()) {
 			auto newTime = std::chrono::high_resolution_clock::now();

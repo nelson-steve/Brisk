@@ -73,7 +73,7 @@ vec3 applyLight(vec3 fragPos, vec3 normal, uint lightIdx)
     float attenuation = clamp(1.0 - (dist / radius), 0.0, 1.0);
     vec3 lightDir = normalize(toLight);
 
-    float NdotL = max(dot(normal, lightDir), 0.0);
+    float NdotL = max(dot(normal, lightDir), 0.05);
     return lightCol * intensity * attenuation * NdotL;
 }
 
@@ -142,9 +142,9 @@ void main() {
         litColor += applyLight(pos, N, lightIdx);
     }
 
-    // Final color = emissive + lit * albedo
-    vec3 finalColor = emissive + litColor * albedo;
-    outColor = vec4(finalColor, alpha);
+    vec3 ambient = 0.3 * albedo; // ambient contribution
+    vec3 finalColor = ambient + litColor * albedo;
+    //vec3 finalColor = ambient;
 
-    //outColor = vec4(albedo, alpha);
+    outColor = vec4(finalColor, alpha);
 }

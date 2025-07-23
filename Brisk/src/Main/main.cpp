@@ -2,6 +2,6 @@
 
 int main(int args, char** argv) {
 	Brisk::Engine::InitSystems();
-	Brisk::Engine::Update();
+	Brisk::Engine::Run();
 	Brisk::Engine::Terminate();
 }

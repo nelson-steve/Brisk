@@ -172,7 +172,6 @@
     <ClInclude Include="src\Graphics\Vulkan\Defines.h" />
     <ClInclude Include="src\Graphics\Vulkan\DescriptorLayoutVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\FenceVulkan.hpp" />
-    <ClInclude Include="src\Graphics\Vulkan\FramebufferVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\GpuAdapterVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\PipelineVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\QueueVulkan.hpp" />
@@ -243,7 +242,6 @@
     <ClCompile Include="src\Graphics\Vulkan\CommandBufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\DescriptorLayoutVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\FenceVulkan.cpp" />
-    <ClCompile Include="src\Graphics\Vulkan\FramebufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\GpuAdapterVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\PipelineVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\QueueVulkan.cpp" />

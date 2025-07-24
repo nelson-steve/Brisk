@@ -103,7 +103,7 @@ namespace Brisk
                 VkCommandBufferAllocateInfo allocInfoCmd{};
                 allocInfoCmd.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
                 allocInfoCmd.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-                allocInfoCmd.commandPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetCommandPool();
+                allocInfoCmd.commandPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsCommandPool();
                 allocInfoCmd.commandBufferCount = 1;
 
                 VkCommandBuffer commandBuffer;
@@ -131,7 +131,7 @@ namespace Brisk
 
                 // --- 7. Cleanup command buffer ---
                 vkFreeCommandBuffers(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 
-                    std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetCommandPool(), 1, &commandBuffer);
+                    std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsCommandPool(), 1, &commandBuffer);
             }
 
             vmaDestroyBuffer(cachedAllocator, stagingBuffer, stagingAllocation);

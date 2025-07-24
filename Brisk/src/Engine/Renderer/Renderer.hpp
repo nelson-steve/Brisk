@@ -88,6 +88,7 @@ namespace Brisk
 		std::shared_ptr<Semaphore> RenderFinishedSemaphore;
 		std::shared_ptr<Fence> m_Fence;
 		std::shared_ptr<Queue> m_GraphicsQueue;
+		std::shared_ptr<Queue> m_ComputeQueue;
 
 		// Attachments
 		std::shared_ptr<Texture> m_Pos;

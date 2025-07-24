@@ -20,7 +20,7 @@ namespace Brisk
         std::mt19937 rng(rd());
 
         std::uniform_real_distribution<float> posDist(-range, range);
-        std::uniform_real_distribution<float> radiusDist(0.5f, 10.0f); // light radius
+        std::uniform_real_distribution<float> radiusDist(0.5f, 30.0f); // light radius
         std::uniform_real_distribution<float> colorDist(0.5f, 1.0f);  // bright colors
         std::uniform_real_distribution<float> intensityDist(1.0f, 5.0f); // intensity
 
@@ -492,7 +492,7 @@ namespace Brisk
             m_CameraData->Init(sizeof(MVP), nullptr, Core::BufferUsage::UniformBuffer,
                 Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
 
-            std::vector<LightData> lights = GenerateRandomLights(NUM_LIGHTS, 100);
+            std::vector<LightData> lights = GenerateRandomLights(NUM_LIGHTS, 500);
 
             m_LightsList = Buffer::Create();
             m_LightsList->Init(sizeof(LightData) * lights.size(), lights.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
@@ -537,11 +537,13 @@ namespace Brisk
 
         m_GraphicsQueue = Queue::Create();
         m_GraphicsQueue->Init(Queue::QueueType::Graphics);
+        m_ComputeQueue = Queue::Create();
+        m_ComputeQueue->Init(Queue::QueueType::Compute);
 
         m_CmdBuffer = CommandBuffer::Create();
-        m_CmdBuffer->Allocate();
+        m_CmdBuffer->Allocate(CommandBuffer::PoolType::Graphics);
         m_ClusteredCmdBuffer = CommandBuffer::Create();
-        m_ClusteredCmdBuffer->Allocate();
+        m_ClusteredCmdBuffer->Allocate(CommandBuffer::PoolType::Graphics);
 
         m_Editor = std::make_shared<Editor>();
         m_Editor->Create(m_UIPass, m_CmdBuffer, m_LightingOutput);
@@ -584,7 +586,7 @@ namespace Brisk
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_AssignLightsToClustersPipeline->Bind(m_ClusteredCmdBuffer);
 
-        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 2, 2, 6);
+        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 1, 1, 6);
         //------------------------------------------------------------------------------------------------------------------------------------------------
 
         m_ClusteredCmdBuffer->UnBind();

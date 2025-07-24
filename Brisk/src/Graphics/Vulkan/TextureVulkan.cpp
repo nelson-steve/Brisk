@@ -195,7 +195,7 @@ namespace Brisk
         {
             VkCommandBufferAllocateInfo allocInfo{ VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO };
             allocInfo.commandBufferCount = 1;
-            allocInfo.commandPool = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetCommandPool();
+            allocInfo.commandPool = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsCommandPool();
             VkCommandBuffer cmd;
             if (vkAllocateCommandBuffers(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &cmd) != VK_SUCCESS) {
                 throw std::runtime_error("Failed to allocate command buffer");
@@ -273,15 +273,15 @@ namespace Brisk
             submit.commandBufferCount = 1;
             submit.pCommandBuffers = &cmd;
 
-            if (vkQueueSubmit(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetTransferQueue(), 1, &submit, VK_NULL_HANDLE) != VK_SUCCESS) {
+            if (vkQueueSubmit(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue(), 1, &submit, VK_NULL_HANDLE) != VK_SUCCESS) {
                 throw std::runtime_error("Failed to end command buffer");
             }
-            vkQueueWaitIdle(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetTransferQueue());
+            vkQueueWaitIdle(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue());
 
             stagingBuffer.Release();
 
             vkFreeCommandBuffers(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(),
-                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetCommandPool(), 1, &cmd);
+                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsCommandPool(), 1, &cmd);
         }
     }
     void TextureVulkan::TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, std::vector<ImageBarrierParams> params) {
@@ -346,7 +346,7 @@ namespace Brisk
                 VkCommandBuffer blitCmd;
                 VkCommandBufferAllocateInfo allocInfo = {};
                 allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-                allocInfo.commandPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetCommandPool();
+                allocInfo.commandPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsCommandPool();
                 allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
                 allocInfo.commandBufferCount = 1;
 

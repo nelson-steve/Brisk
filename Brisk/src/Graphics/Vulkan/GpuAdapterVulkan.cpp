@@ -187,38 +187,52 @@ namespace Brisk
 		allocInfo.pSetLayouts = &m_MVPDescriptorLayout;
 		if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_MVPUBOSet) != VK_SUCCESS)
 		{
-			throw std::runtime_error("failed to allocate descriptor sets!");
+			throw std::runtime_error("Failed to allocate descriptor sets!");
 		}
 		
 		allocInfo.pSetLayouts = &m_LightsDescriptorLayout;
 		if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_SceneLightsSet) != VK_SUCCESS)
 		{
-			throw std::runtime_error("failed to allocate descriptor sets!");
+			throw std::runtime_error("Failed to allocate descriptor sets!");
 		}
 
 		allocInfo.pSetLayouts = &m_DeferredTexturesDescriptorLayout;
 		if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_DeferredTexturesSet) != VK_SUCCESS)
 		{
-			throw std::runtime_error("failed to allocate descriptor sets!");
+			throw std::runtime_error("Failed to allocate descriptor sets!");
 		}
 
 		allocInfo.pSetLayouts = &m_MaterialsDescriptorLayout;
 		if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_MaterialsSet) != VK_SUCCESS)
 		{
-			throw std::runtime_error("failed to allocate descriptor sets!");
+			throw std::runtime_error("Failed to allocate descriptor sets!");
 		}
 
 		allocInfo.pSetLayouts = &m_ClusteredLightingDescriptorLayout;
 		if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_ClusteredLightingSet) != VK_SUCCESS)
 		{
-			throw std::runtime_error("failed to allocate descriptor sets!");
+			throw std::runtime_error("Failed to allocate descriptor sets!");
 		}
 
+		// Creating Graphics command pool
 		VkCommandPoolCreateInfo poolInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
 		poolInfo.queueFamilyIndex = m_GraphicsQueueFamily;
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		if (vkCreateCommandPool(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &poolInfo, nullptr, &m_GraphicsCommandPool) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create command pool!");
+		}
 
-		if (vkCreateCommandPool(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
+		// Creating Compute command pool
+		poolInfo.queueFamilyIndex = m_ComputeQueueFamily;
+		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		if (vkCreateCommandPool(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &poolInfo, nullptr, &m_ComputeCommandPool) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create command pool!");
+		}
+
+		// Creating Transfer command pool
+		poolInfo.queueFamilyIndex = m_TransferQueueFamily;
+		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+		if (vkCreateCommandPool(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &poolInfo, nullptr, &m_TransferCommandPool) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create command pool!");
 		}
 	}
@@ -264,7 +278,7 @@ namespace Brisk
 			poolInfo.poolSizeCount = static_cast<uint32_t>(poolSizesBindless.size());
 			poolInfo.pPoolSizes = poolSizesBindless.data();
 			if (vkCreateDescriptorPool(m_Device, &poolInfo, nullptr, &m_BindlessDescriptorPool) != VK_SUCCESS) {
-				throw std::runtime_error("failed to create bindless descriptor pool!");
+				throw std::runtime_error("Failed to create bindless descriptor pool!");
 			}
 
 			std::vector<VkDescriptorSetLayoutBinding> bindings;
@@ -276,14 +290,6 @@ namespace Brisk
 			imageSamplerBinding.stageFlags = VK_SHADER_STAGE_ALL;
 			imageSamplerBinding.pImmutableSamplers = nullptr;
 			bindings.push_back(imageSamplerBinding);
-
-			//VkDescriptorSetLayoutBinding storage_image_binding{};
-			//storage_image_binding.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_IMAGE;
-			//storage_image_binding.descriptorCount = maxBindlessResources;
-			//storage_image_binding.binding = bindlessBinding + 1;
-			//storage_image_binding.stageFlags = VK_SHADER_STAGE_ALL;
-			//storage_image_binding.pImmutableSamplers = nullptr;
-			//bindings.push_back(storage_image_binding);
 
 			VkDescriptorSetLayoutCreateInfo layoutinfo = { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO };
 			layoutinfo.bindingCount = static_cast<uint32_t>(bindings.size());
@@ -303,7 +309,7 @@ namespace Brisk
 			layoutinfo.pNext = &extended_info;
 
 			if (vkCreateDescriptorSetLayout(m_Device, &layoutinfo, nullptr, &m_BindlessDescriptorLayout) != VK_SUCCESS) {
-				throw std::runtime_error("failed to create bindless descriptor pool!");
+				throw std::runtime_error("Failed to create bindless descriptor pool!");
 			}
 
 			VkDescriptorSetAllocateInfo allocInfo { VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO };
@@ -319,7 +325,7 @@ namespace Brisk
 			allocInfo.pNext = &countInfo;
 
 			if (vkAllocateDescriptorSets(m_Device, &allocInfo, &m_BindlessTexturesSet) != VK_SUCCESS) {
-				throw std::runtime_error("failed to create bindless descriptor pool!");
+				throw std::runtime_error("Failed to create bindless descriptor pool!");
 			}
 		}
 	}
@@ -331,11 +337,11 @@ namespace Brisk
 		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
 		vkGetPhysicalDeviceQueueFamilyProperties(m_PhysicalDevice, &queueFamilyCount, queueFamilies.data());
 
-		// Creating queue create infos
 		std::vector<VkDeviceQueueCreateInfo> queueCreateInfos;
 		std::set<int> skipFamilies;
+		float queuePriority = 1.0f;
+		// Find dedicated graphics queue family
 		for (uint32_t i = 0; i < queueFamilyCount; ++i) {
-			float queuePriority = 1.0f;
 			VkBool32 presentSupport;
 			vkGetPhysicalDeviceSurfaceSupportKHR(m_PhysicalDevice, i, m_Surface->GetSurface(), &presentSupport);
 			if (presentSupport && queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
@@ -349,11 +355,30 @@ namespace Brisk
 				break;
 			}
 		}
+
+		// Find dedicated compute queue family
 		for (uint32_t i = 0; i < queueFamilyCount; ++i) {
 			if (std::find(skipFamilies.begin(), skipFamilies.end(), i) != skipFamilies.end())
 				continue;
-			float queuePriority = 1.0f;
-			if (queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT) {
+			if (queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT     &&
+				!(queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)) {
+				VkDeviceQueueCreateInfo transferQueueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
+				m_ComputeQueueFamily = i;
+				transferQueueCreateInfo.queueFamilyIndex = i;
+				transferQueueCreateInfo.queueCount = 1;
+				transferQueueCreateInfo.pQueuePriorities = &queuePriority;
+				queueCreateInfos.push_back(transferQueueCreateInfo);
+				break;
+			}
+		}
+
+		// Find dedicated transfer queue family
+		for (uint32_t i = 0; i < queueFamilyCount; ++i) {
+			if (std::find(skipFamilies.begin(), skipFamilies.end(), i) != skipFamilies.end())
+				continue;
+			if (queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT &&
+				!(queueFamilies[i].queueFlags & VK_QUEUE_COMPUTE_BIT) &&
+				!(queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT)) {
 				VkDeviceQueueCreateInfo transferQueueCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO };
 				m_TransferQueueFamily = i;
 				transferQueueCreateInfo.queueFamilyIndex = i;
@@ -429,21 +454,13 @@ namespace Brisk
 			BRISK_CORE_ERROR("Failed to create logical device!");
 		}
 
-		// Get device queues
-		for (uint32_t i = 0; i < queueFamilyCount; ++i) {
-			VkBool32 presentSupport;
-			vkGetPhysicalDeviceSurfaceSupportKHR(m_PhysicalDevice, i, m_Surface->GetSurface(), &presentSupport);
-			if (presentSupport && queueFamilies[i].queueFlags & VK_QUEUE_GRAPHICS_BIT) {
-				vkGetDeviceQueue(m_Device, i, 0, &m_GraphicsQueue);
-				break;
-			}
-		}
-		for (uint32_t i = 0; i < queueFamilyCount; ++i) {
-			if (queueFamilies[i].queueFlags & VK_QUEUE_TRANSFER_BIT) {
-				vkGetDeviceQueue(m_Device, i, 0, &m_TransferQueue);
-				break;
-			}
-		}
+		assert(m_GraphicsQueueFamily != -1);
+		assert(m_ComputeQueueFamily != -1);
+		assert(m_TransferQueueFamily != -1);
+
+		vkGetDeviceQueue(m_Device, m_GraphicsQueueFamily, 0, &m_GraphicsQueue);
+		vkGetDeviceQueue(m_Device, m_ComputeQueueFamily, 0, &m_ComputeQueue);
+		vkGetDeviceQueue(m_Device, m_TransferQueueFamily, 0, &m_TransferQueue);
 	}
 
 	void GpuAdapterVulkan::Release() {
@@ -463,7 +480,9 @@ namespace Brisk
 		vkDestroyDescriptorSetLayout(m_Device, m_BindlessDescriptorLayout, nullptr);
 		vkDestroyDescriptorSetLayout(m_Device, m_MaterialsDescriptorLayout, nullptr);
 
-		vkDestroyCommandPool(m_Device, m_CommandPool, nullptr);
+		vkDestroyCommandPool(m_Device, m_GraphicsCommandPool, nullptr);
+		vkDestroyCommandPool(m_Device, m_ComputeCommandPool, nullptr);
+		vkDestroyCommandPool(m_Device, m_TransferCommandPool, nullptr);
 
 		vkDestroyDescriptorPool(m_Device, m_DescriptorPool, nullptr);
 		vkDestroyDescriptorPool(m_Device, m_BindlessDescriptorPool, nullptr);
@@ -495,99 +514,11 @@ namespace Brisk
 		vkGetPhysicalDeviceFeatures2(device, &device_features);
 
 		bool bindless_supported = indexing_features.descriptorBindingPartiallyBound && indexing_features.runtimeDescriptorArray;
-		assert(bindless_supported); // Solely dependent on bindless rendering for now
+		assert(bindless_supported); // Bindless rendering is a dependency for now
 
 		if (!extensionsSupported) return false;
 
 		// Device is suitable!
 		return true;
 	}
-
-	//void GpuAdapterVulkan::AddResource(GpuDescriptorResourceType type, std::shared_ptr<Texture> texture, std::shared_ptr<Buffer> buffer, int bindingIndex) {
-	//	switch (type)
-	//	{
-	//		case Brisk::MVPUBO:
-	//		{
-	//			VkWriteDescriptorSet write{};
-	//			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	//			write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	//			write.dstSet = m_MVPUBOSet;
-	//			write.dstBinding = bindingIndex;
-	//			write.descriptorCount = 1;
-	//			write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
-	//			vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
-	//			break;
-	//		}
-	//		case Brisk::SceneLightsUBO:
-	//		{
-	//			VkWriteDescriptorSet write{};
-	//			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	//			write.descriptorType = VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER;
-	//			write.dstSet = m_SceneLightsSet;
-	//			write.dstBinding = bindingIndex;
-	//			write.descriptorCount = 1;
-	//			write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
-	//			vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
-	//			break;
-	//		}
-	//		case Brisk::DeferredTextures:
-	//		{
-	//			VkWriteDescriptorSet write{};
-	//			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	//			write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	//			write.dstSet = m_DeferredTexturesSet;
-	//			write.dstBinding = bindingIndex;
-	//			write.descriptorCount = 1;
-	//			write.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
-
-	//			vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
-	//			break;
-	//		}
-	//		case Brisk::BindlessTextures:
-	//		{
-	//			VkWriteDescriptorSet write{};
-	//			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	//			write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-	//			write.dstSet = m_BindlessTexturesSet;
-	//			write.dstBinding = 0;
-	//			write.dstArrayElement = bindingIndex;
-	//			write.descriptorCount = 1;
-	//			write.pImageInfo = std::static_pointer_cast<TextureVulkan>(texture)->GetDescriptor();
-
-	//			vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
-	//			break;
-	//		}
-	//		case Brisk::Materials:
-	//		{
-	//			VkWriteDescriptorSet write{};
-	//			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	//			write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	//			write.dstSet = m_MaterialsSet;
-	//			write.dstBinding = bindingIndex;
-	//			write.descriptorCount = 1;
-	//			write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
-
-	//			vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
-	//			break;
-	//		}
-	//		case Brisk::ClusteredLighting:
-	//		{
-	//			VkWriteDescriptorSet write{};
-	//			write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-	//			write.descriptorType = VK_DESCRIPTOR_TYPE_STORAGE_BUFFER;
-	//			write.dstSet = m_ClusteredLightingSet;
-	//			write.dstBinding = bindingIndex;
-	//			write.descriptorCount = 1;
-	//			write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
-
-	//			vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
-	//			break;
-	//		}
-	//		default:
-	//		{
-	//			BRISK_CORE_WARN("Adding invalid GPU resource");
-	//			break;
-	//		}
-	//	}
-	//}
 }

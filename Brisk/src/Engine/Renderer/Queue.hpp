@@ -17,6 +17,7 @@ namespace Brisk
 	public:
 		enum class QueueType {
 			Graphics,
+			Compute,
 			Transfer
 		};
 	public:

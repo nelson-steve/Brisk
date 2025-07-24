@@ -36,16 +36,18 @@ namespace Brisk
 
 		VkPhysicalDevice GetPhysicalDevice() const { return m_PhysicalDevice; }
 		VkDevice& GetDevice() { return m_Device; }
-		VkCommandPool GetCommandPool() const { return m_CommandPool; }
+		VkCommandPool GetGraphicsCommandPool() const { return m_GraphicsCommandPool; }
+		VkCommandPool GetComputeCommandPool() const { return m_ComputeCommandPool; }
+		VkCommandPool GetTransferCommandPool() const { return m_TransferCommandPool; }
 		VmaAllocator GetVmaAllocator() const { return m_VmaAllocator; }
 		VkQueue GetGraphicsQueue() const { return m_GraphicsQueue; }
+		VkQueue GetComputeQueue() const { return m_ComputeQueue; }
 		VkQueue GetTransferQueue() const { return m_TransferQueue; }
 		uint32_t GetGraphicsQueueFamily() const { return m_GraphicsQueueFamily; }
 		uint32_t GetTransferQueueFamily() const { return m_TransferQueueFamily; }
 		VkDescriptorPool GetDescriptorPool() const { return m_DescriptorPool; }
 		VkInstance GetInstance() const { return m_Instance; }
 
-		//virtual void AddResource(GpuDescriptorResourceType type, std::shared_ptr<Texture> texture, std::shared_ptr<Buffer> buffer, int bindingIndex) override;
 		virtual void WaitIdle() override;
 
 		std::shared_ptr<SurfaceVulkan> GetSurface() { return m_Surface; }
@@ -82,17 +84,32 @@ namespace Brisk
 		//------------------------------------------------------//
 
 	private:
+		/// <summary>
+		/// Vulkan main handles
+		/// </summary>
+		VkInstance m_Instance;
 		VkPhysicalDevice m_PhysicalDevice;
 		VkDevice m_Device;
-		VkQueue m_TransferQueue;
+
+		/// <summary>
+		/// Vulkan queue handles
+		/// </summary>
 		VkQueue m_GraphicsQueue;
+		VkQueue m_ComputeQueue;
+		VkQueue m_TransferQueue;
 
 		VmaAllocator m_VmaAllocator;
 
-		uint32_t m_GraphicsQueueFamily;
-		uint32_t m_TransferQueueFamily;
+		/// <summary>
+		/// Vulkan queue family indexes cached to create dedicated queues
+		/// </summary>
+		int32_t m_GraphicsQueueFamily = -1;
+		int32_t m_ComputeQueueFamily = -1;
+		int32_t m_TransferQueueFamily = -1;
 
-		VkCommandPool m_CommandPool;
+		VkCommandPool m_GraphicsCommandPool;
+		VkCommandPool m_ComputeCommandPool;
+		VkCommandPool m_TransferCommandPool;
 
 		///
 		/// <summary>
@@ -107,10 +124,5 @@ namespace Brisk
 		bool m_ValidationLayersFound;
 
 		std::shared_ptr<SurfaceVulkan> m_Surface;
-
-		/// <summary>
-		/// Vulkan handles
-		/// </summary>
-		VkInstance m_Instance;
 	};
 }

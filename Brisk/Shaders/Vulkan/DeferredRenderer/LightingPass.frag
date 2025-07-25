@@ -45,7 +45,7 @@ layout(push_constant) uniform ClusterInfo {
 } pc_ClusterInfo;
 */
 
-layout(std430, set = 5,  binding = 3) buffer ClusterLightOffsetList {
+layout(std430, set = 5,  binding = 3) readonly buffer ClusterLightOffsetList {
     uvec2 lightOffsets[]; // start, count per cluster
 } ssbo_ClusterLightOffsetList;
 

@@ -12,8 +12,6 @@ layout (std430, set = 5, binding = 0) buffer clusterAABB {
 
 layout (std140, set = 5, binding = 1) uniform ClusterInfo {
     mat4 view;
-    mat4 projection;
-    mat4 invView;
     mat4 invProj;
     uvec4 tileSizes;
     vec2 screenDimensions;

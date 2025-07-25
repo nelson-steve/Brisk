@@ -470,18 +470,8 @@ namespace Brisk
             m_ClusterTilesSSBO = Buffer::Create();
             m_ClusterTilesSSBO->Init(sizeof(TileAABB) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
-            ClusterInfo clusterInfo{};
-            clusterInfo.Projection = Engine::s_Application->GetCamera()->GetProjection();
-            clusterInfo.View = Engine::s_Application->GetCamera()->GetViewMatrix();
-            clusterInfo.InverseProj = glm::inverse(Engine::s_Application->GetCamera()->GetProjection());
-            clusterInfo.InverseView = glm::inverse(Engine::s_Application->GetCamera()->GetViewMatrix());
-            clusterInfo.TileSizes = glm::uvec4(16, 9, 24, 0);
-            clusterInfo.ScreenDimensions = glm::uvec2(1920, 1080);
-            clusterInfo.zNear = 0.1f;
-            clusterInfo.zFar = 1000.0f;
-            clusterInfo.numLights = NUM_LIGHTS;
             m_ClusterInfoUBO = Buffer::Create();
-            m_ClusterInfoUBO->Init(sizeof(ClusterInfo), &clusterInfo, Core::BufferUsage::UniformBuffer, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, false);
+            m_ClusterInfoUBO->Init(sizeof(ClusterInfo), nullptr, Core::BufferUsage::UniformBuffer, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
 
             m_AABBGeneratorPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
             m_AABBGeneratorPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
@@ -498,7 +488,7 @@ namespace Brisk
             m_LightsList->Init(sizeof(LightData) * lights.size(), lights.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
             m_ClusterLightIndexList = Buffer::Create();
-            m_ClusterLightIndexList->Init(sizeof(uint32_t) * 6144 * MAX_LIGHTS_PER_CLUSTER, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            m_ClusterLightIndexList->Init(sizeof(uint32_t) * NUM_CLUSTERS * MAX_LIGHTS_PER_CLUSTER, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
             m_ClusterLightOffsetList = Buffer::Create();
             m_ClusterLightOffsetList->Init(sizeof(LightOffset) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
@@ -506,12 +496,17 @@ namespace Brisk
             m_AtomicCounters = Buffer::Create();
             m_AtomicCounters->Init(sizeof(uint32_t) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
+            uint32_t globalIndex = 0;
+            m_GlobalIndexCountSSBO = Buffer::Create();
+            m_GlobalIndexCountSSBO->Init(sizeof(uint32_t), &globalIndex, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+
             m_AssignLightsToClustersPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
             m_AssignLightsToClustersPipeline->UpdateResources("ssbo_LightsList", {}, m_LightsList);
             m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
             m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterLightIndexList", {}, m_ClusterLightIndexList);
             m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterLightOffsetList", {}, m_ClusterLightOffsetList);
             m_AssignLightsToClustersPipeline->UpdateResources("ssbo_AtomicCounters", {}, m_AtomicCounters);
+            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_GlobalIndex", {}, m_GlobalIndexCountSSBO);
         }
 
         m_DepthPrePassPipeline->UpdateResources("u_MVP", {}, m_MVPBuffer);
@@ -559,6 +554,16 @@ namespace Brisk
 
         m_MVPBuffer->UpdatePersistantData(sizeof(MVP), &mvp);
 
+        ClusterInfo clusterInfo{};
+        clusterInfo.View = Engine::s_Application->GetCamera()->GetViewMatrix();
+        clusterInfo.InverseProj = glm::inverse(Engine::s_Application->GetCamera()->GetProjection());
+        clusterInfo.TileSizes = glm::uvec4(16, 9, 24, 0);
+        clusterInfo.ScreenDimensions = glm::uvec2(1920, 1080);
+        clusterInfo.zNear = 0.1f;
+        clusterInfo.zFar = 1000.0f;
+        clusterInfo.numLights = NUM_LIGHTS;
+        m_ClusterInfoUBO->UpdatePersistantData(sizeof(ClusterInfo), &clusterInfo);
+
         auto view = SceneManager::pActiveScene->Reg().view<MeshComponent, WorldTransformComponent>();
 
         for (auto e : view) {
@@ -571,25 +576,35 @@ namespace Brisk
         m_Fence->Reset();
 
         m_ClusteredCmdBuffer->Reset();
-        m_ClusteredCmdBuffer->Bind();
 
+        m_ClusteredCmdBuffer->Bind();
         // --- CLUSTERS AABB GENERATOR COMPUTE TASK ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_AABBGeneratorPipeline->Bind(m_ClusteredCmdBuffer);
-
         ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 16, 9, 24);
-        //------------------------------------------------------------------------------------------------------------------------------------------------
-
         m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer);
+        //------------------------------------------------------------------------------------------------------------------------------------------------
+        m_ClusteredCmdBuffer->UnBind();
 
+        Queue::SubmitInfo clusteredSubmitInfo{};
+        clusteredSubmitInfo.pCmdBuffers.push_back(m_ClusteredCmdBuffer);
+        m_GraphicsQueue->Submit(clusteredSubmitInfo, nullptr);
+        Engine::s_Application->GetGpuAdapter()->WaitIdle();
+
+        m_ClusteredCmdBuffer->Reset();
+
+        m_ClusteredCmdBuffer->Bind();
         // --- ASSIGN LIGHTS TO CLUSTERS COMPUTE TASK ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_AssignLightsToClustersPipeline->Bind(m_ClusteredCmdBuffer);
-
         ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 1, 1, 6);
         //------------------------------------------------------------------------------------------------------------------------------------------------
-
         m_ClusteredCmdBuffer->UnBind();
+
+        Queue::SubmitInfo clusteredSubmitInfo2{};
+        clusteredSubmitInfo2.pCmdBuffers.push_back(m_ClusteredCmdBuffer);
+        m_GraphicsQueue->Submit(clusteredSubmitInfo2, nullptr);
+        Engine::s_Application->GetGpuAdapter()->WaitIdle();
 
         m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &m_ImageIndex);
         m_CmdBuffer->Reset();
@@ -679,17 +694,9 @@ namespace Brisk
 
         m_CmdBuffer->UnBind();
 
-        Queue::SubmitInfo clusteredSubmitInfo{};
-        clusteredSubmitInfo.pSignalSemaphores.push_back(ClusteredTaskSemaphore);
-        clusteredSubmitInfo.pCmdBuffers.push_back(m_ClusteredCmdBuffer);
-
-        m_GraphicsQueue->Submit(clusteredSubmitInfo, nullptr);
-
         Queue::SubmitInfo lightingSubmitInfo{};
         lightingSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
-        lightingSubmitInfo.pWaitSemaphores.push_back(ClusteredTaskSemaphore);
         lightingSubmitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore);
-        lightingSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
         lightingSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
         lightingSubmitInfo.pCmdBuffers.push_back(m_CmdBuffer);
 
@@ -702,6 +709,8 @@ namespace Brisk
 
         // Present
         m_GraphicsQueue->Present(presentInfo);
+
+        Engine::s_Application->GetGpuAdapter()->WaitIdle();
 
         m_RenderGroups.clear();
     }

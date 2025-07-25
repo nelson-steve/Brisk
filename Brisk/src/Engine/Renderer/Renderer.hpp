@@ -40,8 +40,6 @@ namespace Brisk
 
 	struct ClusterInfo {
 		alignas(16) glm::mat4 View;
-		alignas(16) glm::mat4 Projection;
-		alignas(16) glm::mat4 InverseView;
 		alignas(16) glm::mat4 InverseProj;
 		alignas(16) glm::uvec4 TileSizes;
 		alignas(8)  glm::uvec2 ScreenDimensions;
@@ -124,6 +122,7 @@ namespace Brisk
 
 		std::shared_ptr<Buffer> m_ClusterInfoUBO;
 		std::shared_ptr<Buffer> m_ClusterTilesSSBO;
+		std::shared_ptr<Buffer> m_GlobalIndexCountSSBO;
 
 		std::shared_ptr<Buffer> m_CameraData;
 		std::shared_ptr<Buffer> m_LightsList;

@@ -25,7 +25,6 @@ namespace Brisk
 
 		void Release();
 
-		//void OnUpdate(float t, GLFWwindow* window);
 		void OnUpdate(float t);
 
 		inline float GetDistance() const { return m_Distance; }

@@ -20,7 +20,7 @@ namespace Brisk
         std::mt19937 rng(rd());
 
         std::uniform_real_distribution<float> posDist(-range, range);
-        std::uniform_real_distribution<float> radiusDist(0.5f, 30.0f); // light radius
+        std::uniform_real_distribution<float> radiusDist(0.5f, 90.0f); // light radius
         std::uniform_real_distribution<float> colorDist(0.5f, 1.0f);  // bright colors
         std::uniform_real_distribution<float> intensityDist(1.0f, 5.0f); // intensity
 
@@ -315,7 +315,7 @@ namespace Brisk
                 pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
                 pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
                 pipelineSpecs.pDepthBiasEnable = false;
-                pipelineSpecs.pDepthTestEnable = true;
+                pipelineSpecs.pDepthTestEnable = true;  
                 pipelineSpecs.pDepthWriteEnable = true;
                 pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS;
                 pipelineSpecs.pDepthBoundsTestEnable = false;

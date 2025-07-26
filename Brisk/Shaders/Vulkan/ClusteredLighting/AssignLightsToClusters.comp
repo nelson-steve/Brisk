@@ -57,7 +57,7 @@ shared LightData sharedLights[16*9*4];
 float sqDistPointAABB(vec3 point, uint tile){
     float sqDist = 0.0;
     TileAABB currentCell = ssbo_ClusterAABB.clusters[tile];
-    ssbo_ClusterAABB.clusters[tile].maxPoint[3] = tile;
+    //ssbo_ClusterAABB.clusters[tile].maxPoint[3] = tile;
     for(int i = 0; i < 3; ++i){
         float v = point[i];
         if(v < currentCell.minPoint[i]){
@@ -94,7 +94,7 @@ void main() {
         uint lightIndex = batch * threadCount + gl_LocalInvocationIndex;
 
         //Prevent overflow by clamping to last light which is always null
-        lightIndex = min(lightIndex, lightCount);
+        lightIndex = min(lightIndex, lightCount - 1);
 
         //Populating shared light array
         sharedLights[gl_LocalInvocationIndex] = ssbo_LightsList.lights[lightIndex];
@@ -102,7 +102,7 @@ void main() {
 
         //Iterating within the current batch of lights
         for( uint light = 0; light < threadCount; ++light){
-            //if(sharedLights[light].enabled  == 1){
+            //if(sharedLights[light].enabled  == 1)
             if(true){
                 if( testSphereAABB(light, tileIndex) ){
                     visibleLightIndices[visibleLightCount] = batch * threadCount + light;

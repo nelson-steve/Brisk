@@ -10,8 +10,7 @@
 #define ScreenX 1920
 #define ScreenY 1080
 #define NearZ 0.1
-#define FarZ 1000
-
+#define FarZ 100
 
 layout(location = 0) in vec2 uv;
 layout(location = 0) out vec4 outColor;
@@ -28,6 +27,17 @@ struct LightData {
     vec4 position; // xyz = pos, w = radius
     vec4 color;    // xyz = color, w = intensity
 };
+
+struct TileAABB {
+    vec4 minPoint;
+    vec4 maxPoint;
+    uint count;
+    uint lightIndices[MAX_LIGHTS_PER_CLUSTER];
+};
+
+layout (std430, set = 5, binding = 0) readonly buffer Clusters{
+    TileAABB clusters[];
+} ssbo_ClusterAABB;
 
 layout(std430, set = 1, binding = 0) readonly buffer LightsList {
     LightData lights[];
@@ -125,20 +135,26 @@ void main() {
     vec4 matData  = texture(sampler_Material, uv);
     float depth   = texture(sampler_Depth, uv).r;
 
-    float linearDepth = (2.0 * NearZ) / (FarZ + NearZ - depth * (FarZ - NearZ));
+    vec3 gridSize = vec3(16, 9, 4);
 
-    uvec3 cluster = GetClusterIndex(vec2(ScreenX, ScreenY), NearZ, FarZ, gl_FragCoord.xy, linearDepth);
-    uint clusterIndex = cluster.x + cluster.y * NUM_CLUSTERS_X + cluster.z * NUM_CLUSTERS_X * NUM_CLUSTERS_Y;
+    // Locating which cluster this fragment is part of
+    float viewZ = -pos.z;
+    uint zTile = uint(clamp((log(viewZ / NearZ) / log(FarZ / NearZ)) * gridSize.z, 0.0, gridSize.z - 1));
+    vec2 tileSize = vec2(ScreenX, ScreenY) / gridSize.xy;
+    uvec3 tile = uvec3(gl_FragCoord.xy / tileSize, zTile);
+    uint tileIndex = uint(tile.x + (tile.y * gridSize.x) + (tile.z * gridSize.x * gridSize.y));
 
-    // --- Fetch light offset and count for this cluster ---
-    uvec2 offsetCount = ssbo_ClusterLightOffsetList.lightOffsets[clusterIndex];
-    uint offset = offsetCount.x;
-    uint count  = offsetCount.y;
+    if (tile.x >= gridSize.x || tile.y >= gridSize.y || tile.z >= gridSize.z) {
+        outColor = vec4(emissive, 1.0); // fallback
+        return;
+    }
+
+    uint lightCount = ssbo_ClusterAABB.clusters[tileIndex].count;
 
     vec3 litColor = vec3(0.0);
 
-    for (uint i = 0; i < count; ++i) {
-        uint lightIdx = ssbo_LightIndices.lightIndexList[offset + i];
+    for (uint i = 0; i < lightCount; ++i) {
+        uint lightIdx = ssbo_ClusterAABB.clusters[tileIndex].lightIndices[i];
         litColor += applyLight(pos, N, lightIdx);
     }
 

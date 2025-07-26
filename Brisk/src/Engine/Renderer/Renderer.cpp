@@ -482,7 +482,7 @@ namespace Brisk
             m_CameraData->Init(sizeof(MVP), nullptr, Core::BufferUsage::UniformBuffer,
                 Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
 
-            std::vector<LightData> lights = GenerateRandomLights(NUM_LIGHTS, 500);
+            std::vector<LightData> lights = GenerateRandomLights(NUM_LIGHTS, 100);
 
             m_LightsList = Buffer::Create();
             m_LightsList->Init(sizeof(LightData) * lights.size(), lights.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
@@ -517,6 +517,7 @@ namespace Brisk
         m_LightingPipeline->UpdateResources("sampler_Material", { m_Material }, nullptr);
         m_LightingPipeline->UpdateResources("sampler_Emissive", { m_Emissive }, nullptr);
         m_LightingPipeline->UpdateResources("sampler_Depth",    { m_DepthPre }, nullptr);
+        m_LightingPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
 
         m_Fence = Fence::Create();
         m_Fence->Init();
@@ -560,7 +561,7 @@ namespace Brisk
         clusterInfo.TileSizes = glm::uvec4(16, 9, 24, 0);
         clusterInfo.ScreenDimensions = glm::uvec2(1920, 1080);
         clusterInfo.zNear = 0.1f;
-        clusterInfo.zFar = 1000.0f;
+        clusterInfo.zFar = 100.0f;
         clusterInfo.numLights = NUM_LIGHTS;
         m_ClusterInfoUBO->UpdatePersistantData(sizeof(ClusterInfo), &clusterInfo);
 
@@ -597,7 +598,7 @@ namespace Brisk
         // --- ASSIGN LIGHTS TO CLUSTERS COMPUTE TASK ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_AssignLightsToClustersPipeline->Bind(m_ClusteredCmdBuffer);
-        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 1, 1, 6);
+        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 27, 1, 1);
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_ClusteredCmdBuffer->UnBind();
 

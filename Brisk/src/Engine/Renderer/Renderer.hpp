@@ -33,9 +33,12 @@ namespace Brisk
 		alignas(8) glm::uvec2 Offset;
 	};
 
-	struct TileAABB {
-		alignas(16) glm::vec4 minPoint;
-		alignas(16) glm::vec4 maxPoint;
+	struct alignas(16) TileAABB {
+		glm::vec4 minPoint;
+		glm::vec4 maxPoint;
+		uint32_t count;
+		uint32_t _padding[3];
+		alignas(16) uint32_t lightIndices[MAX_LIGHTS_PER_CLUSTER];
 	};
 
 	struct ClusterInfo {

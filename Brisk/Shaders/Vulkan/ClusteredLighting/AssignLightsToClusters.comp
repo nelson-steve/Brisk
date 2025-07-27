@@ -1,5 +1,5 @@
 #version 450
-layout(local_size_x = 16, local_size_y = 9, local_size_z = 4) in;
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 #define MAX_LIGHTS 2048
 #define MAX_LIGHTS_PER_CLUSTER 128
@@ -56,21 +56,26 @@ layout (std430, set = 5, binding = 5) buffer GlobalIndexCount {
     uint globalIndexCount;
 } ssbo_GlobalIndex;
 
-shared LightData sharedLights[16*9*4];
+shared LightData sharedLights[128*1*1];
 
 float sqDistPointAABB(vec3 point, uint tile){
     float sqDist = 0.0;
     TileAABB currentCell = ssbo_ClusterAABB.clusters[tile];
     ssbo_ClusterAABB.clusters[tile].maxPoint[3] = tile;
-    for(int i = 0; i < 3; ++i){
-        float v = point[i];
-        if(v < currentCell.minPoint[i]){
-            sqDist += (currentCell.minPoint[i] - v) * (currentCell.minPoint[i] - v);
-        }
-        if(v > currentCell.maxPoint[i]){
-            sqDist += (v - currentCell.maxPoint[i]) * (v - currentCell.maxPoint[i]);
-        }
-    }
+	for (uint i = 0; i < 3; ++i)
+	{
+		float v = point[i];
+		if (v < currentCell.minPoint[i])
+		{
+			float diff = currentCell.minPoint[i] - v;
+			sqDist += (diff * diff);
+		}
+		else if (v > currentCell.maxPoint[i])
+		{
+			float diff = currentCell.maxPoint[i] - v;
+			sqDist += (diff * diff);
+		}
+	}
 
     return sqDist;
 }
@@ -80,54 +85,38 @@ bool testSphereAABB(uint light, uint tile){
     vec3 center  = vec3(u_ClusterInfo.view * sharedLights[light].position);
     float squaredDistance = sqDistPointAABB(center, tile);
 
-    return squaredDistance <= (radius * radius);
+    return squaredDistance < (radius * radius);
 }
 
 void main()
 {
     ssbo_GlobalIndex.globalIndexCount = 0;
-    uint threadCount = gl_WorkGroupSize.x * gl_WorkGroupSize.y * gl_WorkGroupSize.z;
-    uint lightCount  = 1024 ;
-    uint numBatches = (lightCount + threadCount -1) / threadCount;
 
-    uint tileIndex = gl_WorkGroupID.x +
-                    gl_WorkGroupID.y * gl_NumWorkGroups.x +
-                    gl_WorkGroupID.z * (gl_NumWorkGroups.x * gl_NumWorkGroups.y);
-    
-    uint visibleLightCount = 0;
+    uint tileIndex =
+		    gl_WorkGroupID.x +
+		    gl_WorkGroupID.y * gl_NumWorkGroups.x +
+		    gl_WorkGroupID.z * gl_NumWorkGroups.x * gl_NumWorkGroups.y;
+
     uint visibleLightIndices[MAX_LIGHTS_PER_CLUSTER];
 
-    for( uint batch = 0; batch < numBatches; ++batch){
-        uint lightIndex = batch * threadCount + gl_LocalInvocationIndex;
+	uint numAllLights = MAX_LIGHTS;
 
-        //Prevent overflow by clamping to last light which is always null
-        lightIndex = min(lightIndex, lightCount - 1);
+	uint lightIter = 0;
+	for (uint i = 0; i < numAllLights && lightIter < MAX_LIGHTS_PER_CLUSTER; ++i)
+	{
+		if (testSphereAABB(i, tileIndex))
+		{
+			visibleLightIndices[lightIter++] = i;
+		}
+	}
 
-        //Populating shared light array
-        sharedLights[gl_LocalInvocationIndex] = ssbo_LightsList.lights[lightIndex];
-        barrier();
+	uint offset = atomicAdd(ssbo_GlobalIndex.globalIndexCount, lightIter);
 
-        //Iterating within the current batch of lights
-        for( uint light = 0; light < threadCount; ++light){
-            //if(sharedLights[light].enabled  == 1)
-            if(true){
-                if(testSphereAABB(light, tileIndex) ){
-                    visibleLightIndices[visibleLightCount] = batch * threadCount + light;
-                    visibleLightCount += 1;
-                }
-            }
-        }
-    }
+	for (uint i = 0; i < lightIter; ++i)
+	{
+		ssbo_ClusterLightIndexList.lightIndices[offset + i] = visibleLightIndices[i];
+	}
 
-    //Wait for all threadgroups to finish
-    barrier();
-
-    uint offset = atomicAdd(ssbo_GlobalIndex.globalIndexCount, visibleLightCount);
-
-    for(uint i = 0; i < visibleLightCount; ++i){
-        ssbo_ClusterLightIndexList.lightIndices[offset + i] = visibleLightIndices[i];
-    }
-
-    ssbo_ClusterLightOffsetList.lightOffsets[tileIndex].x = offset;
-    ssbo_ClusterLightOffsetList.lightOffsets[tileIndex].y = visibleLightCount;
+	ssbo_ClusterLightOffsetList.lightOffsets[tileIndex].x = offset;
+	ssbo_ClusterLightOffsetList.lightOffsets[tileIndex].y = lightIter;
 }

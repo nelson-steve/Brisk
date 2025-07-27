@@ -582,7 +582,7 @@ namespace Brisk
         // --- CLUSTERS AABB GENERATOR COMPUTE TASK ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_AABBGeneratorPipeline->Bind(m_ClusteredCmdBuffer);
-        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 1, 1, 6);
+        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 16, 9, 24);
         m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_ClusteredCmdBuffer->UnBind();

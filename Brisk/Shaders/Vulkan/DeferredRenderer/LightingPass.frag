@@ -98,17 +98,17 @@ void main() {
     vec3 ambient = 0.3 * albedo;
     vec3 finalColor = ambient + litColor * albedo + emissive;
 
-    //outColor = vec4(finalColor, alpha);
+    outColor = vec4(finalColor, alpha);
 
     // Visualize number of lights in this tile
     //float brightness = float(count) / float(MAX_LIGHTS_PER_CLUSTER);
     //outColor = vec4(vec3(brightness), 1.0);
 
     // Debug: visualize tile index as color
-    vec3 debugColor = vec3(
-        float(xSlice) / float(NUM_CLUSTERS_X),
-        float(ySlice) / float(NUM_CLUSTERS_Y),
-        float(zSlice) / float(NUM_CLUSTERS_Z)
-    );
-    outColor = vec4(debugColor, 1.0);
+    //vec3 debugColor = vec3(
+    //    float(xSlice) / float(NUM_CLUSTERS_X),
+    //    float(ySlice) / float(NUM_CLUSTERS_Y),
+    //    float(zSlice) / float(NUM_CLUSTERS_Z)
+    //);
+    //outColor = vec4(debugColor, 1.0);
 }

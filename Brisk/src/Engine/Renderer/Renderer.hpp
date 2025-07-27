@@ -17,10 +17,9 @@
 #include <memory>
 //---------------
 
-#define MAX_LIGHTS 1024
+#define MAX_LIGHTS 2048
 #define MAX_LIGHTS_PER_CLUSTER 128
 #define NUM_CLUSTERS 16 * 9 * 24
-#define NUM_LIGHTS 1024
 
 namespace Brisk 
 {
@@ -33,12 +32,9 @@ namespace Brisk
 		alignas(8) glm::uvec2 Offset;
 	};
 
-	struct alignas(16) TileAABB {
-		glm::vec4 minPoint;
-		glm::vec4 maxPoint;
-		uint32_t count;
-		uint32_t _padding[3];
-		alignas(16) uint32_t lightIndices[MAX_LIGHTS_PER_CLUSTER];
+	struct TileAABB {
+		alignas(16) glm::vec4 minPoint;
+		alignas(16) glm::vec4 maxPoint;
 	};
 
 	struct ClusterInfo {

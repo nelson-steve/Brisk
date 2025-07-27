@@ -20,7 +20,7 @@ namespace Brisk
         std::mt19937 rng(rd());
 
         std::uniform_real_distribution<float> posDist(-range, range);
-        std::uniform_real_distribution<float> radiusDist(0.5f, 90.0f); // light radius
+        std::uniform_real_distribution<float> radiusDist(10.5f, 50.0f); // light radius
         std::uniform_real_distribution<float> colorDist(0.5f, 1.0f);  // bright colors
         std::uniform_real_distribution<float> intensityDist(1.0f, 5.0f); // intensity
 
@@ -482,7 +482,7 @@ namespace Brisk
             m_CameraData->Init(sizeof(MVP), nullptr, Core::BufferUsage::UniformBuffer,
                 Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
 
-            std::vector<LightData> lights = GenerateRandomLights(NUM_LIGHTS, 100);
+            std::vector<LightData> lights = GenerateRandomLights(MAX_LIGHTS, 400);
 
             m_LightsList = Buffer::Create();
             m_LightsList->Init(sizeof(LightData) * lights.size(), lights.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
@@ -562,7 +562,7 @@ namespace Brisk
         clusterInfo.ScreenDimensions = glm::uvec2(1920, 1080);
         clusterInfo.zNear = 0.1f;
         clusterInfo.zFar = 100.0f;
-        clusterInfo.numLights = NUM_LIGHTS;
+        clusterInfo.numLights = MAX_LIGHTS;
         m_ClusterInfoUBO->UpdatePersistantData(sizeof(ClusterInfo), &clusterInfo);
 
         auto view = SceneManager::pActiveScene->Reg().view<MeshComponent, WorldTransformComponent>();
@@ -582,7 +582,7 @@ namespace Brisk
         // --- CLUSTERS AABB GENERATOR COMPUTE TASK ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_AABBGeneratorPipeline->Bind(m_ClusteredCmdBuffer);
-        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 16, 9, 24);
+        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 1, 1, 6);
         m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_ClusteredCmdBuffer->UnBind();
@@ -598,7 +598,7 @@ namespace Brisk
         // --- ASSIGN LIGHTS TO CLUSTERS COMPUTE TASK ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_AssignLightsToClustersPipeline->Bind(m_ClusteredCmdBuffer);
-        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 27, 1, 1);
+        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 16, 9, 24);
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_ClusteredCmdBuffer->UnBind();
 

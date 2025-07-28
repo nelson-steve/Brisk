@@ -38,8 +38,8 @@ vec4 ScreenToView(vec4 screen) {
     vec2 texCoord = screen.xy / vec2(1920, 1080);
 
     //Convert to clipSpace
-    //vec4 clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y)* 2.0 - 1.0, screen.z, screen.w);
-    vec4 clip = vec4(vec2(texCoord.x, texCoord.y)* 2.0 - 1.0, screen.z, screen.w);
+    //vec4 clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y)* 2.0 - 1.0, screen.z, screen.w); // Opengl
+    vec4 clip = vec4(texCoord * 2.0 - 1.0, screen.z, screen.w); // Vulkan
 
     return ClipToView(clip);
 }

@@ -583,7 +583,20 @@ namespace Brisk
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_AABBGeneratorPipeline->Bind(m_ClusteredCmdBuffer);
         ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 16, 9, 24);
-        m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer);
+        m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
+            {
+                Core::ImageLayout::Undefined,
+                Core::ImageLayout::Undefined,
+                Core::AccessType::ShaderWrite,
+                Core::AccessType::ShaderWrite,
+                Core::PipelineStage::ComputeShader,
+                Core::PipelineStage::ComputeShader,
+                Core::ImageAspectFlags::Color,
+                0,
+                1,
+                0,
+                0
+            });
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_ClusteredCmdBuffer->UnBind();
 
@@ -599,6 +612,48 @@ namespace Brisk
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_AssignLightsToClustersPipeline->Bind(m_ClusteredCmdBuffer);
         ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 16, 9, 24);
+        m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
+            {
+                Core::ImageLayout::Undefined,
+                Core::ImageLayout::Undefined,
+                Core::AccessType::ShaderWrite,
+                Core::AccessType::ShaderRead,
+                Core::PipelineStage::ComputeShader,
+                Core::PipelineStage::ComputeShader,
+                Core::ImageAspectFlags::Color,
+                0,
+                1,
+                0,
+                0
+            });
+        m_ClusterLightOffsetList->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
+            {
+                Core::ImageLayout::Undefined,
+                Core::ImageLayout::Undefined,
+                Core::AccessType::ShaderWrite,
+                Core::AccessType::ShaderRead,
+                Core::PipelineStage::ComputeShader,
+                Core::PipelineStage::ComputeShader,
+                Core::ImageAspectFlags::Color,
+                0,
+                1,
+                0,
+                0
+            });
+        m_ClusterLightIndexList->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
+            {
+                Core::ImageLayout::Undefined,
+                Core::ImageLayout::Undefined,
+                Core::AccessType::ShaderWrite,
+                Core::AccessType::ShaderRead,
+                Core::PipelineStage::ComputeShader,
+                Core::PipelineStage::ComputeShader,
+                Core::ImageAspectFlags::Color,
+                0,
+                1,
+                0,
+                0
+            });
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_ClusteredCmdBuffer->UnBind();
 

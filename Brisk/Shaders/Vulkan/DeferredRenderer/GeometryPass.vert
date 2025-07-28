@@ -24,8 +24,11 @@ layout(location = 1) out vec3 fragNormal;
 layout(location = 2) out vec2 fragUV;
 
 void main() {
-    fragPosition = vec3(pc_MeshData.model * vec4(inPosition, 1.0));
-    fragNormal = mat3(transpose(inverse(pc_MeshData.model))) * inNormal;
+    vec4 worldPos = pc_MeshData.model * vec4(inPosition, 1.0);
+    fragPosition = vec3(u_MVP.projView * worldPos); // View-space position
+    //fragPosition = vec3(u_MVP.projView * pc_MeshData.model * vec4(inPosition, 1.0));
+    normalize(mat3(u_MVP.projView * pc_MeshData.model) * inNormal);
+    //fragNormal = mat3(transpose(inverse(pc_MeshData.model))) * inNormal;
     fragUV = inUV0;
 
     gl_Position = u_MVP.projView * pc_MeshData.model * vec4(inPosition, 1.0);

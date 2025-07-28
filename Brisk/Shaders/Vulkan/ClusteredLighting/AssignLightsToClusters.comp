@@ -4,9 +4,9 @@ layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 #define MAX_LIGHTS 2048
 #define MAX_LIGHTS_PER_CLUSTER 128
 
-#define NUM_CLUSTERS_X 27
-#define NUM_CLUSTERS_Y 1
-#define NUM_CLUSTERS_Z 1
+#define NUM_CLUSTERS_X 16
+#define NUM_CLUSTERS_Y 9
+#define NUM_CLUSTERS_Z 24
 
 struct TileAABB {
     vec4 minPoint;
@@ -61,7 +61,6 @@ shared LightData sharedLights[128*1*1];
 float sqDistPointAABB(vec3 point, uint tile){
     float sqDist = 0.0;
     TileAABB currentCell = ssbo_ClusterAABB.clusters[tile];
-    ssbo_ClusterAABB.clusters[tile].maxPoint[3] = tile;
 	for (uint i = 0; i < 3; ++i)
 	{
 		float v = point[i];
@@ -90,12 +89,9 @@ bool testSphereAABB(uint light, uint tile){
 
 void main()
 {
-    ssbo_GlobalIndex.globalIndexCount = 0;
-
-    uint tileIndex =
-		    gl_WorkGroupID.x +
-		    gl_WorkGroupID.y * gl_NumWorkGroups.x +
-		    gl_WorkGroupID.z * gl_NumWorkGroups.x * gl_NumWorkGroups.y;
+    uint tileIndex = gl_WorkGroupID.x +
+                     gl_WorkGroupID.y * gl_NumWorkGroups.x +
+                     gl_WorkGroupID.z * (gl_NumWorkGroups.x * gl_NumWorkGroups.y);
 
     uint visibleLightIndices[MAX_LIGHTS_PER_CLUSTER];
 

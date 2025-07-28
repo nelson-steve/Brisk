@@ -203,14 +203,14 @@ namespace Brisk
 		memcpy(mappedPtr, data, m_Size);
 	}
 
-    void BufferVulkan::MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd) {
+    void BufferVulkan::MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, Texture::ImageBarrierParams barrier) {
         VkMemoryBarrier memoryBarrier{ VK_STRUCTURE_TYPE_MEMORY_BARRIER };
-        memoryBarrier.srcAccessMask = VK_ACCESS_SHADER_WRITE_BIT;
-        memoryBarrier.dstAccessMask = VK_ACCESS_SHADER_READ_BIT | VK_ACCESS_SHADER_WRITE_BIT;
+        memoryBarrier.srcAccessMask = UtilitiesVulkan::AccessTypeToVkAccessFlags(barrier.srcAccess);
+        memoryBarrier.dstAccessMask = UtilitiesVulkan::AccessTypeToVkAccessFlags(barrier.dstAccess);
         vkCmdPipelineBarrier(
             std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(),
-            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, // srcStage
-            VK_PIPELINE_STAGE_COMPUTE_SHADER_BIT, // dstStage
+            UtilitiesVulkan::PipelineStageToVkPipelineStageFlags(barrier.srcStage), // srcStage
+            UtilitiesVulkan::PipelineStageToVkPipelineStageFlags(barrier.srcStage), // dstStage
             0,
             1, &memoryBarrier,
             0, nullptr,

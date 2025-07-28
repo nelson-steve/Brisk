@@ -26,7 +26,6 @@ namespace Brisk
 	void Camera::UpdateProjection() {
 		m_AspectRatio = m_ViewportWidth / m_ViewportHeight;
 		m_Projection = glm::perspectiveZO(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip);
-		m_Projection[1][1] *= -1;
 	}
 
 	void Camera::UpdateView() {

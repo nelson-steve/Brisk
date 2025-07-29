@@ -91,6 +91,9 @@ namespace Brisk
                 if (set->set == 5) {
                     m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_ClusteredLightingDescriptorLayout;
                 }
+                else if (set->set == 0) {
+                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_MVPDescriptorLayout;
+                }
                 else if (set->set == 1) {
                     m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_LightsDescriptorLayout;
                 }
@@ -340,6 +343,9 @@ namespace Brisk
 
             if (set->set == 5) {
                 m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_ClusteredLightingDescriptorLayout;
+            }
+            else if (set->set == 0) {
+                m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_MVPDescriptorLayout;
             }
             else if (set->set == 1) {
                 m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_LightsDescriptorLayout;

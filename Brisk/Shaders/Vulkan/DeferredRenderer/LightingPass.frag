@@ -15,6 +15,13 @@
 layout(location = 0) in vec2 uv;
 layout(location = 0) out vec4 outColor;
 
+layout(set = 0, binding = 0) uniform MVP {
+    mat4 ProjView;
+    mat4 View;
+    vec3 CamPos;
+    float _padding0;
+} u_MVP;
+
 // G-buffer textures
 layout(set = 2, binding = 0) uniform sampler2D sampler_Position;
 layout(set = 2, binding = 1) uniform sampler2D sampler_Normal;
@@ -61,6 +68,28 @@ vec3 applyLight(vec3 fragPos, vec3 normal, uint lightIdx) {
     return color * intensity * attenuation * NdotL;
 }
 
+uint computeClusterIndex(vec3 fragPosView) {
+    vec2 fragCoord = gl_FragCoord.xy;
+
+    // Compute cluster XY
+    uvec3 tileSize = uvec3(16, 9, 24);
+    uvec2 screenSize = uvec2(1920, 1080);
+
+    uint tileX = uint(fragCoord.x * float(NUM_CLUSTERS_X) / screenSize.x);
+    uint tileY = uint(fragCoord.y * float(NUM_CLUSTERS_Y) / screenSize.y);
+
+    // Compute cluster Z (logarithmic depth slicing)
+    float viewZ = -fragPosView.z;
+    float z = clamp((log(viewZ) - log(NearZ)) / (log(FarZ) - log(NearZ)), 0.0, 1.0);
+    uint tileZ = uint(z * float(NUM_CLUSTERS_Z));
+
+    tileX = clamp(tileX, 0u, NUM_CLUSTERS_X - 1);
+    tileY = clamp(tileY, 0u, NUM_CLUSTERS_Y - 1);
+    tileZ = clamp(tileZ, 0u, NUM_CLUSTERS_Z - 1);
+
+    return tileX + tileY * NUM_CLUSTERS_X + tileZ * NUM_CLUSTERS_X * NUM_CLUSTERS_Y;
+}
+
 // --- Main ---
 void main() {
     vec3 fragPos = texture(sampler_Position, uv).rgb;
@@ -69,23 +98,11 @@ void main() {
     float alpha = texture(sampler_Albedo, uv).a;
     vec3 emissive = texture(sampler_Emissive, uv).rgb;
 
-    // Log depth clustering
-    float viewZ = -fragPos.z; // view space Z is negative
-    float logDepthMin = log2(NearZ);
-    float logDepthMax = log2(FarZ);
-    float scale = float(NUM_CLUSTERS_Z) / (logDepthMax - logDepthMin);
-    float bias  = -logDepthMin * scale;
-
-    float zSliceF = log2(max(viewZ, 0.0001)) * scale + bias;
-    uint zSlice = uint(clamp(zSliceF, 0.0, float(NUM_CLUSTERS_Z - 1)));
-
-    uint xSlice = uint(clamp(gl_FragCoord.x / ScreenX * float(NUM_CLUSTERS_X), 0.0, float(NUM_CLUSTERS_X - 1)));
-    uint ySlice = uint(clamp(gl_FragCoord.y / ScreenY * float(NUM_CLUSTERS_Y), 0.0, float(NUM_CLUSTERS_Y - 1)));
-
-    uint tileIndex = xSlice + ySlice * NUM_CLUSTERS_X + zSlice * NUM_CLUSTERS_X * NUM_CLUSTERS_Y;
+    vec3 fragPosView = vec3(u_MVP.View * vec4(fragPos, 1.0));
+    uint clusterIdx = computeClusterIndex(fragPosView);
 
     // Fetch light indices
-    uvec2 offsetCount = ssbo_ClusterLightOffsetList.lightOffsets[tileIndex];
+    uvec2 offsetCount = ssbo_ClusterLightOffsetList.lightOffsets[clusterIdx];
     uint offset = offsetCount.x;
     uint count = offsetCount.y;
 

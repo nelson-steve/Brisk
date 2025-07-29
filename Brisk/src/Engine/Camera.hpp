@@ -36,7 +36,7 @@ namespace Brisk
 		inline void SetViewportSize(float width, float height) { m_ViewportWidth = width; m_ViewportHeight = height; UpdateProjection(); }
 		inline void MouseMoved() { m_MouseMoved = true; }
 
-		const glm::mat4& GetViewMatrix() const { return m_ViewMatrix; }
+		glm::mat4 GetViewMatrix() const { return m_ViewMatrix; }
 		glm::mat4 GetViewProjection() const { return m_Projection * m_ViewMatrix; }
 		glm::mat4 GetProjection() const { return m_Projection; }
 

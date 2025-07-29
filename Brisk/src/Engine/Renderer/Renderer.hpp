@@ -53,9 +53,11 @@ namespace Brisk
 		glm::mat4 Model;
 	};
 
-	struct alignas(16) MVP {
-		glm::mat4 ProjectionView;
-		glm::vec3 CamPos;
+	struct MVP {
+		alignas(16) glm::mat4 ProjView;
+		alignas(16) glm::mat4 View;
+		alignas(16) glm::vec3 CamPos;
+		alignas(4) float _padding0;
 	};
 
 	class Renderer {

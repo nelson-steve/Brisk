@@ -20,7 +20,7 @@ namespace Brisk
         std::mt19937 rng(rd());
 
         std::uniform_real_distribution<float> posDist(-range, range);
-        std::uniform_real_distribution<float> radiusDist(10.5f, 50.0f); // light radius
+        std::uniform_real_distribution<float> radiusDist(10.0f, 50.0f); // light radius
         std::uniform_real_distribution<float> colorDist(0.5f, 1.0f);  // bright colors
         std::uniform_real_distribution<float> intensityDist(1.0f, 5.0f); // intensity
 
@@ -518,6 +518,7 @@ namespace Brisk
         m_LightingPipeline->UpdateResources("sampler_Emissive", { m_Emissive }, nullptr);
         m_LightingPipeline->UpdateResources("sampler_Depth",    { m_DepthPre }, nullptr);
         m_LightingPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
+        m_LightingPipeline->UpdateResources("u_MVP",            {}, m_MVPBuffer);
 
         m_Fence = Fence::Create();
         m_Fence->Init();
@@ -550,7 +551,8 @@ namespace Brisk
         if (!SceneManager::pActiveScene) return;
 
         MVP mvp{};
-        mvp.ProjectionView = Engine::s_Application->GetCamera()->GetViewProjection();
+        mvp.ProjView = Engine::s_Application->GetCamera()->GetViewProjection();
+        mvp.View = glm::inverse( Engine::s_Application->GetCamera()->GetViewMatrix());
         mvp.CamPos = Engine::s_Application->GetCamera()->GetPosition();
 
         m_MVPBuffer->UpdatePersistantData(sizeof(MVP), &mvp);

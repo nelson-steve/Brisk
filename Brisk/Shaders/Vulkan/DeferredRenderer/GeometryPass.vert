@@ -10,8 +10,10 @@ layout(location = 6) in uvec4 inJointIndices;
 layout(location = 7) in vec4  inJointWeights;
 
 layout(set = 0, binding = 0) uniform MVP {
-    mat4 projView;
+    mat4 ProjView;
+    mat4 View;
     vec3 CamPos;
+    float _padding0;
 } u_MVP;
 
 layout(push_constant) uniform MeshData {
@@ -24,12 +26,9 @@ layout(location = 1) out vec3 fragNormal;
 layout(location = 2) out vec2 fragUV;
 
 void main() {
-    vec4 worldPos = pc_MeshData.model * vec4(inPosition, 1.0);
-    fragPosition = vec3(u_MVP.projView * worldPos); // View-space position
-    //fragPosition = vec3(u_MVP.projView * pc_MeshData.model * vec4(inPosition, 1.0));
-    normalize(mat3(u_MVP.projView * pc_MeshData.model) * inNormal);
-    //fragNormal = mat3(transpose(inverse(pc_MeshData.model))) * inNormal;
+    fragPosition = vec3(pc_MeshData.model * vec4(inPosition, 1.0));
+    fragNormal = normalize(mat3(transpose(inverse(pc_MeshData.model))) * inNormal);
     fragUV = inUV0;
 
-    gl_Position = u_MVP.projView * pc_MeshData.model * vec4(inPosition, 1.0);
+    gl_Position = u_MVP.ProjView * pc_MeshData.model * vec4(inPosition, 1.0);
 }

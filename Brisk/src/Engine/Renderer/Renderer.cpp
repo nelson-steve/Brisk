@@ -613,7 +613,7 @@ namespace Brisk
         // --- ASSIGN LIGHTS TO CLUSTERS COMPUTE TASK ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_AssignLightsToClustersPipeline->Bind(m_ClusteredCmdBuffer);
-        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 16, 9, 24);
+        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 1, 1, 6);
         m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
             {
                 Core::ImageLayout::Undefined,

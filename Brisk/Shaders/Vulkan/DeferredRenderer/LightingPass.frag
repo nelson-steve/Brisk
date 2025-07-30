@@ -10,7 +10,7 @@
 #define ScreenX 1920.0
 #define ScreenY 1080.0
 #define NearZ 0.1
-#define FarZ 100.0
+#define FarZ 1000.0
 
 layout(location = 0) in vec2 uv;
 layout(location = 0) out vec4 outColor;

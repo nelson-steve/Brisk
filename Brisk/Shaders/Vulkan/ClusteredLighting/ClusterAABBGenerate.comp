@@ -35,7 +35,7 @@ vec4 ClipToView(vec4 clip) {
 
 vec4 ScreenToView(vec4 screen) {
     //Convert to NDC
-    vec2 texCoord = screen.xy / vec2(1920, 1080);
+    vec2 texCoord = screen.xy / vec2(1920.0, 1080.0);
 
     //Convert to clipSpace
     //vec4 clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y)* 2.0 - 1.0, screen.z, screen.w); // Opengl
@@ -73,7 +73,7 @@ void main() {
     vec3 maxPoint_VS = ScreenToView(maxPoint_SS).xyz;
     vec3 minPoint_VS = ScreenToView(minPoint_SS).xyz;
 
-    float tileNear = -u_ClusterInfo.zNear * pow(u_ClusterInfo.zFar/u_ClusterInfo.zNear, gl_WorkGroupID.z/float(gl_NumWorkGroups.z));
+    float tileNear = u_ClusterInfo.zNear * pow(u_ClusterInfo.zFar/u_ClusterInfo.zNear, gl_WorkGroupID.z/float(gl_NumWorkGroups.z));
     float tileFar  = -u_ClusterInfo.zNear * pow(u_ClusterInfo.zFar/u_ClusterInfo.zNear, (gl_WorkGroupID.z + 1)/float(gl_NumWorkGroups.z));
 
     vec3 minPointNear = LineIntersectionToZPlane(eyePos, minPoint_VS, tileNear);

@@ -552,7 +552,8 @@ namespace Brisk
 
         MVP mvp{};
         mvp.ProjView = Engine::s_Application->GetCamera()->GetViewProjection();
-        mvp.View = glm::inverse( Engine::s_Application->GetCamera()->GetViewMatrix());
+        //mvp.View = glm::inverse( Engine::s_Application->GetCamera()->GetViewMatrix());
+        mvp.View = Engine::s_Application->GetCamera()->GetViewMatrix();
         mvp.CamPos = Engine::s_Application->GetCamera()->GetPosition();
 
         m_MVPBuffer->UpdatePersistantData(sizeof(MVP), &mvp);
@@ -563,7 +564,7 @@ namespace Brisk
         clusterInfo.TileSizes = glm::uvec4(16, 9, 24, 0);
         clusterInfo.ScreenDimensions = glm::uvec2(1920, 1080);
         clusterInfo.zNear = 0.1f;
-        clusterInfo.zFar = 100.0f;
+        clusterInfo.zFar = 1000.0f;
         clusterInfo.numLights = MAX_LIGHTS;
         m_ClusterInfoUBO->UpdatePersistantData(sizeof(ClusterInfo), &clusterInfo);
 
@@ -613,7 +614,7 @@ namespace Brisk
         // --- ASSIGN LIGHTS TO CLUSTERS COMPUTE TASK ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_AssignLightsToClustersPipeline->Bind(m_ClusteredCmdBuffer);
-        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 1, 1, 6);
+        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 3456, 1, 1);
         m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
             {
                 Core::ImageLayout::Undefined,

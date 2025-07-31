@@ -164,6 +164,7 @@
     <ClInclude Include="src\Graphics\DirectX12\ShaderModuleDirectX12.hpp" />
     <ClInclude Include="src\Graphics\DirectX12\SwapchainDirectX12.hpp" />
     <ClInclude Include="src\Graphics\DirectX12\TextureDirectX12.hpp" />
+    <ClInclude Include="src\Graphics\DirectX12\UtilitiesDirectX12.hpp" />
     <ClInclude Include="src\Graphics\Factories\SwapchainFactory.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\BufferVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\CommandBufferAllocatorVulkan.hpp" />
@@ -237,6 +238,7 @@
     <ClCompile Include="src\Graphics\DirectX12\ShaderModuleDirectX12.cpp" />
     <ClCompile Include="src\Graphics\DirectX12\SwapchainDirectX12.cpp" />
     <ClCompile Include="src\Graphics\DirectX12\TextureDirectX12.cpp" />
+    <ClCompile Include="src\Graphics\DirectX12\UtilitiesDirectX12.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\BufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\CommandBufferAllocatorVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\CommandBufferVulkan.cpp" />

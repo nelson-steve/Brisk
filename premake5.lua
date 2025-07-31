@@ -112,10 +112,10 @@ project "Brisk"
             "BRISK_ENABLE_DIRECTX12" 
         }
         links {
-        "d3d12",
-        "dxgi",
-        "dxguid" -- For things like D3D12GetDebugInterface
-    }
+            "d3d12",
+            "dxgi",
+            "dxguid" -- For things like D3D12GetDebugInterface
+        }   
         -- links {
         --     "vulkan-1.lib"
         -- }

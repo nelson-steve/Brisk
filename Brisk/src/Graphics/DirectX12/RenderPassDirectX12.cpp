@@ -1,9 +1,13 @@
 #include "RenderPassDirectX12.hpp"
 #include "TextureDirectX12.hpp"
+#include "UtilitiesDirectX12.hpp"
 
 namespace Brisk
 {
     void RenderPassDirectX12::Init(const std::vector<RenderPassDependency>& dependencies, const std::vector<RenderPassAttachment>& outputs) {
+
+
+
         m_RenderTargets.clear();
         m_HasDepth = false;
 
@@ -17,7 +21,11 @@ namespace Brisk
                 rtDesc.cpuDescriptor = texture->GetSRVCPU();
                 m_RTVHandles.push_back(texture->GetSRVCPU());
                 rtDesc.BeginningAccess.Type = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
-                //rtDesc.BeginningAccess.Clear.ClearValue = texture->GetClearValue();
+                D3D12_CLEAR_VALUE clearValue = {};
+                clearValue.Format = UtilitiesDirectX12::FormatToDXGIFormat(texture->GetSpecs().p_Format);
+                clearValue.Color[0] = 0.0f; clearValue.Color[1] = 0.0f;
+                clearValue.Color[2] = 0.0f; clearValue.Color[3] = 1.0f;
+                rtDesc.BeginningAccess.Clear.ClearValue = clearValue;
                 rtDesc.EndingAccess.Type = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 
                 m_RenderTargets.push_back(rtDesc);
@@ -27,7 +35,11 @@ namespace Brisk
                 m_HasDepth = true;
                 m_DepthStencil.cpuDescriptor = texture->GetSRVCPU();
                 m_DepthStencil.DepthBeginningAccess.Type = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
-                //m_DepthStencil.DepthBeginningAccess.Clear.ClearValue = texture->GetClearValue();
+                D3D12_CLEAR_VALUE clearValue = {};
+                clearValue.Format = UtilitiesDirectX12::FormatToDXGIFormat(texture->GetSpecs().p_Format);
+                clearValue.Color[0] = 0.0f; clearValue.Color[1] = 0.0f;
+                clearValue.Color[2] = 0.0f; clearValue.Color[3] = 1.0f;
+                m_DepthStencil.DepthBeginningAccess.Clear.ClearValue = clearValue;
                 m_DepthStencil.DepthEndingAccess.Type = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;
 
                 m_DepthStencil.StencilBeginningAccess.Type = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_NO_ACCESS;
@@ -53,6 +65,13 @@ namespace Brisk
 
         //commandList->RSSetViewports(1, &m_Viewport);
         //commandList->RSSetScissorRects(1, &m_ScissorRect);
+
+        //commandList->BeginRenderPass(
+        //    1,                      // Num render targets
+        //    &renderTargetDesc,      // Array of render target desc
+        //    nullptr,                // No depth/stencil
+        //    D3D12_RENDER_PASS_FLAG_NONE
+        //);
     }
 
     void RenderPassDirectX12::End(std::shared_ptr<CommandBuffer> cmd) {

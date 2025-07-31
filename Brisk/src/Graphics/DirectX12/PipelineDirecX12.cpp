@@ -1,14 +1,25 @@
 #include "PipelineDirectX12.hpp"
 #include "GpuAdapterDirectX12.hpp"
 #include "Engine/Engine.hpp"
+#include "UtilitiesDirectX12.hpp"
 
 #include <directx/d3dx12.h>
 
 namespace Brisk
 {
 	void PipelineDirectX12::Init(const GraphicsPipelineSpecs& specs) {
+        ComPtr<ID3DBlob> vertexShaderBlob;
+        ComPtr<ID3DBlob> fragmentShaderBlob;
+        for (const std::string& path : specs.pShaderPaths) {
+            std::wstring wideStr = std::wstring(path.begin(), path.end());
+            LPCWSTR pathWstring = wideStr.c_str();
+
+            D3DReadFileToBlob(pathWstring, &vertexShaderBlob);
+
+        }
+
         D3D12_ROOT_SIGNATURE_DESC rootSignatureDesc = {};
-        rootSignatureDesc.NumParameters = 0; // No root parameters for now
+        rootSignatureDesc.NumParameters = 0;
         rootSignatureDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
         ComPtr<ID3DBlob> signatureBlob;
@@ -28,38 +39,39 @@ namespace Brisk
             throw std::runtime_error("Failed to create root signature");
         }
 
-        // Input layout
-        D3D12_INPUT_ELEMENT_DESC inputLayout[] = {
-            { "POSITION", 0, DXGI_FORMAT_R32G32B32_FLOAT, 0, 0, D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA, 0 }
-        };
+        std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayouts;
 
-        // create pipeline state
+        if (specs.pLayout.has_value()) {
+            for (const auto& attr : specs.pLayout.value().pAttributes) {
+                D3D12_INPUT_ELEMENT_DESC element = {};
+                element.SemanticName = UtilitiesDirectX12::SemanticFromLocation(attr.pLocation);
+                element.SemanticIndex = UtilitiesDirectX12::SemanticIndexFromLocation(attr.pLocation);
+                element.Format = UtilitiesDirectX12::FormatToDXGIFormat(attr.pFormat);
+                element.InputSlot = attr.pBinding;
+                element.AlignedByteOffset = attr.pOffset;
+                element.InputSlotClass = D3D12_INPUT_CLASSIFICATION_PER_VERTEX_DATA;
+                element.InstanceDataStepRate = 0;
+
+                inputLayouts.push_back(element);
+            }
+        }
+
         D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
         psoDesc.pRootSignature = m_RootSignature.Get();
-        //psoDesc.VS = { vertexShaderBytecode, vertexShaderSize };
-        //psoDesc.PS = { pixelShaderBytecode, pixelShaderSize };
-        psoDesc.InputLayout = { inputLayout, _countof(inputLayout) };
+        psoDesc.InputLayout = { inputLayouts.data(), UINT(inputLayouts.size())};
+        psoDesc.VS = { vertexShaderBlob->GetBufferPointer(), vertexShaderBlob->GetBufferSize() };
+        psoDesc.PS = { fragmentShaderBlob->GetBufferPointer(), fragmentShaderBlob->GetBufferSize() };
+        psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
+        psoDesc.RasterizerState.FrontCounterClockwise = true;
+        psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        psoDesc.RTVFormats[0] = DXGI_FORMAT_R8G8B8A8_UNORM;
+        psoDesc.NumRenderTargets = specs.pRenderPass->GetColorAttachmentCount();
+        for (int i = 0; i < specs.pRenderPass->GetColorAttachmentCount() && i < 8; i++) {
+            psoDesc.RTVFormats[i] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+        }
+        psoDesc.DSVFormat = DXGI_FORMAT_D16_UNORM; // TODO: Dont use hardcoded value
+        psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
         psoDesc.SampleDesc.Count = 1;
-        psoDesc.SampleMask = UINT_MAX;
-        psoDesc.NumRenderTargets = 1;
-
-        //D3D12_GRAPHICS_PIPELINE_STATE_DESC psoDesc = {};
-        //psoDesc.pRootSignature = m_RootSignature.Get();
-        //psoDesc.InputLayout = { inputLayout, _countof(inputLayout) };
-        ////psoDesc.VS = CD3DX12_SHADER_BYTECODE(pbrVS.Get());
-        ////psoDesc.PS = CD3DX12_SHADER_BYTECODE(pbrPS.Get());
-        //psoDesc.RasterizerState = CD3DX12_RASTERIZER_DESC(D3D12_DEFAULT);
-        //psoDesc.RasterizerState.FrontCounterClockwise = true;
-        //psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
-        //psoDesc.BlendState = CD3DX12_BLEND_DESC(D3D12_DEFAULT);
-        //psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
-        //psoDesc.NumRenderTargets = 1;
-        //psoDesc.RTVFormats[0] = DXGI_FORMAT_R16G16B16A16_FLOAT;
-        //psoDesc.DSVFormat = DXGI_FORMAT_D24_UNORM_S8_UINT;
-        ////psoDesc.SampleDesc.Count = m_framebuffers[0].samples;
-        //psoDesc.SampleMask = UINT_MAX;
 
         hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_PipelineState));
         if (FAILED(hr)) {

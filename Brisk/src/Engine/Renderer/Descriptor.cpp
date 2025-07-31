@@ -3,7 +3,6 @@
 #include "Graphics/Vulkan/DescriptorLayoutVulkan.hpp"
 #include "Engine/Engine.hpp"
 #ifdef BRISK_ENABLE_DIRECTX12
-#include "Graphics/DirectX12/DescriptorLayoutDirectX12.hpp"
 #endif
 //---------------------------------------------------
 

@@ -29,10 +29,11 @@ namespace Brisk
 
         virtual void Init(const TextureSpecification& specs) override;
         virtual void Init(const std::string& path) override;
+        virtual void Release() { assert(false); }
 
     private:
-        Microsoft::WRL::ComPtr<ID3D12Resource> m_Texture;
-        Microsoft::WRL::ComPtr<ID3D12DescriptorHeap> m_SRVHeap;
+        ComPtr<ID3D12Resource> m_Texture;
+        ComPtr<ID3D12DescriptorHeap> m_SRVHeap;
         D3D12_CPU_DESCRIPTOR_HANDLE m_SRVHandleCPU;
         D3D12_GPU_DESCRIPTOR_HANDLE m_SRVHandleGPU;
 

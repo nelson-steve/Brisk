@@ -79,6 +79,7 @@ project "Brisk"
         "Brisk/vendors/VMA/include",
         "Brisk/vendors/SPIRV-Reflect",
         "Brisk/vendors/simdjson",
+        "Brisk/vendors/DirectX12Headers/include",
         "%{IncludeDir.fastgltf}",
         Vulkan_SDK .. "/Include"
     }
@@ -108,7 +109,7 @@ project "Brisk"
         defines 
         { 
             "BRISK_PLATFORM_WINDOWS", 
-            -- "BRISK_ENABLE_DIRECTX12" 
+            "BRISK_ENABLE_DIRECTX12" 
         }
         links {
         "d3d12",

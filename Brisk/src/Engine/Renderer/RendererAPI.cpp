@@ -26,7 +26,7 @@ namespace Brisk
 			return new ComputeAPIVulkan();
 		}
 #ifdef BRISK_ENABLE_DIRECTX12
-		else if (Engine::s_EngineSettings.API == Engine::EngineSettings::GraphicsAPI::Vulkan) {
+		else if (Engine::s_EngineSettings.API == Engine::EngineSettings::GraphicsAPI::DirectX12) {
 			//return new ComputeAPIDirectX12();
 			return nullptr;
 		}

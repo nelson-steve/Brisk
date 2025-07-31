@@ -1,7 +1,8 @@
 #include "PipelineDirectX12.hpp"
 #include "GpuAdapterDirectX12.hpp"
 #include "Engine/Engine.hpp"
-//#include <d3dx12_core.h>
+
+#include <directx/d3dx12.h>
 
 namespace Brisk
 {
@@ -74,10 +75,6 @@ namespace Brisk
 	}
 
 	void PipelineDirectX12::BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t, void* data, uint32_t offset, bool vertexShader) {
-
-	}
-
-	void PipelineDirectX12::Release() {
 
 	}
 }

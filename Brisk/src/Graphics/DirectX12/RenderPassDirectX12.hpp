@@ -5,6 +5,7 @@
 
 #include <Volk/volk.h>
 #include <iostream>
+#include <cassert>
 
 namespace Brisk
 {
@@ -13,6 +14,7 @@ namespace Brisk
         RenderPassDirectX12() = default;
 
         virtual void Init(const std::vector<RenderPassDependency>& dependencies, const std::vector<RenderPassAttachment>& outputs) override;
+        virtual void Release() override { assert(false); }
 
         virtual void Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t imageIndex = 0) override;
         virtual void End(std::shared_ptr<CommandBuffer> cmd) override;

@@ -4,6 +4,7 @@
 #include "Engine/Renderer/CommandBuffer.hpp"
 #include "Engine/Renderer/CommandBufferAllocator.hpp"
 //------------------------------------------
+#include <cassert>
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <d3dcompiler.h>
@@ -18,6 +19,7 @@ namespace Brisk
 		virtual void Bind() override;
 		virtual void UnBind() override;
 		virtual void Reset() override;
+		virtual void Allocate(PoolType type) override { assert(false); }
 
 		ComPtr<ID3D12GraphicsCommandList> Get() { return m_CommandList; }
 

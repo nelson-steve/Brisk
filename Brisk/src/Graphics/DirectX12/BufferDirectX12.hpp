@@ -3,6 +3,7 @@
 // INCLUDES
 #include "Engine/Renderer/Buffer.hpp"
 //-----------------------------------
+#include <cassert>
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <d3dcompiler.h>
@@ -17,6 +18,8 @@ namespace Brisk
 		virtual void Init(uint32_t size, void* data, Core::BufferUsage usageFlags, Core::MemoryProperty memoryProperty, bool mapPersistant) override;
 		virtual void Release() override;
 		virtual void UpdatePersistantData(uint32_t size, void* data) override;
+		virtual void MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, Texture::ImageBarrierParams barrier) override { assert(false); }
+
 		inline ID3D12Resource* Get() const {
 			return m_Buffer.Get();
 		}

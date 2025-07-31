@@ -17,6 +17,17 @@ namespace Brisk
         }                                                             \
     }
 
+	const char* FeatureLevelToString(D3D_FEATURE_LEVEL level) {
+		switch (level) {
+		case D3D_FEATURE_LEVEL_12_2: return "12.2";
+		case D3D_FEATURE_LEVEL_12_1: return "12.1";
+		case D3D_FEATURE_LEVEL_12_0: return "12.0";
+		case D3D_FEATURE_LEVEL_11_1: return "11.1";
+		case D3D_FEATURE_LEVEL_11_0: return "11.0";
+		default: return "Unknown";
+		}
+	}
+
 	void LogDXError(HRESULT hr, const char* file, int line, const char* expr) {
 		_com_error err(hr);
 		std::wstring msg = err.ErrorMessage();
@@ -26,7 +37,6 @@ namespace Brisk
 
 	void GpuAdapterDirectX12::Init() {
 		HRESULT hr = CreateDXGIFactory2(0, IID_PPV_ARGS(&m_DxgiFactory));
-		DX_CHECK(hr);
 		if (FAILED(hr)) {
 			BRISK_CORE_ERROR("Failed to create Dxgi factory");
 			return;
@@ -67,9 +77,11 @@ namespace Brisk
 			}
 		}
 
-		DX_CHECK(hr);
-		if (FAILED(hr)) {
-			BRISK_CORE_ERROR("Failed to create DirectX device");
+		if (SUCCEEDED(hr)) {
+			BRISK_CORE_INFO("Using D3D Feature Level: {}", FeatureLevelToString(m_FeatureLevel));
+		}
+		else {
+			BRISK_CORE_ERROR("Failed to create D3D12 device with supported feature levels.");
 		}
 
 		ComPtr<ID3D12InfoQueue> infoQueue;
@@ -89,7 +101,6 @@ namespace Brisk
 		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 
 		hr = m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_CommandQueue));
-		DX_CHECK(hr);
 		if (FAILED(hr)) {
 			BRISK_CORE_ERROR("Failed to create DirectX command queue");
 		}

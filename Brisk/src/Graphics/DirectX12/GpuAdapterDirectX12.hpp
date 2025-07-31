@@ -16,10 +16,14 @@ namespace Brisk
 	public:
 		virtual void Init() override;
 
-		ComPtr<ID3D12Device> GetDevice() const { return m_Device; }
-		ComPtr<IDXGIFactory6> GetDXGIFactory() const { return m_DxgiFactory; }
+		virtual void WaitIdle() override { assert(false); }
+		virtual void Release() override { assert(false); }
+		virtual void ReleasePools() override { assert(false); }
 
+		ComPtr<IDXGIFactory6> GetDXGIFactory() const { return m_DxgiFactory; }
+		ComPtr<ID3D12Device> GetDevice() const { return m_Device; }
 		ID3D12CommandQueue* GetCommandQueue() const { return m_CommandQueue.Get(); }
+
 	private:
 		ComPtr<IDXGIFactory6> m_DxgiFactory;
 		ComPtr<ID3D12Device> m_Device;

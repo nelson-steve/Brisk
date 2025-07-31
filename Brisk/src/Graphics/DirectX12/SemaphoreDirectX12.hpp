@@ -1,9 +1,8 @@
 #pragma once
 
 #include "Engine/Renderer/Semaphore.hpp"
+#include <cassert>
 #include <wrl.h>
-#include <d3d12.h>
-
 #include <d3d12.h>
 #include <dxgi1_6.h>
 #include <d3dcompiler.h>
@@ -17,6 +16,7 @@ namespace Brisk
     {
     public:
         void Init() override;
+        void Release() override { assert(false); }
 
         ComPtr<ID3D12Fence> GetFence() const { return m_Fence; }
     private:

@@ -51,7 +51,7 @@ namespace Brisk
     }
 
     void FramebufferDirectX12::Bind() {
-        //ID3D12GraphicsCommandList* commandList =;
+        //ID3D12GraphicsCommandList6* commandList =;
         //commandList->OMSetRenderTargets(1, &m_RTVHandle, FALSE, nullptr);
     }
 }

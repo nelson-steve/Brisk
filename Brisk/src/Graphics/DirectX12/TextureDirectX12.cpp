@@ -12,16 +12,15 @@ namespace Brisk
 {
     void TextureDirectX12::Init(const TextureSpecification& specs)
     {
-        m_Width = specs.p_Width;
-        m_Height = specs.p_Height;
+        m_Specs = specs;
 
         D3D12_HEAP_PROPERTIES heapProps = {};
         heapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
 
         D3D12_RESOURCE_DESC texDesc = {};
         texDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
-        texDesc.Width = m_Width;
-        texDesc.Height = m_Height;
+        texDesc.Width = specs.p_Width;
+        texDesc.Height = specs.p_Height;
         texDesc.DepthOrArraySize = 1;
         texDesc.MipLevels = 1;
         texDesc.Format = DXGI_FORMAT_R8G8B8A8_UNORM;
@@ -111,8 +110,8 @@ namespace Brisk
         if (!pixels) {
             throw std::runtime_error("Failed to load texture image!");
         }
-        m_Width = texWidth;
-        m_Height = texHeight;
+        m_Specs.p_Width = texWidth;
+        m_Specs.p_Height = texHeight;
 
         D3D12_RESOURCE_DESC textureDesc = {};
         textureDesc.Dimension = D3D12_RESOURCE_DIMENSION_TEXTURE2D;
@@ -159,7 +158,7 @@ namespace Brisk
         textureData.RowPitch = texWidth * 4;
         textureData.SlicePitch = textureData.RowPitch * texHeight;
 
-        ComPtr<ID3D12GraphicsCommandList> commandList;
+        ComPtr<ID3D12GraphicsCommandList6> commandList;
         //m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList));
 
         //UpdateSubresources(commandList.Get(), m_Texture.Get(), uploadBuffer.Get(), 0, 0, 1, &textureData);

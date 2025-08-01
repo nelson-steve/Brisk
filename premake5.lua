@@ -80,6 +80,7 @@ project "Brisk"
         "Brisk/vendors/SPIRV-Reflect",
         "Brisk/vendors/simdjson",
         "Brisk/vendors/DirectX12Headers/include",
+        "Brisk/vendors/AgilitySDK/include",
         "%{IncludeDir.fastgltf}",
         Vulkan_SDK .. "/Include"
     }
@@ -112,10 +113,12 @@ project "Brisk"
             "BRISK_ENABLE_DIRECTX12" 
         }
         links {
+            -- "D3D12Core",
             "d3d12",
             "dxgi",
-            "dxguid" -- For things like D3D12GetDebugInterface
-        }   
+            "dxguid", -- For things like D3D12GetDebugInterface
+            "d3dcompiler",
+        }
         -- links {
         --     "vulkan-1.lib"
         -- }

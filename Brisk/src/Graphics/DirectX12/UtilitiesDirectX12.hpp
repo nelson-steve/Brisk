@@ -2,7 +2,8 @@
 
 #include "Engine/Renderer/RHI.hpp"
 
-#include <d3d12.h>
+#include <directx/d3d12.h>
+#include <cassert>
 
 namespace Brisk 
 {
@@ -19,7 +20,7 @@ namespace Brisk
                 case Core::Format::FORMAT_R32G32B32_UINT: return DXGI_FORMAT_R32G32B32_UINT;
                 case Core::Format::FORMAT_R32G32B32_SINT: return DXGI_FORMAT_R32G32B32_SINT;
                     //case Core::Format::FORMAT_R16G16B16A16_TYPELESS: return DXGI_FORMAT_R16G16B16A16_TYPELESS;
-                    //case Core::Format::FORMAT_R16G16B16A16_FLOAT: return DXGI_FORMAT_R16G16B16A16_FLOAT;
+                case Core::Format::FORMAT_R16G16B16A16_SFLOAT: return DXGI_FORMAT_R16G16B16A16_FLOAT;
                 case Core::Format::FORMAT_R16G16B16A16_UNORM: return DXGI_FORMAT_R16G16B16A16_UNORM;
                 case Core::Format::FORMAT_R16G16B16A16_UINT: return DXGI_FORMAT_R16G16B16A16_UINT;
                 case Core::Format::FORMAT_R16G16B16A16_SNORM: return DXGI_FORMAT_R16G16B16A16_SNORM;
@@ -27,7 +28,7 @@ namespace Brisk
                     //case Core::Format::FORMAT_R32G32_TYPELESS: return DXGI_FORMAT_R32G32_TYPELESS;
                 case Core::Format::FORMAT_R32G32_SFLOAT: return DXGI_FORMAT_R32G32_FLOAT;
                 case Core::Format::FORMAT_R32G32_UINT: return DXGI_FORMAT_R32G32_UINT;
-                    //case Core::Format::FORMAT_R32G32_SINT: return DXGI_FORMAT_R32G32_SINT;
+                case Core::Format::FORMAT_R32G32_SINT: return DXGI_FORMAT_R32G32_SINT;
                     //case Core::Format::FORMAT_R32G8X24_TYPELESS: return DXGI_FORMAT_R32G8X24_TYPELESS;
                     //case Core::Format::FORMAT_D32_FLOAT_S8X24_UINT: return DXGI_FORMAT_D32_FLOAT_S8X24_UINT;
                     //case Core::Format::FORMAT_R32_FLOAT_X8X24_TYPELESS: return DXGI_FORMAT_R32_FLOAT_X8X24_TYPELESS;
@@ -43,14 +44,14 @@ namespace Brisk
                 case Core::Format::FORMAT_R8G8B8A8_SNORM: return DXGI_FORMAT_R8G8B8A8_SNORM;
                 case Core::Format::FORMAT_R8G8B8A8_SINT: return DXGI_FORMAT_R8G8B8A8_SINT;
                     //case Core::Format::FORMAT_R16G16_TYPELESS: return DXGI_FORMAT_R16G16_TYPELESS;
-                    //case Core::Format::FORMAT_R16G16_FLOAT: return DXGI_FORMAT_R16G16_FLOAT;
+                case Core::Format::FORMAT_R16G16_SFLOAT: return DXGI_FORMAT_R16G16_FLOAT;
                 case Core::Format::FORMAT_R16G16_UNORM: return DXGI_FORMAT_R16G16_UNORM;
                 case Core::Format::FORMAT_R16G16_UINT: return DXGI_FORMAT_R16G16_UINT;
                 case Core::Format::FORMAT_R16G16_SNORM: return DXGI_FORMAT_R16G16_SNORM;
                 case Core::Format::FORMAT_R16G16_SINT: return DXGI_FORMAT_R16G16_SINT;
                     //case Core::Format::FORMAT_R32_TYPELESS: return DXGI_FORMAT_R32_TYPELESS;
-                    //case Core::Format::FORMAT_D32_FLOAT: return DXGI_FORMAT_D32_FLOAT;
-                    //case Core::Format::FORMAT_R32_FLOAT: return DXGI_FORMAT_R32_FLOAT;
+                case Core::Format::FORMAT_D32_SFLOAT: return DXGI_FORMAT_D32_FLOAT;
+                case Core::Format::FORMAT_R32_SFLOAT: return DXGI_FORMAT_R32_FLOAT;
                 case Core::Format::FORMAT_R32_UINT: return DXGI_FORMAT_R32_UINT;
                 case Core::Format::FORMAT_R32_SINT: return DXGI_FORMAT_R32_SINT;
                     //case Core::Format::FORMAT_R24G8_TYPELESS: return DXGI_FORMAT_R24G8_TYPELESS;
@@ -63,7 +64,7 @@ namespace Brisk
                 case Core::Format::FORMAT_R8G8_SNORM: return DXGI_FORMAT_R8G8_SNORM;
                 case Core::Format::FORMAT_R8G8_SINT: return DXGI_FORMAT_R8G8_SINT;
                     //case Core::Format::FORMAT_R16_TYPELESS: return DXGI_FORMAT_R16_TYPELESS;
-                    //case Core::Format::FORMAT_R16_FLOAT: return DXGI_FORMAT_R16_FLOAT;
+                case Core::Format::FORMAT_R16_SFLOAT: return DXGI_FORMAT_R16_FLOAT;
                 case Core::Format::FORMAT_D16_UNORM: return DXGI_FORMAT_D16_UNORM;
                 case Core::Format::FORMAT_R16_UNORM: return DXGI_FORMAT_R16_UNORM;
                 case Core::Format::FORMAT_R16_UINT: return DXGI_FORMAT_R16_UINT;
@@ -133,8 +134,8 @@ namespace Brisk
             switch (location) {
                 case 0: return "POSITION";
                 case 1: return "NORMAL";
-                case 2: return "TEXCOORD0";
-                case 3: return "TEXCOORD1";
+                case 2: return "TEXCOORD";
+                case 3: return "TEXCOORD";
                 case 4: return "COLOR";
                 case 5: return "TANGENT";
                 case 6: return "JOINTINDICES";

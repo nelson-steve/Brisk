@@ -5,7 +5,7 @@
 #include "Engine/Renderer/CommandBufferAllocator.hpp"
 //------------------------------------------
 #include <cassert>
-#include <d3d12.h>
+#include <directx/d3d12.h>
 #include <dxgi1_6.h>
 #include <d3dcompiler.h>
 #include <wrl/client.h>
@@ -21,11 +21,11 @@ namespace Brisk
 		virtual void Reset() override;
 		virtual void Allocate(PoolType type) override { assert(false); }
 
-		ComPtr<ID3D12GraphicsCommandList> Get() { return m_CommandList; }
+		ComPtr<ID3D12GraphicsCommandList6> Get() { return m_CommandList; }
 
 		void SetParentAlloator(std::shared_ptr<CommandBufferAllocator> allocator);
 	private:
 		ComPtr<ID3D12CommandAllocator> m_ParentAllocator;
-		ComPtr<ID3D12GraphicsCommandList> m_CommandList;
+		ComPtr<ID3D12GraphicsCommandList6> m_CommandList;
 	};
 }

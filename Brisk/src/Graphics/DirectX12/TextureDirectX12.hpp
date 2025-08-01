@@ -4,7 +4,7 @@
 
 #include <cassert>
 
-#include <d3d12.h>
+#include <directx/d3d12.h>
 #include <dxgi1_6.h>
 #include <d3dcompiler.h>
 #include <wrl/client.h>
@@ -23,8 +23,8 @@ namespace Brisk
         virtual void TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, std::vector<ImageBarrierParams> params) override;
         virtual void CopyImage(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> src, std::shared_ptr<Texture> dest, uint32_t width, uint32_t height) override;
 
-        virtual uint32_t GetWidth() const { return m_Width; }
-        virtual uint32_t GetHeight() const { return m_Height; }
+        virtual uint32_t GetWidth() const { return m_Specs.p_Width; }
+        virtual uint32_t GetHeight() const { return m_Specs.p_Height; }
         virtual void Resize() override { assert(false); }
 
         virtual void Init(const TextureSpecification& specs) override;
@@ -36,8 +36,5 @@ namespace Brisk
         ComPtr<ID3D12DescriptorHeap> m_SRVHeap;
         D3D12_CPU_DESCRIPTOR_HANDLE m_SRVHandleCPU;
         D3D12_GPU_DESCRIPTOR_HANDLE m_SRVHandleGPU;
-
-        uint32_t m_Width;
-        uint32_t m_Height;
     };
 }

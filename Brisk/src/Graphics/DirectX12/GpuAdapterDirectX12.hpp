@@ -4,7 +4,7 @@
 
 #include <cassert>
 
-#include <d3d12.h>
+#include <directx/d3d12.h>
 #include <dxgi1_6.h>
 #include <d3dcompiler.h>
 #include <wrl/client.h>
@@ -19,6 +19,7 @@ namespace Brisk
 		virtual void WaitIdle() override { assert(false); }
 		virtual void Release() override { assert(false); }
 		virtual void ReleasePools() override { assert(false); }
+		virtual void LogDirectXDebugs() override;
 
 		ComPtr<IDXGIFactory6> GetDXGIFactory() const { return m_DxgiFactory; }
 		ComPtr<ID3D12Device> GetDevice() const { return m_Device; }

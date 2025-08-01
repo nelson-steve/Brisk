@@ -83,7 +83,8 @@ namespace Brisk
             bool pTransparent;
             std::string pDebugName;
             std::shared_ptr<RenderPass> pRenderPass;
-            std::vector<std::string> pShaderPaths;
+            std::vector<std::string> pShaderPathsVK;
+            std::vector<std::string> pShaderPathsDX;
         };
 
         struct ComputePipelineSpecs {

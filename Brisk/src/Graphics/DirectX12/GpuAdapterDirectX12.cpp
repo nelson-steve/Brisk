@@ -34,6 +34,30 @@ namespace Brisk
 		std::wcerr << L"[DX12 ERROR] " << msg << L"\nIn: " << expr << L"\nAt: " << file << L":" << line << std::endl;
 	}
 
+	void GpuAdapterDirectX12::LogDirectXDebugs() {
+		ComPtr<ID3D12InfoQueue> infoQueue;
+		if (SUCCEEDED(m_Device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
+			UINT64 numMessages = infoQueue->GetNumStoredMessages();
+
+			for (UINT64 i = 0; i < numMessages; ++i) {
+				SIZE_T messageLength = 0;
+				infoQueue->GetMessage(i, nullptr, &messageLength); // Get the length
+
+				D3D12_MESSAGE* message = (D3D12_MESSAGE*)malloc(messageLength);
+				if (infoQueue->GetMessage(i, message, &messageLength) == S_OK) {
+					// Print to command prompt
+					printf("D3D12: %s\n", message->pDescription);
+
+					// You could also use OutputDebugStringA(message->pDescription);
+				}
+
+				free(message);
+			}
+
+			// Clear the queue after processing
+			infoQueue->ClearStoredMessages();
+		}
+	}
 
 	void GpuAdapterDirectX12::Init() {
 		HRESULT hr = CreateDXGIFactory2(0, IID_PPV_ARGS(&m_DxgiFactory));
@@ -86,6 +110,9 @@ namespace Brisk
 
 		ComPtr<ID3D12InfoQueue> infoQueue;
 		if (SUCCEEDED(m_Device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
+			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
+			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
+			//infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, TRUE);
 			// Suppress certain messages
 			D3D12_MESSAGE_SEVERITY severities[] = { D3D12_MESSAGE_SEVERITY_INFO };
 			D3D12_INFO_QUEUE_FILTER filter = {};

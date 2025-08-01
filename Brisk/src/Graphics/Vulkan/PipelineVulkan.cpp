@@ -25,7 +25,7 @@ namespace Brisk
         m_DescriptorSetLayouts[5] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
         std::vector<VkPushConstantRange> pushConstants;
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-        for (const std::string& path : specs.pShaderPaths) 
+        for (const std::string& path : specs.pShaderPathsVK) 
         {
             VkPipelineShaderStageCreateInfo shaderStage{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
             const std::vector<char>* shaderCode = UtilitiesVulkan::ReadShaderFile(path);

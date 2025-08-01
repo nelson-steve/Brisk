@@ -237,6 +237,9 @@
     <ClInclude Include="src\Graphics\DirectX12\TextureDirectX12.hpp">
       <Filter>Graphics\DirectX12</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\DirectX12\UtilitiesDirectX12.hpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClInclude>
     <ClInclude Include="src\Graphics\Factories\SwapchainFactory.hpp">
       <Filter>Graphics\Factories</Filter>
     </ClInclude>
@@ -298,7 +301,6 @@
       <Filter>Platform\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\VmaUsage.h" />
-    <ClInclude Include="src\Graphics\DirectX12\UtilitiesDirectX12.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Log.cpp">
@@ -451,6 +453,9 @@
     <ClCompile Include="src\Graphics\DirectX12\TextureDirectX12.cpp">
       <Filter>Graphics\DirectX12</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\DirectX12\UtilitiesDirectX12.cpp">
+      <Filter>Graphics\DirectX12</Filter>
+    </ClCompile>
     <ClCompile Include="src\Graphics\Vulkan\BufferVulkan.cpp">
       <Filter>Graphics\Vulkan</Filter>
     </ClCompile>
@@ -503,6 +508,5 @@
     <ClCompile Include="src\VolkUsage.cpp" />
     <ClCompile Include="src\stbimage.cc" />
     <ClCompile Include="src\volk.c" />
-    <ClCompile Include="src\Graphics\DirectX12\UtilitiesDirectX12.cpp" />
   </ItemGroup>
 </Project>

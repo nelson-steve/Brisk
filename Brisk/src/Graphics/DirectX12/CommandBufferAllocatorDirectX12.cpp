@@ -13,7 +13,7 @@ namespace Brisk
 	}
 
 	void CommandBufferAllocatorDirectX12::Allocate(std::shared_ptr<CommandBuffer> cmd) {
-        ComPtr<ID3D12GraphicsCommandList> commandList;
+        ComPtr<ID3D12GraphicsCommandList6> commandList;
 
         HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandList(
             0,

@@ -2,6 +2,8 @@
 #include "TextureDirectX12.hpp"
 #include "UtilitiesDirectX12.hpp"
 
+#include <directx/d3d12.h>
+
 namespace Brisk
 {
     void RenderPassDirectX12::Init(const std::vector<RenderPassDependency>& dependencies, const std::vector<RenderPassAttachment>& outputs) {
@@ -49,7 +51,7 @@ namespace Brisk
     }
 
     void RenderPassDirectX12::Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t imageIndex) {
-        ComPtr<ID3D12GraphicsCommandList> commandList = std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get();
+        ComPtr<ID3D12GraphicsCommandList6> commandList = std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get();
 
         commandList->OMSetRenderTargets(static_cast<UINT>(m_RTVHandles.size()), m_RTVHandles.data(), FALSE,
             m_HasDepth ? &m_DSVHandle : nullptr);
@@ -66,15 +68,16 @@ namespace Brisk
         //commandList->RSSetViewports(1, &m_Viewport);
         //commandList->RSSetScissorRects(1, &m_ScissorRect);
 
-        //commandList->BeginRenderPass(
-        //    1,                      // Num render targets
-        //    &renderTargetDesc,      // Array of render target desc
-        //    nullptr,                // No depth/stencil
-        //    D3D12_RENDER_PASS_FLAG_NONE
-        //);
+        commandList->BeginRenderPass(
+            m_RenderTargets.size(),
+            m_RenderTargets.data(),
+            nullptr,
+            D3D12_RENDER_PASS_FLAG_NONE
+        );
     }
 
     void RenderPassDirectX12::End(std::shared_ptr<CommandBuffer> cmd) {
-
+        ComPtr<ID3D12GraphicsCommandList6> commandList = std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get();
+        commandList->EndRenderPass();
     }
 }

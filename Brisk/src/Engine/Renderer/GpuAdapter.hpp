@@ -20,6 +20,8 @@ namespace Brisk
 		}
 		virtual void WaitIdle() = 0;
 
+		virtual void LogDirectXDebugs() = 0; // DirectX12 only
+
 		virtual void Init() = 0;
 		virtual void Release() = 0;
 		virtual void ReleasePools() = 0;

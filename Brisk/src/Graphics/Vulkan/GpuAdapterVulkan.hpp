@@ -33,6 +33,7 @@ namespace Brisk
 		void CreateLogicalDevice(/*const GpuRequirements& requirements*/);
 		virtual void Release() override;
 		virtual void ReleasePools() override;
+		virtual void LogDirectXDebugs() override { assert(false); }
 
 		VkPhysicalDevice GetPhysicalDevice() const { return m_PhysicalDevice; }
 		VkDevice& GetDevice() { return m_Device; }

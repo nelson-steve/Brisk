@@ -305,8 +305,10 @@ namespace Brisk
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_DepthPrePass;
 
-                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassVS.spv");
-                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassFS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassVS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassFS.spv");
+                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\DepthPrePass_vert.cso");
+                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\DepthPrePass_frag.cso");
 
                 pipelineSpecs.pDepthClampEnable = false;
                 pipelineSpecs.pRasterizationDiscardEnable = false;
@@ -340,8 +342,10 @@ namespace Brisk
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_ShadowMapPass;
 
-                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/ShadowMapPassVS.spv");
-                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/ShadowMapPassFS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/ShadowMapPassVS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/ShadowMapPassFS.spv");
+                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\DepthPrePass_vert.cso");
+                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\DepthPrePass_frag.cso");
 
                 pipelineSpecs.pDepthClampEnable = false;
                 pipelineSpecs.pRasterizationDiscardEnable = false;
@@ -382,8 +386,10 @@ namespace Brisk
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_GeometryBufferPass;
 
-                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryPassVS.spv");
-                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryPassFS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryPassVS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryPassFS.spv");
+                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\GeometryPass_vert.cso");
+                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\GeometryPass_frag.cso");
 
                 pipelineSpecs.pDepthClampEnable = false;
                 pipelineSpecs.pRasterizationDiscardEnable = false;
@@ -417,8 +423,10 @@ namespace Brisk
             {
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
                 pipelineSpecs.pRenderPass = m_LightingPass;
-                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/LightingPassVS.spv");
-                pipelineSpecs.pShaderPaths.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/LightingPassFS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/LightingPassVS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/LightingPassFS.spv");
+                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\LightingPass_vert.cso");
+                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\LightingPass_frag.cso");
 
                 pipelineSpecs.pDepthClampEnable = false;
                 pipelineSpecs.pRasterizationDiscardEnable = false;

@@ -21,7 +21,7 @@ namespace Brisk
         ComPtr<IDXGISwapChain1> tempSwapChain;
         
         HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDXGIFactory()->CreateSwapChainForHwnd(
-            std::static_pointer_cast<GpuAdapterDirectX12>(Engine::s_Application->GetGpuAdapter())->GetCommandQueue(),
+            std::static_pointer_cast<GpuAdapterDirectX12>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue(),
             (HWND)Engine::s_Application->GetWindow()->GetHWNDWindowHandle(),
             &swapChainDesc,
             nullptr,
@@ -34,10 +34,17 @@ namespace Brisk
         }
 
         // Convert to IDXGISwapChain4 for modern features
-        tempSwapChain.As(&swapChain);
+        tempSwapChain.As(&m_SwapChain);
 	}
 
+    void SwapchainDirectX12::Present() {
+        HRESULT hr = m_SwapChain->Present(false, 0);
+        if (FAILED(hr)) {
+            throw std::runtime_error("Failed to present swapchain in DirectX12.");
+        }
+    }
+
     void SwapchainDirectX12::Release() {
-        swapChain.Reset();
+        m_SwapChain.Reset();
     }
 }

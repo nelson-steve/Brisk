@@ -4,7 +4,6 @@
 
 namespace Brisk 
 {
-
     void SemaphoreDirectX12::Init()
     {
         D3D12_FENCE_FLAGS fenceFlags = D3D12_FENCE_FLAG_NONE;

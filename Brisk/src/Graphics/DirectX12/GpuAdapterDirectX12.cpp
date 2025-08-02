@@ -127,10 +127,47 @@ namespace Brisk
 		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
 
-		hr = m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_CommandQueue));
+		hr = m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_GraphicsQueue));
 		if (FAILED(hr)) {
-			BRISK_CORE_ERROR("Failed to create DirectX command queue");
+			BRISK_CORE_ERROR("Failed to create Direct command queue");
 		}
 
+		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
+		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+
+		hr = m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_ComputeQueue));
+		if (FAILED(hr)) {
+			BRISK_CORE_ERROR("Failed to create Compute command queue");
+		}
+
+		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
+		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
+
+		hr = m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_TransferQueue));
+		if (FAILED(hr)) {
+			BRISK_CORE_ERROR("Failed to create Copy command queue");
+		}
+
+
+		hr = m_Device->CreateCommandAllocator(
+			D3D12_COMMAND_LIST_TYPE_DIRECT,
+			IID_PPV_ARGS(&m_GraphicsCommandAllocator));
+		if (FAILED(hr)) {
+			BRISK_CORE_ERROR("Failed to create Graphics command allocator");
+		}
+
+		hr = m_Device->CreateCommandAllocator(
+			D3D12_COMMAND_LIST_TYPE_DIRECT,
+			IID_PPV_ARGS(&m_ComputeCommandAllocator));
+		if (FAILED(hr)) {
+			BRISK_CORE_ERROR("Failed to create Compute command allocator");
+		}
+
+		hr = m_Device->CreateCommandAllocator(
+			D3D12_COMMAND_LIST_TYPE_DIRECT,
+			IID_PPV_ARGS(&m_TransferCommandAllocator));
+		if (FAILED(hr)) {
+			BRISK_CORE_ERROR("Failed to create Transfer command allocator");
+		}
 	}
 }

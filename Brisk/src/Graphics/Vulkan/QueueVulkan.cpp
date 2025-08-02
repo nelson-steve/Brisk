@@ -13,18 +13,18 @@ namespace Brisk
     void QueueVulkan::Init(Queue::QueueType type) {
         switch (type)
         {
-        case Brisk::Queue::QueueType::Graphics:
-            m_Queue = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue();
-            break;
-        case Brisk::Queue::QueueType::Compute:
-            m_Queue = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetComputeQueue();
-            break;
-        case Brisk::Queue::QueueType::Transfer:
-            m_Queue = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetTransferQueue();
-            break;
-        default:
-            BRISK_CORE_ERROR("Invalid Queue Type");
-            break;
+            case Brisk::Queue::QueueType::Graphics:
+                m_Queue = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue();
+                break;
+            case Brisk::Queue::QueueType::Compute:
+                m_Queue = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetComputeQueue();
+                break;
+            case Brisk::Queue::QueueType::Transfer:
+                m_Queue = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetTransferQueue();
+                break;
+            default:
+                BRISK_CORE_ERROR("Invalid Queue Type");
+                break;
         }
     }
 

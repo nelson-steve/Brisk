@@ -1,5 +1,6 @@
-cbuffer MVPBuffer : register(b0) {
+cbuffer MVPBuffer : register(b0, space0) {
     float4x4 projView;
+    float4x4 View;
     float3 CamPos;
     float padding;
 };
@@ -7,7 +8,6 @@ cbuffer MVPBuffer : register(b0) {
 struct MeshData {
     float4x4 model;
     uint materialIndex;
-    uint padding[3];
 };
 
 ConstantBuffer<MeshData> meshData : register(b1);
@@ -19,8 +19,8 @@ struct VSInput {
     float2 uv1 : TEXCOORD1;
     float3 color : COLOR;
     float4 tangent : TANGENT;
-    uint4  jointWeights : JOINTWEIGHTS;
-    float4 jointIndices : JOINTINDICES;
+    uint4  jointIndices : JOINTINDICES;
+    float4 jointWeights : JOINTWEIGHTS;
 };
 
 struct VSOutput {

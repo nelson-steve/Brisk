@@ -19,7 +19,7 @@ namespace Brisk
 		virtual void Bind() override;
 		virtual void UnBind() override;
 		virtual void Reset() override;
-		virtual void Allocate(PoolType type) override { assert(false); }
+		virtual void Allocate(PoolType type) override;
 
 		ComPtr<ID3D12GraphicsCommandList6> Get() { return m_CommandList; }
 

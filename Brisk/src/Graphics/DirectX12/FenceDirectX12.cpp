@@ -24,4 +24,8 @@ namespace Brisk
 	void FenceDirectX12::Reset() {
 
 	}
+
+	void FenceDirectX12::Release() {
+
+	}
 }

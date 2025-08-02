@@ -7,9 +7,6 @@
 namespace Brisk
 {
     void RenderPassDirectX12::Init(const std::vector<RenderPassDependency>& dependencies, const std::vector<RenderPassAttachment>& outputs) {
-
-
-
         m_RenderTargets.clear();
         m_HasDepth = false;
 

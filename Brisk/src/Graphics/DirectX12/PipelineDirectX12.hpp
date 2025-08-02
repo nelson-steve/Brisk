@@ -20,7 +20,7 @@ namespace Brisk
 		virtual void Release() override { assert(false); }
 
 		virtual void Bind(std::shared_ptr<CommandBuffer> cmd) override;
-		virtual void UpdateResources(const std::string& name, std::vector<std::shared_ptr<Texture>> textures, std::shared_ptr<Buffer> buffer) override { assert(false); }
+		virtual void UpdateResources(const std::string& name, std::vector<std::shared_ptr<Texture>> textures, std::shared_ptr<Buffer> buffer) override {}
 		virtual void BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t, void* data, uint32_t offset, bool vertexShader) override;
 	private:
 		ComPtr<ID3D12RootSignature> m_RootSignature;

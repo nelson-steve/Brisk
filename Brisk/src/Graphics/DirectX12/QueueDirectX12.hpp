@@ -15,7 +15,7 @@ namespace Brisk
         virtual void Submit(SubmitInfo submitInfo, std::shared_ptr<Fence> fence) override;
         virtual void Present(Queue::PresentInfo info) override;
 
-        virtual void Init(Queue::QueueType type) override {};
+        virtual void Init(Queue::QueueType type) override;
     private:
         ComPtr<ID3D12CommandQueue> m_CommandQueue;
     };

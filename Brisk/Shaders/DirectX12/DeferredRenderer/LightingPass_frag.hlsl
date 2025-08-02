@@ -10,7 +10,7 @@
 #define NearZ 0.1
 #define FarZ 1000.0
 
-cbuffer MVP : register(b0)
+cbuffer MVP : register(b0, space0)
 {
     float4x4 ProjView;
     float4x4 View;
@@ -35,12 +35,12 @@ struct LightData {
 StructuredBuffer<LightData> lights : register(t0, space1);
 
 // Light index/cluster data
-StructuredBuffer<uint> lightIndexList : register(t3, space5);
-StructuredBuffer<uint2> lightOffsets  : register(t4, space5);
+StructuredBuffer<uint> lightIndexList : register(t2, space5);
+StructuredBuffer<uint2> lightOffsets  : register(t3, space5);
 
 struct PSInput {
-    float2 uv : TEXCOORD0;
     float4 pos : SV_POSITION;
+    float2 uv : TEXCOORD0;
 };
 
 float3 applyLight(float3 fragPos, float3 normal, uint lightIdx)

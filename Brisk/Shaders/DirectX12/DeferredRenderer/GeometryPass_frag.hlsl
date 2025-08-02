@@ -4,8 +4,8 @@ cbuffer MeshData : register(b0)
     int materialIndex;
 };
 
-Texture2D u_GlobalTextures[512] : register(t0);
-SamplerState sampler0 : register(s0);
+Texture2D u_GlobalTextures[512] : register(t0, space3);
+SamplerState sampler0 : register(s0, space0);
 
 struct MaterialData
 {
@@ -89,13 +89,13 @@ struct MaterialData
     float3 attenuationColor;
 };
 
-StructuredBuffer<MaterialData> ssbo_Materials : register(t128, space1);
+StructuredBuffer<MaterialData> ssbo_Materials : register(t0, space4);
 
 struct PSInput
 {
-    float3 position : TEXCOORD0;
-    float3 normal   : TEXCOORD1;
-    float2 uv       : TEXCOORD2;
+    float4 position : SV_POSITION;
+    float3 normal   : TEXCOORD0;
+    float2 uv       : TEXCOORD1;
 };
 
 struct PSOutput
@@ -159,7 +159,7 @@ PSOutput PSMain(PSInput input)
     }
     emissive *= material.emissiveStrength;
 
-    output.position = float4(input.position, 1.0f);
+    output.position = input.position;
     output.normal = float4(normal, 1.0f);
     output.albedo = baseColor;
     output.material = float4(metallic, roughness, occlusion, float(material.unlit));

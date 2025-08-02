@@ -207,9 +207,6 @@
     <ClInclude Include="src\Graphics\DirectX12\FenceDirectX12.hpp">
       <Filter>Graphics\DirectX12</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\DirectX12\FramebufferDirectX12.hpp">
-      <Filter>Graphics\DirectX12</Filter>
-    </ClInclude>
     <ClInclude Include="src\Graphics\DirectX12\GpuAdapterDirectX12.hpp">
       <Filter>Graphics\DirectX12</Filter>
     </ClInclude>
@@ -226,9 +223,6 @@
       <Filter>Graphics\DirectX12</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\DirectX12\SemaphoreDirectX12.hpp">
-      <Filter>Graphics\DirectX12</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Graphics\DirectX12\ShaderModuleDirectX12.hpp">
       <Filter>Graphics\DirectX12</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\DirectX12\SwapchainDirectX12.hpp">
@@ -426,9 +420,6 @@
     <ClCompile Include="src\Graphics\DirectX12\FenceDirectX12.cpp">
       <Filter>Graphics\DirectX12</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\DirectX12\FramebufferDirectX12.cpp">
-      <Filter>Graphics\DirectX12</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\DirectX12\GpuAdapterDirectX12.cpp">
       <Filter>Graphics\DirectX12</Filter>
     </ClCompile>
@@ -442,9 +433,6 @@
       <Filter>Graphics\DirectX12</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\DirectX12\SemaphoreDirectX12.cpp">
-      <Filter>Graphics\DirectX12</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Graphics\DirectX12\ShaderModuleDirectX12.cpp">
       <Filter>Graphics\DirectX12</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\DirectX12\SwapchainDirectX12.cpp">

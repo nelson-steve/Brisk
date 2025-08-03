@@ -66,16 +66,16 @@ namespace Brisk {
 
         void ClearAssets()
         {
-            auto it = m_AssetMap.find(typeid(MeshAsset));
-            if (it != m_AssetMap.end()) {
-                for (auto& [name, assetPtr] : it->second) {
-                    // Cast back to MeshAsset
-                    auto mesh = std::static_pointer_cast<MeshAsset>(assetPtr);
-                    if (mesh) {
-                        mesh->Release(); // or mesh->Destroy(), etc.
-                    }
-                }
-            }
+            //auto it = m_AssetMap.find(typeid(MeshAsset));
+            //if (it != m_AssetMap.end()) {
+            //    for (auto& [name, assetPtr] : it->second) {
+            //        // Cast back to MeshAsset
+            //        auto mesh = std::static_pointer_cast<MeshAsset>(assetPtr);
+            //        if (mesh) {
+            //            mesh->Release(); // or mesh->Destroy(), etc.
+            //        }
+            //    }
+            //}
 
 
             m_AssetMap.clear();
@@ -104,11 +104,11 @@ namespace Brisk {
         std::unordered_map<std::type_index, std::function<std::shared_ptr<void>(const std::string&)>> customLoaders;
     };
 
-    template<>
-    inline std::shared_ptr<MeshAsset> AssetManager::LoadAssetFromFile<MeshAsset>(const std::string& filePath)
-    {
-        auto asset = std::make_shared<MeshAsset>();
-        asset->Load(filePath);
-        return asset;
-    }
+    //template<>
+    //inline std::shared_ptr<MeshAsset> AssetManager::LoadAssetFromFile<MeshAsset>(const std::string& filePath)
+    //{
+    //    auto asset = std::make_shared<MeshAsset>();
+    //    asset->Load(filePath);
+    //    return asset;
+    //}
 }

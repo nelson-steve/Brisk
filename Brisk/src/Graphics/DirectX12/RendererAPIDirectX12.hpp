@@ -63,7 +63,7 @@ namespace Brisk
                 D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
                 vertexBufferView.BufferLocation = std::static_pointer_cast<BufferDirectX12>(buffer)->Get()->GetGPUVirtualAddress();
                 vertexBufferView.SizeInBytes = std::static_pointer_cast<BufferDirectX12>(buffer)->SizeInBytes();
-                vertexBufferView.StrideInBytes = sizeof(MeshAsset::MeshData);
+                //vertexBufferView.StrideInBytes = sizeof(MeshAsset::MeshData);
                 vertexBufferViews.push_back(vertexBufferView);
             }
 

@@ -4,6 +4,8 @@
 #include "GpuAdapterDirectX12.hpp"
 #include "CommandBufferDirectX12.hpp"
 
+#include <fastgltf/core.hpp>
+
 namespace Brisk
 {
     void TextureDirectX12::Init(const TextureSpecification& specs)

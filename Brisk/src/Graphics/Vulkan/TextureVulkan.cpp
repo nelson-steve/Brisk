@@ -4,6 +4,8 @@
 #include "CommandBufferVulkan.hpp"
 #include "Engine/Renderer/Buffer.hpp"
 
+#include <fastgltf/core.hpp>
+
 namespace Brisk 
 {
     VkSampler TextureVulkan::m_Sampler;

@@ -144,7 +144,7 @@ namespace Brisk
 	{
 		std::string name = "Mesh Component";
 
-		std::shared_ptr<MeshAsset> p_Mesh;
+		//std::shared_ptr<MeshAsset> p_Mesh;
 		uint32_t p_SubMeshIndex;
 		std::string p_Name;
 

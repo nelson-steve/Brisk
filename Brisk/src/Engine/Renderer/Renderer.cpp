@@ -298,10 +298,10 @@ namespace Brisk
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
                 Pipeline::VertexDataLayout vertexLayout;
                 vertexLayout.pBinding = 0;
-                vertexLayout.pStride = sizeof(MeshAsset::MeshData);
-                vertexLayout.pAttributes = {
-                    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Position)},
-                };
+                //vertexLayout.pStride = sizeof(MeshAsset::MeshData);
+                //vertexLayout.pAttributes = {
+                //    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Position)},
+                //};
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_DepthPrePass;
 
@@ -335,10 +335,10 @@ namespace Brisk
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
                 Pipeline::VertexDataLayout vertexLayout;
                 vertexLayout.pBinding = 0;
-                vertexLayout.pStride = sizeof(MeshAsset::MeshData);
-                vertexLayout.pAttributes = {
-                    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Position)},
-                };
+                //vertexLayout.pStride = sizeof(MeshAsset::MeshData);
+                //vertexLayout.pAttributes = {
+                //    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Position)},
+                //};
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_ShadowMapPass;
 
@@ -372,17 +372,17 @@ namespace Brisk
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
                 Pipeline::VertexDataLayout vertexLayout;
                 vertexLayout.pBinding = 0;
-                vertexLayout.pStride = sizeof(MeshAsset::MeshData);
-                vertexLayout.pAttributes = {
-                    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Position)},
-                    {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Normal)},
-                    {0, 2, Core::Format::FORMAT_R32G32_SFLOAT,       offsetof(MeshAsset::MeshData, MeshAsset::MeshData::UV0)},
-                    {0, 3, Core::Format::FORMAT_R32G32_SFLOAT,       offsetof(MeshAsset::MeshData, MeshAsset::MeshData::UV1)},
-                    {0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Color)},
-                    {0, 5, Core::Format::FORMAT_R32G32B32A32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Tangent)},
-                    {0, 6, Core::Format::FORMAT_R32G32B32A32_UINT,   offsetof(MeshAsset::MeshData, MeshAsset::MeshData::JointIndices)},
-                    {0, 7, Core::Format::FORMAT_R32G32B32A32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::JointWeights)},
-                };
+                //vertexLayout.pStride = sizeof(MeshAsset::MeshData);
+                //vertexLayout.pAttributes = {
+                //    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Position)},
+                //    {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Normal)},
+                //    {0, 2, Core::Format::FORMAT_R32G32_SFLOAT,       offsetof(MeshAsset::MeshData, MeshAsset::MeshData::UV0)},
+                //    {0, 3, Core::Format::FORMAT_R32G32_SFLOAT,       offsetof(MeshAsset::MeshData, MeshAsset::MeshData::UV1)},
+                //    {0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Color)},
+                //    {0, 5, Core::Format::FORMAT_R32G32B32A32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::Tangent)},
+                //    {0, 6, Core::Format::FORMAT_R32G32B32A32_UINT,   offsetof(MeshAsset::MeshData, MeshAsset::MeshData::JointIndices)},
+                //    {0, 7, Core::Format::FORMAT_R32G32B32A32_SFLOAT, offsetof(MeshAsset::MeshData, MeshAsset::MeshData::JointWeights)},
+                //};
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_GeometryBufferPass;
 
@@ -581,7 +581,7 @@ namespace Brisk
         for (auto e : view) {
             Entity entity = { e, SceneManager::pActiveScene.get() };
             auto& meshComp = entity.GetComponent<MeshComponent>();
-            m_RenderGroups[meshComp.p_Mesh.get()].push_back(entity);
+            //m_RenderGroups[meshComp.p_Mesh.get()].push_back(entity);
         }
 
         m_Fence->Wait();
@@ -701,9 +701,9 @@ namespace Brisk
 
         auto meshes = SceneManager::pActiveScene->Reg().view<MeshComponent, WorldTransformComponent>();
 
-        for (auto& [mesh, entities] : m_RenderGroups) {
-            Render(mesh, entities, true, true);
-        }
+        //for (auto& [mesh, entities] : m_RenderGroups) {
+        //    Render(mesh, entities, true, true);
+        //}
 
         m_DepthPrePass->End(m_CmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------
@@ -714,11 +714,11 @@ namespace Brisk
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
 
-        for (auto& [mesh, entities] : m_RenderGroups) {
-            m_GBufferPipeline->UpdateResources("ssbo_Materials", {}, mesh->m_MaterialStorageBuffer);
-            m_GBufferPipeline->Bind(m_CmdBuffer);
-            Render(mesh, entities, true, true);
-        }
+        //for (auto& [mesh, entities] : m_RenderGroups) {
+        //    m_GBufferPipeline->UpdateResources("ssbo_Materials", {}, mesh->m_MaterialStorageBuffer);
+        //    m_GBufferPipeline->Bind(m_CmdBuffer);
+        //    Render(mesh, entities, true, true);
+        //}
         m_GeometryBufferPass->End(m_CmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -779,7 +779,7 @@ namespace Brisk
 
         Engine::s_Application->GetGpuAdapter()->WaitIdle();
 
-        m_RenderGroups.clear();
+        //m_RenderGroups.clear();
     }
 
     glm::mat4 GetWorldTransform(Entity entity) {
@@ -793,59 +793,59 @@ namespace Brisk
         return local;
     }
 
-    void Renderer::Render(MeshAsset* mesh, std::vector<Entity> entities, bool pushMaterialIndex, bool pushModelMatrix) {
-        RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh->GetVertexBuffer() }, 0);
-        RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh->GetIndexBuffer(), 0);
+    //void Renderer::Render(MeshAsset* mesh, std::vector<Entity> entities, bool pushMaterialIndex, bool pushModelMatrix) {
+    //    RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh->GetVertexBuffer() }, 0);
+    //    RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh->GetIndexBuffer(), 0);
 
-        for (Entity e : entities) {
-            auto& meshComp = e.GetComponent<MeshComponent>();
-            auto& transform = e.GetComponent<WorldTransformComponent>();
+    //    for (Entity e : entities) {
+    //        auto& meshComp = e.GetComponent<MeshComponent>();
+    //        auto& transform = e.GetComponent<WorldTransformComponent>();
 
-            glm::mat4 t = GetWorldTransform(e);
+    //        glm::mat4 t = GetWorldTransform(e);
 
-            auto& submesh = mesh->m_Meshes[meshComp.p_SubMeshIndex];
-            for (auto& primitive : submesh.primitives) {
-                uint32_t index = primitive.materialIndex != -1 ? primitive.materialIndex : 0;
+    //        auto& submesh = mesh->m_Meshes[meshComp.p_SubMeshIndex];
+    //        for (auto& primitive : submesh.primitives) {
+    //            uint32_t index = primitive.materialIndex != -1 ? primitive.materialIndex : 0;
 
-                struct pcData {
-                    glm::mat4 model;
-                    uint32_t index;
-                } pc;
+    //            struct pcData {
+    //                glm::mat4 model;
+    //                uint32_t index;
+    //            } pc;
 
-                pc.index = primitive.materialIndex;
-                pc.model = t;
+    //            pc.index = primitive.materialIndex;
+    //            pc.model = t;
 
-                if (primitive.materialIndex < 0)
-                    BRISK_CORE_WARN("Invalid material index");
+    //            if (primitive.materialIndex < 0)
+    //                BRISK_CORE_WARN("Invalid material index");
 
-                if (pushMaterialIndex && pushModelMatrix)
-                    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, true);
+    //            if (pushMaterialIndex && pushModelMatrix)
+    //                m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, true);
 
-                if ((fastgltf::AlphaMode)mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)0U)
-                {
-                    RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
-                }
-            }
-        }
-    }
+    //            if ((fastgltf::AlphaMode)mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)0U)
+    //            {
+    //                RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
+    //            }
+    //        }
+    //    }
+    //}
 
     void Renderer::RenderEntity(const MeshComponent& mesh, int alphaMode, bool push) {
-        for (auto& subMesh : mesh.p_Mesh->m_Meshes) {
-            for (auto& primitive : subMesh.primitives) {
-                uint32_t index = primitive.materialIndex != -1 ? primitive.materialIndex : 0;
+        //for (auto& subMesh : mesh.p_Mesh->m_Meshes) {
+        //    for (auto& primitive : subMesh.primitives) {
+        //        uint32_t index = primitive.materialIndex != -1 ? primitive.materialIndex : 0;
 
-                if(primitive.materialIndex < 0)
-                    BRISK_CORE_WARN("Invalid material index");
+        //        if(primitive.materialIndex < 0)
+        //            BRISK_CORE_WARN("Invalid material index");
 
-                //if(push)
-                //    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(uint32_t), &index, false);
+        //        //if(push)
+        //        //    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(uint32_t), &index, false);
 
-                if ((fastgltf::AlphaMode)mesh.p_Mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)alphaMode) 
-                {
-                    RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
-                }
-            }
-        }
+        //        if ((fastgltf::AlphaMode)mesh.p_Mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)alphaMode) 
+        //        {
+        //            RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
+        //        }
+        //    }
+        //}
     }
 
     void Renderer::Release() {

@@ -2,13 +2,13 @@
 
 #include "Engine/Renderer/Texture.hpp"
 
-#include <cassert>
-
 #include <directx/d3d12.h>
 #include <dxgi1_6.h>
 #include <d3dcompiler.h>
 #include <wrl/client.h>
 using Microsoft::WRL::ComPtr;
+
+#include <cassert>
 
 namespace Brisk
 {

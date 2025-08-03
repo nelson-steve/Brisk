@@ -4,10 +4,14 @@
 #include "Engine/Renderer/CommandBuffer.hpp"
 
 #include <stb_image.h>
-#include <fastgltf/core.hpp>
 
 #include <string>
 #include <memory>
+
+namespace fastgltf {
+	class Image;
+	class Asset;
+}
 
 namespace Brisk 
 {

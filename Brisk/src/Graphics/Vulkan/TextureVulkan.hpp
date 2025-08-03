@@ -4,9 +4,6 @@
 #include "Engine/Renderer/Texture.hpp"
 #include "Engine/Application.hpp"
 
-#include <fastgltf/core.hpp>
-
-#include <stb_image.h>
 #include <volk.h>
 
 #include <string>

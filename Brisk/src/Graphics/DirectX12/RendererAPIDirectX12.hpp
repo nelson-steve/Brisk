@@ -49,8 +49,8 @@ namespace Brisk
         virtual void BindIndexBuffer(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Buffer> buffer, uint32_t firstBinding) override {
             auto dxBuffer = std::static_pointer_cast<BufferDirectX12>(buffer);
             D3D12_INDEX_BUFFER_VIEW indexBufferView{};
-            //indexBufferView.BufferLocation = dxBuffer->GetGPUVirtualAddress();
-            //indexBufferView.SizeInBytes = dxBuffer->GetSize();
+            indexBufferView.BufferLocation = std::static_pointer_cast<BufferDirectX12>(buffer)->Get()->GetGPUVirtualAddress();
+            indexBufferView.SizeInBytes = std::static_pointer_cast<BufferDirectX12>(buffer)->SizeInBytes();
             indexBufferView.Format = DXGI_FORMAT_R32_UINT;
 
             std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->IASetIndexBuffer(&indexBufferView);
@@ -60,11 +60,11 @@ namespace Brisk
             std::vector<D3D12_VERTEX_BUFFER_VIEW> vertexBufferViews;
             for (const auto& buffer : buffers) {
                 auto dxBuffer = std::static_pointer_cast<BufferDirectX12>(buffer);
-                D3D12_VERTEX_BUFFER_VIEW vbv{};
-                //vbv.BufferLocation = dxBuffer->GetGPUVirtualAddress();
-                //vbv.SizeInBytes = dxBuffer->GetSize();
-                //vbv.StrideInBytes = dxBuffer->GetStride();
-                vertexBufferViews.push_back(vbv);
+                D3D12_VERTEX_BUFFER_VIEW vertexBufferView{};
+                vertexBufferView.BufferLocation = std::static_pointer_cast<BufferDirectX12>(buffer)->Get()->GetGPUVirtualAddress();
+                vertexBufferView.SizeInBytes = std::static_pointer_cast<BufferDirectX12>(buffer)->SizeInBytes();
+                vertexBufferView.StrideInBytes = sizeof(MeshAsset::MeshData);
+                vertexBufferViews.push_back(vertexBufferView);
             }
 
             std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->IASetVertexBuffers(firstBinding, static_cast<UINT>(vertexBufferViews.size()), vertexBufferViews.data());

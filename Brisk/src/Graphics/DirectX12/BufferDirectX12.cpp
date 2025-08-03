@@ -9,27 +9,6 @@ namespace Brisk
         m_Size = size;
         //m_MapPersistent = mapPersistent;
 
-        Create(size);
-
-        if (data) {
-            UploadData(data, size);
-        }
-    }
-
-    void BufferDirectX12::Release() {
-        if (m_Buffer) {
-            m_Buffer->Release();
-            m_Buffer = nullptr;
-        }
-    }
-
-    void BufferDirectX12::UpdatePersistantData(uint32_t size, void* data) {
-        if (m_MapPersistent && m_MappedPointer) {
-            memcpy(m_MappedPointer, data, size);
-        }
-    }
-
-    void BufferDirectX12::Create(uint64_t size) {
         D3D12_HEAP_PROPERTIES heapProps = {};
         heapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
 
@@ -59,6 +38,26 @@ namespace Brisk
 
         if (m_MapPersistent) {
             m_Buffer->Map(0, nullptr, &m_MappedPointer);
+        }
+
+        if (data) {
+            void* mappedMemory = nullptr;
+            m_Buffer->Map(0, nullptr, &mappedMemory);
+            memcpy(mappedMemory, data, size);
+            m_Buffer->Unmap(0, nullptr);
+        }
+    }
+
+    void BufferDirectX12::Release() {
+        if (m_Buffer) {
+            m_Buffer->Release();
+            m_Buffer = nullptr;
+        }
+    }
+
+    void BufferDirectX12::UpdatePersistantData(uint32_t size, void* data) {
+        if (m_MapPersistent && m_MappedPointer) {
+            memcpy(m_MappedPointer, data, size);
         }
     }
 }

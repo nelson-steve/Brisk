@@ -6,7 +6,6 @@
 //--------------------------------
 #include "glm/glm.hpp"
 #include "glm/gtc/type_ptr.hpp"
-#include <fastgltf/core.hpp>
 //----------------------------
 #include <iostream>
 #include <filesystem>

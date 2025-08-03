@@ -29,6 +29,7 @@ namespace Brisk
 
         virtual void Init(const TextureSpecification& specs) override;
         virtual void Init(const std::string& path) override;
+        virtual void Init(const fastgltf::Image& image, const fastgltf::Asset& asset) override;
         virtual void Release() { assert(false); }
 
     private:

@@ -257,9 +257,6 @@ namespace Brisk
         std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->SetPipelineState(m_PipelineState.Get());
         std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->SetGraphicsRootSignature(m_RootSignature.Get());
         std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
-        std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->IASetVertexBuffers(0, 1, &vertexBufferView);
-        std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->IASetIndexBuffer(&indexBufferView);
-
 	}
 
 	void PipelineDirectX12::BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t, void* data, uint32_t offset, bool vertexShader) {

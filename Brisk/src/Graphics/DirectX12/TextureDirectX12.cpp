@@ -3,10 +3,6 @@
 #include "Engine/Engine.hpp"
 #include "GpuAdapterDirectX12.hpp"
 #include "CommandBufferDirectX12.hpp"
-//#include <directx/d3dx12_core.h>
-//#include <directx/d3dx12_barriers.h>
-
-#include <stb_image.h>
 
 namespace Brisk
 {
@@ -64,6 +60,10 @@ namespace Brisk
         srvDesc.Texture2D.MipLevels = 1;
 
         Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateShaderResourceView(m_Texture.Get(), &srvDesc, m_SRVHandleCPU);
+    }
+
+    void TextureDirectX12::Init(const fastgltf::Image& image, const fastgltf::Asset& asset) {
+
     }
 
     void TextureDirectX12::TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, std::vector<ImageBarrierParams> params)

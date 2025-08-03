@@ -550,8 +550,8 @@ namespace Brisk
         m_ClusteredCmdBuffer = CommandBuffer::Create();
         m_ClusteredCmdBuffer->Allocate(CommandBuffer::PoolType::Graphics);
 
-        m_Editor = std::make_shared<Editor>();
-        m_Editor->Create(m_UIPass, m_CmdBuffer, m_LightingOutput);
+        //m_Editor = std::make_shared<Editor>();
+        //m_Editor->Create(m_UIPass, m_CmdBuffer, m_LightingOutput);
     }
 
     void Renderer::RenderScene(float deltaTime)

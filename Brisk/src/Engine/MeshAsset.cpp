@@ -1,11 +1,11 @@
 // INCLUDES
+
 #include "MeshAsset.hpp"
-#include <stb_image.h>
-#include <fastgltf/util.hpp>
+#include "Core/Log.hpp"
+#include "Engine.hpp"
+// --------------------
 #include <fastgltf/math.hpp>
 #include <fastgltf/tools.hpp>
-#include <Graphics/Vulkan/TextureVulkan.hpp>
-#include <Core/Log.hpp>
 //-------------------
 
 namespace Brisk {
@@ -535,7 +535,7 @@ namespace Brisk {
 			const fastgltf::Image& image = asset.images[tex.imageIndex.value()];
 
 			std::shared_ptr<Texture> texture = Texture::Create();
-			std::static_pointer_cast<TextureVulkan>(texture)->Init(image, asset);
+			texture->Init(image, asset);
 			m_Textures.push_back(texture);
 			i++;
 		}

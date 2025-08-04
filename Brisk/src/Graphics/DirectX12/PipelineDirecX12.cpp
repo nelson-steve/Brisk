@@ -59,7 +59,7 @@ namespace Brisk
             // MVPBuffer (b0)
             rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 
-            // meshData (b1)
+            // MeshData (b1)
             rootParameters[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 
             CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc;
@@ -239,8 +239,10 @@ namespace Brisk
         for (int i = 0; i < specs.pRenderPass->GetColorAttachmentCount() && i < 8; i++) {
             psoDesc.RTVFormats[i] = DXGI_FORMAT_R16G16B16A16_FLOAT;
         }
-        psoDesc.DSVFormat = DXGI_FORMAT_D16_UNORM; // TODO: Dont use hardcoded value
-        psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+        if (specs.pRenderPass->HasDepth()) {
+            psoDesc.DSVFormat = DXGI_FORMAT_D16_UNORM; // TODO: Dont use hardcoded value
+            psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+        }
         psoDesc.SampleDesc.Count = 1;
         psoDesc.SampleMask = UINT_MAX;
 

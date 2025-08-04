@@ -23,7 +23,7 @@ namespace Brisk
 		void OnEvent(Event& event);
 		void Update(float deltaTime);
 		void Close();
-		//void AddMeshToScene(MeshAsset::Node* node, std::optional<Entity> parent, std::shared_ptr<MeshAsset>);
+		void AddMeshToScene(MeshAsset::Node* node, std::optional<Entity> parent, std::shared_ptr<MeshAsset>);
 
 		inline bool ShouldClose() const { return m_Window->WindowShouldClose(); }
 		std::shared_ptr<WindowsWindow> GetWindow()

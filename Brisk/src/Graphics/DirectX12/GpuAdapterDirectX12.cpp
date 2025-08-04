@@ -8,14 +8,14 @@
 
 namespace Brisk
 {
-#define DX_CHECK(x)                                                   \
-    {                                                                 \
-        HRESULT hr__ = (x);                                           \
-        if (FAILED(hr__)) {                                           \
-            LogDXError(hr__, __FILE__, __LINE__, #x);                 \
-            __debugbreak(); /* or throw/return */                     \
-        }                                                             \
-    }
+//#define DX_CHECK(x)                                                   \
+//    {                                                                 \
+//        HRESULT hr__ = (x);                                           \
+//        if (FAILED(hr__)) {                                           \
+//            LogDXError(hr__, __FILE__, __LINE__, #x);                 \
+//            __debugbreak(); /* or throw/return */                     \
+//        }                                                             \
+//    }
 
 	const char* FeatureLevelToString(D3D_FEATURE_LEVEL level) {
 		switch (level) {
@@ -146,28 +146,6 @@ namespace Brisk
 		hr = m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_TransferQueue));
 		if (FAILED(hr)) {
 			BRISK_CORE_ERROR("Failed to create Copy command queue");
-		}
-
-
-		hr = m_Device->CreateCommandAllocator(
-			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			IID_PPV_ARGS(&m_GraphicsCommandAllocator));
-		if (FAILED(hr)) {
-			BRISK_CORE_ERROR("Failed to create Graphics command allocator");
-		}
-
-		hr = m_Device->CreateCommandAllocator(
-			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			IID_PPV_ARGS(&m_ComputeCommandAllocator));
-		if (FAILED(hr)) {
-			BRISK_CORE_ERROR("Failed to create Compute command allocator");
-		}
-
-		hr = m_Device->CreateCommandAllocator(
-			D3D12_COMMAND_LIST_TYPE_DIRECT,
-			IID_PPV_ARGS(&m_TransferCommandAllocator));
-		if (FAILED(hr)) {
-			BRISK_CORE_ERROR("Failed to create Transfer command allocator");
 		}
 	}
 }

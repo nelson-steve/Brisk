@@ -1,6 +1,7 @@
 #include "CommandBufferDirectX12.hpp"
 #include "GpuAdapterDirectX12.hpp"
 #include "Engine/Engine.hpp"
+#include <Core/Log.hpp>
 
 namespace Brisk
 {
@@ -14,19 +15,28 @@ namespace Brisk
 	}
 
 	void CommandBufferDirectX12::Allocate(PoolType type) {
-		ComPtr<ID3D12GraphicsCommandList> commandList;
-
+		HRESULT hr;
 		switch (type)
 		{
 			case PoolType::Graphics:
-				m_ParentAllocator = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetGraphicsCommandAllocator();
+				hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(
+					D3D12_COMMAND_LIST_TYPE_DIRECT,
+					IID_PPV_ARGS(&m_ParentAllocator));
 				break;
 			case PoolType::Compute:
-				m_ParentAllocator = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetComputeCommandAllocator();
+				hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(
+					D3D12_COMMAND_LIST_TYPE_COMPUTE,
+					IID_PPV_ARGS(&m_ParentAllocator));
 				break;
 			case PoolType::Transfer:
-				m_ParentAllocator = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetTransferCommandAllocator();
+				hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(
+					D3D12_COMMAND_LIST_TYPE_COPY,
+					IID_PPV_ARGS(&m_ParentAllocator));
 				break;
+		}
+
+		if (FAILED(hr)) {
+			BRISK_CORE_ERROR("Failed to create Graphics command allocator");
 		}
 
 		Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandList(
@@ -34,11 +44,13 @@ namespace Brisk
 			D3D12_COMMAND_LIST_TYPE_DIRECT,
 			m_ParentAllocator.Get(),
 			nullptr,
-			IID_PPV_ARGS(&commandList));
+			IID_PPV_ARGS(&m_CommandList));
+
+		m_CommandList->Close();
 	}
 
 	void CommandBufferDirectX12::Reset() {
-		m_CommandList->Reset(m_ParentAllocator.Get(), nullptr);
+		//m_CommandList->Reset(m_ParentAllocator.Get(), nullptr);
 	}
 
 

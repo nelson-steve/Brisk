@@ -21,7 +21,6 @@ namespace Brisk
     private:
         std::vector<D3D12_RENDER_PASS_RENDER_TARGET_DESC> m_RenderTargets;
         D3D12_RENDER_PASS_DEPTH_STENCIL_DESC m_DepthStencil{};
-        bool m_HasDepth = false;
 
         std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> m_RTVHandles;
         D3D12_CPU_DESCRIPTOR_HANDLE m_DSVHandle;

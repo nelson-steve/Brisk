@@ -1,4 +1,4 @@
-cbuffer MVPBuffer : register(b0) {
+cbuffer MVPBuffer : register(b0, space0) {
     float4x4 projView;
     float3 CamPos;
     float padding;
@@ -7,10 +7,9 @@ cbuffer MVPBuffer : register(b0) {
 struct MeshData {
     float4x4 model;
     uint materialIndex;
-    uint padding[3];
 };
 
-ConstantBuffer<MeshData> meshData : register(b1);
+ConstantBuffer<MeshData> meshData : register(b1, space0);
 
 struct VSInput {
     float3 position : POSITION;

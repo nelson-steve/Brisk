@@ -11,9 +11,7 @@ namespace Brisk
 		if (FAILED(hr)) {
 			throw std::runtime_error("Failed to create fence.");
 		}
-	}
 
-	void FenceDirectX12::Wait() {
 		// Create a Win32 event for waiting
 		m_FenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 		if (m_FenceEvent == nullptr) {
@@ -21,8 +19,15 @@ namespace Brisk
 		}
 	}
 
-	void FenceDirectX12::Reset() {
+	void FenceDirectX12::Wait() {
+		if (m_Fence->GetCompletedValue() < m_FenceValue) {
+			m_Fence->SetEventOnCompletion(m_FenceValue, m_FenceEvent);
+			WaitForSingleObject(m_FenceEvent, INFINITE);
+		}
+	}
 
+	void FenceDirectX12::Reset() {
+		m_FenceValue++;
 	}
 
 	void FenceDirectX12::Release() {

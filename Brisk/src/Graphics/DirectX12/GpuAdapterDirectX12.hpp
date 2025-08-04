@@ -16,7 +16,7 @@ namespace Brisk
 	public:
 		virtual void Init() override;
 
-		virtual void WaitIdle() override { assert(false); }
+		virtual void WaitIdle() override { }
 		virtual void Release() override { assert(false); }
 		virtual void ReleasePools() override { assert(false); }
 		virtual void LogDirectXDebugs() override;

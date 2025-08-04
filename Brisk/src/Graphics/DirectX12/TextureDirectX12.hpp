@@ -16,7 +16,7 @@ namespace Brisk
     {
     public:
         ID3D12Resource* GetResource() { return m_Texture.Get(); }
-        ID3D12DescriptorHeap* GetSRVHeap() { return m_SRVHeap.Get(); }
+        ID3D12DescriptorHeap* GetDSVHeap() { return m_DSVHeap.Get(); }
         D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCPU() const { return m_SRVHandleCPU; }
         D3D12_GPU_DESCRIPTOR_HANDLE GetSRVGPU() const { return m_SRVHandleGPU; }
 
@@ -34,7 +34,7 @@ namespace Brisk
 
     private:
         ComPtr<ID3D12Resource> m_Texture;
-        ComPtr<ID3D12DescriptorHeap> m_SRVHeap;
+        ComPtr<ID3D12DescriptorHeap> m_DSVHeap;
         D3D12_CPU_DESCRIPTOR_HANDLE m_SRVHandleCPU;
         D3D12_GPU_DESCRIPTOR_HANDLE m_SRVHandleGPU;
     };

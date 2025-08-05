@@ -22,16 +22,26 @@ namespace Brisk
         texDesc.Width = specs.p_Width;
         texDesc.Height = specs.p_Height;
         texDesc.DepthOrArraySize = 1;
-        texDesc.MipLevels = 1;
-        texDesc.Format = DXGI_FORMAT_R16_TYPELESS;
+        texDesc.MipLevels = specs.p_MipLevels;
+        texDesc.Format = UtilitiesDirectX12::ToTypeless(UtilitiesDirectX12::FormatToDXGIFormat(specs.p_Format));
         texDesc.SampleDesc.Count = 1;
         texDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
-        texDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;
+        texDesc.Flags = specs.p_IsDepth ? D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL : UtilitiesDirectX12::ImageFlagsFromUsage(specs.p_Usage);
 
         D3D12_CLEAR_VALUE clearValue = {};
-        clearValue.Format = DXGI_FORMAT_D16_UNORM;
+        clearValue.Format = UtilitiesDirectX12::FormatToDXGIFormat(specs.p_Format);
+        clearValue.Color[0] = 1.0f; clearValue.Color[1] = 0.0f; // Red
+        clearValue.Color[2] = 0.0f; clearValue.Color[3] = 1.0f;
         clearValue.DepthStencil.Depth = 1.0f;
         clearValue.DepthStencil.Stencil = 0;
+
+        D3D12_RESOURCE_STATES state{};
+        if ((specs.p_Usage & Core::TextureUsage::ImageUsageTransferSrc) != Core::TextureUsage::Undefined)
+            state = D3D12_RESOURCE_STATE_COPY_SOURCE;
+        else if ((specs.p_Usage & Core::TextureUsage::ImageUsageTransferDst) != Core::TextureUsage::Undefined)
+            state = D3D12_RESOURCE_STATE_COPY_DEST;
+        else if ((specs.p_Usage & Core::TextureUsage::ImageUsageDepthStencilAttachment) != Core::TextureUsage::Undefined)
+            state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
 
         HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
             &heapProps,
@@ -47,34 +57,42 @@ namespace Brisk
             return;
         }
 
+        std::wstring wideStrName = std::wstring(specs.p_DebugName.begin(), specs.p_DebugName.end());
+        m_Texture->SetName(wideStrName.c_str());
 
-        // Create SRV Descriptor Heap
-        D3D12_DESCRIPTOR_HEAP_DESC srvHeapDesc = {};
-        srvHeapDesc.NumDescriptors = 1;
-        srvHeapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+        D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+        heapDesc.NumDescriptors = 1;
+        if (specs.p_IsDepth && (specs.p_Usage & Core::TextureUsage::ImageUsageDepthStencilAttachment) != Core::TextureUsage::Undefined)
+            heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+        else if ((specs.p_Usage & Core::TextureUsage::ImageUsageColorAttachment) != Core::TextureUsage::Undefined)
+            heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+        else
+            heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
 
-        hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateDescriptorHeap(&srvHeapDesc, IID_PPV_ARGS(&m_DSVHeap));
+        hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_Heap));
         if (FAILED(hr)) {
             BRISK_CORE_ERROR("Failed to create DirectX12 Texture Descriptor Heap");
             return;
         }
 
-        m_SRVHandleCPU = m_DSVHeap->GetCPUDescriptorHandleForHeapStart();
-        //m_SRVHandleGPU = m_SRVHeap->GetGPUDescriptorHandleForHeapStart();
+        m_CPUDescriptor = m_Heap->GetCPUDescriptorHandleForHeapStart();
+        m_GPUDescriptor = m_Heap->GetGPUDescriptorHandleForHeapStart();
 
-        D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-        dsvDesc.Format = DXGI_FORMAT_D16_UNORM;
-        dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
+        if ((specs.p_Usage & Core::TextureUsage::ImageUsageDepthStencilAttachment) != Core::TextureUsage::Undefined) {
+            D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
+            dsvDesc.Format = UtilitiesDirectX12::ToTypeless(UtilitiesDirectX12::FormatToDXGIFormat(specs.p_Format));
+            dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 
-        Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateDepthStencilView(m_Texture.Get(), &dsvDesc, m_SRVHandleCPU);
+            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateDepthStencilView(m_Texture.Get(), &dsvDesc, m_CPUDescriptor);
+        }
+        else if ((specs.p_Usage & Core::TextureUsage::ImageUsageDepthStencilAttachment) != Core::TextureUsage::Undefined
+                || (specs.p_Usage & Core::TextureUsage::ImageUsageColorAttachment) != Core::TextureUsage::Undefined) {
+            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            srvDesc.Format = UtilitiesDirectX12::ToTypeless(UtilitiesDirectX12::FormatToDXGIFormat(specs.p_Format));
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
 
-        //D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-        //srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-        //srvDesc.Format = DXGI_FORMAT_R16_UNORM;
-        //srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-        //srvDesc.Texture2D.MipLevels = 1;
-
-        //Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateShaderResourceView(m_Texture.Get(), &srvDesc, m_SRVHandleCPU);
+            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateShaderResourceView(m_Texture.Get(), &srvDesc, m_CPUDescriptor);
+        }
     }
 
     void TextureDirectX12::Init(const fastgltf::Image& image, const fastgltf::Asset& asset) {

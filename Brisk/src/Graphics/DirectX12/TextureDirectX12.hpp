@@ -16,9 +16,9 @@ namespace Brisk
     {
     public:
         ID3D12Resource* GetResource() { return m_Texture.Get(); }
-        ID3D12DescriptorHeap* GetDSVHeap() { return m_DSVHeap.Get(); }
-        D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCPU() const { return m_SRVHandleCPU; }
-        D3D12_GPU_DESCRIPTOR_HANDLE GetSRVGPU() const { return m_SRVHandleGPU; }
+        ID3D12DescriptorHeap* GetDSVHeap() { return m_Heap.Get(); }
+        D3D12_CPU_DESCRIPTOR_HANDLE GetSRVCPU() const { return m_CPUDescriptor; }
+        D3D12_GPU_DESCRIPTOR_HANDLE GetSRVGPU() const { return m_GPUDescriptor; }
 
         virtual void TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, std::vector<ImageBarrierParams> params) override;
         virtual void CopyImage(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> src, std::shared_ptr<Texture> dest, uint32_t width, uint32_t height) override;
@@ -34,8 +34,8 @@ namespace Brisk
 
     private:
         ComPtr<ID3D12Resource> m_Texture;
-        ComPtr<ID3D12DescriptorHeap> m_DSVHeap;
-        D3D12_CPU_DESCRIPTOR_HANDLE m_SRVHandleCPU;
-        D3D12_GPU_DESCRIPTOR_HANDLE m_SRVHandleGPU;
+        ComPtr<ID3D12DescriptorHeap> m_Heap;
+        D3D12_CPU_DESCRIPTOR_HANDLE m_CPUDescriptor;
+        D3D12_GPU_DESCRIPTOR_HANDLE m_GPUDescriptor;
     };
 }

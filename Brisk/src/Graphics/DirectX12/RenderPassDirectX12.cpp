@@ -38,7 +38,7 @@ namespace Brisk
                 m_DepthStencil.DepthBeginningAccess.Type = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;
                 D3D12_CLEAR_VALUE clearValue = {};
                 clearValue.Format = UtilitiesDirectX12::FormatToDXGIFormat(texture->GetSpecs().p_Format);
-                clearValue.Color[0] = 1.0f; clearValue.Color[1] = 0.0f;
+                clearValue.Color[0] = 1.0f; clearValue.Color[1] = 0.0f; // Red
                 clearValue.Color[2] = 0.0f; clearValue.Color[3] = 1.0f;
                 m_DepthStencil.DepthBeginningAccess.Clear.ClearValue = clearValue;
                 m_DepthStencil.DepthEndingAccess.Type = D3D12_RENDER_PASS_ENDING_ACCESS_TYPE_PRESERVE;

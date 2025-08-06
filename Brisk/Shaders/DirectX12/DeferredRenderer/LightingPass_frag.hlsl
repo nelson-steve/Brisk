@@ -12,10 +12,15 @@
 
 cbuffer MVP : register(b0, space0)
 {
-    float4x4 ProjView;
-    float4x4 View;
+    float4x4 projView;
     float3 CamPos;
-    float _padding0;
+    float padding;
+};
+
+struct MeshData
+{
+    float4x4 model;
+    uint materialIndex;
 };
 
 // G-buffer textures
@@ -35,8 +40,8 @@ struct LightData {
 StructuredBuffer<LightData> lights : register(t0, space1);
 
 // Light index/cluster data
-StructuredBuffer<uint> lightIndexList : register(t2, space5);
-StructuredBuffer<uint2> lightOffsets  : register(t3, space5);
+//StructuredBuffer<uint> lightIndexList : register(t2, space5);
+//StructuredBuffer<uint2> lightOffsets  : register(t3, space5);
 
 struct PSInput {
     float4 pos : SV_POSITION;
@@ -87,22 +92,22 @@ float4 PSMain(PSInput input) : SV_Target0
     float alpha = albedoSample.a;
     float3 emissive = sampler_Emissive.Sample(defaultSampler, uv).rgb;
 
-    float4 viewFrag = mul(View, float4(fragPos, 1.0));
-    float3 fragPosView = viewFrag.xyz;
+    //float4 viewFrag = mul(View, float4(fragPos, 1.0));
+    //float3 fragPosView = viewFrag.xyz;
 
     float2 fragCoord = input.pos.xy;
-    uint clusterIdx = computeClusterIndex(fragPosView, fragCoord);
+    //uint clusterIdx = computeClusterIndex(fragPosView, fragCoord);
 
-    uint2 offsetCount = lightOffsets[clusterIdx];
-    uint offset = offsetCount.x;
-    uint count = offsetCount.y;
+    //uint2 offsetCount = lightOffsets[clusterIdx];
+    //uint offset = offsetCount.x;
+    //uint count = offsetCount.y;
 
     float3 litColor = 0.0f;
-    for (uint i = 0; i < count; ++i)
-    {
-        uint lightIdx = lightIndexList[offset + i];
-        litColor += applyLight(fragPos, normal, lightIdx);
-    }
+    //for (uint i = 0; i < count; ++i)
+    //{
+    //    uint lightIdx = lightIndexList[offset + i];
+    //    litColor += applyLight(fragPos, normal, lightIdx);
+    //}
 
     float3 ambient = 0.3f * albedo;
     float3 finalColor = ambient + litColor * albedo + emissive;

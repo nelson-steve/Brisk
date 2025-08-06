@@ -17,6 +17,7 @@ namespace Brisk
 			UINT width = desc.BufferDesc.Width;
 			return width;
 		}
+
 		virtual uint32_t GetExtentHeight() const override {
 			DXGI_SWAP_CHAIN_DESC desc;
 			m_SwapChain->GetDesc(&desc);
@@ -25,7 +26,7 @@ namespace Brisk
 			return height;
 		}
 
-		virtual void AquireNextImage(uint64_t timeout, std::shared_ptr<Semaphore> semaphore, std::shared_ptr<Fence> fence, uint32_t* pImageIndex) override {
+		virtual void AcquireNextImage(uint64_t timeout, std::shared_ptr<Semaphore> semaphore, std::shared_ptr<Fence> fence, uint32_t* pImageIndex) override {
 			UINT backBufferIndex = m_SwapChain->GetCurrentBackBufferIndex();
 			*pImageIndex = backBufferIndex;
 		}
@@ -36,8 +37,10 @@ namespace Brisk
 		void Present();
 
 		SwapchainDirectX12(std::shared_ptr<Window> window);
+		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> m_RtvHandles;
 	private:
 		ComPtr<IDXGISwapChain4> m_SwapChain;
+		std::vector<ComPtr<ID3D12Resource>> m_BackBuffers;
 
 		friend class SwapchainFactory;
 	};

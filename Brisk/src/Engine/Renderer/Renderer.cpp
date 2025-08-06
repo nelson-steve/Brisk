@@ -400,7 +400,7 @@ namespace Brisk
                 pipelineSpecs.pDebugName = "GeometryPass pipeline";
 
                 m_GBufferPipeline = Pipeline::Create();
-                //m_GBufferPipeline->Init(pipelineSpecs);
+                m_GBufferPipeline->Init(pipelineSpecs);
 
                 pipelineSpecs.pCullMode = Pipeline::CullMode::NONE;
                 m_GBufferDoubleSidedPipeline = Pipeline::Create();
@@ -437,7 +437,7 @@ namespace Brisk
                 pipelineSpecs.pDebugName = "LightingPass pipeline";
 
                 m_LightingPipeline = Pipeline::Create();
-                //m_LightingPipeline->Init(pipelineSpecs);
+                m_LightingPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
 
@@ -469,46 +469,45 @@ namespace Brisk
         m_MVPBuffer->Init(sizeof(MVP), nullptr, Core::BufferUsage::UniformBuffer,
             Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
         {
-            //m_ClusterTilesSSBO = Buffer::Create();
-            //m_ClusterTilesSSBO->Init(sizeof(TileAABB) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            m_ClusterTilesSSBO = Buffer::Create();
+            m_ClusterTilesSSBO->Init(sizeof(TileAABB) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
-            //m_ClusterInfoUBO = Buffer::Create();
-            //m_ClusterInfoUBO->Init(sizeof(ClusterInfo), nullptr, Core::BufferUsage::UniformBuffer, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
+            m_ClusterInfoUBO = Buffer::Create();
+            m_ClusterInfoUBO->Init(sizeof(ClusterInfo), nullptr, Core::BufferUsage::UniformBuffer, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
 
-            //m_AABBGeneratorPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
-            //m_AABBGeneratorPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
+            m_AABBGeneratorPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
+            m_AABBGeneratorPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
         }
 
         {
             m_CameraData = Buffer::Create();
-            m_CameraData->Init(sizeof(MVP), nullptr, Core::BufferUsage::UniformBuffer,
-                Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
+            m_CameraData->Init(sizeof(MVP), nullptr, Core::BufferUsage::UniformBuffer, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
 
             std::vector<LightData> lights = GenerateRandomLights(MAX_LIGHTS, 400);
 
-            //m_LightsList = Buffer::Create();
-            //m_LightsList->Init(sizeof(LightData) * lights.size(), lights.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            m_LightsList = Buffer::Create();
+            m_LightsList->Init(sizeof(LightData) * lights.size(), lights.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
-            //m_ClusterLightIndexList = Buffer::Create();
-            //m_ClusterLightIndexList->Init(sizeof(uint32_t) * NUM_CLUSTERS * MAX_LIGHTS_PER_CLUSTER, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            m_ClusterLightIndexList = Buffer::Create();
+            m_ClusterLightIndexList->Init(sizeof(uint32_t) * NUM_CLUSTERS * MAX_LIGHTS_PER_CLUSTER, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
-            //m_ClusterLightOffsetList = Buffer::Create();
-            //m_ClusterLightOffsetList->Init(sizeof(LightOffset) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            m_ClusterLightOffsetList = Buffer::Create();
+            m_ClusterLightOffsetList->Init(sizeof(LightOffset) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
-            //m_AtomicCounters = Buffer::Create();
-            //m_AtomicCounters->Init(sizeof(uint32_t) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            m_AtomicCounters = Buffer::Create();
+            m_AtomicCounters->Init(sizeof(uint32_t) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
             uint32_t globalIndex = 0;
-            //m_GlobalIndexCountSSBO = Buffer::Create();
-            //m_GlobalIndexCountSSBO->Init(sizeof(uint32_t), &globalIndex, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            m_GlobalIndexCountSSBO = Buffer::Create();
+            m_GlobalIndexCountSSBO->Init(sizeof(uint32_t), &globalIndex, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
-            //m_AssignLightsToClustersPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
-            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_LightsList", {}, m_LightsList);
-            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
-            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterLightIndexList", {}, m_ClusterLightIndexList);
-            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterLightOffsetList", {}, m_ClusterLightOffsetList);
-            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_AtomicCounters", {}, m_AtomicCounters);
-            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_GlobalIndex", {}, m_GlobalIndexCountSSBO);
+            m_AssignLightsToClustersPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
+            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_LightsList", {}, m_LightsList);
+            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
+            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterLightIndexList", {}, m_ClusterLightIndexList);
+            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterLightOffsetList", {}, m_ClusterLightOffsetList);
+            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_AtomicCounters", {}, m_AtomicCounters);
+            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_GlobalIndex", {}, m_GlobalIndexCountSSBO);
         }
 
         m_DepthPrePassPipeline->UpdateResources("u_MVP", {}, m_MVPBuffer);
@@ -666,7 +665,7 @@ namespace Brisk
         //m_GraphicsQueue->Submit(clusteredSubmitInfo2, nullptr);
         //Engine::s_Application->GetGpuAdapter()->WaitIdle();
 
-        m_Swapchain->AquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &m_ImageIndex);
+        m_Swapchain->AcquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &m_ImageIndex);
         m_CmdBuffer->Reset();
         m_CmdBuffer->Bind();
 
@@ -703,53 +702,53 @@ namespace Brisk
 
         // --- GBUFFER PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        //m_GeometryBufferPass->Begin(m_CmdBuffer);
-        //RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight(), 0, 1);
-        //RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
+        m_GeometryBufferPass->Begin(m_CmdBuffer);
+        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
 
-        //for (auto& [mesh, entities] : m_RenderGroups) {
-        //    m_GBufferPipeline->UpdateResources("ssbo_Materials", {}, mesh->m_MaterialStorageBuffer);
-        //    m_GBufferPipeline->Bind(m_CmdBuffer);
-        //    Render(mesh, entities, true, true);
-        //}
-        //m_GeometryBufferPass->End(m_CmdBuffer);
+        for (auto& [mesh, entities] : m_RenderGroups) {
+            m_GBufferPipeline->UpdateResources("ssbo_Materials", {}, mesh->m_MaterialStorageBuffer);
+            m_GBufferPipeline->Bind(m_CmdBuffer);
+            Render(mesh, entities, true, true);
+        }
+        m_GeometryBufferPass->End(m_CmdBuffer);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
-        //m_Editor->Update();
+        m_Editor->Update();
 
-        //Texture::ImageBarrierParams params{};
-        //params.oldLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
-        //params.newLayout = Core::ImageLayout::ShaderReadOnlyOptimal;
-        //params.srcAccess = Core::AccessType::DepthStencilWrite;
-        //params.dstAccess = Core::AccessType::ShaderRead;
-        //params.srcStage = Core::PipelineStage::LateFragmentTest;
-        //params.dstStage = Core::PipelineStage::FragmentShader;
+        Texture::ImageBarrierParams params{};
+        params.oldLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
+        params.newLayout = Core::ImageLayout::ShaderReadOnlyOptimal;
+        params.srcAccess = Core::AccessType::DepthStencilWrite;
+        params.dstAccess = Core::AccessType::ShaderRead;
+        params.srcStage = Core::PipelineStage::LateFragmentTest;
+        params.dstStage = Core::PipelineStage::FragmentShader;
 
-        //m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
+        m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
 
         //// --- LIGHTING PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        //m_LightingPass->Begin(m_CmdBuffer);
-        //m_LightingPipeline->Bind(m_CmdBuffer);
+        m_LightingPass->Begin(m_CmdBuffer);
+        m_LightingPipeline->Bind(m_CmdBuffer);
 
-        //RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight(), 0, 1);
-        //RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight());
+        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight());
 
-        //RenderCommand::Draw(m_CmdBuffer, 3, 0);
+        RenderCommand::Draw(m_CmdBuffer, 3, 0);
 
-        //m_LightingPass->End(m_CmdBuffer);
+        m_LightingPass->End(m_CmdBuffer);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
         //// --- UI PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        //m_UIPass->Begin(m_CmdBuffer, m_ImageIndex);
+        m_UIPass->Begin(m_CmdBuffer, m_ImageIndex);
 
-        //RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
-        //RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
-        //    
-        //m_Editor->Render(m_CmdBuffer);
+        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+            
+        m_Editor->Render(m_CmdBuffer);
 
-        //m_UIPass->End(m_CmdBuffer);
+        m_UIPass->End(m_CmdBuffer);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
         m_CmdBuffer->UnBind();

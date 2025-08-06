@@ -35,10 +35,22 @@ namespace Brisk
 
         // Convert to IDXGISwapChain4 for modern features
         tempSwapChain.As(&m_SwapChain);
+
+        UINT rtvDescriptorSize = std::static_pointer_cast<GpuAdapterDirectX12>(Engine::s_Application->GetGpuAdapter())->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = std::static_pointer_cast<GpuAdapterDirectX12>(Engine::s_Application->GetGpuAdapter())->GetRtvHeap()->GetCPUDescriptorHandleForHeapStart();
+
+        m_BackBuffers.resize((uint32_t)mode);
+        for (UINT i = 0; i < (uint32_t)mode; ++i) {
+            m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&m_BackBuffers[i]));
+            std::static_pointer_cast<GpuAdapterDirectX12>(Engine::s_Application->GetGpuAdapter())->GetDevice()->CreateRenderTargetView(m_BackBuffers[i].Get(), nullptr, rtvHandle);
+            uint32_t index = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementCbvSrvUavHeapIndex();
+            rtvHandle.ptr += rtvDescriptorSize * index;
+            m_RtvHandles.push_back(rtvHandle);
+        }
 	}
 
     void SwapchainDirectX12::Present() {
-        HRESULT hr = m_SwapChain->Present(false, 0);
+        HRESULT hr = m_SwapChain->Present(true, 0);
         if (FAILED(hr)) {
             throw std::runtime_error("Failed to present swapchain in DirectX12.");
         }

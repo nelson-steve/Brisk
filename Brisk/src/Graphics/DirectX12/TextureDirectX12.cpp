@@ -42,12 +42,14 @@ namespace Brisk
             state = D3D12_RESOURCE_STATE_COPY_DEST;
         else if ((specs.p_Usage & Core::TextureUsage::ImageUsageDepthStencilAttachment) != Core::TextureUsage::Undefined)
             state = D3D12_RESOURCE_STATE_DEPTH_WRITE;
+        else if ((specs.p_Usage & Core::TextureUsage::ImageUsageColorAttachment) != Core::TextureUsage::Undefined)
+            state = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
         HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
             &heapProps,
             D3D12_HEAP_FLAG_NONE,
             &texDesc,
-            D3D12_RESOURCE_STATE_DEPTH_WRITE,
+            state,
             &clearValue,
             IID_PPV_ARGS(&m_Texture)
         );
@@ -57,41 +59,48 @@ namespace Brisk
             return;
         }
 
-        std::wstring wideStrName = std::wstring(specs.p_DebugName.begin(), specs.p_DebugName.end());
-        m_Texture->SetName(wideStrName.c_str());
-
-        D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
-        heapDesc.NumDescriptors = 1;
-        if (specs.p_IsDepth && (specs.p_Usage & Core::TextureUsage::ImageUsageDepthStencilAttachment) != Core::TextureUsage::Undefined)
-            heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
-        else if ((specs.p_Usage & Core::TextureUsage::ImageUsageColorAttachment) != Core::TextureUsage::Undefined)
-            heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
-        else
-            heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
-
-        hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_Heap));
-        if (FAILED(hr)) {
-            BRISK_CORE_ERROR("Failed to create DirectX12 Texture Descriptor Heap");
-            return;
-        }
-
-        m_CPUDescriptor = m_Heap->GetCPUDescriptorHandleForHeapStart();
-        m_GPUDescriptor = m_Heap->GetGPUDescriptorHandleForHeapStart();
+        std::wstring wideStrDebugName = std::wstring(specs.p_DebugName.begin(), specs.p_DebugName.end());
+        m_Texture->SetName(wideStrDebugName.c_str());
 
         if ((specs.p_Usage & Core::TextureUsage::ImageUsageDepthStencilAttachment) != Core::TextureUsage::Undefined) {
+            m_DsvHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDsvHeap()->GetCPUDescriptorHandleForHeapStart();
+            uint32_t descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+            uint32_t index = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementDsvHeapIndex();
+            m_DsvHandle.ptr += descriptorSize * index;
+
             D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
-            dsvDesc.Format = UtilitiesDirectX12::ToTypeless(UtilitiesDirectX12::FormatToDXGIFormat(specs.p_Format));
+            dsvDesc.Format = UtilitiesDirectX12::FormatToDXGIFormat(specs.p_Format);
             dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 
-            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateDepthStencilView(m_Texture.Get(), &dsvDesc, m_CPUDescriptor);
+            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateDepthStencilView(m_Texture.Get(), &dsvDesc, m_DsvHandle);
         }
-        else if ((specs.p_Usage & Core::TextureUsage::ImageUsageDepthStencilAttachment) != Core::TextureUsage::Undefined
-                || (specs.p_Usage & Core::TextureUsage::ImageUsageColorAttachment) != Core::TextureUsage::Undefined) {
-            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-            srvDesc.Format = UtilitiesDirectX12::ToTypeless(UtilitiesDirectX12::FormatToDXGIFormat(specs.p_Format));
-            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+        if ((specs.p_Usage & Core::TextureUsage::ImageUsageSampled) != Core::TextureUsage::Undefined) {
+            m_SrvHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetCPUDescriptorHandleForHeapStart();
+            uint32_t descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            uint32_t index = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementCbvSrvUavHeapIndex();
+            m_SrvHandle.ptr += descriptorSize * index;
 
-            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateShaderResourceView(m_Texture.Get(), &srvDesc, m_CPUDescriptor);
+            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            srvDesc.Format = specs.p_IsDepth ? DXGI_FORMAT_R16_UNORM : UtilitiesDirectX12::FormatToDXGIFormat(specs.p_Format);
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Texture2D.MipLevels = 1;
+
+            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateShaderResourceView(m_Texture.Get(), &srvDesc, m_SrvHandle);
+        }
+        if ((specs.p_Usage & Core::TextureUsage::ImageUsageColorAttachment) != Core::TextureUsage::Undefined) {
+            m_RtvHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetCPUDescriptorHandleForHeapStart();
+            uint32_t descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+            uint32_t index = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementCbvSrvUavHeapIndex();
+            m_RtvHandle.ptr += descriptorSize * index;
+
+            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            srvDesc.Format = UtilitiesDirectX12::FormatToDXGIFormat(specs.p_Format);
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Texture2D.MipLevels = 1;
+
+            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateShaderResourceView(m_Texture.Get(), &srvDesc, m_RtvHandle);
         }
     }
 

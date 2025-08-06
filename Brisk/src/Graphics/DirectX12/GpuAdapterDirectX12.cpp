@@ -147,5 +147,43 @@ namespace Brisk
 		if (FAILED(hr)) {
 			BRISK_CORE_ERROR("Failed to create Copy command queue");
 		}
+
+
+		D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
+		heapDesc.NumDescriptors = 10000;
+		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+		heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		hr = m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_CbvSrvUavHeap));
+		if (FAILED(hr)) {
+			BRISK_CORE_ERROR("Failed to create DirectX12 Descriptor Heap");
+			return;
+		}
+
+		heapDesc.NumDescriptors = 128;
+		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
+		heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+		hr = m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_SamplerHeap));
+		if (FAILED(hr)) {
+			BRISK_CORE_ERROR("Failed to create DirectX12 Descriptor Heap");
+			return;
+		}
+
+		heapDesc.NumDescriptors = 128;
+		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
+		heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		hr = m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_RtvHeap));
+		if (FAILED(hr)) {
+			BRISK_CORE_ERROR("Failed to create DirectX12 Descriptor Heap");
+			return;
+		}
+
+		heapDesc.NumDescriptors = 64;
+		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
+		heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
+		hr = m_Device->CreateDescriptorHeap(&heapDesc, IID_PPV_ARGS(&m_DsvHeap));
+		if (FAILED(hr)) {
+			BRISK_CORE_ERROR("Failed to create DirectX12 Descriptor Heap");
+			return;
+		}
 	}
 }

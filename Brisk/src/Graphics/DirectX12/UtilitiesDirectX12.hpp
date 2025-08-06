@@ -275,7 +275,7 @@ namespace Brisk
 
             //if ((usage & Core::TextureUsage::ImageUsageTransferSrc) != Core::TextureUsage::Undefined)            flags |= VK_IMAGE_USAGE_TRANSFER_SRC_BIT;
             //if ((usage & Core::TextureUsage::ImageUsageTransferDst) != Core::TextureUsage::Undefined)            flags |= VK_IMAGE_USAGE_TRANSFER_DST_BIT;
-            if ((usage & Core::TextureUsage::ImageUsageSampled) != Core::TextureUsage::Undefined)                flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
+            //if ((usage & Core::TextureUsage::ImageUsageSampled) != Core::TextureUsage::Undefined)                flags |= D3D12_RESOURCE_FLAG_DENY_SHADER_RESOURCE;
             //if ((usage & Core::TextureUsage::ImageUsageStorage) != Core::TextureUsage::Undefined)                flags |= VK_IMAGE_USAGE_STORAGE_BIT;
             if ((usage & Core::TextureUsage::ImageUsageColorAttachment) != Core::TextureUsage::Undefined)        flags |= D3D12_RESOURCE_FLAG_ALLOW_RENDER_TARGET;
             if ((usage & Core::TextureUsage::ImageUsageDepthStencilAttachment) != Core::TextureUsage::Undefined) flags |= D3D12_RESOURCE_FLAG_ALLOW_DEPTH_STENCIL;

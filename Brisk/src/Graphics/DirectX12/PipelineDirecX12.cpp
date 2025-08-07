@@ -237,11 +237,17 @@ namespace Brisk
         psoDesc.PrimitiveTopologyType = D3D12_PRIMITIVE_TOPOLOGY_TYPE_TRIANGLE;
         psoDesc.NumRenderTargets = specs.pRenderPass->GetColorAttachmentCount();
         for (int i = 0; i < specs.pRenderPass->GetColorAttachmentCount() && i < 8; i++) {
-            psoDesc.RTVFormats[i] = DXGI_FORMAT_R16G16B16A16_FLOAT;
+            psoDesc.RTVFormats[i] = DXGI_FORMAT_R8G8B8A8_UNORM;
         }
         if (specs.pRenderPass->HasDepth()) {
             psoDesc.DSVFormat = DXGI_FORMAT_D16_UNORM; // TODO: Dont use hardcoded value
-            psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+            //psoDesc.DepthStencilState = CD3DX12_DEPTH_STENCIL_DESC(D3D12_DEFAULT);
+            D3D12_DEPTH_STENCIL_DESC depthStencilDesc = {};
+            depthStencilDesc.DepthEnable = specs.pDepthTestEnable;
+            depthStencilDesc.DepthWriteMask = specs.pDepthWriteEnable ? D3D12_DEPTH_WRITE_MASK_ALL : D3D12_DEPTH_WRITE_MASK_ZERO;
+            depthStencilDesc.DepthFunc = specs.pCompareOp == CompareOp::COMPARE_OP_LESS ? D3D12_COMPARISON_FUNC_LESS : D3D12_COMPARISON_FUNC_LESS;
+            depthStencilDesc.StencilEnable = FALSE;
+            psoDesc.DepthStencilState = depthStencilDesc;
         }
         psoDesc.SampleDesc.Count = 1;
         psoDesc.SampleMask = UINT_MAX;

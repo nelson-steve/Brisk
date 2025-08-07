@@ -1,6 +1,8 @@
 #include "SwapchainDirectX12.hpp"
 #include "Graphics/DirectX12/GpuAdapterDirectX12.hpp"
 #include "Engine/Engine.hpp"
+#include "CommandBufferDirectX12.hpp"
+#include "UtilitiesDirectX12.hpp"
 
 namespace Brisk
 {
@@ -43,11 +45,22 @@ namespace Brisk
         for (UINT i = 0; i < (uint32_t)mode; ++i) {
             m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&m_BackBuffers[i]));
             std::static_pointer_cast<GpuAdapterDirectX12>(Engine::s_Application->GetGpuAdapter())->GetDevice()->CreateRenderTargetView(m_BackBuffers[i].Get(), nullptr, rtvHandle);
-            uint32_t index = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementCbvSrvUavHeapIndex();
-            rtvHandle.ptr += rtvDescriptorSize * index;
             m_RtvHandles.push_back(rtvHandle);
+            rtvHandle.ptr += rtvDescriptorSize;
         }
 	}
+
+    void SwapchainDirectX12::TransitionCurrentImage(std::shared_ptr<CommandBuffer> cmd, Texture::ImageBarrierParams params, int imageIndex) {
+        D3D12_RESOURCE_BARRIER barrier{};
+        barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+        barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
+        barrier.Transition.pResource = m_BackBuffers[imageIndex].Get();
+        barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+        barrier.Transition.StateBefore = UtilitiesDirectX12::ImageLayoutToD3D12ResourceState(params.oldLayout);
+        barrier.Transition.StateAfter = UtilitiesDirectX12::ImageLayoutToD3D12ResourceState(params.newLayout);
+
+        std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->ResourceBarrier(1, &barrier);
+    }
 
     void SwapchainDirectX12::Present() {
         HRESULT hr = m_SwapChain->Present(true, 0);

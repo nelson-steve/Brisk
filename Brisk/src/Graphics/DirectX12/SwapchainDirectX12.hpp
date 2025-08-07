@@ -31,7 +31,7 @@ namespace Brisk
 			*pImageIndex = backBufferIndex;
 		}
 
-		virtual void TransitionCurrentImage(std::shared_ptr<CommandBuffer> cmd, Texture::ImageBarrierParams params, int imageIndex) override { assert(false); }
+		virtual void TransitionCurrentImage(std::shared_ptr<CommandBuffer> cmd, Texture::ImageBarrierParams params, int imageIndex) override;
 		virtual void Blit(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> image, int imageIndex) override { assert(false); }
 
 		void Present();

@@ -168,10 +168,12 @@ namespace Brisk
                 specs.p_DebugName = "m_Pos";
                 specs.p_Type = Texture::TextureType::TEXTURE2D;
                 specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled;
-                specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
+                //specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
+                specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
                 m_Pos->Init(specs);
 
                 specs.p_DebugName = "m_Normal";
+                specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
                 m_Normal->Init(specs);
 
                 specs.p_DebugName = "m_Albedo";
@@ -213,7 +215,7 @@ namespace Brisk
                     RenderPassAttachment{ 2, AttachmentType::Color, m_Albedo,   LoadOp::Clear, StoreOp::Store    },
                     RenderPassAttachment{ 3, AttachmentType::Color, m_Material, LoadOp::Clear, StoreOp::Store    },
                     RenderPassAttachment{ 4, AttachmentType::Color, m_Emissive, LoadOp::Clear, StoreOp::Store    },
-                    RenderPassAttachment{ 5, AttachmentType::Depth, m_DepthPre, LoadOp::Load,  StoreOp::DontCare  },
+                    //RenderPassAttachment{ 5, AttachmentType::Depth, m_DepthPre, LoadOp::Load,  StoreOp::DontCare  },
                 }
             );
 
@@ -714,7 +716,7 @@ namespace Brisk
         m_GeometryBufferPass->End(m_CmdBuffer);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
-        m_Editor->Update();
+        //m_Editor->Update();
 
         Texture::ImageBarrierParams params{};
         params.oldLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
@@ -724,7 +726,7 @@ namespace Brisk
         params.srcStage = Core::PipelineStage::LateFragmentTest;
         params.dstStage = Core::PipelineStage::FragmentShader;
 
-        m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
+        //m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
 
         //// --- LIGHTING PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
@@ -739,6 +741,17 @@ namespace Brisk
         m_LightingPass->End(m_CmdBuffer);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
+        {
+            Texture::ImageBarrierParams params{};
+            params.oldLayout = Core::ImageLayout::PresentSrc;
+            params.newLayout = Core::ImageLayout::ColorAttachmentOptimal;
+            params.srcAccess = Core::AccessType::DepthStencilWrite;
+            params.dstAccess = Core::AccessType::ShaderRead;
+            params.srcStage = Core::PipelineStage::LateFragmentTest;
+            params.dstStage = Core::PipelineStage::FragmentShader;
+            m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
+        }
+
         //// --- UI PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
         m_UIPass->Begin(m_CmdBuffer, m_ImageIndex);
@@ -746,10 +759,21 @@ namespace Brisk
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
             
-        m_Editor->Render(m_CmdBuffer);
+        //m_Editor->Render(m_CmdBuffer);
 
         m_UIPass->End(m_CmdBuffer);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
+
+        {
+            Texture::ImageBarrierParams params{};
+            params.oldLayout = Core::ImageLayout::ColorAttachmentOptimal;
+            params.newLayout = Core::ImageLayout::PresentSrc;
+            params.srcAccess = Core::AccessType::DepthStencilWrite;
+            params.dstAccess = Core::AccessType::ShaderRead;
+            params.srcStage = Core::PipelineStage::LateFragmentTest;
+            params.dstStage = Core::PipelineStage::FragmentShader;
+            m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
+        }
 
         m_CmdBuffer->UnBind();
 

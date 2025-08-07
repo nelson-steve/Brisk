@@ -89,18 +89,16 @@ namespace Brisk
             Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateShaderResourceView(m_Texture.Get(), &srvDesc, m_SrvHandle);
         }
         if ((specs.p_Usage & Core::TextureUsage::ImageUsageColorAttachment) != Core::TextureUsage::Undefined) {
-            m_RtvHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetCPUDescriptorHandleForHeapStart();
+            m_RtvHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetRtvHeap()->GetCPUDescriptorHandleForHeapStart();
             uint32_t descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-            uint32_t index = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementCbvSrvUavHeapIndex();
+            uint32_t index = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementRtvHeapIndex();
             m_RtvHandle.ptr += descriptorSize * index;
 
-            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
-            srvDesc.Format = UtilitiesDirectX12::FormatToDXGIFormat(specs.p_Format);
-            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_TEXTURE2D;
-            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
-            srvDesc.Texture2D.MipLevels = 1;
+            D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
+            rtvDesc.Format = UtilitiesDirectX12::FormatToDXGIFormat(specs.p_Format);
+            rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 
-            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateShaderResourceView(m_Texture.Get(), &srvDesc, m_RtvHandle);
+            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRenderTargetView(m_Texture.Get(), &rtvDesc, m_RtvHandle);
         }
     }
 

@@ -24,5 +24,7 @@ namespace Brisk
 
         std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> m_RTVHandles;
         D3D12_CPU_DESCRIPTOR_HANDLE m_DSVHandle;
+
+        bool isSwapchain = false;
     };
 }

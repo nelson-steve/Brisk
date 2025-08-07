@@ -282,5 +282,42 @@ namespace Brisk
 
             return flags;
         }
+
+        static D3D12_RESOURCE_STATES ImageLayoutToD3D12ResourceState(Core::ImageLayout layout) {
+            using Core::ImageLayout;
+
+            if ((layout & ImageLayout::ColorAttachmentOptimal) == ImageLayout::ColorAttachmentOptimal)
+                return D3D12_RESOURCE_STATE_RENDER_TARGET;
+
+            if ((layout & ImageLayout::DepthStencilAttachmentOptimal) == ImageLayout::DepthStencilAttachmentOptimal)
+                return D3D12_RESOURCE_STATE_DEPTH_WRITE;
+
+            if ((layout & ImageLayout::DepthStencilReadOnlyOptimal) == ImageLayout::DepthStencilReadOnlyOptimal)
+                return D3D12_RESOURCE_STATE_DEPTH_READ;
+
+            if ((layout & ImageLayout::ShaderReadOnlyOptimal) == ImageLayout::ShaderReadOnlyOptimal)
+                return D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE | D3D12_RESOURCE_STATE_NON_PIXEL_SHADER_RESOURCE;
+
+            if ((layout & ImageLayout::TransferSrc) == ImageLayout::TransferSrc)
+                return D3D12_RESOURCE_STATE_COPY_SOURCE;
+
+            if ((layout & ImageLayout::TransferDst) == ImageLayout::TransferDst)
+                return D3D12_RESOURCE_STATE_COPY_DEST;
+
+            if ((layout & ImageLayout::ComputeShaderWrite) == ImageLayout::ComputeShaderWrite)
+                return D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+
+            if ((layout & ImageLayout::AttachmentFeedbackLoopOptimal) == ImageLayout::AttachmentFeedbackLoopOptimal)
+                return D3D12_RESOURCE_STATE_UNORDERED_ACCESS; // Approximate
+
+            if ((layout & ImageLayout::PresentSrc) == ImageLayout::PresentSrc)
+                return D3D12_RESOURCE_STATE_PRESENT;
+
+            if ((layout & ImageLayout::General) == ImageLayout::General)
+                return D3D12_RESOURCE_STATE_COMMON;
+
+            return D3D12_RESOURCE_STATE_COMMON; // fallback
+        }
+
     };
 }

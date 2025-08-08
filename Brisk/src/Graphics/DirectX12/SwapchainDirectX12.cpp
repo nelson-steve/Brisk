@@ -63,8 +63,10 @@ namespace Brisk
     }
 
     void SwapchainDirectX12::Present() {
+        Engine::s_Application->GetGpuAdapter()->LogDirectXDebugs();
         HRESULT hr = m_SwapChain->Present(true, 0);
         if (FAILED(hr)) {
+            HRESULT error = std::static_pointer_cast<GpuAdapterDirectX12>(Engine::s_Application->GetGpuAdapter())->GetDevice()->GetDeviceRemovedReason();
             throw std::runtime_error("Failed to present swapchain in DirectX12.");
         }
     }

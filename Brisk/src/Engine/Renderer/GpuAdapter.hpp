@@ -10,6 +10,14 @@
 
 namespace Brisk
 {
+	// Predefined descriptor set values
+	constexpr uint32_t SET_FRAME_GLOBAL = 0; // Camera, lights
+	constexpr uint32_t SET_BINDLESS_TEXTURES = 1; // Global bindless textures
+	constexpr uint32_t SET_MATERIALS = 2; // Materials array, Deferred textures
+	constexpr uint32_t SET_CLUSTERED_LIGHTING = 3; // Clustered lighting
+	//
+
+
 	class GpuAdapter  : public std::enable_shared_from_this<GpuAdapter> {
 		DEFINE_BASE_CLASS_CONSTRUCTOR(GpuAdapter)
 	public:
@@ -19,8 +27,6 @@ namespace Brisk
 			return std::dynamic_pointer_cast<T>(shared_from_this());
 		}
 		virtual void WaitIdle() = 0;
-
-		virtual void LogDirectXDebugs() = 0; // DirectX12 only
 
 		virtual void Init() = 0;
 		virtual void Release() = 0;

@@ -31,6 +31,7 @@ namespace Brisk
 		}
 	private:
 		ComPtr<ID3D12Resource> m_Buffer;
+		D3D12_CPU_DESCRIPTOR_HANDLE m_CbvHandle;
 		uint32_t m_Size;
 		bool m_MapPersistent = false;
 		void* m_MappedPointer = nullptr;

@@ -36,6 +36,7 @@ namespace Brisk
         m_CommandQueue->ExecuteCommandLists(1, baseCommandLists.data());
 
         if (fence) {
+            fence->Reset();
             m_CommandQueue->Signal(std::static_pointer_cast<FenceDirectX12>(fence)->Get().Get(), std::static_pointer_cast<FenceDirectX12>(fence)->GetValue());
         }
     }

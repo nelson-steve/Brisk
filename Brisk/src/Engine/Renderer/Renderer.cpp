@@ -394,7 +394,7 @@ namespace Brisk
                 pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
                 pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
                 pipelineSpecs.pDepthBiasEnable = false;
-                pipelineSpecs.pDepthTestEnable = true;
+                pipelineSpecs.pDepthTestEnable = false;
                 pipelineSpecs.pDepthWriteEnable = false;
                 pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_EQUAL;
                 pipelineSpecs.pDepthBoundsTestEnable = false;
@@ -472,10 +472,10 @@ namespace Brisk
             Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
         {
             m_ClusterTilesSSBO = Buffer::Create();
-            m_ClusterTilesSSBO->Init(sizeof(TileAABB) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            //m_ClusterTilesSSBO->Init(sizeof(TileAABB) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
             m_ClusterInfoUBO = Buffer::Create();
-            m_ClusterInfoUBO->Init(sizeof(ClusterInfo), nullptr, Core::BufferUsage::UniformBuffer, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
+            //m_ClusterInfoUBO->Init(sizeof(ClusterInfo), nullptr, Core::BufferUsage::UniformBuffer, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
 
             m_AABBGeneratorPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
             m_AABBGeneratorPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
@@ -488,20 +488,20 @@ namespace Brisk
             std::vector<LightData> lights = GenerateRandomLights(MAX_LIGHTS, 400);
 
             m_LightsList = Buffer::Create();
-            m_LightsList->Init(sizeof(LightData) * lights.size(), lights.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            //m_LightsList->Init(sizeof(LightData) * lights.size(), lights.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
             m_ClusterLightIndexList = Buffer::Create();
-            m_ClusterLightIndexList->Init(sizeof(uint32_t) * NUM_CLUSTERS * MAX_LIGHTS_PER_CLUSTER, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            //m_ClusterLightIndexList->Init(sizeof(uint32_t) * NUM_CLUSTERS * MAX_LIGHTS_PER_CLUSTER, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
             m_ClusterLightOffsetList = Buffer::Create();
-            m_ClusterLightOffsetList->Init(sizeof(LightOffset) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            //m_ClusterLightOffsetList->Init(sizeof(LightOffset) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
             m_AtomicCounters = Buffer::Create();
-            m_AtomicCounters->Init(sizeof(uint32_t) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            //m_AtomicCounters->Init(sizeof(uint32_t) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
             uint32_t globalIndex = 0;
             m_GlobalIndexCountSSBO = Buffer::Create();
-            m_GlobalIndexCountSSBO->Init(sizeof(uint32_t), &globalIndex, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            //m_GlobalIndexCountSSBO->Init(sizeof(uint32_t), &globalIndex, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
             m_AssignLightsToClustersPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
             m_AssignLightsToClustersPipeline->UpdateResources("ssbo_LightsList", {}, m_LightsList);
@@ -579,7 +579,7 @@ namespace Brisk
         }
 
         m_Fence->Wait();
-        m_Fence->Reset();
+        //m_Fence->Reset();
 
         //m_ClusteredCmdBuffer->Reset();
 
@@ -685,6 +685,17 @@ namespace Brisk
         // 
         //------------------------------------------------------------------------------------------------------------------------------------------------
 
+        {
+            //Texture::ImageBarrierParams params{};
+            //params.oldLayout = Core::ImageLayout::Undefined;
+            //params.newLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
+            //params.srcAccess = Core::AccessType::DepthStencilWrite;
+            //params.dstAccess = Core::AccessType::ShaderRead;
+            //params.srcStage = Core::PipelineStage::LateFragmentTest;
+            //params.dstStage = Core::PipelineStage::FragmentShader;
+            //m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
+        }
+
         // --- DEPTH PRE PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_DepthPrePass->Begin(m_CmdBuffer);
@@ -704,16 +715,16 @@ namespace Brisk
 
         // --- GBUFFER PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        m_GeometryBufferPass->Begin(m_CmdBuffer);
-        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight(), 0, 1);
-        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
+        //m_GeometryBufferPass->Begin(m_CmdBuffer);
+        //RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight(), 0, 1);
+        //RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
 
-        for (auto& [mesh, entities] : m_RenderGroups) {
-            m_GBufferPipeline->UpdateResources("ssbo_Materials", {}, mesh->m_MaterialStorageBuffer);
-            m_GBufferPipeline->Bind(m_CmdBuffer);
-            Render(mesh, entities, true, true);
-        }
-        m_GeometryBufferPass->End(m_CmdBuffer);
+        //for (auto& [mesh, entities] : m_RenderGroups) {
+        //    m_GBufferPipeline->UpdateResources("ssbo_Materials", {}, mesh->m_MaterialStorageBuffer);
+        //    m_GBufferPipeline->Bind(m_CmdBuffer);
+        //    Render(mesh, entities, true, true);
+        //}
+        //m_GeometryBufferPass->End(m_CmdBuffer);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
         //m_Editor->Update();

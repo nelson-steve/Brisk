@@ -25,5 +25,6 @@ namespace Brisk
 	private:
 		ComPtr<ID3D12RootSignature> m_RootSignature;
 		ComPtr<ID3D12PipelineState> m_PipelineState;
+		bool isDepth = false;
 	};
 }

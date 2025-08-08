@@ -78,7 +78,7 @@ namespace Brisk
 		void RenderEntity(const MeshComponent& mesh, int alphaMode, bool push = false);
 		void Render(MeshAsset* mesh, std::vector<Entity> entities, bool pushMaterialIndex = false, bool pushModelMatrix = false);
 
-	private:
+	public:
 		static std::shared_ptr<Swapchain> m_Swapchain;
 
 		// Synchronization objects
@@ -120,6 +120,7 @@ namespace Brisk
 		std::shared_ptr<Pipeline> m_AssignLightsToClustersPipeline;
 
 		std::shared_ptr<Buffer> m_MVPBuffer;
+		std::shared_ptr<Buffer> m_PerObjectBuffer;
 
 		std::shared_ptr<Buffer> m_ClusterInfoUBO;
 		std::shared_ptr<Buffer> m_ClusterTilesSSBO;

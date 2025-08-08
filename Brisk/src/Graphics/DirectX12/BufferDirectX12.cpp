@@ -2,20 +2,22 @@
 #include <stdexcept>
 #include "GpuAdapterDirectX12.hpp"
 #include "Engine/Engine.hpp"
+#include "UtilitiesDirectX12.hpp"
 
 #include <directx/d3dx12.h>
 
 namespace Brisk
 {
     void BufferDirectX12::Init(uint32_t size, void* data, Core::BufferUsage usageFlags, Core::MemoryProperty memoryProperty, bool mapPersistant) {
-        m_Size = size;
+        const UINT alignedSize = (size + 255) & ~255;
+        m_Size = alignedSize;
         if (Core::HasFlag(memoryProperty, Core::MemoryProperty::HostVisible) && Core::HasFlag(memoryProperty, Core::MemoryProperty::HostCoherent)) {
             D3D12_HEAP_PROPERTIES defaultHeapProps = {};
             defaultHeapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
 
             D3D12_RESOURCE_DESC bufferDesc = {};
             bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-            bufferDesc.Width = size;
+            bufferDesc.Width = alignedSize;
             bufferDesc.Height = 1;
             bufferDesc.DepthOrArraySize = 1;
             bufferDesc.MipLevels = 1;
@@ -41,14 +43,14 @@ namespace Brisk
                 D3D12_RANGE range = { 0, 0 };
                 m_Buffer->Map(0, &range, &m_MappedPointer);
                 if (data) {
-                    memcpy(m_MappedPointer, data, size);
+                    memcpy(m_MappedPointer, data, alignedSize);
                 }
             }
             else {
                 D3D12_RANGE range = { 0, 0 };
                 m_Buffer->Map(0, &range, &m_MappedPointer);
                 if (data) {
-                    memcpy(m_MappedPointer, data, size);
+                    memcpy(m_MappedPointer, data, alignedSize);
                 }
                 m_Buffer->Unmap(0, nullptr);
             }
@@ -59,7 +61,7 @@ namespace Brisk
 
             D3D12_RESOURCE_DESC bufferDesc = {};
             bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-            bufferDesc.Width = size;
+            bufferDesc.Width = alignedSize;
             bufferDesc.Height = 1;
             bufferDesc.DepthOrArraySize = 1;
             bufferDesc.MipLevels = 1;
@@ -97,13 +99,13 @@ namespace Brisk
                 D3D12_RANGE range = { 0, 0 };
                 vertexBufferUpload->Map(0, &range, &mappedPtr);
                 if (data)
-                    memcpy(mappedPtr, data, size);
+                    memcpy(mappedPtr, data, alignedSize);
                 vertexBufferUpload->Unmap(0, nullptr);
 
                 D3D12_SUBRESOURCE_DATA subresourceData = {};
                 subresourceData.pData = data;
-                subresourceData.RowPitch = size;
-                subresourceData.SlicePitch = size;
+                subresourceData.RowPitch = alignedSize;
+                subresourceData.SlicePitch = alignedSize;
 
                 ComPtr<ID3D12CommandAllocator> commandAllocator;
                 ComPtr<ID3D12GraphicsCommandList> commandList;
@@ -153,6 +155,19 @@ namespace Brisk
                 );
                 if (FAILED(hr)) throw std::runtime_error("Failed to create GPU buffer");
             }
+        }
+
+        if ((static_cast<uint32_t>(usageFlags) & static_cast<uint32_t>(Core::BufferUsage::UniformBuffer)) != 0) {
+            m_CbvHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetCPUDescriptorHandleForHeapStart();
+            uint32_t descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            uint32_t index = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementCbvSrvUavHeapIndex();
+            m_CbvHandle.ptr += descriptorSize * index;
+
+            D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+            cbvDesc.BufferLocation = m_Buffer->GetGPUVirtualAddress();
+            cbvDesc.SizeInBytes = (size + 255) & ~255;
+
+            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateConstantBufferView(&cbvDesc, m_CbvHandle);
         }
     }
 

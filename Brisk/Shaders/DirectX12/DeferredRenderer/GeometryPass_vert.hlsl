@@ -5,13 +5,6 @@ cbuffer MVPBuffer : register(b0, space0) {
     float padding;
 };
 
-struct MeshData {
-    float4x4 model;
-    uint materialIndex;
-};
-
-ConstantBuffer<MeshData> meshData : register(b1);
-
 struct VSInput {
     float3 position : POSITION;
     float3 normal : NORMAL;
@@ -31,10 +24,8 @@ struct VSOutput {
 
 VSOutput VSMain(VSInput input) {
     VSOutput output;
-    output.position = mul(meshData.model, float4(input.position, 1.0f));
-    float3x3 model3x3 = (float3x3)meshData.model;
-    float3x3 normalMatrix = transpose(model3x3);
-    output.normal = normalize(mul(normalMatrix, input.normal));
+    output.position = float4(input.position, 1.0f);
+    output.normal = float3(1.0f, 1.0f, 1.0f);
     output.uv = input.uv0;
     return output;    
 }

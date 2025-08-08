@@ -14,15 +14,6 @@
 
 namespace Brisk 
 {
-	// Predefined descriptor set values
-	constexpr uint32_t SET_MVP = 0;
-	constexpr uint32_t SET_LIGHTS = 1;
-	constexpr uint32_t SET_DEFERRED_TEXTURES = 2;
-	constexpr uint32_t SET_BINDLESS = 3;
-	constexpr uint32_t SET_MATERIALS = 4;
-	constexpr uint32_t SET_CLUSTERED_LIGHTING = 5;
-	//
-
 	class GpuAdapterVulkan : public GpuAdapter {
 	public:
 		virtual void Init() override;

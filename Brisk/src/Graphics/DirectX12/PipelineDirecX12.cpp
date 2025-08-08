@@ -9,6 +9,7 @@
 #include <Core/Log.hpp>
 #include "CommandBufferDirectX12.hpp"
 #include <filesystem>
+#include "BufferDirectX12.hpp"
 
 namespace Brisk
 {
@@ -54,13 +55,11 @@ namespace Brisk
         std::string filename = (lastDot == std::string::npos) ? filenameWithExt : filenameWithExt.substr(0, lastDot);
 
         if (filename == "DepthPrePass_frag") {
-            CD3DX12_ROOT_PARAMETER rootParameters[2];
+            isDepth = true;
+            CD3DX12_ROOT_PARAMETER rootParameters[1];
 
             // MVPBuffer (b0)
             rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
-
-            // MeshData (b1)
-            rootParameters[1].InitAsConstantBufferView(1, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 
             CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc;
             rootSigDesc.Init(_countof(rootParameters), rootParameters,
@@ -74,31 +73,21 @@ namespace Brisk
                 D3D_ROOT_SIGNATURE_VERSION_1,
                 &serializedRootSig, &errorBlob);
 
+            if (FAILED(hr)) {
+                if (errorBlob) {
+                    OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+                }
+            }
+
             Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRootSignature(0, serializedRootSig->GetBufferPointer(),
                 serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature));
 
         }
         else if (filename == "GeometryPass_frag") {
-            CD3DX12_ROOT_PARAMETER1 rootParameters[5];
+            CD3DX12_ROOT_PARAMETER1 rootParameters[1];
 
             // 0. MVPBuffer (b0, space0)
             rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
-
-            // 1. MeshData for VS (b1)
-            rootParameters[1].InitAsConstantBufferView(1, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_VERTEX);
-
-            // 2. MeshData for PS (b2) – only needed if you keep that MeshData block in PS
-            rootParameters[2].InitAsConstantBufferView(2, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_PIXEL);
-
-            // 3. Global textures (t0, space3)
-            CD3DX12_DESCRIPTOR_RANGE1 textureRange;
-            textureRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 512, 0, 3); // u_GlobalTextures
-            rootParameters[3].InitAsDescriptorTable(1, &textureRange, D3D12_SHADER_VISIBILITY_PIXEL);
-
-            // 4. Material buffer (t0, space4)
-            CD3DX12_DESCRIPTOR_RANGE1 materialRange;
-            materialRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 4); // ssbo_Materials
-            rootParameters[4].InitAsDescriptorTable(1, &materialRange, D3D12_SHADER_VISIBILITY_PIXEL);
 
             // Static sampler (s0, space0)
             CD3DX12_STATIC_SAMPLER_DESC staticSampler(
@@ -139,25 +128,9 @@ namespace Brisk
 
         }
         else if (filename == "LightingPass_frag") {
-            CD3DX12_ROOT_PARAMETER1 rootParameters[5];
+            CD3DX12_ROOT_PARAMETER1 rootParameters[1];
 
             rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
-
-            CD3DX12_DESCRIPTOR_RANGE1 rangeLights;
-            rangeLights.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0, 1); // t0, space1
-            rootParameters[1].InitAsDescriptorTable(1, &rangeLights, D3D12_SHADER_VISIBILITY_PIXEL);
-
-            CD3DX12_DESCRIPTOR_RANGE1 gbufferSRVs;
-            gbufferSRVs.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 6, 0, 2); // t0–t5, space2
-            rootParameters[2].InitAsDescriptorTable(1, &gbufferSRVs, D3D12_SHADER_VISIBILITY_PIXEL);
-
-            CD3DX12_DESCRIPTOR_RANGE1 samplerRange;
-            samplerRange.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER, 1, 0, 2); // s0, space2
-            rootParameters[3].InitAsDescriptorTable(1, &samplerRange, D3D12_SHADER_VISIBILITY_PIXEL);
-
-            CD3DX12_DESCRIPTOR_RANGE1 clusterRanges;
-            clusterRanges.Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 2, 2, 5); // t2–t3, space5
-            rootParameters[4].InitAsDescriptorTable(1, &clusterRanges, D3D12_SHADER_VISIBILITY_PIXEL);
 
             CD3DX12_STATIC_SAMPLER_DESC staticSamplerDesc(
                 0,
@@ -263,8 +236,22 @@ namespace Brisk
 	}
 
 	void PipelineDirectX12::Bind(std::shared_ptr<CommandBuffer> cmd) {
+        ID3D12DescriptorHeap* heaps[] = 
+        { 
+            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap().Get(),
+            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetSamplerHeap().Get(),
+        };
+        std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->SetDescriptorHeaps(_countof(heaps), heaps);
         std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->SetPipelineState(m_PipelineState.Get());
         std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->SetGraphicsRootSignature(m_RootSignature.Get());
+
+        if (isDepth) {
+            std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->SetGraphicsRootConstantBufferView(
+                0, // Root parameter index for b0
+                std::static_pointer_cast<BufferDirectX12>(Engine::s_Application->GetRenderer()->m_MVPBuffer)->Get()->GetGPUVirtualAddress()
+            );
+        }
+
         std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 

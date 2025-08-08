@@ -117,8 +117,8 @@ namespace Brisk
             barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
             barrier.Transition.pResource = m_Texture.Get();
             barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
-            //barrier.Transition.StateBefore = param.oldLayout;
-            //barrier.Transition.StateAfter = param.newLayout;
+            barrier.Transition.StateBefore = UtilitiesDirectX12::ImageLayoutToD3D12ResourceState(param.oldLayout);
+            barrier.Transition.StateAfter = UtilitiesDirectX12::ImageLayoutToD3D12ResourceState(param.newLayout);
             barrier.Flags = D3D12_RESOURCE_BARRIER_FLAG_NONE;
 
             barriers.push_back(barrier);

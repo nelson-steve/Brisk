@@ -19,7 +19,7 @@ namespace Brisk
 		virtual void WaitIdle() override { }
 		virtual void Release() override { assert(false); }
 		virtual void ReleasePools() override { assert(false); }
-		virtual void LogDirectXDebugs() override;
+		void LogDirectXDebugs();
 
 		ComPtr<IDXGIFactory6> GetDXGIFactory() const { return m_DxgiFactory; }
 		ComPtr<ID3D12Device> GetDevice() const { return m_Device; }

@@ -17,7 +17,6 @@ namespace Brisk
 	constexpr uint32_t SET_CLUSTERED_LIGHTING = 3; // Clustered lighting
 	//
 
-
 	class GpuAdapter  : public std::enable_shared_from_this<GpuAdapter> {
 		DEFINE_BASE_CLASS_CONSTRUCTOR(GpuAdapter)
 	public:

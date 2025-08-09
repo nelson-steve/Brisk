@@ -1,10 +1,11 @@
 #pragma once
 
 #include "Engine/Renderer/RHI.hpp"
+#include <Core/Log.hpp>
 
 #include <directx/d3d12.h>
 #include <cassert>
-#include <Core/Log.hpp>
+#include <filesystem>
 
 namespace Brisk 
 {
@@ -317,6 +318,30 @@ namespace Brisk
                 return D3D12_RESOURCE_STATE_COMMON;
 
             return D3D12_RESOURCE_STATE_COMMON; // fallback
+        }
+
+        static std::vector<char>* ReadShaderFile(const std::string& fileName) {
+            std::wstring wideStr = std::wstring(fileName.begin(), fileName.end());
+            LPCWSTR pathWstring = wideStr.c_str();
+            std::wstring shaderPath = std::filesystem::current_path().wstring() + pathWstring;
+
+            std::vector<char>* shaderFileBuffer;
+            std::ifstream file(shaderPath, std::ios::ate | std::ios::binary);
+
+            if (!file.is_open()) {
+                BRISK_CORE_ERROR("Failed to open file: ", fileName);
+                return nullptr;
+            }
+
+            size_t fileSize = (size_t)file.tellg();
+            shaderFileBuffer = new std::vector<char>(fileSize);
+
+            file.seekg(0);
+            file.read(shaderFileBuffer->data(), fileSize);
+
+            file.close();
+
+            return shaderFileBuffer;
         }
 
     };

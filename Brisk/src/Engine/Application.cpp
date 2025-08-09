@@ -87,10 +87,6 @@ namespace Brisk
 	}
 
 	void Application::Update(float deltaTime) {
-#ifdef BRISK_ENABLE_DIRECTX12
-		m_Adapter->LogDirectXDebugs();
-#endif
-
 		m_Renderer->RenderScene(deltaTime);
 		m_EditorCamera->OnUpdate(deltaTime);
 		m_Window->ProcessEvents();

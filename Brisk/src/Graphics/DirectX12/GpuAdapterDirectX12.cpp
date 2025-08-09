@@ -60,6 +60,10 @@ namespace Brisk
 	}
 
 	void GpuAdapterDirectX12::Init() {
+		// Creating DXGIFactory
+		// Used to enumerate graphics adapters
+		// Can also be used to enumerate the connected displays to each graphics adapter
+		// Creates swapchain as well
 		HRESULT hr = CreateDXGIFactory2(0, IID_PPV_ARGS(&m_DxgiFactory));
 		if (FAILED(hr)) {
 			BRISK_CORE_ERROR("Failed to create Dxgi factory");
@@ -89,6 +93,7 @@ namespace Brisk
 			break;
 		}
 
+		// Currenly do no support all feature levels
 		D3D_FEATURE_LEVEL featureLevels[] = {
 			D3D_FEATURE_LEVEL_12_2,
 			D3D_FEATURE_LEVEL_12_1,
@@ -118,43 +123,45 @@ namespace Brisk
 		if (SUCCEEDED(m_Device->QueryInterface(IID_PPV_ARGS(&infoQueue)))) {
 			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_ERROR, TRUE);
 			infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_CORRUPTION, TRUE);
-			//infoQueue->SetBreakOnSeverity(D3D12_MESSAGE_SEVERITY_WARNING, TRUE);
-			// Suppress certain messages
-			D3D12_MESSAGE_SEVERITY severities[] = { D3D12_MESSAGE_SEVERITY_INFO };
+
+			// Suppress info messages
+			D3D12_MESSAGE_SEVERITY denySeverities[] = { D3D12_MESSAGE_SEVERITY_INFO };
+			// Allow corruption, error and warning messages
+			D3D12_MESSAGE_SEVERITY allowSeverities[] = { D3D12_MESSAGE_SEVERITY_CORRUPTION, D3D12_MESSAGE_SEVERITY_ERROR, D3D12_MESSAGE_SEVERITY_WARNING };
 			D3D12_INFO_QUEUE_FILTER filter = {};
-			filter.DenyList.NumSeverities = _countof(severities);
-			filter.DenyList.pSeverityList = severities;
+			filter.DenyList.NumSeverities = _countof(denySeverities);
+			filter.DenyList.pSeverityList = denySeverities;
+			filter.AllowList.pSeverityList = allowSeverities;
 
 			infoQueue->PushStorageFilter(&filter);
 		}
 
-		// Create command queue
+		// Create graphics queue
 		D3D12_COMMAND_QUEUE_DESC queueDesc = {};
 		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_DIRECT;
 		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-
 		hr = m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_GraphicsQueue));
 		if (FAILED(hr)) {
 			BRISK_CORE_ERROR("Failed to create Direct command queue");
 		}
 
+		// Create compute queue
 		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COMPUTE;
 		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-
 		hr = m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_ComputeQueue));
 		if (FAILED(hr)) {
 			BRISK_CORE_ERROR("Failed to create Compute command queue");
 		}
 
+		// Create transfer queue
 		queueDesc.Type = D3D12_COMMAND_LIST_TYPE_COPY;
 		queueDesc.Flags = D3D12_COMMAND_QUEUE_FLAG_NONE;
-
 		hr = m_Device->CreateCommandQueue(&queueDesc, IID_PPV_ARGS(&m_TransferQueue));
 		if (FAILED(hr)) {
 			BRISK_CORE_ERROR("Failed to create Copy command queue");
 		}
 
-
+		// Create heap for Constant Buffer View, Shader Resource View, Unordered Access View
 		D3D12_DESCRIPTOR_HEAP_DESC heapDesc = {};
 		heapDesc.NumDescriptors = 10000;
 		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
@@ -165,6 +172,7 @@ namespace Brisk
 			return;
 		}
 
+		// Create heap for Samplers
 		heapDesc.NumDescriptors = 128;
 		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_SAMPLER;
 		heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
@@ -174,6 +182,7 @@ namespace Brisk
 			return;
 		}
 
+		// Create heap for Render Target View
 		heapDesc.NumDescriptors = 128;
 		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_RTV;
 		heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;
@@ -183,6 +192,7 @@ namespace Brisk
 			return;
 		}
 
+		// Create heap for Depth Stencil View
 		heapDesc.NumDescriptors = 64;
 		heapDesc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_DSV;
 		heapDesc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_NONE;

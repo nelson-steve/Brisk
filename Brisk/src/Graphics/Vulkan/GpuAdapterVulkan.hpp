@@ -24,7 +24,6 @@ namespace Brisk
 		void CreateLogicalDevice(/*const GpuRequirements& requirements*/);
 		virtual void Release() override;
 		virtual void ReleasePools() override;
-		virtual void LogDirectXDebugs() override { assert(false); }
 
 		VkPhysicalDevice GetPhysicalDevice() const { return m_PhysicalDevice; }
 		VkDevice& GetDevice() { return m_Device; }
@@ -60,16 +59,12 @@ namespace Brisk
 		// Projection Matrix									//
 		// View Matrix											//
 		// Camera Position Matrix								//
-		VkDescriptorSet m_MVPUBOSet;							//
+		VkDescriptorSet m_GlobalSet;							//
 		// Scene Lights											//
-		VkDescriptorSet m_SceneLightsSet;						//
+		VkDescriptorSet m_BindlessSet;							//
 		// Textures												//
 		// Shadow map, 											//
 		// Deferred textures, 									//
-		VkDescriptorSet m_DeferredTexturesSet;					//
-		// Bindless textures									//
-		VkDescriptorSet m_BindlessTexturesSet;					//
-		// Materials											//
 		VkDescriptorSet m_MaterialsSet;							//
 		// Clustered Lighting								    //
 		VkDescriptorSet m_ClusteredLightingSet;					//

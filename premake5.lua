@@ -118,6 +118,7 @@ project "Brisk"
             "dxgi",
             "dxguid", -- For things like D3D12GetDebugInterface
             "d3dcompiler",
+            "dxcompiler",
         }
         -- links {
         --     "vulkan-1.lib"

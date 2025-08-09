@@ -186,19 +186,7 @@ namespace Brisk
 		allocInfo.descriptorPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDescriptorPool();
 		allocInfo.descriptorSetCount = 1;
 		allocInfo.pSetLayouts = &m_MVPDescriptorLayout;
-		if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_MVPUBOSet) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Failed to allocate descriptor sets!");
-		}
-		
-		allocInfo.pSetLayouts = &m_LightsDescriptorLayout;
-		if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_SceneLightsSet) != VK_SUCCESS)
-		{
-			throw std::runtime_error("Failed to allocate descriptor sets!");
-		}
-
-		allocInfo.pSetLayouts = &m_DeferredTexturesDescriptorLayout;
-		if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_DeferredTexturesSet) != VK_SUCCESS)
+		if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_GlobalSet) != VK_SUCCESS)
 		{
 			throw std::runtime_error("Failed to allocate descriptor sets!");
 		}
@@ -325,7 +313,7 @@ namespace Brisk
 			countInfo.pDescriptorCounts = &maxBinding;
 			allocInfo.pNext = &countInfo;
 
-			if (vkAllocateDescriptorSets(m_Device, &allocInfo, &m_BindlessTexturesSet) != VK_SUCCESS) {
+			if (vkAllocateDescriptorSets(m_Device, &allocInfo, &m_BindlessSet) != VK_SUCCESS) {
 				throw std::runtime_error("Failed to create bindless descriptor pool!");
 			}
 		}

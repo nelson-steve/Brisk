@@ -11,6 +11,8 @@
 #include <filesystem>
 #include "BufferDirectX12.hpp"
 
+#include <directx/d3d12shader.h>
+
 namespace Brisk
 {
 	void PipelineDirectX12::Init(const GraphicsPipelineSpecs& specs) {
@@ -20,6 +22,37 @@ namespace Brisk
             std::wstring wideStr = std::wstring(path.begin(), path.end());
             LPCWSTR pathWstring = wideStr.c_str();
             std::wstring shaderPath = std::filesystem::current_path().wstring() + pathWstring;
+
+            std::vector<char>* shaderData = UtilitiesDirectX12::ReadShaderFile(path);
+
+            ComPtr<IDxcUtils> utils;
+            DxcCreateInstance(CLSID_DxcUtils, IID_PPV_ARGS(&utils));
+
+            DxcBuffer buffer{};
+            buffer.Ptr = shaderData->data();
+            buffer.Size = shaderData->size();
+            buffer.Encoding = DXC_CP_ACP;
+
+            ComPtr<ID3D12ShaderReflection> reflection;
+            utils->CreateReflection(&buffer, IID_PPV_ARGS(&reflection));
+
+            // Query shader description
+            D3D12_SHADER_DESC desc;
+            reflection->GetDesc(&desc);
+
+            std::cout << "Shader Input Parameters: " << desc.InputParameters << "\n";
+            std::cout << "Constant Buffers: " << desc.ConstantBuffers << "\n";
+            std::cout << "Bound Resources: " << desc.BoundResources << "\n";
+
+            for (UINT i = 0; i < desc.BoundResources; ++i)
+            {
+                D3D12_SHADER_INPUT_BIND_DESC bindDesc;
+                reflection->GetResourceBindingDesc(i, &bindDesc);
+
+                std::cout << "Resource " << i << ": " << bindDesc.Name
+                    << ", Type = " << bindDesc.Type
+                    << ", Bind Point = " << bindDesc.BindPoint << "\n";
+            }
 
             HRESULT hr;
             if (shaderPath.find(L"_vert") != std::wstring::npos)

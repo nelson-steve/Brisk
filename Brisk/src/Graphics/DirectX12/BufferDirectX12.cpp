@@ -24,7 +24,9 @@ namespace Brisk
             bufferDesc.Format = DXGI_FORMAT_UNKNOWN;
             bufferDesc.SampleDesc.Count = 1;
             bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-            bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+            if ((static_cast<uint32_t>(usageFlags) & static_cast<uint32_t>(Core::BufferUsage::StorageBuffer)) != 0) {
+                bufferDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+            }
 
             D3D12_HEAP_PROPERTIES uploadHeapProps = {};
             uploadHeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
@@ -68,7 +70,9 @@ namespace Brisk
             bufferDesc.Format = DXGI_FORMAT_UNKNOWN;
             bufferDesc.SampleDesc.Count = 1;
             bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-            bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+            if ((static_cast<uint32_t>(usageFlags) & static_cast<uint32_t>(Core::BufferUsage::StorageBuffer)) != 0) {
+                bufferDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+            }
 
             if (data) {
                 HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
@@ -84,6 +88,7 @@ namespace Brisk
                 D3D12_HEAP_PROPERTIES uploadHeapProps = {};
                 uploadHeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
 
+                bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
                 Microsoft::WRL::ComPtr<ID3D12Resource> vertexBufferUpload;
                 hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
                     &uploadHeapProps,

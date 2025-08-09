@@ -429,43 +429,27 @@ namespace Brisk
         for (const ShaderResource& resource : m_ShaderResources) {
             switch (resource.p_Set)
             {
-                case SET_MVP:
+                case SET_FRAME_GLOBAL:
                 {
                     if (!once1) {
-                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_MVPUBOSet, resource.p_Set);
+                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_GlobalSet, resource.p_Set);
                         once1 = true;
                     }
                     break;
                 }
-                case SET_LIGHTS:
+                case SET_BINDLESS_TEXTURES:
                 {
                     if (!once2) {
-                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_SceneLightsSet, resource.p_Set);
+                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessSet, resource.p_Set);
                         once2 = true;
-                    }
-                    break;
-                }
-                case SET_DEFERRED_TEXTURES:
-                {
-                    if (!once3) {
-                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DeferredTexturesSet, resource.p_Set);
-                        once3 = true;
-                    }
-                    break;
-                }
-                case SET_BINDLESS:
-                {
-                    if (!once4) {
-                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessTexturesSet, resource.p_Set);
-                        once4 = true;
                     }
                     break;
                 }
                 case SET_MATERIALS:
                 {
-                    if (!once5) {
+                    if (!once3) {
                         BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_MaterialsSet, resource.p_Set);
-                        once5 = true;
+                        once3 = true;
                     }
                     break;
                 }
@@ -492,51 +476,26 @@ namespace Brisk
             if (resource.p_Name == name) {
                 resourceExists = true;
                 switch (resource.p_Set) {
-                    case SET_MVP:
+                    case SET_FRAME_GLOBAL:
                     {
                         VkWriteDescriptorSet write{};
                         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                         write.descriptorType = resource.p_Type;;
-                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_MVPUBOSet;
+                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_GlobalSet;
                         write.dstBinding = resource.p_Binding;
                         write.descriptorCount = 1;
                         write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
                         vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
                         break;
                     }
-                    case SET_LIGHTS:
-                    {
-                        VkWriteDescriptorSet write{};
-                        write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                        write.descriptorType = resource.p_Type;;
-                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_SceneLightsSet;
-                        write.dstBinding = resource.p_Binding;
-                        write.descriptorCount = 1;
-                        write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
-                        vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
-                        break;
-                    }
-                    case SET_DEFERRED_TEXTURES:
-                    {
-                        VkWriteDescriptorSet write{};
-                        write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                        write.descriptorType = resource.p_Type;;
-                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DeferredTexturesSet;
-                        write.dstBinding = resource.p_Binding;
-                        write.descriptorCount = 1;
-                        write.pImageInfo = std::static_pointer_cast<TextureVulkan>(textures[0])->GetDescriptor();
-
-                        vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
-                        break;
-                    }
-                    case SET_BINDLESS:
+                    case SET_BINDLESS_TEXTURES:
                     {
                         std::vector<VkWriteDescriptorSet> writes;
                         for (int i = 0; i < textures.size(); i++) {
                             VkWriteDescriptorSet write{};
                             write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                             write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                            write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessTexturesSet;
+                            write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessSet;
                             write.dstBinding = 0;
                             write.dstArrayElement = Engine::s_TexturesOffset + i;
                             write.descriptorCount = 1;

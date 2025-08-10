@@ -445,10 +445,10 @@ namespace Brisk
                     }
                     break;
                 }
-                case SET_MATERIALS:
+                case SET_PER_MESH:
                 {
                     if (!once3) {
-                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_MaterialsSet, resource.p_Set);
+                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_PerMesh, resource.p_Set);
                         once3 = true;
                     }
                     break;
@@ -506,12 +506,12 @@ namespace Brisk
                         vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), writes.size(), writes.data(), 0, nullptr);
                         break;
                     }
-                    case SET_MATERIALS:
+                    case SET_PER_MESH:
                     {
                         VkWriteDescriptorSet write{};
                         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                         write.descriptorType = resource.p_Type;;
-                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_MaterialsSet;
+                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_PerMesh;
                         write.dstBinding = resource.p_Binding;
                         write.descriptorCount = 1;
                         write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();

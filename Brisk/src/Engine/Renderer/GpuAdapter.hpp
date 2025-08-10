@@ -11,9 +11,9 @@
 namespace Brisk
 {
 	// Predefined descriptor set values
-	constexpr uint32_t SET_FRAME_GLOBAL = 0; // Camera, lights
+	constexpr uint32_t SET_FRAME_GLOBAL = 0; // Camera, lights, materials
 	constexpr uint32_t SET_BINDLESS_TEXTURES = 1; // Global bindless textures
-	constexpr uint32_t SET_MATERIALS = 2; // Materials array, Deferred textures
+	constexpr uint32_t SET_PER_MESH = 2; //  Deferred textures
 	constexpr uint32_t SET_CLUSTERED_LIGHTING = 3; // Clustered lighting
 	//
 

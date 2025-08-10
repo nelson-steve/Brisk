@@ -16,8 +16,14 @@
 namespace Brisk
 {
 	void PipelineDirectX12::Init(const GraphicsPipelineSpecs& specs) {
+        HRESULT hr;
         ComPtr<ID3DBlob> vertexShaderBlob;
         ComPtr<ID3DBlob> fragmentShaderBlob;
+
+        std::vector<D3D12_ROOT_PARAMETER> rootParams;
+        std::vector<D3D12_DESCRIPTOR_RANGE> descriptorRanges;
+        descriptorRanges.reserve(100);
+
         for (const std::string& path : specs.pShaderPathsDX) {
             std::wstring wideStr = std::wstring(path.begin(), path.end());
             LPCWSTR pathWstring = wideStr.c_str();
@@ -37,14 +43,14 @@ namespace Brisk
             utils->CreateReflection(&buffer, IID_PPV_ARGS(&reflection));
 
             // Query shader description
-            D3D12_SHADER_DESC desc;
-            reflection->GetDesc(&desc);
+            D3D12_SHADER_DESC shaderDesc;
+            reflection->GetDesc(&shaderDesc);
 
-            std::cout << "Shader Input Parameters: " << desc.InputParameters << "\n";
-            std::cout << "Constant Buffers: " << desc.ConstantBuffers << "\n";
-            std::cout << "Bound Resources: " << desc.BoundResources << "\n";
+            std::cout << "Shader Input Parameters: " << shaderDesc.InputParameters << "\n";
+            std::cout << "Constant Buffers: " << shaderDesc.ConstantBuffers << "\n";
+            std::cout << "Bound Resources: " << shaderDesc.BoundResources << "\n";
 
-            for (UINT i = 0; i < desc.BoundResources; ++i)
+            for (UINT i = 0; i < shaderDesc.BoundResources; ++i)
             {
                 D3D12_SHADER_INPUT_BIND_DESC bindDesc;
                 reflection->GetResourceBindingDesc(i, &bindDesc);
@@ -54,7 +60,57 @@ namespace Brisk
                     << ", Bind Point = " << bindDesc.BindPoint << "\n";
             }
 
-            HRESULT hr;
+            for (UINT i = 0; i < shaderDesc.BoundResources; ++i)
+            {
+                D3D12_SHADER_INPUT_BIND_DESC bindDesc{};
+                reflection->GetResourceBindingDesc(i, &bindDesc);
+
+                D3D12_DESCRIPTOR_RANGE range{};
+                bool supported = true;
+
+                switch (bindDesc.Type)
+                {
+                case D3D_SIT_CBUFFER:
+                    range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+                    break;
+                case D3D_SIT_TBUFFER: // treat like SRV
+                case D3D_SIT_TEXTURE:
+                case D3D_SIT_STRUCTURED:
+                case D3D_SIT_BYTEADDRESS:
+                    range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+                    break;
+                case D3D_SIT_UAV_RWTYPED:
+                case D3D_SIT_UAV_RWSTRUCTURED:
+                case D3D_SIT_UAV_RWBYTEADDRESS:
+                    range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+                    break;
+                case D3D_SIT_SAMPLER:
+                    range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
+                    break;
+                default:
+                    supported = false;
+                    break;
+                }
+
+                if (!supported)
+                    continue; // skip unknown types
+
+                range.NumDescriptors = 1;
+                range.BaseShaderRegister = bindDesc.BindPoint;
+                range.RegisterSpace = bindDesc.Space;
+                range.OffsetInDescriptorsFromTableStart = D3D12_DESCRIPTOR_RANGE_OFFSET_APPEND;
+
+                descriptorRanges.push_back(range);
+
+                D3D12_ROOT_PARAMETER param{};
+                param.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
+                param.DescriptorTable.NumDescriptorRanges = 1;
+                param.DescriptorTable.pDescriptorRanges = &descriptorRanges.back();
+                param.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
+
+                rootParams.push_back(param);
+            }
+
             if (shaderPath.find(L"_vert") != std::wstring::npos)
             {
                 hr = D3DReadFileToBlob(shaderPath.c_str(), &vertexShaderBlob);
@@ -79,6 +135,27 @@ namespace Brisk
             }
         }
 
+        D3D12_ROOT_SIGNATURE_DESC rootSigDesc{};
+        rootSigDesc.NumParameters = (UINT)rootParams.size();
+        rootSigDesc.pParameters = rootParams.data();
+        rootSigDesc.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+
+        ComPtr<ID3DBlob> serialized;
+        ComPtr<ID3DBlob> errors;
+        hr = D3D12SerializeRootSignature(&rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1,
+            &serialized, &errors);
+        if (FAILED(hr))
+        {
+            if (errors)
+                std::cerr << (char*)errors->GetBufferPointer() << "\n";
+            throw std::runtime_error("Failed to serialize root signature");
+        }
+
+        Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRootSignature(0, serialized->GetBufferPointer(),
+            serialized->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature));
+
+        std::cout << std::endl;
+
         std::string path = specs.pShaderPathsDX[1];
         // Retrieving the name of shader
         size_t lastSlash = path.find_last_of("/\\");
@@ -87,133 +164,133 @@ namespace Brisk
         size_t lastDot = filenameWithExt.find_last_of('.');
         std::string filename = (lastDot == std::string::npos) ? filenameWithExt : filenameWithExt.substr(0, lastDot);
 
-        if (filename == "DepthPrePass_frag") {
-            isDepth = true;
-            CD3DX12_ROOT_PARAMETER rootParameters[1];
+        //if (filename == "DepthPrePass_frag") {
+        //    isDepth = true;
+        //    CD3DX12_ROOT_PARAMETER rootParameters[1];
 
-            // MVPBuffer (b0)
-            rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
+        //    // MVPBuffer (b0)
+        //    rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
 
-            CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc;
-            rootSigDesc.Init(_countof(rootParameters), rootParameters,
-                0, nullptr, // No static samplers
-                D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
+        //    CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc;
+        //    rootSigDesc.Init(_countof(rootParameters), rootParameters,
+        //        0, nullptr, // No static samplers
+        //        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
 
-            ComPtr<ID3DBlob> serializedRootSig = nullptr;
-            ComPtr<ID3DBlob> errorBlob = nullptr;
+        //    ComPtr<ID3DBlob> serializedRootSig = nullptr;
+        //    ComPtr<ID3DBlob> errorBlob = nullptr;
 
-            HRESULT hr = D3D12SerializeRootSignature(&rootSigDesc,
-                D3D_ROOT_SIGNATURE_VERSION_1,
-                &serializedRootSig, &errorBlob);
+        //    HRESULT hr = D3D12SerializeRootSignature(&rootSigDesc,
+        //        D3D_ROOT_SIGNATURE_VERSION_1,
+        //        &serializedRootSig, &errorBlob);
 
-            if (FAILED(hr)) {
-                if (errorBlob) {
-                    OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-                }
-            }
+        //    if (FAILED(hr)) {
+        //        if (errorBlob) {
+        //            OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+        //        }
+        //    }
 
-            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRootSignature(0, serializedRootSig->GetBufferPointer(),
-                serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature));
+        //    Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRootSignature(0, serializedRootSig->GetBufferPointer(),
+        //        serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature));
 
-        }
-        else if (filename == "GeometryPass_frag") {
-            CD3DX12_ROOT_PARAMETER1 rootParameters[1];
+        //}
+        //else if (filename == "GeometryPass_frag") {
+        //    CD3DX12_ROOT_PARAMETER1 rootParameters[1];
 
-            // 0. MVPBuffer (b0, space0)
-            rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
+        //    // 0. MVPBuffer (b0, space0)
+        //    rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
 
-            // Static sampler (s0, space0)
-            CD3DX12_STATIC_SAMPLER_DESC staticSampler(
-                0, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-                D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-                D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-                D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-                0.0f, 1,
-                D3D12_COMPARISON_FUNC_ALWAYS,
-                D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK,
-                0.0f, D3D12_FLOAT32_MAX,
-                D3D12_SHADER_VISIBILITY_PIXEL,
-                0 // space0
-            );
+        //    // Static sampler (s0, space0)
+        //    CD3DX12_STATIC_SAMPLER_DESC staticSampler(
+        //        0, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+        //        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+        //        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+        //        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+        //        0.0f, 1,
+        //        D3D12_COMPARISON_FUNC_ALWAYS,
+        //        D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK,
+        //        0.0f, D3D12_FLOAT32_MAX,
+        //        D3D12_SHADER_VISIBILITY_PIXEL,
+        //        0 // space0
+        //    );
 
-            D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSigDesc = {};
-            rootSigDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
-            rootSigDesc.Desc_1_1.NumParameters = _countof(rootParameters);
-            rootSigDesc.Desc_1_1.pParameters = rootParameters;
-            rootSigDesc.Desc_1_1.NumStaticSamplers = 1;
-            rootSigDesc.Desc_1_1.pStaticSamplers = &staticSampler;
-            rootSigDesc.Desc_1_1.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+        //    D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSigDesc = {};
+        //    rootSigDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
+        //    rootSigDesc.Desc_1_1.NumParameters = _countof(rootParameters);
+        //    rootSigDesc.Desc_1_1.pParameters = rootParameters;
+        //    rootSigDesc.Desc_1_1.NumStaticSamplers = 1;
+        //    rootSigDesc.Desc_1_1.pStaticSamplers = &staticSampler;
+        //    rootSigDesc.Desc_1_1.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
-            ComPtr<ID3DBlob> signatureBlob;
-            ComPtr<ID3DBlob> errorBlob;
-            HRESULT hr = D3DX12SerializeVersionedRootSignature(
-                &rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1_1, &signatureBlob, &errorBlob);
+        //    ComPtr<ID3DBlob> signatureBlob;
+        //    ComPtr<ID3DBlob> errorBlob;
+        //    HRESULT hr = D3DX12SerializeVersionedRootSignature(
+        //        &rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1_1, &signatureBlob, &errorBlob);
 
-            if (FAILED(hr)) {
-                if (errorBlob) {
-                    OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-                }
-            }
+        //    if (FAILED(hr)) {
+        //        if (errorBlob) {
+        //            OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+        //        }
+        //    }
 
-            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRootSignature(
-                0, signatureBlob->GetBufferPointer(),
-                signatureBlob->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature));
+        //    Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRootSignature(
+        //        0, signatureBlob->GetBufferPointer(),
+        //        signatureBlob->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature));
 
-        }
-        else if (filename == "LightingPass_frag") {
-            CD3DX12_ROOT_PARAMETER1 rootParameters[1];
+        //}
+        //else if (filename == "LightingPass_frag") {
+        //    CD3DX12_ROOT_PARAMETER1 rootParameters[1];
 
-            rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
+        //    rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
 
-            CD3DX12_STATIC_SAMPLER_DESC staticSamplerDesc(
-                0,
-                D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-                D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-                D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-                D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-                0.0f,
-                1,
-                D3D12_COMPARISON_FUNC_ALWAYS,
-                D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK,
-                0.0f, D3D12_FLOAT32_MAX,
-                D3D12_SHADER_VISIBILITY_PIXEL,
-                2                                 // space2
-            );
+        //    CD3DX12_STATIC_SAMPLER_DESC staticSamplerDesc(
+        //        0,
+        //        D3D12_FILTER_MIN_MAG_MIP_LINEAR,
+        //        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+        //        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+        //        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
+        //        0.0f,
+        //        1,
+        //        D3D12_COMPARISON_FUNC_ALWAYS,
+        //        D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK,
+        //        0.0f, D3D12_FLOAT32_MAX,
+        //        D3D12_SHADER_VISIBILITY_PIXEL,
+        //        2                                 // space2
+        //    );
 
-            D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSigDesc = {};
-            rootSigDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
-            rootSigDesc.Desc_1_1.NumParameters = _countof(rootParameters);
-            rootSigDesc.Desc_1_1.pParameters = rootParameters;
-            rootSigDesc.Desc_1_1.NumStaticSamplers = 0;
-            rootSigDesc.Desc_1_1.pStaticSamplers = nullptr;
-            rootSigDesc.Desc_1_1.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
+        //    D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSigDesc = {};
+        //    rootSigDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
+        //    rootSigDesc.Desc_1_1.NumParameters = _countof(rootParameters);
+        //    rootSigDesc.Desc_1_1.pParameters = rootParameters;
+        //    rootSigDesc.Desc_1_1.NumStaticSamplers = 0;
+        //    rootSigDesc.Desc_1_1.pStaticSamplers = nullptr;
+        //    rootSigDesc.Desc_1_1.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
 
-            ComPtr<ID3DBlob> signatureBlob;
-            ComPtr<ID3DBlob> errorBlob;
-            HRESULT hr = D3DX12SerializeVersionedRootSignature(
-                &rootSigDesc,
-                D3D_ROOT_SIGNATURE_VERSION_1_1,
-                &signatureBlob,
-                &errorBlob
-            );
+        //    ComPtr<ID3DBlob> signatureBlob;
+        //    ComPtr<ID3DBlob> errorBlob;
+        //    HRESULT hr = D3DX12SerializeVersionedRootSignature(
+        //        &rootSigDesc,
+        //        D3D_ROOT_SIGNATURE_VERSION_1_1,
+        //        &signatureBlob,
+        //        &errorBlob
+        //    );
 
-            if (FAILED(hr)) {
-                if (errorBlob) {
-                    OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-                }
-            }
+        //    if (FAILED(hr)) {
+        //        if (errorBlob) {
+        //            OutputDebugStringA((char*)errorBlob->GetBufferPointer());
+        //        }
+        //    }
 
-            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRootSignature(
-                0,
-                signatureBlob->GetBufferPointer(),
-                signatureBlob->GetBufferSize(),
-                IID_PPV_ARGS(&m_RootSignature)
-            );
+        //    Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRootSignature(
+        //        0,
+        //        signatureBlob->GetBufferPointer(),
+        //        signatureBlob->GetBufferSize(),
+        //        IID_PPV_ARGS(&m_RootSignature)
+        //    );
 
-        }
-        else {
-            BRISK_CORE_ERROR("Invalid file name, cannnot generate root signature");
-        }
+        //}
+        //else {
+        //    BRISK_CORE_ERROR("Invalid file name, cannnot generate root signature");
+        //}
 
         std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayouts;
 
@@ -258,7 +335,7 @@ namespace Brisk
         psoDesc.SampleDesc.Count = 1;
         psoDesc.SampleMask = UINT_MAX;
 
-        HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_PipelineState));
+        hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_PipelineState));
         if (FAILED(hr)) {
             throw std::runtime_error("Failed to create pipeline state");
         }

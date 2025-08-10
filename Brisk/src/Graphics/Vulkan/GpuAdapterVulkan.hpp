@@ -59,13 +59,12 @@ namespace Brisk
 		// Projection Matrix									//
 		// View Matrix											//
 		// Camera Position Matrix								//
+		// Materials											//
 		VkDescriptorSet m_GlobalSet;							//
 		// Scene Lights											//
 		VkDescriptorSet m_BindlessSet;							//
-		// Textures												//
-		// Shadow map, 											//
 		// Deferred textures, 									//
-		VkDescriptorSet m_MaterialsSet;							//
+		VkDescriptorSet m_PerMesh;								//
 		// Clustered Lighting								    //
 		VkDescriptorSet m_ClusteredLightingSet;					//
 		//------------------------------------------------------//

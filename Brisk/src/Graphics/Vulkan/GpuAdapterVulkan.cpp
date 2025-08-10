@@ -192,7 +192,7 @@ namespace Brisk
 		}
 
 		allocInfo.pSetLayouts = &m_MaterialsDescriptorLayout;
-		if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_MaterialsSet) != VK_SUCCESS)
+		if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_PerMesh) != VK_SUCCESS)
 		{
 			throw std::runtime_error("Failed to allocate descriptor sets!");
 		}

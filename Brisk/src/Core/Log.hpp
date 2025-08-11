@@ -13,6 +13,13 @@
 
 //------------------
 
+#if defined(_WIN32)
+#define BRISK_DEBUG_BREAK() __debugbreak()
+#else
+#include <signal.h>
+#define BRISK_DEBUG_BREAK() raise(SIGTRAP)
+#endif
+
 namespace Brisk 
 {
     struct ConsoleLogEntry {
@@ -70,6 +77,42 @@ namespace Brisk
 #define BRISK_APP_WARN(...)  ::Brisk::Log::GetAppLogger()->warn(__VA_ARGS__)
 #define BRISK_APP_ERROR(...) ::Brisk::Log::GetAppLogger()->error(__VA_ARGS__)
 #define BRISK_APP_FATAL(...) ::Brisk::Log::GetAppLogger()->critical(__VA_ARGS__)
+
+// ------------------------------------------------------------------------------------------------
+// ASSERTIONS
+// ------------------------------------------------------------------------------------------------
+#define BRISK_ASSERT(cond, ...)                                  \
+        do {                                                         \
+            if (!(cond)) {                                           \
+                BRISK_CORE_ERROR("Assertion Failed: " __VA_ARGS__);  \
+                BRISK_DEBUG_BREAK();                                 \
+            }                                                        \
+        } while(0)
+
+#define BRISK_ASSERT_MSG(cond, msg)                              \
+        do {                                                         \
+            if (!(cond)) {                                           \
+                BRISK_CORE_ERROR("Assertion Failed: {}", msg);       \
+                BRISK_DEBUG_BREAK();                                 \
+            }                                                        \
+        } while(0)
+
+#define BRISK_CORE_ASSERT(cond, ...)                             \
+        do {                                                         \
+            if (!(cond)) {                                           \
+                BRISK_CORE_ERROR("Assertion Failed: " __VA_ARGS__);  \
+                BRISK_DEBUG_BREAK();                                 \
+            }                                                        \
+        } while(0)
+
+#define BRISK_APP_ASSERT(cond, ...)                              \
+        do {                                                         \
+            if (!(cond)) {                                           \
+                BRISK_APP_ERROR("Assertion Failed: " __VA_ARGS__);   \
+                BRISK_DEBUG_BREAK();                                 \
+            }                                                        \
+        } while(0)
+
 #else 
 //Core Log Macors
 #define BRISK_CORE_TRACE(...)

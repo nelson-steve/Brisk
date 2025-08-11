@@ -32,7 +32,7 @@ namespace Brisk
 		}
 
 		virtual void TransitionCurrentImage(std::shared_ptr<CommandBuffer> cmd, Texture::ImageBarrierParams params, int imageIndex) override;
-		virtual void Blit(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> image, int imageIndex) override { assert(false); }
+		virtual void Blit(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> image, int imageIndex) override { BRISK_CORE_ASSERT(false); }
 
 		void Present();
 

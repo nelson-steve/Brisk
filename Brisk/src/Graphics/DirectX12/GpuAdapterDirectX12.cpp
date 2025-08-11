@@ -201,5 +201,24 @@ namespace Brisk
 			BRISK_CORE_ERROR("Failed to create DirectX12 Descriptor Heap");
 			return;
 		}
+
+		m_Device->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&m_Fence));
+		m_FenceValue = 0;
+
+		m_FenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+		if (m_FenceEvent == nullptr)
+			throw std::runtime_error("Failed to create fence event.");
+
+	}
+
+	void GpuAdapterDirectX12::WaitIdle() {
+		const UINT64 fenceToWaitFor = ++m_FenceValue;
+		m_GraphicsQueue->Signal(m_Fence.Get(), fenceToWaitFor);
+
+		if (m_Fence->GetCompletedValue() < fenceToWaitFor)
+		{
+			m_Fence->SetEventOnCompletion(fenceToWaitFor, m_FenceEvent);
+			WaitForSingleObject(m_FenceEvent, INFINITE);
+		}
 	}
 }

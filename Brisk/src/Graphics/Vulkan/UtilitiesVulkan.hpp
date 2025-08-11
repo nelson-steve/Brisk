@@ -218,7 +218,7 @@ namespace Brisk
 				case Core::Format::FORMAT_ASTC_12x12_UNORM_BLOCK: return VK_FORMAT_ASTC_12x12_UNORM_BLOCK;
 				case Core::Format::FORMAT_ASTC_12x12_SRGB_BLOCK: return VK_FORMAT_ASTC_12x12_SRGB_BLOCK;
 			}
-			assert(false);
+			BRISK_CORE_ASSERT(false);
 		}
 
 		static VkBufferUsageFlags BufferUsageToVkFormat(Core::BufferUsage usageFlags) {
@@ -281,7 +281,7 @@ namespace Brisk
 				case GPUResource::ResourceType::DESCRIPTOR_TYPE_BLOCK_MATCH_IMAGE_QCOM: return VK_DESCRIPTOR_TYPE_BLOCK_MATCH_IMAGE_QCOM;
 				case GPUResource::ResourceType::DESCRIPTOR_TYPE_MUTABLE_EXT: return VK_DESCRIPTOR_TYPE_MUTABLE_EXT;
 			}
-			assert(false);
+			BRISK_CORE_ASSERT(false);
 		}
 
 		static VkShaderStageFlagBits ShaderStageToVkType(GPUResource::ShaderStageAccess stage) {

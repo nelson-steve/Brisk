@@ -60,7 +60,7 @@ namespace Brisk
 	}
 
 	void Camera::OnUpdate(float t) {
-		assert(m_Window != nullptr);
+		BRISK_CORE_ASSERT(m_Window != nullptr);
 		if (glfwGetKey(m_Window, GLFW_KEY_LEFT_ALT) && m_MouseMoved) {
 			glm::vec2 delta = (m_MouseOffset - m_InitialMousePosition) * 0.3f * t;
 			m_InitialMousePosition = m_MouseOffset;

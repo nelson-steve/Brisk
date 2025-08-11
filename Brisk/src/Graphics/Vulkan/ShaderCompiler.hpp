@@ -6,7 +6,6 @@
 #include <fstream>
 #include <sstream>
 #include <cstdlib>
-#include <cassert>
 
 #include <volk.h>
 #include <glslang/Public/ShaderLang.h>

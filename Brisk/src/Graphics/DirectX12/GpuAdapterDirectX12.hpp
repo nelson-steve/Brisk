@@ -2,12 +2,11 @@
 
 #include "Engine/Renderer/GpuAdapter.hpp"
 
-#include <cassert>
-
 #include <directx/d3d12.h>
 #include <dxgi1_6.h>
 #include <d3dcompiler.h>
 #include <wrl/client.h>
+#include <Core/Log.hpp>
 using Microsoft::WRL::ComPtr;
 
 namespace Brisk
@@ -16,9 +15,9 @@ namespace Brisk
 	public:
 		virtual void Init() override;
 
-		virtual void WaitIdle() override { }
-		virtual void Release() override { assert(false); }
-		virtual void ReleasePools() override { assert(false); }
+		virtual void WaitIdle() override;
+		virtual void Release() override { BRISK_CORE_ASSERT(false); }
+		virtual void ReleasePools() override { BRISK_CORE_ASSERT(false); }
 		void LogDirectXDebugs();
 
 		ComPtr<IDXGIFactory6> GetDXGIFactory() const { return m_DxgiFactory; }
@@ -78,6 +77,10 @@ namespace Brisk
 		ComPtr<ID3D12DescriptorHeap> m_SamplerHeap;
 		ComPtr<ID3D12DescriptorHeap> m_RtvHeap;
 		ComPtr<ID3D12DescriptorHeap> m_DsvHeap;
+
+		ComPtr<ID3D12Fence> m_Fence;
+		UINT64 m_FenceValue = 0;
+		HANDLE m_FenceEvent = nullptr;
 
 		uint32_t m_CbvSrvUavHeapSize;
 		uint32_t m_SamplerHeapSize;

@@ -195,7 +195,7 @@ namespace Brisk
             clearValues.push_back(depthClear);
         }
 
-        assert(m_FramebufferWidth != 0 && m_FramebufferHeight != 0);
+        BRISK_CORE_ASSERT(m_FramebufferWidth != 0 && m_FramebufferHeight != 0);
 
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;

@@ -10,9 +10,9 @@ project "ImGui"
         -- Core
         "imconfig.h",
         "imgui.h",
-        "imgui_rectpack.h",
-        "imgui_textedit.h",
-        "imgui_truetype.h",        
+        "imstb_rectpack.h",
+        "imstb_textedit.h",
+        "imstb_truetype.h",        
         "imgui_internal.h",        
         
         "imgui.cpp",
@@ -24,6 +24,12 @@ project "ImGui"
         -- Vulkan backend
         "ImGuiBackends/imgui_impl_vulkan.h",
         "ImGuiBackends/imgui_impl_vulkan.cpp",
+
+        "ImGuiBackends/imgui_impl_dx12.h",
+        "ImGuiBackends/imgui_impl_dx12.cpp",
+
+        "ImGuiBackends/imgui_impl_win32.h",
+        "ImGuiBackends/imgui_impl_win32.cpp",
 
         "ImGuiBackends/imgui_impl_glfw.h",
         "ImGuiBackends/imgui_impl_glfw.cpp"        

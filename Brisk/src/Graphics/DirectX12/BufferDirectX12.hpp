@@ -3,11 +3,11 @@
 // INCLUDES
 #include "Engine/Renderer/Buffer.hpp"
 //-----------------------------------
-#include <cassert>
 #include <directx/d3d12.h>
 #include <dxgi1_6.h>
 #include <d3dcompiler.h>
 #include <wrl/client.h>
+#include <Core/Log.hpp>
 //---------------------
 using Microsoft::WRL::ComPtr;
 
@@ -18,7 +18,10 @@ namespace Brisk
 		virtual void Init(uint32_t size, void* data, Core::BufferUsage usageFlags, Core::MemoryProperty memoryProperty, bool mapPersistant) override;
 		virtual void Release() override;
 		virtual void UpdatePersistantData(uint32_t size, void* data) override;
-		virtual void MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, Texture::ImageBarrierParams barrier) override { assert(false); }
+		virtual void MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, Texture::ImageBarrierParams barrier) override { BRISK_CORE_ASSERT(false); }
+
+		D3D12_CPU_DESCRIPTOR_HANDLE GetCpuHandle() const { return m_CpuHandle; }
+		D3D12_GPU_DESCRIPTOR_HANDLE GetGpuHandle() const { return m_GpuHandle; }
 
 		inline ID3D12Resource* Get() const {
 			return m_Buffer.Get();
@@ -31,7 +34,8 @@ namespace Brisk
 		}
 	private:
 		ComPtr<ID3D12Resource> m_Buffer;
-		D3D12_CPU_DESCRIPTOR_HANDLE m_CbvHandle;
+		D3D12_CPU_DESCRIPTOR_HANDLE m_CpuHandle;
+		D3D12_GPU_DESCRIPTOR_HANDLE m_GpuHandle;
 		uint32_t m_Size;
 		bool m_MapPersistent = false;
 		void* m_MappedPointer = nullptr;

@@ -7,6 +7,9 @@
 
 #include <fastgltf/core.hpp>
 #include <Core/Log.hpp>
+#include <directx/d3dx12_core.h>
+#include <directx/d3dx12_barriers.h>
+#include <directx/d3dx12_resource_helpers.h>
 
 namespace Brisk
 {
@@ -145,11 +148,15 @@ namespace Brisk
     }
 
     void TextureDirectX12::Init(const std::string& path) {
+        ComPtr<ID3D12CommandAllocator> m_CommandAllocator;
+        HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(
+            D3D12_COMMAND_LIST_TYPE_DIRECT,
+            IID_PPV_ARGS(&m_CommandAllocator));
         int texWidth, texHeight, texChannels;
         stbi_uc* pixels = stbi_load(path.c_str(), &texWidth, &texHeight, &texChannels, STBI_rgb_alpha);
-        if (!pixels) {
-            throw std::runtime_error("Failed to load texture image!");
-        }
+        if (!pixels)
+            throw std::runtime_error("Failed to load texture image: " + path);
+
         m_Specs.p_Width = texWidth;
         m_Specs.p_Height = texHeight;
 
@@ -164,54 +171,65 @@ namespace Brisk
         textureDesc.Layout = D3D12_TEXTURE_LAYOUT_UNKNOWN;
         textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-        //CD3DX12_HEAP_PROPERTIES heapProperties(D3D12_HEAP_TYPE_DEFAULT);
-        //if (FAILED(m_Device->CreateCommittedResource(
-        //    &heapProperties,
-        //    D3D12_HEAP_FLAG_NONE,
-        //    &textureDesc,
-        //    D3D12_RESOURCE_STATE_COPY_DEST,
-        //    nullptr,
-        //    IID_PPV_ARGS(&m_Texture))
-        //)) {
-        //    throw std::runtime_error("Failed to create texture resource!");
-        //}
+        CD3DX12_HEAP_PROPERTIES defaultHeapProps(D3D12_HEAP_TYPE_DEFAULT);
+        if (FAILED(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
+            &defaultHeapProps,
+            D3D12_HEAP_FLAG_NONE,
+            &textureDesc,
+            D3D12_RESOURCE_STATE_COPY_DEST,
+            nullptr,
+            IID_PPV_ARGS(&m_Texture)
+        ))) {
+            stbi_image_free(pixels);
+            throw std::runtime_error("Failed to create texture resource!");
+        }
 
         UINT64 uploadBufferSize;
-        //m_Device->GetCopyableFootprints(&textureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &uploadBufferSize);
+        Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetCopyableFootprints(&textureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &uploadBufferSize);
 
-        //CD3DX12_HEAP_PROPERTIES uploadHeapProps(D3D12_HEAP_TYPE_UPLOAD);
-        //CD3DX12_RESOURCE_DESC uploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
+        CD3DX12_HEAP_PROPERTIES uploadHeapProps(D3D12_HEAP_TYPE_UPLOAD);
+        CD3DX12_RESOURCE_DESC uploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
+
         ComPtr<ID3D12Resource> uploadBuffer;
-        //if (FAILED(m_Device->CreateCommittedResource(
-        //    &uploadHeapProps,
-        //    D3D12_HEAP_FLAG_NONE,
-        //    &uploadBufferDesc,
-        //    D3D12_RESOURCE_STATE_GENERIC_READ,
-        //    nullptr,
-        //    IID_PPV_ARGS(&uploadBuffer))
-        //)) {
-        //    throw std::runtime_error("Failed to create upload buffer!");
-        //}
+        if (FAILED(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
+            &uploadHeapProps,
+            D3D12_HEAP_FLAG_NONE,
+            &uploadBufferDesc,
+            D3D12_RESOURCE_STATE_GENERIC_READ,
+            nullptr,
+            IID_PPV_ARGS(&uploadBuffer)
+        ))) {
+            stbi_image_free(pixels);
+            throw std::runtime_error("Failed to create upload buffer!");
+        }
 
         D3D12_SUBRESOURCE_DATA textureData = {};
         textureData.pData = pixels;
         textureData.RowPitch = texWidth * 4;
         textureData.SlicePitch = textureData.RowPitch * texHeight;
 
-        ComPtr<ID3D12GraphicsCommandList6> commandList;
-        //m_Device->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, m_CommandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList));
+        ComPtr<ID3D12GraphicsCommandList> commandList;
+        Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandList(
+            0, D3D12_COMMAND_LIST_TYPE_DIRECT,
+            m_CommandAllocator.Get(),
+            nullptr,
+            IID_PPV_ARGS(&commandList)
+        );
 
-        //UpdateSubresources(commandList.Get(), m_Texture.Get(), uploadBuffer.Get(), 0, 0, 1, &textureData);
-        //CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(m_Texture.Get(), D3D12_RESOURCE_STATE_COPY_DEST, D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE);
-        //commandList->ResourceBarrier(1, &barrier);
+        UpdateSubresources(commandList.Get(), m_Texture.Get(), uploadBuffer.Get(), 0, 0, 1, &textureData);
+
+        CD3DX12_RESOURCE_BARRIER barrier = CD3DX12_RESOURCE_BARRIER::Transition(
+            m_Texture.Get(),
+            D3D12_RESOURCE_STATE_COPY_DEST,
+            D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE
+        );
+        commandList->ResourceBarrier(1, &barrier);
 
         commandList->Close();
 
-        ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
-        //m_CommandQueue->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
-
-        // Wait for upload to finish
-        //WaitForGPU();
+        ID3D12CommandList* cmdLists[] = { commandList.Get() };
+        std::static_pointer_cast<GpuAdapterDirectX12>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue()->ExecuteCommandLists(_countof(cmdLists), cmdLists);
+        Engine::s_Application->GetGpuAdapter()->WaitIdle();
 
         stbi_image_free(pixels);
     }

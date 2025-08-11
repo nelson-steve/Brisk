@@ -3,6 +3,7 @@
 #include "BufferVulkan.hpp"
 #include "Engine/Renderer/Texture.hpp"
 #include "Engine/Application.hpp"
+#include "Core/Log.hpp"
 
 #include <volk.h>
 
@@ -25,7 +26,7 @@ namespace Brisk
 
 		virtual uint32_t GetWidth() const { return m_Specs.p_Width; }
 		virtual uint32_t GetHeight() const { return m_Specs.p_Height; }
-		virtual void Resize() override { assert(false); }
+		virtual void Resize() override { BRISK_CORE_ASSERT(false); }
 
 		virtual void Init(const TextureSpecification& specs) override;
 		virtual void Init(const std::string &path) override;

@@ -480,7 +480,7 @@ namespace Brisk
                     {
                         VkWriteDescriptorSet write{};
                         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                        write.descriptorType = resource.p_Type;;
+                        write.descriptorType = static_cast<VkDescriptorType>(resource.p_Type);
                         write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_GlobalSet;
                         write.dstBinding = resource.p_Binding;
                         write.descriptorCount = 1;
@@ -510,7 +510,7 @@ namespace Brisk
                     {
                         VkWriteDescriptorSet write{};
                         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                        write.descriptorType = resource.p_Type;;
+                        write.descriptorType = static_cast<VkDescriptorType>(resource.p_Type);
                         write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_PerMesh;
                         write.dstBinding = resource.p_Binding;
                         write.descriptorCount = 1;
@@ -523,7 +523,7 @@ namespace Brisk
                     {
                         VkWriteDescriptorSet write{};
                         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                        write.descriptorType = resource.p_Type;
+                        write.descriptorType = static_cast<VkDescriptorType>(resource.p_Type);
                         write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_ClusteredLightingSet;
                         write.dstBinding = resource.p_Binding;
                         write.descriptorCount = 1;

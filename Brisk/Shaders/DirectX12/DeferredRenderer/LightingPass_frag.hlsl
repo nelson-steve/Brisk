@@ -36,6 +36,7 @@ float4 PSMain(PSInput input) : SV_Target0
     float3 emissive = sampler_Emissive.Sample(defaultSampler, uv).rgb;    
 
     float3 tmp = sampler_Normal.Sample(defaultSampler, uv).rgb;
+    tmp += sampler_Position.Sample(defaultSampler, uv).rgb;
     tmp += sampler_Albedo.Sample(defaultSampler, uv).rgb;
     tmp += sampler_Material.Sample(defaultSampler, uv).rgb;
     tmp += sampler_Emissive.Sample(defaultSampler, uv).rgb;

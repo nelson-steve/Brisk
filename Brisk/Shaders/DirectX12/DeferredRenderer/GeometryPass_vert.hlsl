@@ -1,4 +1,4 @@
-cbuffer MVPBuffer : register(b0, space0) {
+cbuffer MVP : register(b0, space0) {
     float4x4 projView;
     float4x4 View;
     float3 CamPos;

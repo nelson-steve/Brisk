@@ -4,7 +4,6 @@
 #include <Core/Log.hpp>
 
 #include <directx/d3d12.h>
-#include <cassert>
 #include <filesystem>
 
 namespace Brisk 
@@ -129,7 +128,7 @@ namespace Brisk
                     //case Core::Format::FORMAT_A8P8: return DXGI_FORMAT_A8P8;
                     //case Core::Format::FORMAT_B4G4R4A4_UNORM: return DXGI_FORMAT_B4G4R4A4_UNORM;
             }
-            assert(false);
+            BRISK_CORE_ASSERT(false);
         }
 
         static DXGI_FORMAT ToTypeless(DXGI_FORMAT format) {
@@ -254,7 +253,7 @@ namespace Brisk
                 case 6: return "JOINTINDICES";
                 case 7: return "JOINTWEIGHTS";
             }
-            assert(false);
+            BRISK_CORE_ASSERT(false);
         }
 
         inline static uint32_t SemanticIndexFromLocation(uint32_t location) {
@@ -268,7 +267,7 @@ namespace Brisk
                 case 6: return 0; // JOINTINDICES
                 case 7: return 0; // JOINTWEIGHTS
             }
-            assert(false);
+            BRISK_CORE_ASSERT(false);
         }
 
         static D3D12_RESOURCE_FLAGS ImageFlagsFromUsage(Core::TextureUsage usage) {

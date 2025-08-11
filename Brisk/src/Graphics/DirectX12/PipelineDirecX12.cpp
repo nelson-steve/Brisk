@@ -66,34 +66,29 @@ namespace Brisk
                 reflection->GetResourceBindingDesc(i, &bindDesc);
 
                 D3D12_DESCRIPTOR_RANGE range{};
-                bool supported = true;
 
                 switch (bindDesc.Type)
                 {
-                case D3D_SIT_CBUFFER:
-                    range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
-                    break;
-                case D3D_SIT_TBUFFER: // treat like SRV
-                case D3D_SIT_TEXTURE:
-                case D3D_SIT_STRUCTURED:
-                case D3D_SIT_BYTEADDRESS:
-                    range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
-                    break;
-                case D3D_SIT_UAV_RWTYPED:
-                case D3D_SIT_UAV_RWSTRUCTURED:
-                case D3D_SIT_UAV_RWBYTEADDRESS:
-                    range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
-                    break;
-                case D3D_SIT_SAMPLER:
-                    range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
-                    break;
-                default:
-                    supported = false;
-                    break;
+                    case D3D_SIT_CBUFFER:
+                        range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_CBV;
+                        break;
+                    case D3D_SIT_TBUFFER: // treat like SRV
+                    case D3D_SIT_TEXTURE:
+                    case D3D_SIT_STRUCTURED:
+                    case D3D_SIT_BYTEADDRESS:
+                        range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SRV;
+                        break;
+                    case D3D_SIT_UAV_RWTYPED:
+                    case D3D_SIT_UAV_RWSTRUCTURED:
+                    case D3D_SIT_UAV_RWBYTEADDRESS:
+                        range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_UAV;
+                        break;
+                    case D3D_SIT_SAMPLER:
+                        range.RangeType = D3D12_DESCRIPTOR_RANGE_TYPE_SAMPLER;
+                        break;
+                    default:
+                        continue; // skip unknown types
                 }
-
-                if (!supported)
-                    continue; // skip unknown types
 
                 range.NumDescriptors = 1;
                 range.BaseShaderRegister = bindDesc.BindPoint;
@@ -102,13 +97,43 @@ namespace Brisk
 
                 descriptorRanges.push_back(range);
 
-                D3D12_ROOT_PARAMETER param{};
+                CD3DX12_ROOT_PARAMETER param{};
                 param.ParameterType = D3D12_ROOT_PARAMETER_TYPE_DESCRIPTOR_TABLE;
                 param.DescriptorTable.NumDescriptorRanges = 1;
                 param.DescriptorTable.pDescriptorRanges = &descriptorRanges.back();
                 param.ShaderVisibility = D3D12_SHADER_VISIBILITY_ALL;
 
                 rootParams.push_back(param);
+
+                ShaderResource shaderResource{};
+                shaderResource.p_Name = bindDesc.Name;
+                shaderResource.p_Space = bindDesc.Space;
+                shaderResource.p_Binding = bindDesc.BindPoint;
+                shaderResource.p_RootIndex = rootParams.size() - 1;
+
+                m_ShaderResources.push_back(shaderResource);
+
+                switch (bindDesc.Type)
+                {
+                    case D3D_SIT_CBUFFER:
+                        param.InitAsConstantBufferView(bindDesc.BindPoint, bindDesc.Space);
+                        break;
+                    case D3D_SIT_TBUFFER: // treat like SRV
+                    case D3D_SIT_TEXTURE:
+                    case D3D_SIT_STRUCTURED:
+                    case D3D_SIT_BYTEADDRESS:
+                        break;
+                    case D3D_SIT_UAV_RWTYPED:
+                    case D3D_SIT_UAV_RWSTRUCTURED:
+                    case D3D_SIT_UAV_RWBYTEADDRESS:
+                        param.InitAsUnorderedAccessView(bindDesc.BindPoint, bindDesc.Space);
+                        break;
+                    case D3D_SIT_SAMPLER:
+                        break;
+                    default:
+                        BRISK_CORE_WARN("Unknown resource type");
+                        break;
+                }
             }
 
             if (shaderPath.find(L"_vert") != std::wstring::npos)
@@ -155,142 +180,6 @@ namespace Brisk
             serialized->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature));
 
         std::cout << std::endl;
-
-        std::string path = specs.pShaderPathsDX[1];
-        // Retrieving the name of shader
-        size_t lastSlash = path.find_last_of("/\\");
-        std::string filenameWithExt = (lastSlash == std::string::npos) ? path : path.substr(lastSlash + 1);
-
-        size_t lastDot = filenameWithExt.find_last_of('.');
-        std::string filename = (lastDot == std::string::npos) ? filenameWithExt : filenameWithExt.substr(0, lastDot);
-
-        //if (filename == "DepthPrePass_frag") {
-        //    isDepth = true;
-        //    CD3DX12_ROOT_PARAMETER rootParameters[1];
-
-        //    // MVPBuffer (b0)
-        //    rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_SHADER_VISIBILITY_VERTEX);
-
-        //    CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc;
-        //    rootSigDesc.Init(_countof(rootParameters), rootParameters,
-        //        0, nullptr, // No static samplers
-        //        D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT);
-
-        //    ComPtr<ID3DBlob> serializedRootSig = nullptr;
-        //    ComPtr<ID3DBlob> errorBlob = nullptr;
-
-        //    HRESULT hr = D3D12SerializeRootSignature(&rootSigDesc,
-        //        D3D_ROOT_SIGNATURE_VERSION_1,
-        //        &serializedRootSig, &errorBlob);
-
-        //    if (FAILED(hr)) {
-        //        if (errorBlob) {
-        //            OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-        //        }
-        //    }
-
-        //    Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRootSignature(0, serializedRootSig->GetBufferPointer(),
-        //        serializedRootSig->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature));
-
-        //}
-        //else if (filename == "GeometryPass_frag") {
-        //    CD3DX12_ROOT_PARAMETER1 rootParameters[1];
-
-        //    // 0. MVPBuffer (b0, space0)
-        //    rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
-
-        //    // Static sampler (s0, space0)
-        //    CD3DX12_STATIC_SAMPLER_DESC staticSampler(
-        //        0, D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-        //        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        //        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        //        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        //        0.0f, 1,
-        //        D3D12_COMPARISON_FUNC_ALWAYS,
-        //        D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK,
-        //        0.0f, D3D12_FLOAT32_MAX,
-        //        D3D12_SHADER_VISIBILITY_PIXEL,
-        //        0 // space0
-        //    );
-
-        //    D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSigDesc = {};
-        //    rootSigDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
-        //    rootSigDesc.Desc_1_1.NumParameters = _countof(rootParameters);
-        //    rootSigDesc.Desc_1_1.pParameters = rootParameters;
-        //    rootSigDesc.Desc_1_1.NumStaticSamplers = 1;
-        //    rootSigDesc.Desc_1_1.pStaticSamplers = &staticSampler;
-        //    rootSigDesc.Desc_1_1.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-
-        //    ComPtr<ID3DBlob> signatureBlob;
-        //    ComPtr<ID3DBlob> errorBlob;
-        //    HRESULT hr = D3DX12SerializeVersionedRootSignature(
-        //        &rootSigDesc, D3D_ROOT_SIGNATURE_VERSION_1_1, &signatureBlob, &errorBlob);
-
-        //    if (FAILED(hr)) {
-        //        if (errorBlob) {
-        //            OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-        //        }
-        //    }
-
-        //    Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRootSignature(
-        //        0, signatureBlob->GetBufferPointer(),
-        //        signatureBlob->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature));
-
-        //}
-        //else if (filename == "LightingPass_frag") {
-        //    CD3DX12_ROOT_PARAMETER1 rootParameters[1];
-
-        //    rootParameters[0].InitAsConstantBufferView(0, 0, D3D12_ROOT_DESCRIPTOR_FLAG_NONE, D3D12_SHADER_VISIBILITY_ALL);
-
-        //    CD3DX12_STATIC_SAMPLER_DESC staticSamplerDesc(
-        //        0,
-        //        D3D12_FILTER_MIN_MAG_MIP_LINEAR,
-        //        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        //        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        //        D3D12_TEXTURE_ADDRESS_MODE_WRAP,
-        //        0.0f,
-        //        1,
-        //        D3D12_COMPARISON_FUNC_ALWAYS,
-        //        D3D12_STATIC_BORDER_COLOR_OPAQUE_BLACK,
-        //        0.0f, D3D12_FLOAT32_MAX,
-        //        D3D12_SHADER_VISIBILITY_PIXEL,
-        //        2                                 // space2
-        //    );
-
-        //    D3D12_VERSIONED_ROOT_SIGNATURE_DESC rootSigDesc = {};
-        //    rootSigDesc.Version = D3D_ROOT_SIGNATURE_VERSION_1_1;
-        //    rootSigDesc.Desc_1_1.NumParameters = _countof(rootParameters);
-        //    rootSigDesc.Desc_1_1.pParameters = rootParameters;
-        //    rootSigDesc.Desc_1_1.NumStaticSamplers = 0;
-        //    rootSigDesc.Desc_1_1.pStaticSamplers = nullptr;
-        //    rootSigDesc.Desc_1_1.Flags = D3D12_ROOT_SIGNATURE_FLAG_ALLOW_INPUT_ASSEMBLER_INPUT_LAYOUT;
-
-        //    ComPtr<ID3DBlob> signatureBlob;
-        //    ComPtr<ID3DBlob> errorBlob;
-        //    HRESULT hr = D3DX12SerializeVersionedRootSignature(
-        //        &rootSigDesc,
-        //        D3D_ROOT_SIGNATURE_VERSION_1_1,
-        //        &signatureBlob,
-        //        &errorBlob
-        //    );
-
-        //    if (FAILED(hr)) {
-        //        if (errorBlob) {
-        //            OutputDebugStringA((char*)errorBlob->GetBufferPointer());
-        //        }
-        //    }
-
-        //    Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRootSignature(
-        //        0,
-        //        signatureBlob->GetBufferPointer(),
-        //        signatureBlob->GetBufferSize(),
-        //        IID_PPV_ARGS(&m_RootSignature)
-        //    );
-
-        //}
-        //else {
-        //    BRISK_CORE_ERROR("Invalid file name, cannnot generate root signature");
-        //}
 
         std::vector<D3D12_INPUT_ELEMENT_DESC> inputLayouts;
 
@@ -352,18 +241,36 @@ namespace Brisk
             Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetSamplerHeap().Get(),
         };
         std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->SetDescriptorHeaps(_countof(heaps), heaps);
+
         std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->SetPipelineState(m_PipelineState.Get());
         std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->SetGraphicsRootSignature(m_RootSignature.Get());
 
-        if (isDepth) {
-            std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->SetGraphicsRootConstantBufferView(
-                0, // Root parameter index for b0
-                std::static_pointer_cast<BufferDirectX12>(Engine::s_Application->GetRenderer()->m_MVPBuffer)->Get()->GetGPUVirtualAddress()
-            );
+        for (int i = 0; i < m_ShaderResources.size(); ++i) {
+            if (m_ShaderResources[i].m_Buffer) {
+                std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->SetGraphicsRootDescriptorTable(
+                    m_ShaderResources[i].p_RootIndex,
+                    std::static_pointer_cast<BufferDirectX12>(m_ShaderResources[i].m_Buffer)->GetGpuHandle());
+            }
         }
 
         std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
+
+    void PipelineDirectX12::UpdateResources(const std::string& name, std::vector<std::shared_ptr<Texture>> textures, std::shared_ptr<Buffer> buffer) {
+        BRISK_CORE_ASSERT(name != "");
+        BRISK_CORE_ASSERT(textures.size() > 0 || buffer != nullptr);
+        bool found = false;
+        for (int i = 0; i < m_ShaderResources.size(); ++i) {
+            if (m_ShaderResources[i].p_Name == name) {
+                found = true;
+                if (buffer != nullptr) {
+                    m_ShaderResources[i].m_Buffer = buffer;
+                }
+            }
+        }
+
+        BRISK_CORE_ASSERT(found);
+    }
 
 	void PipelineDirectX12::BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t, void* data, uint32_t offset, bool vertexShader) {
 

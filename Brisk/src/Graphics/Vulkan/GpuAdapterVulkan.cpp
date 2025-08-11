@@ -443,9 +443,9 @@ namespace Brisk
 			BRISK_CORE_ERROR("Failed to create logical device!");
 		}
 
-		assert(m_GraphicsQueueFamily != -1);
-		assert(m_ComputeQueueFamily != -1);
-		assert(m_TransferQueueFamily != -1);
+		BRISK_CORE_ASSERT(m_GraphicsQueueFamily != -1);
+		BRISK_CORE_ASSERT(m_ComputeQueueFamily != -1);
+		BRISK_CORE_ASSERT(m_TransferQueueFamily != -1);
 
 		vkGetDeviceQueue(m_Device, m_GraphicsQueueFamily, 0, &m_GraphicsQueue);
 		vkGetDeviceQueue(m_Device, m_ComputeQueueFamily, 0, &m_ComputeQueue);
@@ -503,7 +503,7 @@ namespace Brisk
 		vkGetPhysicalDeviceFeatures2(device, &device_features);
 
 		bool bindless_supported = indexing_features.descriptorBindingPartiallyBound && indexing_features.runtimeDescriptorArray;
-		assert(bindless_supported); // Bindless rendering is a dependency for now
+		BRISK_CORE_ASSERT(bindless_supported); // Bindless rendering is a dependency for now
 
 		if (!extensionsSupported) return false;
 

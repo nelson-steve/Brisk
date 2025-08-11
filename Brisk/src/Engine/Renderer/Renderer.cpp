@@ -477,8 +477,8 @@ namespace Brisk
             m_ClusterInfoUBO = Buffer::Create();
             m_ClusterInfoUBO->Init(sizeof(ClusterInfo), nullptr, Core::BufferUsage::UniformBuffer, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
 
-            m_AABBGeneratorPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
-            m_AABBGeneratorPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
+            //m_AABBGeneratorPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
+            //m_AABBGeneratorPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
         }
 
         {
@@ -503,16 +503,16 @@ namespace Brisk
             m_GlobalIndexCountSSBO = Buffer::Create();
             m_GlobalIndexCountSSBO->Init(sizeof(uint32_t), &globalIndex, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
 
-            m_AssignLightsToClustersPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
-            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_LightsList", {}, m_LightsList);
-            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
-            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterLightIndexList", {}, m_ClusterLightIndexList);
-            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterLightOffsetList", {}, m_ClusterLightOffsetList);
-            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_AtomicCounters", {}, m_AtomicCounters);
-            m_AssignLightsToClustersPipeline->UpdateResources("ssbo_GlobalIndex", {}, m_GlobalIndexCountSSBO);
+            //m_AssignLightsToClustersPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
+            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_LightsList", {}, m_LightsList);
+            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
+            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterLightIndexList", {}, m_ClusterLightIndexList);
+            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterLightOffsetList", {}, m_ClusterLightOffsetList);
+            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_AtomicCounters", {}, m_AtomicCounters);
+            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_GlobalIndex", {}, m_GlobalIndexCountSSBO);
         }
 
-        m_DepthPrePassPipeline->UpdateResources("u_MVP", {}, m_MVPBuffer);
+        m_DepthPrePassPipeline->UpdateResources("MVP", {}, m_MVPBuffer);
 
         m_LightingPipeline->UpdateResources("sampler_Position", { m_Pos      }, nullptr);
         m_LightingPipeline->UpdateResources("sampler_Normal",   { m_Normal   }, nullptr);
@@ -545,8 +545,8 @@ namespace Brisk
         m_ClusteredCmdBuffer = CommandBuffer::Create();
         m_ClusteredCmdBuffer->Allocate(CommandBuffer::PoolType::Graphics);
 
-        //m_Editor = std::make_shared<Editor>();
-        //m_Editor->Create(m_UIPass, m_CmdBuffer, m_LightingOutput);
+        m_Editor = std::make_shared<Editor>();
+        m_Editor->Create(m_UIPass, m_CmdBuffer, m_LightingOutput);
     }
 
     void Renderer::RenderScene(float deltaTime)
@@ -715,16 +715,16 @@ namespace Brisk
 
         // --- GBUFFER PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        //m_GeometryBufferPass->Begin(m_CmdBuffer);
-        //RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight(), 0, 1);
-        //RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
+        m_GeometryBufferPass->Begin(m_CmdBuffer);
+        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
 
-        //for (auto& [mesh, entities] : m_RenderGroups) {
-        //    m_GBufferPipeline->UpdateResources("ssbo_Materials", {}, mesh->m_MaterialStorageBuffer);
-        //    m_GBufferPipeline->Bind(m_CmdBuffer);
-        //    Render(mesh, entities, true, true);
-        //}
-        //m_GeometryBufferPass->End(m_CmdBuffer);
+        for (auto& [mesh, entities] : m_RenderGroups) {
+            //m_GBufferPipeline->UpdateResources("ssbo_Materials", {}, mesh->m_MaterialStorageBuffer);
+            m_GBufferPipeline->Bind(m_CmdBuffer);
+            Render(mesh, entities, true, true);
+        }
+        m_GeometryBufferPass->End(m_CmdBuffer);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
         //m_Editor->Update();

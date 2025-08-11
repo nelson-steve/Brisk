@@ -102,8 +102,8 @@ namespace Brisk {
 				Primitive outPrimitive{};
 				const fastgltf::Attribute* positionIt = it->findAttribute("POSITION");
 
-				assert(positionIt != it->attributes.end());
-				assert(it->indicesAccessor.has_value());
+				BRISK_CORE_ASSERT(positionIt != it->attributes.end());
+				BRISK_CORE_ASSERT(it->indicesAccessor.has_value());
 
 				auto& positionAccessor = asset.accessors[positionIt->accessorIndex];
 				if (!positionAccessor.bufferViewIndex.has_value())
@@ -146,8 +146,8 @@ namespace Brisk {
 				const fastgltf::Attribute* jointsIt = it->findAttribute("JOINTS_0");
 				const fastgltf::Attribute* weightsIt = it->findAttribute("WEIGHTS_0");
 
-				assert(positionIt != it->attributes.end());
-				assert(it->indicesAccessor.has_value());
+				BRISK_CORE_ASSERT(positionIt != it->attributes.end());
+				BRISK_CORE_ASSERT(it->indicesAccessor.has_value());
 
 				auto& positionAccessor = asset.accessors[positionIt->accessorIndex];
 				if (!positionAccessor.bufferViewIndex.has_value())

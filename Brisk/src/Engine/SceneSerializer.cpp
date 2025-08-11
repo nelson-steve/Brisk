@@ -640,7 +640,7 @@
 //
 //								ScriptFieldInstance& fieldInstance = entityFields[name];
 //
-//								// TODO: turn this assert into AlbedoEditor log warning
+//								// TODO: turn this BRISK_CORE_ASSERT into AlbedoEditor log warning
 //								Albedo_CORE_ASSERT(fields.find(name) != fields.end(), "field not found");
 //
 //								if (fields.find(name) == fields.end())

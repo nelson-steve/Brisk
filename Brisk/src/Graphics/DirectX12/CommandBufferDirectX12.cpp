@@ -55,6 +55,6 @@ namespace Brisk
 
 
 	void CommandBufferDirectX12::SetParentAlloator(std::shared_ptr<CommandBufferAllocator> allocator) {
-		assert(false);
+		BRISK_CORE_ASSERT(false);
 	}
 }	

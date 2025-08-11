@@ -10,15 +10,14 @@
 
 namespace Brisk
 {
-	struct ShaderResource {
-		std::string p_Name;
-		uint32_t p_Set;
-		uint32_t p_Binding;
-		VkDescriptorType p_Type;
-		VkShaderStageFlags p_Stages;
-	};
-
 	class PipelineVulkan : public Pipeline {
+		struct ShaderResource {
+			std::string p_Name;
+			uint32_t p_Set;
+			uint32_t p_Binding;
+			uint32_t p_Type;
+			uint32_t p_Stages;
+		};
 	public:
 		virtual void Init(const GraphicsPipelineSpecs& specs) override;
 		virtual void Init(const ComputePipelineSpecs& specs) override;

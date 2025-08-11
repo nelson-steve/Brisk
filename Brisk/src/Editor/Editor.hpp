@@ -7,12 +7,15 @@
 #include "imgui.h"
 #include "ImGuiBackends/imgui_impl_glfw.h"
 
-//#include <volk.h>
-//#include <vulkan/vulkan.h>
 #include "ImGuiBackends/imgui_impl_vulkan.h"
+
+
 #include "glm/glm.hpp"
 
 #include <unordered_map>
+
+// Fwd
+struct ID3D12DescriptorHeap;
 
 namespace Brisk 
 {
@@ -29,5 +32,7 @@ namespace Brisk
 		std::unordered_map<std::string, IEditorPanel*> m_Panels;
 		ImGui_ImplVulkanH_Window s_MainWindowData;
 		glm::vec2 m_ViewportSize;
+
+		ID3D12DescriptorHeap* imguiSrvDescHeap;
 	};
 }

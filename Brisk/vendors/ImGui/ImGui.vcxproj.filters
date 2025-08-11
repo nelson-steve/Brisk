@@ -6,24 +6,36 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="ImGuiBackends\imgui_impl_dx12.h">
+      <Filter>ImGuiBackends</Filter>
+    </ClInclude>
     <ClInclude Include="ImGuiBackends\imgui_impl_glfw.h">
       <Filter>ImGuiBackends</Filter>
     </ClInclude>
     <ClInclude Include="ImGuiBackends\imgui_impl_vulkan.h">
       <Filter>ImGuiBackends</Filter>
     </ClInclude>
+    <ClInclude Include="ImGuiBackends\imgui_impl_win32.h">
+      <Filter>ImGuiBackends</Filter>
+    </ClInclude>
     <ClInclude Include="imconfig.h" />
     <ClInclude Include="imgui.h" />
     <ClInclude Include="imgui_internal.h" />
-    <ClInclude Include="imgui_rectpack.h" />
-    <ClInclude Include="imgui_textedit.h" />
-    <ClInclude Include="imgui_truetype.h" />
+    <ClInclude Include="imstb_rectpack.h" />
+    <ClInclude Include="imstb_textedit.h" />
+    <ClInclude Include="imstb_truetype.h" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="ImGuiBackends\imgui_impl_dx12.cpp">
+      <Filter>ImGuiBackends</Filter>
+    </ClCompile>
     <ClCompile Include="ImGuiBackends\imgui_impl_glfw.cpp">
       <Filter>ImGuiBackends</Filter>
     </ClCompile>
     <ClCompile Include="ImGuiBackends\imgui_impl_vulkan.cpp">
+      <Filter>ImGuiBackends</Filter>
+    </ClCompile>
+    <ClCompile Include="ImGuiBackends\imgui_impl_win32.cpp">
       <Filter>ImGuiBackends</Filter>
     </ClCompile>
     <ClCompile Include="imgui.cpp" />

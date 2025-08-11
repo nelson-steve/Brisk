@@ -8,7 +8,7 @@
 #include <wrl/client.h>
 using Microsoft::WRL::ComPtr;
 
-#include <cassert>
+#include <Core/Log.hpp>
 
 namespace Brisk
 {
@@ -26,12 +26,12 @@ namespace Brisk
 
         virtual uint32_t GetWidth() const { return m_Specs.p_Width; }
         virtual uint32_t GetHeight() const { return m_Specs.p_Height; }
-        virtual void Resize() override { assert(false); }
+        virtual void Resize() override { BRISK_CORE_ASSERT(false); }
 
         virtual void Init(const TextureSpecification& specs) override;
         virtual void Init(const std::string& path) override;
         virtual void Init(const fastgltf::Image& image, const fastgltf::Asset& asset) override;
-        virtual void Release() { assert(false); }
+        virtual void Release() { BRISK_CORE_ASSERT(false); }
 
     private:
         ComPtr<ID3D12Resource> m_Texture;

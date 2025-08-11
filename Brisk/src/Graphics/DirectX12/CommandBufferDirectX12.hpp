@@ -4,7 +4,6 @@
 #include "Engine/Renderer/CommandBuffer.hpp"
 #include "Engine/Renderer/CommandBufferAllocator.hpp"
 //------------------------------------------
-#include <cassert>
 #include <directx/d3d12.h>
 #include <dxgi1_6.h>
 #include <d3dcompiler.h>

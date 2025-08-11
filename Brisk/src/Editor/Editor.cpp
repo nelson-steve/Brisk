@@ -9,7 +9,13 @@
 #include "MaterialPanel.hpp"
 #include <Graphics/Vulkan/GpuAdapterVulkan.hpp>
 #include <Graphics/Vulkan/RenderpassVulkan.hpp>
+#include <Graphics/DirectX12/GpuAdapterDirectX12.hpp>
 
+#include "ImGuiBackends/imgui_impl_dx12.h"
+#include <ImGuiBackends/imgui_impl_win32.h>
+
+#include <memory>
+#include <Graphics/DirectX12/CommandBufferDirectX12.hpp>
 
 namespace Brisk 
 {
@@ -257,6 +263,26 @@ namespace Brisk
 
         LavenderTheme();
         
+#ifdef BRISK_ENABLE_DIRECTX12
+        auto gpuAdapter = std::static_pointer_cast<GpuAdapterDirectX12>(Engine::s_Application->GetGpuAdapter());
+        // 1. Create descriptor heap for ImGui fonts/textures
+        D3D12_DESCRIPTOR_HEAP_DESC desc = {};
+        desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
+        desc.NumDescriptors = 1;
+        desc.Flags = D3D12_DESCRIPTOR_HEAP_FLAG_SHADER_VISIBLE;
+        desc.NodeMask = 0;
+        gpuAdapter->GetDevice()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&imguiSrvDescHeap));
+
+        uint32_t numFramesInFlight = 3;
+        ImGui_ImplWin32_Init(Engine::s_Application->GetWindow()->GetHWNDWindowHandle());
+        ImGui_ImplDX12_Init(gpuAdapter->GetDevice().Get(),
+            numFramesInFlight,
+            DXGI_FORMAT_R8G8B8A8_UNORM,
+            imguiSrvDescHeap,
+            imguiSrvDescHeap->GetCPUDescriptorHandleForHeapStart(),
+            imguiSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
+
+#else
         ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Engine::s_Application->GetWindow()->GetWindowHandle(), true);
 
         auto gpuAdapter = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter());
@@ -286,8 +312,6 @@ namespace Brisk
 
         vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-        ImGui_ImplVulkan_CreateFontsTexture();
-
         vkEndCommandBuffer(commandBuffer);
 
         VkSubmitInfo submitInfo = {};
@@ -297,6 +321,7 @@ namespace Brisk
 
         vkQueueSubmit(info.Queue, 1, &submitInfo, VK_NULL_HANDLE);
         vkDeviceWaitIdle(info.Device); // Wait until done
+#endif
 
         // 6. Destroy Temporary Font Upload Resources
         //ImGui_ImplVulkan_DestroyFontUploadObjects(); // REQUIRED!
@@ -305,8 +330,8 @@ namespace Brisk
         scenePanel->SetImage(tex);
         m_Panels.insert({ "Scene" , scenePanel });
 
-        AssetsPanel* assetsPanel = new AssetsPanel();
-        m_Panels.insert({ "Assets" , assetsPanel });
+        //AssetsPanel* assetsPanel = new AssetsPanel();
+        //m_Panels.insert({ "Assets" , assetsPanel });
 
         ConsolePanel* consolePanel = new ConsolePanel();
         m_Panels.insert({ "Console" , consolePanel });
@@ -381,8 +406,13 @@ namespace Brisk
     }
 
     void Editor::Update() {
+#ifdef BRISK_ENABLE_DIRECTX12
+        ImGui_ImplDX12_NewFrame();
+        ImGui_ImplWin32_NewFrame();
+#else
         ImGui_ImplVulkan_NewFrame();
         ImGui_ImplGlfw_NewFrame();
+#endif
         ImGui::NewFrame();
 
         MenuBar();
@@ -407,14 +437,23 @@ namespace Brisk
     }
 
     void Editor::Render(std::shared_ptr<CommandBuffer> cmd) {
+#ifdef BRISK_ENABLE_DIRECTX12
+        std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->SetDescriptorHeaps(1, &imguiSrvDescHeap);
+        ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get().Get());
+#else
         ImGui_ImplVulkan_RenderDrawData(ImGui::GetDrawData(), std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get());
+#endif
     }
 
     void Editor::Release() {
         for (const auto& panel : m_Panels) {
             panel.second->OnDestroy();
         }
+#ifdef BRISK_ENABLE_DIRECTX12
+
+#else
         ImGui_ImplVulkan_Shutdown();
+#endif
         ImGui_ImplGlfw_Shutdown();
         ImGui::DestroyContext();
     }

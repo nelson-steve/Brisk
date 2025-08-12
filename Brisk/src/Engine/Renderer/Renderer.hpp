@@ -126,7 +126,6 @@ namespace Brisk
 		std::shared_ptr<Buffer> m_ClusterTilesSSBO;
 		std::shared_ptr<Buffer> m_GlobalIndexCountSSBO;
 
-		std::shared_ptr<Buffer> m_CameraData;
 		std::shared_ptr<Buffer> m_LightsList;
 		std::shared_ptr<Buffer> m_ClusterLightIndexList;
 		std::shared_ptr<Buffer> m_ClusterLightOffsetList;

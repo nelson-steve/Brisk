@@ -177,7 +177,6 @@
     <ClInclude Include="src\Graphics\Vulkan\RendererAPIVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\RenderpassVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\SemaphoreVulkan.hpp" />
-    <ClInclude Include="src\Graphics\Vulkan\ShaderCompiler.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\SurfaceFactoryVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\SwapchainVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\TextureVulkan.hpp" />

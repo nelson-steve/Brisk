@@ -468,40 +468,78 @@ namespace Brisk
         }
 
         m_MVPBuffer = Buffer::Create();
-        m_MVPBuffer->Init(sizeof(MVP), nullptr, Core::BufferUsage::UniformBuffer,
-            Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
+        BufferDesc mvpBufferDesc{};
+        mvpBufferDesc.p_Size = sizeof(MVP);
+        mvpBufferDesc.p_Usage = BufferDesc::Usage::UniformBuffer;
+        mvpBufferDesc.p_Memory = BufferDesc::MemoryUsage::CPU_To_GPU;
+        mvpBufferDesc.p_Persistant = true;
+        m_MVPBuffer->Init(mvpBufferDesc);
+
         {
             m_ClusterTilesSSBO = Buffer::Create();
-            m_ClusterTilesSSBO->Init(sizeof(TileAABB) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            BufferDesc clusterTilesBufferDesc{};
+            clusterTilesBufferDesc.p_Size = sizeof(TileAABB) * NUM_CLUSTERS;
+            clusterTilesBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+            clusterTilesBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+            m_ClusterTilesSSBO->Init(clusterTilesBufferDesc);
 
             m_ClusterInfoUBO = Buffer::Create();
-            m_ClusterInfoUBO->Init(sizeof(ClusterInfo), nullptr, Core::BufferUsage::UniformBuffer, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
+            BufferDesc clusterInfoBufferDesc{};
+            clusterTilesBufferDesc.p_Size = sizeof(ClusterInfo);
+            clusterTilesBufferDesc.p_Usage = BufferDesc::Usage::UniformBuffer;
+            clusterTilesBufferDesc.p_Memory = BufferDesc::MemoryUsage::CPU_Only;
+            clusterTilesBufferDesc.p_Persistant = true;
+            m_ClusterInfoUBO->Init(clusterInfoBufferDesc);
 
             //m_AABBGeneratorPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
             //m_AABBGeneratorPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
         }
 
         {
-            m_CameraData = Buffer::Create();
-            m_CameraData->Init(sizeof(MVP), nullptr, Core::BufferUsage::UniformBuffer, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
-
             std::vector<LightData> lights = GenerateRandomLights(MAX_LIGHTS, 400);
 
             m_LightsList = Buffer::Create();
-            m_LightsList->Init(sizeof(LightData) * lights.size(), lights.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            BufferDesc lightsBufferDesc{};
+            lightsBufferDesc.p_Size = sizeof(LightData) * lights.size();
+            lightsBufferDesc.p_Data = lights.data();
+            lightsBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+            lightsBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+            lightsBufferDesc.p_AllowSRV = true;
+            m_LightsList->Init(lightsBufferDesc);
 
             m_ClusterLightIndexList = Buffer::Create();
-            m_ClusterLightIndexList->Init(sizeof(uint32_t) * NUM_CLUSTERS * MAX_LIGHTS_PER_CLUSTER, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            BufferDesc clusterLightsIndexBufferDesc{};
+            clusterLightsIndexBufferDesc.p_Size = sizeof(uint32_t) * NUM_CLUSTERS * MAX_LIGHTS_PER_CLUSTER;
+            clusterLightsIndexBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+            clusterLightsIndexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+            clusterLightsIndexBufferDesc.p_AllowUAV = true;
+            m_ClusterLightIndexList->Init(clusterLightsIndexBufferDesc);
 
             m_ClusterLightOffsetList = Buffer::Create();
-            m_ClusterLightOffsetList->Init(sizeof(LightOffset) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            BufferDesc clusterLightsOffsetsBufferDesc{};
+            clusterLightsOffsetsBufferDesc.p_Size = sizeof(LightOffset) * NUM_CLUSTERS;
+            clusterLightsOffsetsBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+            clusterLightsOffsetsBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+            clusterLightsOffsetsBufferDesc.p_AllowUAV = true;
+            m_ClusterLightOffsetList->Init(clusterLightsOffsetsBufferDesc);
 
             m_AtomicCounters = Buffer::Create();
-            m_AtomicCounters->Init(sizeof(uint32_t) * NUM_CLUSTERS, nullptr, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            BufferDesc atomicCountersBufferDesc{};
+            atomicCountersBufferDesc.p_Size = sizeof(uint32_t) * NUM_CLUSTERS;
+            atomicCountersBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+            atomicCountersBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+            atomicCountersBufferDesc.p_AllowUAV = true;
+            m_AtomicCounters->Init(atomicCountersBufferDesc);
 
             uint32_t globalIndex = 0;
             m_GlobalIndexCountSSBO = Buffer::Create();
-            m_GlobalIndexCountSSBO->Init(sizeof(uint32_t), &globalIndex, Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+            BufferDesc globalIndexBufferDesc{};
+            globalIndexBufferDesc.p_Size = sizeof(uint32_t);
+            globalIndexBufferDesc.p_Data = &globalIndex;
+            globalIndexBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+            globalIndexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+            globalIndexBufferDesc.p_AllowUAV = true;
+            m_GlobalIndexCountSSBO->Init(globalIndexBufferDesc);
 
             //m_AssignLightsToClustersPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
             //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_LightsList", {}, m_LightsList);
@@ -720,7 +758,7 @@ namespace Brisk
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
 
         for (auto& [mesh, entities] : m_RenderGroups) {
-            //m_GBufferPipeline->UpdateResources("ssbo_Materials", {}, mesh->m_MaterialStorageBuffer);
+            m_GBufferPipeline->UpdateResources("Materials", {}, mesh->m_MaterialStorageBuffer);
             m_GBufferPipeline->Bind(m_CmdBuffer);
             Render(mesh, entities, true, true);
         }

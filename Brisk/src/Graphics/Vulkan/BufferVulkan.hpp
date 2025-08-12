@@ -13,11 +13,11 @@
 namespace Brisk {
 	class BufferVulkan : public Buffer {
 	public:
-		virtual void Init(uint32_t size, void* data, Core::BufferUsage usageFlags, Core::MemoryProperty memoryProperty, bool mapPersistant) override;
+		virtual void Init(const BufferDesc& desc) override;
 		virtual void Release() override;
 		virtual void UpdatePersistantData(uint32_t size, void* data) override;
 
-		virtual void MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, Texture::ImageBarrierParams barrier) override;
+		virtual void MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, MemoryBarrierParams barrier) override;
 
 		inline const VkBuffer Get() const { return m_Handle; }
 		inline const VkDeviceMemory GetMemory() const { return m_Memory; }

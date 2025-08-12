@@ -134,7 +134,13 @@ namespace Brisk
         m_Specs.p_Width = texHeight;
 
         BufferVulkan stagingBuffer;
-        stagingBuffer.Init(imageSize, m_Pixels, Core::BufferUsage::TransferSrc, Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
+        BufferDesc stagingBuffeDesc{};
+        stagingBuffeDesc.p_Size = imageSize;
+        stagingBuffeDesc.p_Data = m_Pixels;
+        stagingBuffeDesc.p_Usage = BufferDesc::Usage::StagingBuffer;
+        stagingBuffeDesc.p_Memory = BufferDesc::MemoryUsage::CPU_Only;
+        stagingBuffeDesc.p_Persistant = true;
+        stagingBuffer.Init(stagingBuffeDesc);
 
         stbi_image_free(m_Pixels);
 

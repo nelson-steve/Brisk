@@ -15,10 +15,10 @@ namespace Brisk
 {
 	class BufferDirectX12 : public Buffer {
 	public:
-		virtual void Init(uint32_t size, void* data, Core::BufferUsage usageFlags, Core::MemoryProperty memoryProperty, bool mapPersistant) override;
+		virtual void Init(const BufferDesc& desc) override;
 		virtual void Release() override;
 		virtual void UpdatePersistantData(uint32_t size, void* data) override;
-		virtual void MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, Texture::ImageBarrierParams barrier) override { BRISK_CORE_ASSERT(false); }
+		virtual void MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, MemoryBarrierParams barrier) override { BRISK_CORE_ASSERT(false); }
 
 		D3D12_CPU_DESCRIPTOR_HANDLE GetCpuHandle() const { return m_CpuHandle; }
 		D3D12_GPU_DESCRIPTOR_HANDLE GetGpuHandle() const { return m_GpuHandle; }

@@ -8,73 +8,131 @@
 
 namespace Brisk
 {
-    void BufferDirectX12::Init(uint32_t size, void* data, Core::BufferUsage usageFlags, Core::MemoryProperty memoryProperty, bool mapPersistant) {
-        const UINT alignedSize = (size + 255) & ~255;
-        m_Size = alignedSize;
-        if (Core::HasFlag(memoryProperty, Core::MemoryProperty::HostVisible) && Core::HasFlag(memoryProperty, Core::MemoryProperty::HostCoherent)) {
-            D3D12_HEAP_PROPERTIES defaultHeapProps = {};
-            defaultHeapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+    void BufferDirectX12::Init(const BufferDesc& desc) {
+        D3D12_HEAP_TYPE heapType = D3D12_HEAP_TYPE_DEFAULT;
 
-            D3D12_RESOURCE_DESC bufferDesc = {};
-            bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-            bufferDesc.Width = alignedSize;
-            bufferDesc.Height = 1;
-            bufferDesc.DepthOrArraySize = 1;
-            bufferDesc.MipLevels = 1;
-            bufferDesc.Format = DXGI_FORMAT_UNKNOWN;
-            bufferDesc.SampleDesc.Count = 1;
-            bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-            if ((static_cast<uint32_t>(usageFlags) & static_cast<uint32_t>(Core::BufferUsage::StorageBuffer)) != 0) {
-                bufferDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-            }
+        bool constantBuffer = false;
+        bool shaderResource = false;
+        bool unordererdAcess = false;
 
-            D3D12_HEAP_PROPERTIES uploadHeapProps = {};
-            uploadHeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+        switch (desc.p_Memory)
+        {
+            case BufferDesc::MemoryUsage::CPU_Only:
+                heapType = D3D12_HEAP_TYPE_CUSTOM;
+                break;
+            case BufferDesc::MemoryUsage::GPU_Only:
+                heapType = D3D12_HEAP_TYPE_DEFAULT;
+                shaderResource = true;
+                break;
+            case BufferDesc::MemoryUsage::CPU_To_GPU:
+                heapType = D3D12_HEAP_TYPE_UPLOAD;
+                constantBuffer = true;
+                break;
+            case BufferDesc::MemoryUsage::GPU_To_CPU:
+                heapType = D3D12_HEAP_TYPE_READBACK;
+                break;
+        }
+        
+        // Create Consant Buffer
+        if(desc.p_Memory == BufferDesc::MemoryUsage::CPU_Only)
+        {
+            // Determine resource flags
+            D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
+            if (desc.p_AllowUAV)      flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
+            if (desc.p_Usage == BufferDesc::Usage::StorageBuffer)
+                flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
+            // Size must be aligned to 256 bytes for constant buffers
+            UINT64 bufferSize = desc.p_Size;
+            if (desc.p_Usage == BufferDesc::Usage::UniformBuffer)
+                bufferSize = (bufferSize + 255) & ~255ULL;
+
+            // Describe the buffer
+            D3D12_RESOURCE_DESC resourceDesc = {};
+            resourceDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+            resourceDesc.Alignment = 0;
+            resourceDesc.Width = bufferSize;
+            resourceDesc.Height = 1;
+            resourceDesc.DepthOrArraySize = 1;
+            resourceDesc.MipLevels = 1;
+            resourceDesc.Format = DXGI_FORMAT_UNKNOWN;
+            resourceDesc.SampleDesc.Count = 1;
+            resourceDesc.SampleDesc.Quality = 0;
+            resourceDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+            resourceDesc.Flags = flags;
+
+            // Heap properties
+            D3D12_HEAP_PROPERTIES heapProps = {};
+            heapProps.Type = heapType;
+            heapProps.CPUPageProperty = D3D12_CPU_PAGE_PROPERTY_UNKNOWN;
+            heapProps.MemoryPoolPreference = D3D12_MEMORY_POOL_UNKNOWN;
+            heapProps.CreationNodeMask = 1;
+            heapProps.VisibleNodeMask = 1;
+
+            // Create resource
             HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
-                &uploadHeapProps,
+                &heapProps,
                 D3D12_HEAP_FLAG_NONE,
-                &bufferDesc,
-                D3D12_RESOURCE_STATE_GENERIC_READ,
+                &resourceDesc,
+                (heapType == D3D12_HEAP_TYPE_UPLOAD) ? D3D12_RESOURCE_STATE_GENERIC_READ : D3D12_RESOURCE_STATE_COMMON,
                 nullptr,
                 IID_PPV_ARGS(&m_Buffer)
             );
-            if (FAILED(hr)) throw std::runtime_error("Failed to create upload vertex buffer");
 
-            if (mapPersistant) {
-                D3D12_RANGE range = { 0, 0 };
-                m_Buffer->Map(0, &range, &m_MappedPointer);
-                if (data) {
-                    memcpy(m_MappedPointer, data, alignedSize);
-                }
+            if (FAILED(hr))
+                throw std::runtime_error("Failed to create buffer: " + std::to_string(hr));
+
+            // Optionally persistently map upload/readback buffers
+            if (desc.p_Persistant && (heapType == D3D12_HEAP_TYPE_UPLOAD || heapType == D3D12_HEAP_TYPE_READBACK))
+            {
+                void* mappedData = nullptr;
+                m_Buffer->Map(0, nullptr, &mappedData);
+                if (desc.p_Data && mappedData)
+                    memcpy(mappedData, desc.p_Data, desc.p_Size);
             }
-            else {
-                D3D12_RANGE range = { 0, 0 };
-                m_Buffer->Map(0, &range, &m_MappedPointer);
-                if (data) {
-                    memcpy(m_MappedPointer, data, alignedSize);
-                }
+            else if (desc.p_Data && heapType == D3D12_HEAP_TYPE_UPLOAD)
+            {
+                void* mappedData = nullptr;
+                m_Buffer->Map(0, nullptr, &mappedData);
+                memcpy(mappedData, desc.p_Data, desc.p_Size);
                 m_Buffer->Unmap(0, nullptr);
             }
+
+            uint32_t index = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementCbvSrvUavHeapIndex();
+
+            m_CpuHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetCPUDescriptorHandleForHeapStart();
+            uint32_t descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            m_CpuHandle.ptr += descriptorSize * index;
+
+            m_GpuHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetGPUDescriptorHandleForHeapStart();
+            descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            m_GpuHandle.ptr += descriptorSize * index;
+
+            D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
+            cbvDesc.BufferLocation = m_Buffer->GetGPUVirtualAddress();
+            cbvDesc.SizeInBytes = (desc.p_Size + 255) & ~255;
+
+            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateConstantBufferView(&cbvDesc, m_CpuHandle);
         }
-        else if (Core::HasFlag(memoryProperty, Core::MemoryProperty::DeviceLocal)) {
+
+        // Create SRV buffer
+        if (desc.p_Memory == BufferDesc::MemoryUsage::GPU_Only && desc.p_AllowSRV)
+        {
             D3D12_HEAP_PROPERTIES defaultHeapProps = {};
             defaultHeapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
 
             D3D12_RESOURCE_DESC bufferDesc = {};
             bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
-            bufferDesc.Width = alignedSize;
+            bufferDesc.Width = desc.p_Size;
             bufferDesc.Height = 1;
             bufferDesc.DepthOrArraySize = 1;
             bufferDesc.MipLevels = 1;
             bufferDesc.Format = DXGI_FORMAT_UNKNOWN;
             bufferDesc.SampleDesc.Count = 1;
             bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
-            if ((static_cast<uint32_t>(usageFlags) & static_cast<uint32_t>(Core::BufferUsage::StorageBuffer)) != 0) {
-                bufferDesc.Flags = D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-            }
+            bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
-            if (data) {
+            if (desc.p_Data) {
                 HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
                     &defaultHeapProps,
                     D3D12_HEAP_FLAG_NONE,
@@ -103,14 +161,14 @@ namespace Brisk
                 void* mappedPtr = nullptr;
                 D3D12_RANGE range = { 0, 0 };
                 vertexBufferUpload->Map(0, &range, &mappedPtr);
-                if (data)
-                    memcpy(mappedPtr, data, alignedSize);
+                if (desc.p_Data)
+                    memcpy(mappedPtr, desc.p_Data, desc.p_Size);
                 vertexBufferUpload->Unmap(0, nullptr);
 
                 D3D12_SUBRESOURCE_DATA subresourceData = {};
-                subresourceData.pData = data;
-                subresourceData.RowPitch = alignedSize;
-                subresourceData.SlicePitch = alignedSize;
+                subresourceData.pData = desc.p_Data;
+                subresourceData.RowPitch = desc.p_Size;
+                subresourceData.SlicePitch = desc.p_Size;
 
                 ComPtr<ID3D12CommandAllocator> commandAllocator;
                 ComPtr<ID3D12GraphicsCommandList> commandList;
@@ -124,7 +182,7 @@ namespace Brisk
                 barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
                 barrier.Transition.pResource = m_Buffer.Get();
                 barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
-                barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER;
+                barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE;
                 barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
 
                 commandList->ResourceBarrier(1, &barrier);
@@ -154,15 +212,13 @@ namespace Brisk
                     &defaultHeapProps,
                     D3D12_HEAP_FLAG_NONE,
                     &bufferDesc,
-                    D3D12_RESOURCE_STATE_VERTEX_AND_CONSTANT_BUFFER,
+                    D3D12_RESOURCE_STATE_PIXEL_SHADER_RESOURCE,
                     nullptr,
                     IID_PPV_ARGS(&m_Buffer)
                 );
                 if (FAILED(hr)) throw std::runtime_error("Failed to create GPU buffer");
             }
-        }
 
-        if ((static_cast<uint32_t>(usageFlags) & static_cast<uint32_t>(Core::BufferUsage::UniformBuffer)) != 0) {
             uint32_t index = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementCbvSrvUavHeapIndex();
 
             m_CpuHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetCPUDescriptorHandleForHeapStart();
@@ -173,11 +229,141 @@ namespace Brisk
             descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
             m_GpuHandle.ptr += descriptorSize * index;
 
-            D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
-            cbvDesc.BufferLocation = m_Buffer->GetGPUVirtualAddress();
-            cbvDesc.SizeInBytes = (size + 255) & ~255;
+            D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
+            srvDesc.ViewDimension = D3D12_SRV_DIMENSION_BUFFER;
+            srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
+            srvDesc.Format = DXGI_FORMAT_UNKNOWN; // Structured buffer has no fixed format
+            srvDesc.Buffer.FirstElement = 0;
+            //srvDesc.Buffer.NumElements = elementCount;
+            srvDesc.Buffer.StructureByteStride = sizeof(MeshAsset::MaterialData);
+            srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
-            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateConstantBufferView(&cbvDesc, m_CpuHandle);
+            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateShaderResourceView(m_Buffer.Get(), &srvDesc, m_CpuHandle);
+        }
+
+        // Create UAV buffer
+        if (desc.p_Memory == BufferDesc::MemoryUsage::GPU_Only && desc.p_AllowUAV)
+        {
+            D3D12_HEAP_PROPERTIES defaultHeapProps = {};
+            defaultHeapProps.Type = D3D12_HEAP_TYPE_DEFAULT;
+
+            D3D12_RESOURCE_DESC bufferDesc = {};
+            bufferDesc.Dimension = D3D12_RESOURCE_DIMENSION_BUFFER;
+            bufferDesc.Width = desc.p_Size;
+            bufferDesc.Height = 1;
+            bufferDesc.DepthOrArraySize = 1;
+            bufferDesc.MipLevels = 1;
+            bufferDesc.Format = DXGI_FORMAT_UNKNOWN;
+            bufferDesc.SampleDesc.Count = 1;
+            bufferDesc.Layout = D3D12_TEXTURE_LAYOUT_ROW_MAJOR;
+            bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+
+            if (desc.p_Data) {
+                HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
+                    &defaultHeapProps,
+                    D3D12_HEAP_FLAG_NONE,
+                    &bufferDesc,
+                    D3D12_RESOURCE_STATE_COPY_DEST,
+                    nullptr,
+                    IID_PPV_ARGS(&m_Buffer)
+                );
+                if (FAILED(hr)) throw std::runtime_error("Failed to create GPU buffer");
+
+                D3D12_HEAP_PROPERTIES uploadHeapProps = {};
+                uploadHeapProps.Type = D3D12_HEAP_TYPE_UPLOAD;
+
+                bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
+                Microsoft::WRL::ComPtr<ID3D12Resource> vertexBufferUpload;
+                hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
+                    &uploadHeapProps,
+                    D3D12_HEAP_FLAG_NONE,
+                    &bufferDesc,
+                    D3D12_RESOURCE_STATE_GENERIC_READ,
+                    nullptr,
+                    IID_PPV_ARGS(&vertexBufferUpload)
+                );
+                if (FAILED(hr)) throw std::runtime_error("Failed to create upload buffer");
+
+                void* mappedPtr = nullptr;
+                D3D12_RANGE range = { 0, 0 };
+                vertexBufferUpload->Map(0, &range, &mappedPtr);
+                if (desc.p_Data)
+                    memcpy(mappedPtr, desc.p_Data, desc.p_Size);
+                vertexBufferUpload->Unmap(0, nullptr);
+
+                D3D12_SUBRESOURCE_DATA subresourceData = {};
+                subresourceData.pData = desc.p_Data;
+                subresourceData.RowPitch = desc.p_Size;
+                subresourceData.SlicePitch = desc.p_Size;
+
+                ComPtr<ID3D12CommandAllocator> commandAllocator;
+                ComPtr<ID3D12GraphicsCommandList> commandList;
+
+                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator));
+                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList));
+
+                UpdateSubresources(commandList.Get(), m_Buffer.Get(), vertexBufferUpload.Get(), 0, 0, 1, &subresourceData);
+
+                D3D12_RESOURCE_BARRIER barrier = {};
+                barrier.Type = D3D12_RESOURCE_BARRIER_TYPE_TRANSITION;
+                barrier.Transition.pResource = m_Buffer.Get();
+                barrier.Transition.StateBefore = D3D12_RESOURCE_STATE_COPY_DEST;
+                barrier.Transition.StateAfter = D3D12_RESOURCE_STATE_UNORDERED_ACCESS;
+                barrier.Transition.Subresource = D3D12_RESOURCE_BARRIER_ALL_SUBRESOURCES;
+
+                commandList->ResourceBarrier(1, &barrier);
+
+                commandList->Close();
+
+                ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
+                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetGraphicsQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+
+                ComPtr<ID3D12Fence> fence;
+                UINT64 fenceValue = 1;
+                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
+                HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
+
+                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetGraphicsQueue()->Signal(fence.Get(), fenceValue);
+                if (fence->GetCompletedValue() < fenceValue) {
+                    fence->SetEventOnCompletion(fenceValue, fenceEvent);
+                    WaitForSingleObject(fenceEvent, INFINITE);
+                }
+                CloseHandle(fenceEvent);
+
+                commandAllocator->Reset();
+                commandList->Reset(commandAllocator.Get(), nullptr);
+            }
+            else {
+                HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
+                    &defaultHeapProps,
+                    D3D12_HEAP_FLAG_NONE,
+                    &bufferDesc,
+                    D3D12_RESOURCE_STATE_UNORDERED_ACCESS,
+                    nullptr,
+                    IID_PPV_ARGS(&m_Buffer)
+                );
+                if (FAILED(hr)) throw std::runtime_error("Failed to create GPU buffer");
+            }
+
+            uint32_t index = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementCbvSrvUavHeapIndex();
+
+            m_CpuHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetCPUDescriptorHandleForHeapStart();
+            uint32_t descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            m_CpuHandle.ptr += descriptorSize * index;
+
+            m_GpuHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetGPUDescriptorHandleForHeapStart();
+            descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            m_GpuHandle.ptr += descriptorSize * index;
+
+            D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
+            uavDesc.ViewDimension = D3D12_UAV_DIMENSION_BUFFER;
+            uavDesc.Format = DXGI_FORMAT_UNKNOWN; // Structured buffer has no fixed format
+            uavDesc.Buffer.FirstElement = 0;
+            //srvDesc.Buffer.NumElements = elementCount;
+            uavDesc.Buffer.StructureByteStride = sizeof(MeshAsset::MaterialData);
+            uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
+
+            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateUnorderedAccessView(m_Buffer.Get(), nullptr, &uavDesc, m_CpuHandle);
         }
     }
 

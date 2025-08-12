@@ -276,9 +276,6 @@
     <ClInclude Include="src\Graphics\Vulkan\SemaphoreVulkan.hpp">
       <Filter>Graphics\Vulkan</Filter>
     </ClInclude>
-    <ClInclude Include="src\Graphics\Vulkan\ShaderCompiler.hpp">
-      <Filter>Graphics\Vulkan</Filter>
-    </ClInclude>
     <ClInclude Include="src\Graphics\Vulkan\SurfaceFactoryVulkan.hpp">
       <Filter>Graphics\Vulkan</Filter>
     </ClInclude>
@@ -408,9 +405,6 @@
     <ClCompile Include="src\Engine\Window.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="src\Graphics\DirectX12\BufferDirectX12.cpp">
-      <Filter>Graphics\DirectX12</Filter>
-    </ClCompile>
     <ClCompile Include="src\Graphics\DirectX12\CommandBufferAllocatorDirectX12.cpp">
       <Filter>Graphics\DirectX12</Filter>
     </ClCompile>
@@ -496,5 +490,6 @@
     <ClCompile Include="src\VolkUsage.cpp" />
     <ClCompile Include="src\stbimage.cc" />
     <ClCompile Include="src\volk.c" />
+    <ClCompile Include="src\Graphics\DirectX12\BufferDirectX12.cpp" />
   </ItemGroup>
 </Project>

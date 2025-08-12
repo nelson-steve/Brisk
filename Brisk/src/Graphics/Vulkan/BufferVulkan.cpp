@@ -10,11 +10,48 @@
 //---------------
 namespace Brisk 
 {
-	void BufferVulkan::Init(uint32_t size, void* data, Core::BufferUsage usageFlags, Core::MemoryProperty memoryProperty, bool mapPersistant) {
+	void BufferVulkan::Init(const BufferDesc& desc) {
+        m_Desc = desc;
 		VkBufferUsageFlags usage{};
         VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_UNKNOWN;
-		usage = UtilitiesVulkan::BufferUsageToVkFormat(usageFlags);
-		m_Size = size;
+        VkBufferUsageFlags usageFlags = 0;
+
+        switch (desc.p_Usage) {
+            case BufferDesc::Usage::VertexBuffer:
+                usageFlags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
+                break;
+            case BufferDesc::Usage::IndexBuffer:
+                usageFlags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
+                break;
+            case BufferDesc::Usage::UniformBuffer:
+                usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
+                break;
+            case BufferDesc::Usage::StorageBuffer:
+                usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+                break;
+            case BufferDesc::Usage::IndirectBuffer:
+                usageFlags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
+                break;
+            case BufferDesc::Usage::StagingBuffer:
+                usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+                break;
+            case BufferDesc::Usage::ReadbackBuffer:
+                usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+                break;
+            case BufferDesc::Usage::Generic:
+                // Nothing extra, flags from below may add
+                break;
+        }
+
+        if (desc.p_AllowUAV)
+            usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
+        if (desc.p_AllowSRV)
+            usageFlags |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT |
+            VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+        if (desc.p_AllowCopySrc)
+            usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+        if (desc.p_AllowCopyDst)
+            usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
 
         bool hostVisible = false;
         bool hostCoherent = false;
@@ -23,39 +60,30 @@ namespace Brisk
 
         VmaAllocator cachedAllocator = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator();
 
-        if (Core::HasFlag(memoryProperty, Core::MemoryProperty::HostVisible)) {
+        if (desc.p_Memory == BufferDesc::MemoryUsage::CPU_To_GPU) {
+            vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU;
             hostVisible = true;
         }
-        if (Core::HasFlag(memoryProperty, Core::MemoryProperty::HostCoherent)) {
-            hostCoherent = true;
-        }
-        if (Core::HasFlag(memoryProperty, Core::MemoryProperty::HostCached)) {
-            hostCached = true;
-        }
-        if (Core::HasFlag(memoryProperty, Core::MemoryProperty::DeviceLocal)) {
+        else if (desc.p_Memory == BufferDesc::MemoryUsage::GPU_Only) {
+            vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY;
             deviceLocal = true;
         }
-
-        if (deviceLocal && !hostVisible) {
-            vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY;
+        else if (desc.p_Memory == BufferDesc::MemoryUsage::GPU_To_CPU) {
+            vmaUsage = VMA_MEMORY_USAGE_GPU_TO_CPU;
         }
-        else if (hostVisible && hostCoherent) {
-            vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU;
-        }
-        else if (hostVisible && !hostCoherent) {
+        else if (desc.p_Memory == BufferDesc::MemoryUsage::CPU_Only) {
             vmaUsage = VMA_MEMORY_USAGE_CPU_ONLY;
         }
-        else {
-            vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY;
-        }
 
-        bool needsStaging = (deviceLocal && data != nullptr);
+        // Check if the buffer stores data in gpu only, and if data is providied initialy means it needs to be copied right away
+        // needing a staging buffer
+        bool needsStaging = (deviceLocal && desc.p_Data != nullptr);
 
         if (needsStaging) {
             // Create staging buffer
             VkBufferCreateInfo stagingBufferInfo{};
             stagingBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-            stagingBufferInfo.size = size;
+            stagingBufferInfo.size = desc.p_Size;
             stagingBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
             stagingBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -71,13 +99,13 @@ namespace Brisk
             // Map staging buffer and copy data
             void* mappedStaging = nullptr;
             vmaMapMemory(cachedAllocator, stagingAllocation, &mappedStaging);
-            std::memcpy(mappedStaging, data, (size_t)size);
+            std::memcpy(mappedStaging, desc.p_Data, (size_t)desc.p_Size);
             vmaUnmapMemory(cachedAllocator, stagingAllocation);
 
             // Create device local buffer
             VkBufferCreateInfo deviceBufferInfo{};
             deviceBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-            deviceBufferInfo.size = size;
+            deviceBufferInfo.size = desc.p_Size;
             deviceBufferInfo.usage = usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
             deviceBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -116,7 +144,7 @@ namespace Brisk
                 vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
                 VkBufferCopy copyRegion{};
-                copyRegion.size = size;
+                copyRegion.size = desc.p_Size;
                 vkCmdCopyBuffer(commandBuffer, stagingBuffer,  m_Handle, 1, &copyRegion);
 
                 vkEndCommandBuffer(commandBuffer);
@@ -143,7 +171,7 @@ namespace Brisk
 
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-        bufferInfo.size = size;
+        bufferInfo.size = desc.p_Size;
         bufferInfo.usage = usage;
         bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -166,9 +194,9 @@ namespace Brisk
             isMapped = false;
         }
 
-        if (data != nullptr) {
+        if (desc.p_Data != nullptr) {
             if (isMapped) {
-                std::memcpy(mappedPtr, data, (size_t)size);
+                std::memcpy(mappedPtr, desc.p_Data, (size_t)desc.p_Size);
                 if (!hostCoherent) {
                     // Flush if not coherent
                     VmaAllocationInfo allocInfo;
@@ -179,7 +207,7 @@ namespace Brisk
                     range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
                     range.memory = mem;
                     range.offset = 0;
-                    range.size = size;
+                    range.size = desc.p_Size;
                     vkFlushMappedMemoryRanges(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &range);
                 }
             }
@@ -187,12 +215,12 @@ namespace Brisk
                 // Map/unmap for one-time upload
                 void* mapped = nullptr;
                 vmaMapMemory(cachedAllocator, m_Allocation, &mapped);
-                std::memcpy(mapped, data, (size_t)size);
+                std::memcpy(mapped, desc.p_Data, (size_t)desc.p_Size);
                 vmaUnmapMemory(cachedAllocator, m_Allocation);
             }
         }
 
-        if (!mapPersistant && isMapped && !hostCoherent) {
+        if (!desc.p_Persistant && isMapped && !hostCoherent) {
             vmaUnmapMemory(cachedAllocator, m_Allocation);
             mappedPtr = nullptr;
             isMapped = false;
@@ -200,10 +228,10 @@ namespace Brisk
 	}
 
 	void BufferVulkan::UpdatePersistantData(uint32_t size, void* data) {
-		memcpy(mappedPtr, data, m_Size);
+		memcpy(mappedPtr, data, m_Desc.p_Size);
 	}
 
-    void BufferVulkan::MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, Texture::ImageBarrierParams barrier) {
+    void BufferVulkan::MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, MemoryBarrierParams barrier) {
         VkMemoryBarrier memoryBarrier{ VK_STRUCTURE_TYPE_MEMORY_BARRIER };
         memoryBarrier.srcAccessMask = UtilitiesVulkan::AccessTypeToVkAccessFlags(barrier.srcAccess);
         memoryBarrier.dstAccessMask = UtilitiesVulkan::AccessTypeToVkAccessFlags(barrier.dstAccess);

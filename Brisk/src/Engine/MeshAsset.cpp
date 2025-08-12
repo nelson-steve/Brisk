@@ -380,19 +380,24 @@ namespace Brisk {
 
 
 		m_VertexBuffer = Buffer::Create();
-		m_VertexBuffer->Init(sizeof(verticesData[0]) * verticesData.size(),
-			verticesData.data(),
-			Core::BufferUsage::VertexBuffer | Core::BufferUsage::TransferDst,
-			Core::MemoryProperty::DeviceLocal,
-			true);
+		BufferDesc vertexBufferDesc{};
+		vertexBufferDesc.p_Size = sizeof(verticesData[0]) * verticesData.size();
+		vertexBufferDesc.p_Data = verticesData.data();
+		vertexBufferDesc.p_Usage = BufferDesc::Usage::VertexBuffer;
+		vertexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+		vertexBufferDesc.p_AllowSRV = true;
+		m_VertexBuffer->Init(vertexBufferDesc);
 
 		if (indicesData.size() > 0) {
 			m_IndexBuffer = Buffer::Create();
-			m_IndexBuffer->Init(sizeof(indicesData[0]) * indicesData.size(),
-				indicesData.data(),
-				Core::BufferUsage::IndexBuffer | Core::BufferUsage::TransferDst,
-				Core::MemoryProperty::DeviceLocal,
-				true);
+			m_VertexBuffer = Buffer::Create();
+			BufferDesc indexBufferDesc{};
+			indexBufferDesc.p_Size = sizeof(indicesData[0]) * indicesData.size();
+			indexBufferDesc.p_Data = indicesData.data();
+			indexBufferDesc.p_Usage = BufferDesc::Usage::IndexBuffer;
+			indexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+			indexBufferDesc.p_AllowSRV = true;
+			m_IndexBuffer->Init(indexBufferDesc);
 		}
 		uint32_t texturesOffset = Engine::s_TexturesOffset;
 
@@ -528,7 +533,13 @@ namespace Brisk {
 		}
 
 		m_MaterialStorageBuffer = Buffer::Create();
-		m_MaterialStorageBuffer->Init(sizeof(m_Materials[0]) * m_Materials.size(), m_Materials.data(), Core::BufferUsage::StorageBuffer, Core::MemoryProperty::DeviceLocal, false);
+		BufferDesc materialsBufferDesc{};
+		materialsBufferDesc.p_Size = sizeof(m_Materials[0]) * m_Materials.size();
+		materialsBufferDesc.p_Data = m_Materials.data();
+		materialsBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+		materialsBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+		materialsBufferDesc.p_AllowUAV = true;
+		m_MaterialStorageBuffer->Init(materialsBufferDesc);
 
 		int i = 0;
 		for (const auto& tex : asset.textures) {

@@ -105,7 +105,7 @@ PSOutput PSMain(PSInput input)
     output.position = input.position;
     output.normal = float4(1.0f, 1.0f, 1.0f, 1.0f);
     output.albedo = float4(1.0f, 1.0f, 1.0f, 1.0f);
-    output.material = float4(1.0f, 1.0f, 1.0f, 1.0f);
+    output.material = float4(1.0f, 1.0f, 1.0f, Materials[0].metallicFactor);
     output.emissive = float4(1.0f, 1.0f, 1.0f, 1.0f);
 
     return output;

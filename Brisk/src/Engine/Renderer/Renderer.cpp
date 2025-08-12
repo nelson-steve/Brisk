@@ -215,7 +215,7 @@ namespace Brisk
                     RenderPassAttachment{ 2, AttachmentType::Color, m_Albedo,   LoadOp::Clear, StoreOp::Store    },
                     RenderPassAttachment{ 3, AttachmentType::Color, m_Material, LoadOp::Clear, StoreOp::Store    },
                     RenderPassAttachment{ 4, AttachmentType::Color, m_Emissive, LoadOp::Clear, StoreOp::Store    },
-                    //RenderPassAttachment{ 5, AttachmentType::Depth, m_DepthPre, LoadOp::Load,  StoreOp::DontCare  },
+                    RenderPassAttachment{ 5, AttachmentType::Depth, m_DepthPre, LoadOp::Load,  StoreOp::DontCare  },
                 }
             );
 
@@ -358,7 +358,7 @@ namespace Brisk
                 pipelineSpecs.pDebugName = "ShadowMap pipeline";
 
                 m_ShadowMapPipeline = Pipeline::Create();
-                //m_ShadowMapPipeline->Init(pipelineSpecs);
+                m_ShadowMapPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
 
@@ -406,11 +406,11 @@ namespace Brisk
 
                 pipelineSpecs.pCullMode = Pipeline::CullMode::NONE;
                 m_GBufferDoubleSidedPipeline = Pipeline::Create();
-                //m_GBufferDoubleSidedPipeline->Init(pipelineSpecs);
+                m_GBufferDoubleSidedPipeline->Init(pipelineSpecs);
 
                 pipelineSpecs.pTransparent = true;
                 m_GBufferAlphaBlendPipeline = Pipeline::Create();
-                //m_GBufferAlphaBlendPipeline->Init(pipelineSpecs);
+                m_GBufferAlphaBlendPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
 
@@ -451,7 +451,7 @@ namespace Brisk
                 pipelineSpecs.pShaderPath = "Shaders/Vulkan/ClusteredLighting/Compiled/ClusterAABBGenerateCS.spv";
 
                 m_AABBGeneratorPipeline = Pipeline::Create();
-                //m_AABBGeneratorPipeline->Init(pipelineSpecs);
+                m_AABBGeneratorPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
 
@@ -462,7 +462,7 @@ namespace Brisk
                 pipelineSpecs.pShaderPath = "Shaders/Vulkan/ClusteredLighting/Compiled/AssignLightsToClustersCS.spv";
 
                 m_AssignLightsToClustersPipeline = Pipeline::Create();
-                //m_AssignLightsToClustersPipeline->Init(pipelineSpecs);
+                m_AssignLightsToClustersPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
         }
@@ -491,8 +491,8 @@ namespace Brisk
             clusterTilesBufferDesc.p_Persistant = true;
             m_ClusterInfoUBO->Init(clusterInfoBufferDesc);
 
-            //m_AABBGeneratorPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
-            //m_AABBGeneratorPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
+            m_AABBGeneratorPipeline->UpdateResources("ClusterInfo", {}, m_ClusterInfoUBO);
+            m_AABBGeneratorPipeline->UpdateResources("ClusterAABB", {}, m_ClusterTilesSSBO);
         }
 
         {
@@ -541,13 +541,13 @@ namespace Brisk
             globalIndexBufferDesc.p_AllowUAV = true;
             m_GlobalIndexCountSSBO->Init(globalIndexBufferDesc);
 
-            //m_AssignLightsToClustersPipeline->UpdateResources("u_ClusterInfo", {}, m_ClusterInfoUBO);
-            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_LightsList", {}, m_LightsList);
-            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
-            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterLightIndexList", {}, m_ClusterLightIndexList);
-            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_ClusterLightOffsetList", {}, m_ClusterLightOffsetList);
-            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_AtomicCounters", {}, m_AtomicCounters);
-            //m_AssignLightsToClustersPipeline->UpdateResources("ssbo_GlobalIndex", {}, m_GlobalIndexCountSSBO);
+            m_AssignLightsToClustersPipeline->UpdateResources("ClusterInfo", {}, m_ClusterInfoUBO);
+            m_AssignLightsToClustersPipeline->UpdateResources("LightsList", {}, m_LightsList);
+            m_AssignLightsToClustersPipeline->UpdateResources("ClusterAABB", {}, m_ClusterTilesSSBO);
+            m_AssignLightsToClustersPipeline->UpdateResources("ClusterLightIndexList", {}, m_ClusterLightIndexList);
+            m_AssignLightsToClustersPipeline->UpdateResources("ClusterLightOffsetList", {}, m_ClusterLightOffsetList);
+            m_AssignLightsToClustersPipeline->UpdateResources("AtomicCounters", {}, m_AtomicCounters);
+            m_AssignLightsToClustersPipeline->UpdateResources("GlobalIndex", {}, m_GlobalIndexCountSSBO);
         }
 
         m_DepthPrePassPipeline->UpdateResources("MVP", {}, m_MVPBuffer);
@@ -558,8 +558,8 @@ namespace Brisk
         m_LightingPipeline->UpdateResources("sampler_Material", { m_Material }, nullptr);
         m_LightingPipeline->UpdateResources("sampler_Emissive", { m_Emissive }, nullptr);
         m_LightingPipeline->UpdateResources("sampler_Depth",    { m_DepthPre }, nullptr);
-        //m_LightingPipeline->UpdateResources("ssbo_ClusterAABB", {}, m_ClusterTilesSSBO);
-        //m_LightingPipeline->UpdateResources("u_MVP",            {}, m_MVPBuffer);
+        m_LightingPipeline->UpdateResources("ClusterAABB", {}, m_ClusterTilesSSBO);
+        m_LightingPipeline->UpdateResources("MVP",            {}, m_MVPBuffer);
 
         m_Fence = Fence::Create();
         m_Fence->Init();
@@ -617,93 +617,65 @@ namespace Brisk
         }
 
         m_Fence->Wait();
-        //m_Fence->Reset();
+        m_Fence->Reset();
 
-        //m_ClusteredCmdBuffer->Reset();
+        m_ClusteredCmdBuffer->Reset();
 
-        //m_ClusteredCmdBuffer->Bind();
+        m_ClusteredCmdBuffer->Bind();
         //// --- CLUSTERS AABB GENERATOR COMPUTE TASK ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        //m_AABBGeneratorPipeline->Bind(m_ClusteredCmdBuffer);
-        //ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 16, 9, 24);
-        //m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
-        //    {
-        //        Core::ImageLayout::Undefined,
-        //        Core::ImageLayout::Undefined,
-        //        Core::AccessType::ShaderWrite,
-        //        Core::AccessType::ShaderWrite,
-        //        Core::PipelineStage::ComputeShader,
-        //        Core::PipelineStage::ComputeShader,
-        //        Core::ImageAspectFlags::Color,
-        //        0,
-        //        1,
-        //        0,
-        //        0
-        //    });
+        m_AABBGeneratorPipeline->Bind(m_ClusteredCmdBuffer);
+        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 16, 9, 24);
+        m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
+            {
+                Core::AccessType::ShaderWrite,
+                Core::AccessType::ShaderWrite,
+                Core::PipelineStage::ComputeShader,
+                Core::PipelineStage::ComputeShader,
+            });
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        //m_ClusteredCmdBuffer->UnBind();
+        m_ClusteredCmdBuffer->UnBind();
 
-        //Queue::SubmitInfo clusteredSubmitInfo{};
-        //clusteredSubmitInfo.pCmdBuffers.push_back(m_ClusteredCmdBuffer);
-        //m_GraphicsQueue->Submit(clusteredSubmitInfo, nullptr);
-        //Engine::s_Application->GetGpuAdapter()->WaitIdle();
+        Queue::SubmitInfo clusteredSubmitInfo{};
+        clusteredSubmitInfo.pCmdBuffers.push_back(m_ClusteredCmdBuffer);
+        m_GraphicsQueue->Submit(clusteredSubmitInfo, nullptr);
+        Engine::s_Application->GetGpuAdapter()->WaitIdle();
 
-        //m_ClusteredCmdBuffer->Reset();
+        m_ClusteredCmdBuffer->Reset();
 
-        //m_ClusteredCmdBuffer->Bind();
+        m_ClusteredCmdBuffer->Bind();
         //// --- ASSIGN LIGHTS TO CLUSTERS COMPUTE TASK ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        //m_AssignLightsToClustersPipeline->Bind(m_ClusteredCmdBuffer);
-        //ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 3456, 1, 1);
-        //m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
-        //    {
-        //        Core::ImageLayout::Undefined,
-        //        Core::ImageLayout::Undefined,
-        //        Core::AccessType::ShaderWrite,
-        //        Core::AccessType::ShaderRead,
-        //        Core::PipelineStage::ComputeShader,
-        //        Core::PipelineStage::ComputeShader,
-        //        Core::ImageAspectFlags::Color,
-        //        0,
-        //        1,
-        //        0,
-        //        0
-        //    });
-        //m_ClusterLightOffsetList->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
-        //    {
-        //        Core::ImageLayout::Undefined,
-        //        Core::ImageLayout::Undefined,
-        //        Core::AccessType::ShaderWrite,
-        //        Core::AccessType::ShaderRead,
-        //        Core::PipelineStage::ComputeShader,
-        //        Core::PipelineStage::ComputeShader,
-        //        Core::ImageAspectFlags::Color,
-        //        0,
-        //        1,
-        //        0,
-        //        0
-        //    });
-        //m_ClusterLightIndexList->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
-        //    {
-        //        Core::ImageLayout::Undefined,
-        //        Core::ImageLayout::Undefined,
-        //        Core::AccessType::ShaderWrite,
-        //        Core::AccessType::ShaderRead,
-        //        Core::PipelineStage::ComputeShader,
-        //        Core::PipelineStage::ComputeShader,
-        //        Core::ImageAspectFlags::Color,
-        //        0,
-        //        1,
-        //        0,
-        //        0
-        //    });
+        m_AssignLightsToClustersPipeline->Bind(m_ClusteredCmdBuffer);
+        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 3456, 1, 1);
+        m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
+            {
+                Core::AccessType::ShaderWrite,
+                Core::AccessType::ShaderRead,
+                Core::PipelineStage::ComputeShader,
+                Core::PipelineStage::ComputeShader,
+            });
+        m_ClusterLightOffsetList->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
+            {
+                Core::AccessType::ShaderWrite,
+                Core::AccessType::ShaderRead,
+                Core::PipelineStage::ComputeShader,
+                Core::PipelineStage::ComputeShader,
+            });
+        m_ClusterLightIndexList->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
+            {
+                Core::AccessType::ShaderWrite,
+                Core::AccessType::ShaderRead,
+                Core::PipelineStage::ComputeShader,
+                Core::PipelineStage::ComputeShader,
+            });
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        //m_ClusteredCmdBuffer->UnBind();
+        m_ClusteredCmdBuffer->UnBind();
 
-        //Queue::SubmitInfo clusteredSubmitInfo2{};
-        //clusteredSubmitInfo2.pCmdBuffers.push_back(m_ClusteredCmdBuffer);
-        //m_GraphicsQueue->Submit(clusteredSubmitInfo2, nullptr);
-        //Engine::s_Application->GetGpuAdapter()->WaitIdle();
+        Queue::SubmitInfo clusteredSubmitInfo2{};
+        clusteredSubmitInfo2.pCmdBuffers.push_back(m_ClusteredCmdBuffer);
+        m_GraphicsQueue->Submit(clusteredSubmitInfo2, nullptr);
+        Engine::s_Application->GetGpuAdapter()->WaitIdle();
 
         m_Swapchain->AcquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &m_ImageIndex);
         m_CmdBuffer->Reset();
@@ -720,18 +692,17 @@ namespace Brisk
         //Render(false);
 
         //m_ShadowMapPass->End(m_CmdBuffer);
-        // 
         //------------------------------------------------------------------------------------------------------------------------------------------------
 
         {
-            //Texture::ImageBarrierParams params{};
-            //params.oldLayout = Core::ImageLayout::Undefined;
-            //params.newLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
-            //params.srcAccess = Core::AccessType::DepthStencilWrite;
-            //params.dstAccess = Core::AccessType::ShaderRead;
-            //params.srcStage = Core::PipelineStage::LateFragmentTest;
-            //params.dstStage = Core::PipelineStage::FragmentShader;
-            //m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
+            Texture::ImageBarrierParams params{};
+            params.oldLayout = Core::ImageLayout::Undefined;
+            params.newLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
+            params.srcAccess = Core::AccessType::DepthStencilWrite;
+            params.dstAccess = Core::AccessType::ShaderRead;
+            params.srcStage = Core::PipelineStage::LateFragmentTest;
+            params.dstStage = Core::PipelineStage::FragmentShader;
+            m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
         }
 
         // --- DEPTH PRE PASS ---------------------------
@@ -765,7 +736,7 @@ namespace Brisk
         m_GeometryBufferPass->End(m_CmdBuffer);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
-        //m_Editor->Update();
+        m_Editor->Update();
 
         Texture::ImageBarrierParams params{};
         params.oldLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
@@ -775,7 +746,7 @@ namespace Brisk
         params.srcStage = Core::PipelineStage::LateFragmentTest;
         params.dstStage = Core::PipelineStage::FragmentShader;
 
-        //m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
+        m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
 
         //// --- LIGHTING PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
@@ -808,7 +779,7 @@ namespace Brisk
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
             
-        //m_Editor->Render(m_CmdBuffer);
+        m_Editor->Render(m_CmdBuffer);
 
         m_UIPass->End(m_CmdBuffer);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
@@ -883,8 +854,8 @@ namespace Brisk
                 if (primitive.materialIndex < 0)
                     BRISK_CORE_WARN("Invalid material index");
 
-                //if (pushMaterialIndex && pushModelMatrix)
-                //    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, true);
+                if (pushMaterialIndex && pushModelMatrix)
+                    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, true);
 
                 if ((fastgltf::AlphaMode)mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)0U)
                 {
@@ -895,22 +866,22 @@ namespace Brisk
     }
 
     void Renderer::RenderEntity(const MeshComponent& mesh, int alphaMode, bool push) {
-        //for (auto& subMesh : mesh.p_Mesh->m_Meshes) {
-        //    for (auto& primitive : subMesh.primitives) {
-        //        uint32_t index = primitive.materialIndex != -1 ? primitive.materialIndex : 0;
+        for (auto& subMesh : mesh.p_Mesh->m_Meshes) {
+            for (auto& primitive : subMesh.primitives) {
+                uint32_t index = primitive.materialIndex != -1 ? primitive.materialIndex : 0;
 
-        //        if(primitive.materialIndex < 0)
-        //            BRISK_CORE_WARN("Invalid material index");
+                if(primitive.materialIndex < 0)
+                    BRISK_CORE_WARN("Invalid material index");
 
-        //        //if(push)
-        //        //    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(uint32_t), &index, false);
+                if(push)
+                    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(uint32_t), &index, false);
 
-        //        if ((fastgltf::AlphaMode)mesh.p_Mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)alphaMode) 
-        //        {
-        //            RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
-        //        }
-        //    }
-        //}
+                if ((fastgltf::AlphaMode)mesh.p_Mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)alphaMode) 
+                {
+                    RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
+                }
+            }
+        }
     }
 
     void Renderer::Release() {

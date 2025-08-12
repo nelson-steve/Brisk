@@ -110,7 +110,7 @@ project "Brisk"
         defines 
         { 
             "BRISK_PLATFORM_WINDOWS", 
-            "BRISK_ENABLE_DIRECTX12" 
+            -- "BRISK_ENABLE_DIRECTX12" 
         }
         links {
             -- "D3D12Core",

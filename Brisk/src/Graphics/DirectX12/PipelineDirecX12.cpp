@@ -231,7 +231,51 @@ namespace Brisk
 	}
 
 	void PipelineDirectX12::Init(const ComputePipelineSpecs& specs) {
+        CD3DX12_DESCRIPTOR_RANGE ranges[2];
+        ranges[0] .Init(D3D12_DESCRIPTOR_RANGE_TYPE_SRV, 1, 0);  // SRV t0
+        ranges[1].Init(D3D12_DESCRIPTOR_RANGE_TYPE_UAV, 1, 0);  // UAV u0
 
+        CD3DX12_ROOT_PARAMETER rootParams[2];
+        rootParams[0].InitAsDescriptorTable(1, &ranges[0], D3D12_SHADER_VISIBILITY_ALL);
+        rootParams[1].InitAsDescriptorTable(1, &ranges[1], D3D12_SHADER_VISIBILITY_ALL);
+
+        CD3DX12_ROOT_PARAMETER cbvParam;
+        cbvParam.InitAsConstantBufferView(0); // CBV at b0
+
+        CD3DX12_ROOT_SIGNATURE_DESC rootSigDesc;
+        rootSigDesc.Init(_countof(rootParams), rootParams, 0, nullptr,
+            D3D12_ROOT_SIGNATURE_FLAG_NONE);
+
+        ComPtr<ID3DBlob> serializedRootSig = nullptr;
+        ComPtr<ID3DBlob> errorBlob = nullptr;
+        if (FAILED(D3D12SerializeRootSignature(&rootSigDesc,
+            D3D_ROOT_SIGNATURE_VERSION_1,
+            &serializedRootSig, &errorBlob))) {
+            throw std::runtime_error("Failed to serialize root signature");
+        }
+        if (FAILED(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRootSignature(0, serializedRootSig->GetBufferPointer(),
+            serializedRootSig->GetBufferSize(),
+            IID_PPV_ARGS(&m_RootSignature)))) {
+            throw std::runtime_error("Failed to create root signature");
+        }
+
+        std::wstring wideStr = std::wstring(specs.pShaderPath.begin(), specs.pShaderPath.end());
+        LPCWSTR pathWstring = wideStr.c_str();
+        std::wstring shaderPath = std::filesystem::current_path().wstring() + pathWstring;
+
+        ComPtr<ID3DBlob> csBlob;
+        if (FAILED(D3DReadFileToBlob(shaderPath.c_str(), &csBlob))) {
+            throw std::runtime_error("Failed to read file to blob");
+        }
+
+        D3D12_COMPUTE_PIPELINE_STATE_DESC computePsoDesc = {};
+        computePsoDesc.pRootSignature = m_RootSignature.Get();
+        computePsoDesc.CS = { csBlob->GetBufferPointer(), csBlob->GetBufferSize() };
+        computePsoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
+
+        if (FAILED(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateComputePipelineState(&computePsoDesc, IID_PPV_ARGS(&m_PipelineState)))) {
+            throw std::runtime_error("Failed to create pipeline state");
+        }
 	}
 
 	void PipelineDirectX12::Bind(std::shared_ptr<CommandBuffer> cmd) {

@@ -11,7 +11,7 @@ layout(location = 2) out vec4 outAlbedo;
 layout(location = 3) out vec4 outMaterial;
 layout(location = 4) out vec4 outEmissive;
 
-layout(set = 3, binding = 0) uniform sampler2D u_GlobalTextures[];
+layout(set = 3, binding = 0) uniform sampler2D GlobalTextures[];
 
 struct MaterialData {
     int alphaMode;
@@ -94,22 +94,22 @@ struct MaterialData {
     vec3 attenuationColor;
 };
 
-layout(std430, set = 4, binding = 0) readonly buffer Materials {
+layout(std430, set = 4, binding = 0) readonly buffer MaterialsBuffer {
     MaterialData materials[];
-} ssbo_Materials;
+} Materials;
 
-layout(push_constant) uniform MeshData {
+layout(push_constant) uniform MeshDataBuffer {
     mat4 model;
     int materialIndex;
-} pc_MeshData;
+} MeshData;
 
 void main() {
-    MaterialData material = ssbo_Materials.materials[pc_MeshData.materialIndex];
+    MaterialData material = Materials.materials[MeshData.materialIndex];
 
     // Base Color
     vec4 baseColor = material.baseColorFactor;
     if (material.baseColorTextureIndex != -1) {
-        baseColor *= texture(u_GlobalTextures[nonuniformEXT(material.baseColorTextureIndex)], fragUV);
+        baseColor *= texture(GlobalTextures[nonuniformEXT(material.baseColorTextureIndex)], fragUV);
 
         if (material.alphaMode == 1) { // MASK
             if (baseColor.a < material.alphaCutoff) {
@@ -130,14 +130,14 @@ void main() {
     float metallic = material.metallicFactor;
     float roughness = material.roughnessFactor;
     if (material.metallicRoughnessTextureIndex != -1) {
-        vec4 mrSample = texture(u_GlobalTextures[nonuniformEXT(material.metallicRoughnessTextureIndex)], fragUV);
+        vec4 mrSample = texture(GlobalTextures[nonuniformEXT(material.metallicRoughnessTextureIndex)], fragUV);
         metallic *= mrSample.b;
         roughness *= mrSample.g;
     }
 
     // Normal map (basic unpack)
     if (material.normalTextureIndex != -1) {
-        vec3 tangentNormal = texture(u_GlobalTextures[nonuniformEXT(material.normalTextureIndex)], fragUV).xyz;
+        vec3 tangentNormal = texture(GlobalTextures[nonuniformEXT(material.normalTextureIndex)], fragUV).xyz;
         tangentNormal = tangentNormal * 2.0 - 1.0;
         normal = normalize(tangentNormal); // Ideally transform to world-space if using tangent-space normals
     }
@@ -145,14 +145,14 @@ void main() {
     // Emissive
     outEmissive = vec4(material.emissiveFactor, 1.0);
     if (material.emissiveTextureIndex != -1) {
-        outEmissive *= texture(u_GlobalTextures[nonuniformEXT(material.emissiveTextureIndex)], fragUV);
+        outEmissive *= texture(GlobalTextures[nonuniformEXT(material.emissiveTextureIndex)], fragUV);
     }
     outEmissive *= material.emissiveStrength;
 
     // Occlusion (for lighting pass)
     float occlusion = 1.0;
     if (material.occlusionTextureIndex != -1) {
-        occlusion = texture(u_GlobalTextures[nonuniformEXT(material.occlusionTextureIndex)], fragUV).r;
+        occlusion = texture(GlobalTextures[nonuniformEXT(material.occlusionTextureIndex)], fragUV).r;
     }
 
     // G-buffer outputs

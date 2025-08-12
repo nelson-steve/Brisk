@@ -9,26 +9,26 @@ layout(location = 5) in vec4  inTangent;
 layout(location = 6) in uvec4 inJointIndices;
 layout(location = 7) in vec4  inJointWeights;
 
-layout(set = 0, binding = 0) uniform MVP {
+layout(set = 0, binding = 0) uniform MVPBuffer {
     mat4 ProjView;
     mat4 View;
     vec3 CamPos;
     float _padding0;
-} u_MVP;
+} MVP;
 
-layout(push_constant) uniform MeshData {
+layout(push_constant) uniform MeshDataBuffer {
     mat4 model;
     int materialIndex;
-} pc_MeshData;
+} MeshData;
 
 layout(location = 0) out vec3 fragPosition;
 layout(location = 1) out vec3 fragNormal;
 layout(location = 2) out vec2 fragUV;
 
 void main() {
-    fragPosition = vec3(pc_MeshData.model * vec4(inPosition, 1.0));
-    fragNormal = normalize(mat3(transpose(inverse(pc_MeshData.model))) * inNormal);
+    fragPosition = vec3(MeshData.model * vec4(inPosition, 1.0));
+    fragNormal = normalize(mat3(transpose(inverse(MeshData.model))) * inNormal);
     fragUV = inUV0;
 
-    gl_Position = u_MVP.ProjView * pc_MeshData.model * vec4(inPosition, 1.0);
+    gl_Position = MVP.ProjView * MeshData.model * vec4(inPosition, 1.0);
 }

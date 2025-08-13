@@ -11,7 +11,7 @@ layout(location = 2) out vec4 outAlbedo;
 layout(location = 3) out vec4 outMaterial;
 layout(location = 4) out vec4 outEmissive;
 
-layout(set = 3, binding = 0) uniform sampler2D GlobalTextures[];
+layout(set = 1, binding = 0) uniform sampler2D GlobalTextures[];
 
 struct MaterialData {
     int alphaMode;
@@ -94,7 +94,7 @@ struct MaterialData {
     vec3 attenuationColor;
 };
 
-layout(std430, set = 4, binding = 0) readonly buffer MaterialsBuffer {
+layout(std430, set = 0, binding = 2) readonly buffer MaterialsBuffer {
     MaterialData materials[];
 } Materials;
 
@@ -123,7 +123,8 @@ void main() {
     }
 
     // Position and normal
-    outPosition = vec4(fragPosition, 1.0);
+    outPosition = vec4(1.0, 0.0, 1.0, 1.0);
+    //outPosition = vec4(fragPosition, 1.0);
     vec3 normal = fragNormal;
 
     // Metallic & Roughness

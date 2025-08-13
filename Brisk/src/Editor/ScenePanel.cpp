@@ -11,11 +11,11 @@ namespace Brisk
         // Initialization (only once)
         VkSampler sampler = std::static_pointer_cast<TextureVulkan>(tex)->GetSampler();
         VkImageView view = std::static_pointer_cast<TextureVulkan>(tex)->GetView();
-        //m_RenderTargetID = ImGui_ImplVulkan_AddTexture(
-        //    sampler,
-        //    view,
-        //    VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
-        //);
+        m_RenderTargetID = (ImTextureID)ImGui_ImplVulkan_AddTexture(
+            sampler,
+            view,
+            VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
+        );
 
         m_SceneTexture = tex;
     }

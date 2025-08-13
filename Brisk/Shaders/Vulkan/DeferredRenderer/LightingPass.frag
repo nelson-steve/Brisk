@@ -15,12 +15,12 @@
 layout(location = 0) in vec2 uv;
 layout(location = 0) out vec4 outColor;
 
-layout(set = 0, binding = 0) uniform MVP {
+layout(set = 0, binding = 0) uniform MVPBuffer {
     mat4 ProjView;
     mat4 View;
     vec3 CamPos;
     float _padding0;
-} u_MVP;
+} MVP;
 
 // G-buffer textures
 layout(set = 2, binding = 0) uniform sampler2D sampler_Position;
@@ -35,28 +35,28 @@ struct LightData {
     vec4 color;    // xyz = color, w = intensity
 };
 
-layout(std430, set = 1, binding = 0) readonly buffer LightsList {
+layout(std430, set = 0, binding = 1) readonly buffer LightsListBuffer {
     LightData lights[];
-} ssbo_LightsList;
+} LightsList;
 
-layout(std430, set = 5, binding = 0) readonly buffer Clusters {
+layout(std430, set = 3, binding = 0) readonly buffer ClustersBuffer {
     vec4 dummy[]; // Not accessed directly in deferred
-} ssbo_ClusterAABB;
+} ClusterAABB;
 
-layout(std430, set = 5, binding = 2) readonly buffer LightIndices {
+layout(std430, set = 3, binding = 2) readonly buffer LightIndicesBuffer {
     uint lightIndexList[];
-} ssbo_LightIndices;
+} LightIndices;
 
-layout(std430, set = 5, binding = 3) readonly buffer ClusterLightOffsetList {
+layout(std430, set = 3, binding = 3) readonly buffer ClusterLightOffsetListBuffer {
     uvec2 lightOffsets[];
-} ssbo_ClusterLightOffsetList;
+} ClusterLightOffsetList;
 
 // --- Light Shading ---
 vec3 applyLight(vec3 fragPos, vec3 normal, uint lightIdx) {
-    vec3 lightPos = ssbo_LightsList.lights[lightIdx].position.xyz;
-    float radius = ssbo_LightsList.lights[lightIdx].position.w;
-    vec3 color = ssbo_LightsList.lights[lightIdx].color.rgb;
-    float intensity = ssbo_LightsList.lights[lightIdx].color.w;
+    vec3 lightPos = LightsList.lights[lightIdx].position.xyz;
+    float radius = LightsList.lights[lightIdx].position.w;
+    vec3 color = LightsList.lights[lightIdx].color.rgb;
+    float intensity = LightsList.lights[lightIdx].color.w;
 
     vec3 toLight = lightPos - fragPos;
     float dist = length(toLight);
@@ -98,24 +98,24 @@ void main() {
     float alpha = texture(sampler_Albedo, uv).a;
     vec3 emissive = texture(sampler_Emissive, uv).rgb;
 
-    vec3 fragPosView = vec3(u_MVP.View * vec4(fragPos, 1.0));
+    vec3 fragPosView = vec3(MVP.View * vec4(fragPos, 1.0));
     uint clusterIdx = computeClusterIndex(fragPosView);
 
     // Fetch light indices
-    uvec2 offsetCount = ssbo_ClusterLightOffsetList.lightOffsets[clusterIdx];
+    uvec2 offsetCount = ClusterLightOffsetList.lightOffsets[clusterIdx];
     uint offset = offsetCount.x;
     uint count = offsetCount.y;
 
     vec3 litColor = vec3(0.0);
     for (uint i = 0; i < count; ++i) {
-        uint lightIdx = ssbo_LightIndices.lightIndexList[offset + i];
+        uint lightIdx = LightIndices.lightIndexList[offset + i];
         litColor += applyLight(fragPos, normal, lightIdx);
     }
 
     vec3 ambient = 0.3 * albedo;
     vec3 finalColor = ambient + litColor * albedo + emissive;
 
-    outColor = vec4(finalColor, alpha);
+    outColor = vec4(fragPos, 1.0);
 
     // Visualize number of lights in this tile
     //float brightness = float(count) / float(MAX_LIGHTS_PER_CLUSTER);

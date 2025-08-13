@@ -330,8 +330,8 @@ namespace Brisk
         scenePanel->SetImage(tex);
         m_Panels.insert({ "Scene" , scenePanel });
 
-        //AssetsPanel* assetsPanel = new AssetsPanel();
-        //m_Panels.insert({ "Assets" , assetsPanel });
+        AssetsPanel* assetsPanel = new AssetsPanel();
+        m_Panels.insert({ "Assets" , assetsPanel });
 
         ConsolePanel* consolePanel = new ConsolePanel();
         m_Panels.insert({ "Console" , consolePanel });
@@ -339,8 +339,8 @@ namespace Brisk
         MaterialPanel* materialPanel = new MaterialPanel();
         m_Panels.insert({ "Material" , materialPanel });
 
-        //GamePanel* gamePanel = new GamePanel();
-        //m_Panels.insert({ "Game" , gamePanel });
+        GamePanel* gamePanel = new GamePanel();
+        m_Panels.insert({ "Game" , gamePanel });
 
         HeirarchyPanel* heirarchyPanel = new HeirarchyPanel();
         m_Panels.insert({ "Heirarchy" , heirarchyPanel });

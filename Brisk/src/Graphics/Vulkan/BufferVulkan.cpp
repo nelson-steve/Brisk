@@ -12,7 +12,6 @@ namespace Brisk
 {
 	void BufferVulkan::Init(const BufferDesc& desc) {
         m_Desc = desc;
-		VkBufferUsageFlags usage{};
         VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_UNKNOWN;
         VkBufferUsageFlags usageFlags = 0;
 
@@ -45,9 +44,9 @@ namespace Brisk
 
         if (desc.p_AllowUAV)
             usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-        if (desc.p_AllowSRV)
-            usageFlags |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT |
-            VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
+        //if (desc.p_AllowSRV)
+        //    usageFlags |= VK_BUFFER_USAGE_UNIFORM_TEXEL_BUFFER_BIT |
+        //    VK_BUFFER_USAGE_STORAGE_TEXEL_BUFFER_BIT;
         if (desc.p_AllowCopySrc)
             usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
         if (desc.p_AllowCopyDst)
@@ -63,6 +62,7 @@ namespace Brisk
         if (desc.p_Memory == BufferDesc::MemoryUsage::CPU_To_GPU) {
             vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU;
             hostVisible = true;
+            hostCoherent = true;
         }
         else if (desc.p_Memory == BufferDesc::MemoryUsage::GPU_Only) {
             vmaUsage = VMA_MEMORY_USAGE_GPU_ONLY;
@@ -106,7 +106,7 @@ namespace Brisk
             VkBufferCreateInfo deviceBufferInfo{};
             deviceBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
             deviceBufferInfo.size = desc.p_Size;
-            deviceBufferInfo.usage = usage | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
+            deviceBufferInfo.usage = usageFlags | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
             deviceBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
             VmaAllocationCreateInfo deviceAllocInfo{};
@@ -172,7 +172,7 @@ namespace Brisk
         VkBufferCreateInfo bufferInfo{};
         bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
         bufferInfo.size = desc.p_Size;
-        bufferInfo.usage = usage;
+        bufferInfo.usage = usageFlags;
         bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
         VmaAllocationCreateInfo allocInfo{};

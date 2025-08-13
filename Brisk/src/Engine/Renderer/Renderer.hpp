@@ -68,7 +68,7 @@ namespace Brisk
 
 		void AddGlobalTexture(std::vector<std::shared_ptr<Texture>> textures) {
 			m_GlobalTextures.insert(m_GlobalTextures.end(), textures.begin(), textures.end());
-			//m_GBufferPipeline->UpdateResources("u_GlobalTextures", textures, nullptr);
+			m_GBufferPipeline->UpdateResources("GlobalTextures", textures, nullptr);
 		}
 
 		static std::shared_ptr<Swapchain> GetSwapchain() { return m_Swapchain; }
@@ -120,7 +120,7 @@ namespace Brisk
 		std::shared_ptr<Pipeline> m_AssignLightsToClustersPipeline;
 
 		std::shared_ptr<Buffer> m_MVPBuffer;
-		std::shared_ptr<Buffer> m_PerObjectBuffer;
+		//std::shared_ptr<Buffer> m_PerObjectBuffer;
 
 		std::shared_ptr<Buffer> m_ClusterInfoUBO;
 		std::shared_ptr<Buffer> m_ClusterTilesSSBO;

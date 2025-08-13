@@ -8,11 +8,11 @@ struct TileAABB {
     vec4 maxPoint;
 };
 
-layout (std430, set = 5, binding = 0) buffer clusterAABBBuffer {
+layout (std430, set = 3, binding = 0) buffer clusterAABBBuffer {
     TileAABB clusters[];
 } ClusterAABB;
 
-layout (std140, set = 5, binding = 1) uniform ClusterInfoBuffer {
+layout (std140, set = 3, binding = 1) uniform ClusterInfoBuffer {
     mat4 view;
     mat4 invProj;
     uvec4 tileSizes;

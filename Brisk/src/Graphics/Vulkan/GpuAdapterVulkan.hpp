@@ -45,11 +45,9 @@ namespace Brisk
 
 	public:
 		VkDescriptorSetLayout m_DummyDescriptorLayout;
-		VkDescriptorSetLayout m_MVPDescriptorLayout;
-		VkDescriptorSetLayout m_LightsDescriptorLayout;
-		VkDescriptorSetLayout m_DeferredTexturesDescriptorLayout;
+		VkDescriptorSetLayout m_FrameGlobalDescriptorLayout;
 		VkDescriptorSetLayout m_BindlessDescriptorLayout;
-		VkDescriptorSetLayout m_MaterialsDescriptorLayout;
+		VkDescriptorSetLayout m_PerMeshDescriptorLayout;
 		VkDescriptorSetLayout m_ClusteredLightingDescriptorLayout;
 
 		// Descriptor stuff ------------------------------------//
@@ -64,7 +62,7 @@ namespace Brisk
 		// Scene Lights											//
 		VkDescriptorSet m_BindlessSet;							//
 		// Deferred textures, 									//
-		VkDescriptorSet m_PerMesh;								//
+		VkDescriptorSet m_PerMeshSet;							//
 		// Clustered Lighting								    //
 		VkDescriptorSet m_ClusteredLightingSet;					//
 		//------------------------------------------------------//

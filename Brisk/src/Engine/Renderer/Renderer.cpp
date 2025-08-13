@@ -50,7 +50,7 @@ namespace Brisk
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
-#ifdef DISABLED_CODE
+#ifdef DISABLED_CODE // For shadow map
         //m_LightsUBO = Buffer::Create();
         //m_LightsUBO->Init(sizeof(LightsMVP), nullptr, Core::BufferUsage::UniformBuffer,
         //    Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
@@ -168,12 +168,12 @@ namespace Brisk
                 specs.p_DebugName = "m_Pos";
                 specs.p_Type = Texture::TextureType::TEXTURE2D;
                 specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled;
-                //specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
-                specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
+                specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
+                //specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
                 m_Pos->Init(specs);
 
                 specs.p_DebugName = "m_Normal";
-                specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
+                //specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
                 m_Normal->Init(specs);
 
                 specs.p_DebugName = "m_Albedo";
@@ -215,7 +215,7 @@ namespace Brisk
                     RenderPassAttachment{ 2, AttachmentType::Color, m_Albedo,   LoadOp::Clear, StoreOp::Store    },
                     RenderPassAttachment{ 3, AttachmentType::Color, m_Material, LoadOp::Clear, StoreOp::Store    },
                     RenderPassAttachment{ 4, AttachmentType::Color, m_Emissive, LoadOp::Clear, StoreOp::Store    },
-                    RenderPassAttachment{ 5, AttachmentType::Depth, m_DepthPre, LoadOp::Load,  StoreOp::DontCare  },
+                    //RenderPassAttachment{ 5, AttachmentType::Depth, m_DepthPre, LoadOp::Load,  StoreOp::DontCare  },
                 }
             );
 
@@ -358,7 +358,7 @@ namespace Brisk
                 pipelineSpecs.pDebugName = "ShadowMap pipeline";
 
                 m_ShadowMapPipeline = Pipeline::Create();
-                m_ShadowMapPipeline->Init(pipelineSpecs);
+                //m_ShadowMapPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
 
@@ -394,7 +394,7 @@ namespace Brisk
                 pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
                 pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
                 pipelineSpecs.pDepthBiasEnable = false;
-                pipelineSpecs.pDepthTestEnable = false;
+                pipelineSpecs.pDepthTestEnable = true;
                 pipelineSpecs.pDepthWriteEnable = false;
                 pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_EQUAL;
                 pipelineSpecs.pDepthBoundsTestEnable = false;
@@ -406,11 +406,11 @@ namespace Brisk
 
                 pipelineSpecs.pCullMode = Pipeline::CullMode::NONE;
                 m_GBufferDoubleSidedPipeline = Pipeline::Create();
-                m_GBufferDoubleSidedPipeline->Init(pipelineSpecs);
+                //m_GBufferDoubleSidedPipeline->Init(pipelineSpecs);
 
                 pipelineSpecs.pTransparent = true;
                 m_GBufferAlphaBlendPipeline = Pipeline::Create();
-                m_GBufferAlphaBlendPipeline->Init(pipelineSpecs);
+                //m_GBufferAlphaBlendPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
 
@@ -485,10 +485,10 @@ namespace Brisk
 
             m_ClusterInfoUBO = Buffer::Create();
             BufferDesc clusterInfoBufferDesc{};
-            clusterTilesBufferDesc.p_Size = sizeof(ClusterInfo);
-            clusterTilesBufferDesc.p_Usage = BufferDesc::Usage::UniformBuffer;
-            clusterTilesBufferDesc.p_Memory = BufferDesc::MemoryUsage::CPU_Only;
-            clusterTilesBufferDesc.p_Persistant = true;
+            clusterInfoBufferDesc.p_Size = sizeof(ClusterInfo);
+            clusterInfoBufferDesc.p_Usage = BufferDesc::Usage::UniformBuffer;
+            clusterInfoBufferDesc.p_Memory = BufferDesc::MemoryUsage::CPU_To_GPU;
+            clusterInfoBufferDesc.p_Persistant = true;
             m_ClusterInfoUBO->Init(clusterInfoBufferDesc);
 
             m_AABBGeneratorPipeline->UpdateResources("ClusterInfo", {}, m_ClusterInfoUBO);
@@ -606,7 +606,7 @@ namespace Brisk
         clusterInfo.zNear = 0.1f;
         clusterInfo.zFar = 1000.0f;
         clusterInfo.numLights = MAX_LIGHTS;
-        //m_ClusterInfoUBO->UpdatePersistantData(sizeof(ClusterInfo), &clusterInfo);
+        m_ClusterInfoUBO->UpdatePersistantData(sizeof(ClusterInfo), &clusterInfo);
 
         auto view = SceneManager::pActiveScene->Reg().view<MeshComponent, WorldTransformComponent>();
 
@@ -614,6 +614,10 @@ namespace Brisk
             Entity entity = { e, SceneManager::pActiveScene.get() };
             auto& meshComp = entity.GetComponent<MeshComponent>();
             m_RenderGroups[meshComp.p_Mesh.get()].push_back(entity);
+        }
+
+        for (auto& [mesh, entities] : m_RenderGroups) {
+            m_GBufferPipeline->UpdateResources("Materials", {}, mesh->m_MaterialStorageBuffer);
         }
 
         m_Fence->Wait();
@@ -678,6 +682,7 @@ namespace Brisk
         Engine::s_Application->GetGpuAdapter()->WaitIdle();
 
         m_Swapchain->AcquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &m_ImageIndex);
+
         m_CmdBuffer->Reset();
         m_CmdBuffer->Bind();
 
@@ -695,14 +700,14 @@ namespace Brisk
         //------------------------------------------------------------------------------------------------------------------------------------------------
 
         {
-            Texture::ImageBarrierParams params{};
-            params.oldLayout = Core::ImageLayout::Undefined;
-            params.newLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
-            params.srcAccess = Core::AccessType::DepthStencilWrite;
-            params.dstAccess = Core::AccessType::ShaderRead;
-            params.srcStage = Core::PipelineStage::LateFragmentTest;
-            params.dstStage = Core::PipelineStage::FragmentShader;
-            m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
+            //Texture::ImageBarrierParams params{};
+            //params.oldLayout = Core::ImageLayout::Undefined;
+            //params.newLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
+            //params.srcAccess = Core::AccessType::DepthStencilWrite;
+            //params.dstAccess = Core::AccessType::ShaderRead;
+            //params.srcStage = Core::PipelineStage::LateFragmentTest;
+            //params.dstStage = Core::PipelineStage::FragmentShader;
+            //m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
         }
 
         // --- DEPTH PRE PASS ---------------------------
@@ -729,7 +734,7 @@ namespace Brisk
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
 
         for (auto& [mesh, entities] : m_RenderGroups) {
-            m_GBufferPipeline->UpdateResources("Materials", {}, mesh->m_MaterialStorageBuffer);
+            //m_GBufferPipeline->UpdateResources("Materials", {}, mesh->m_MaterialStorageBuffer);
             m_GBufferPipeline->Bind(m_CmdBuffer);
             Render(mesh, entities, true, true);
         }
@@ -762,14 +767,14 @@ namespace Brisk
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
         {
-            Texture::ImageBarrierParams params{};
-            params.oldLayout = Core::ImageLayout::PresentSrc;
-            params.newLayout = Core::ImageLayout::ColorAttachmentOptimal;
-            params.srcAccess = Core::AccessType::DepthStencilWrite;
-            params.dstAccess = Core::AccessType::ShaderRead;
-            params.srcStage = Core::PipelineStage::LateFragmentTest;
-            params.dstStage = Core::PipelineStage::FragmentShader;
-            m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
+            //Texture::ImageBarrierParams params{};
+            //params.oldLayout = Core::ImageLayout::PresentSrc;
+            //params.newLayout = Core::ImageLayout::ColorAttachmentOptimal;
+            //params.srcAccess = Core::AccessType::DepthStencilWrite;
+            //params.dstAccess = Core::AccessType::ShaderRead;
+            //params.srcStage = Core::PipelineStage::LateFragmentTest;
+            //params.dstStage = Core::PipelineStage::FragmentShader;
+            //m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
         }
 
         //// --- UI PASS ---------------------------
@@ -785,14 +790,14 @@ namespace Brisk
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
         {
-            Texture::ImageBarrierParams params{};
-            params.oldLayout = Core::ImageLayout::ColorAttachmentOptimal;
-            params.newLayout = Core::ImageLayout::PresentSrc;
-            params.srcAccess = Core::AccessType::DepthStencilWrite;
-            params.dstAccess = Core::AccessType::ShaderRead;
-            params.srcStage = Core::PipelineStage::LateFragmentTest;
-            params.dstStage = Core::PipelineStage::FragmentShader;
-            m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
+            //Texture::ImageBarrierParams params{};
+            //params.oldLayout = Core::ImageLayout::ColorAttachmentOptimal;
+            //params.newLayout = Core::ImageLayout::PresentSrc;
+            //params.srcAccess = Core::AccessType::DepthStencilWrite;
+            //params.dstAccess = Core::AccessType::ShaderRead;
+            //params.srcStage = Core::PipelineStage::LateFragmentTest;
+            //params.dstStage = Core::PipelineStage::FragmentShader;
+            //m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
         }
 
         m_CmdBuffer->UnBind();
@@ -873,8 +878,8 @@ namespace Brisk
                 if(primitive.materialIndex < 0)
                     BRISK_CORE_WARN("Invalid material index");
 
-                if(push)
-                    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(uint32_t), &index, false);
+                //if(push)
+                //    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(uint32_t), &index, false);
 
                 if ((fastgltf::AlphaMode)mesh.p_Mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)alphaMode) 
                 {

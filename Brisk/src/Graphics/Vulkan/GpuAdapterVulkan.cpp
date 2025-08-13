@@ -139,15 +139,10 @@ namespace Brisk
 		{
 			std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
 			layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_VERTEX_BIT, GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+			layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_COMPUTE_BIT,  GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+			layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->Init();
-			m_MVPDescriptorLayout = std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout();
-		}
-
-		{
-			std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
-			layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_COMPUTE_BIT,  GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-			layout->Init();
-			m_LightsDescriptorLayout = std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout();
+			m_FrameGlobalDescriptorLayout = std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout();
 		}
 
 		{
@@ -159,14 +154,7 @@ namespace Brisk
 			layout->AddBinding(4, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->AddBinding(5, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->Init();
-			m_DeferredTexturesDescriptorLayout = std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout();
-		}
-
-		{
-			std::shared_ptr<DescriptorLayout> layout = DescriptorLayout::Create();
-			layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-			layout->Init();
-			m_MaterialsDescriptorLayout = std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout();
+			m_PerMeshDescriptorLayout = std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout();
 		}
 
 		{
@@ -185,14 +173,14 @@ namespace Brisk
 		allocInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_ALLOCATE_INFO;
 		allocInfo.descriptorPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDescriptorPool();
 		allocInfo.descriptorSetCount = 1;
-		allocInfo.pSetLayouts = &m_MVPDescriptorLayout;
+		allocInfo.pSetLayouts = &m_FrameGlobalDescriptorLayout;
 		if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_GlobalSet) != VK_SUCCESS)
 		{
 			throw std::runtime_error("Failed to allocate descriptor sets!");
 		}
 
-		allocInfo.pSetLayouts = &m_MaterialsDescriptorLayout;
-		if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_PerMesh) != VK_SUCCESS)
+		allocInfo.pSetLayouts = &m_PerMeshDescriptorLayout;
+		if (vkAllocateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_PerMeshSet) != VK_SUCCESS)
 		{
 			throw std::runtime_error("Failed to allocate descriptor sets!");
 		}
@@ -463,11 +451,10 @@ namespace Brisk
 
 	void GpuAdapterVulkan::ReleasePools() {
 		vkDestroyDescriptorSetLayout(m_Device, m_DummyDescriptorLayout, nullptr);
-		vkDestroyDescriptorSetLayout(m_Device, m_MVPDescriptorLayout, nullptr);
-		vkDestroyDescriptorSetLayout(m_Device, m_LightsDescriptorLayout, nullptr);
-		vkDestroyDescriptorSetLayout(m_Device, m_DeferredTexturesDescriptorLayout, nullptr);
+		vkDestroyDescriptorSetLayout(m_Device, m_FrameGlobalDescriptorLayout, nullptr);
 		vkDestroyDescriptorSetLayout(m_Device, m_BindlessDescriptorLayout, nullptr);
-		vkDestroyDescriptorSetLayout(m_Device, m_MaterialsDescriptorLayout, nullptr);
+		vkDestroyDescriptorSetLayout(m_Device, m_PerMeshDescriptorLayout, nullptr);
+		vkDestroyDescriptorSetLayout(m_Device, m_ClusteredLightingDescriptorLayout, nullptr);
 
 		vkDestroyCommandPool(m_Device, m_GraphicsCommandPool, nullptr);
 		vkDestroyCommandPool(m_Device, m_ComputeCommandPool, nullptr);

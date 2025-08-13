@@ -381,6 +381,7 @@ namespace Brisk {
 
 		m_VertexBuffer = Buffer::Create();
 		BufferDesc vertexBufferDesc{};
+		vertexBufferDesc.p_Name = "Vertex buffer";
 		vertexBufferDesc.p_Size = sizeof(verticesData[0]) * verticesData.size();
 		vertexBufferDesc.p_Data = verticesData.data();
 		vertexBufferDesc.p_Usage = BufferDesc::Usage::VertexBuffer;
@@ -390,8 +391,8 @@ namespace Brisk {
 
 		if (indicesData.size() > 0) {
 			m_IndexBuffer = Buffer::Create();
-			m_VertexBuffer = Buffer::Create();
 			BufferDesc indexBufferDesc{};
+			indexBufferDesc.p_Name = "Index buffer";
 			indexBufferDesc.p_Size = sizeof(indicesData[0]) * indicesData.size();
 			indexBufferDesc.p_Data = indicesData.data();
 			indexBufferDesc.p_Usage = BufferDesc::Usage::IndexBuffer;

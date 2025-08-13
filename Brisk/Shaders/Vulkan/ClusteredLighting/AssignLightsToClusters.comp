@@ -13,11 +13,11 @@ struct TileAABB {
     vec4 maxPoint;
 };
 
-layout (std430, set = 5, binding = 0) buffer clusterAABBBuffer {
+layout (std430, set = 3, binding = 0) buffer clusterAABBBuffer {
     TileAABB clusters[];
 } ClusterAABB;
 
-layout(set = 5, binding = 1) uniform ClusterInfoBuffer {
+layout(set = 3, binding = 1) uniform ClusterInfoBuffer {
     mat4 view;  
     mat4 invProj;
     uvec4 tileSizes;
@@ -35,24 +35,24 @@ struct LightData {
 
 // xyz = pos, w = radius
 // xyz = color, w = intensity
-layout(std430, set = 1, binding = 0) readonly buffer LightsListBuffer {
+layout(std430, set = 0, binding = 1) readonly buffer LightsListBuffer {
     LightData lights[MAX_LIGHTS];
 } LightsList;
 
-layout(std430, set = 5,  binding = 2) buffer ClusterLightIndexListBuffer {
+layout(std430, set = 3,  binding = 2) buffer ClusterLightIndexListBuffer {
     uint lightIndices[]; // flattened light indices
 } ClusterLightIndexList;
 
-layout(std430, set = 5,  binding = 3) buffer ClusterLightOffsetListBuffer {
+layout(std430, set = 3,  binding = 3) buffer ClusterLightOffsetListBuffer {
     uvec2 lightOffsets[]; // start, count per cluster
 } ClusterLightOffsetList;
 
 // atomic counter for each cluster
-layout(std430, set = 5,  binding = 4) buffer AtomicCountersBuffer {
+layout(std430, set = 3,  binding = 4) buffer AtomicCountersBuffer {
     uint counters[];
 } AtomicCounters;
 
-layout (std430, set = 5, binding = 5) buffer GlobalIndexCountBuffer {
+layout (std430, set = 3, binding = 5) buffer GlobalIndexCountBuffer {
     uint globalIndexCount;
 } GlobalIndex;
 

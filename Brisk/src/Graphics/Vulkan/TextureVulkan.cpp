@@ -133,14 +133,26 @@ namespace Brisk
         m_Specs.p_Width = texWidth;
         m_Specs.p_Width = texHeight;
 
-        BufferVulkan stagingBuffer;
-        BufferDesc stagingBuffeDesc{};
-        stagingBuffeDesc.p_Size = imageSize;
-        stagingBuffeDesc.p_Data = m_Pixels;
-        stagingBuffeDesc.p_Usage = BufferDesc::Usage::StagingBuffer;
-        stagingBuffeDesc.p_Memory = BufferDesc::MemoryUsage::CPU_Only;
-        stagingBuffeDesc.p_Persistant = true;
-        stagingBuffer.Init(stagingBuffeDesc);
+        VkBuffer stagingBuffer;
+        VmaAllocation stagingBufferAllocation;
+        VmaAllocationInfo stagingAllocInfo;
+
+        VkBufferCreateInfo bufferInfo{};
+        bufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+        bufferInfo.size = imageSize;
+        bufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+        bufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+
+        VmaAllocationCreateInfo allocInfo{};
+        allocInfo.usage = VMA_MEMORY_USAGE_AUTO;
+        allocInfo.flags = VMA_ALLOCATION_CREATE_HOST_ACCESS_SEQUENTIAL_WRITE_BIT |
+            VMA_ALLOCATION_CREATE_MAPPED_BIT; // directly map
+
+        if (vmaCreateBuffer(cachedAllocator, &bufferInfo, &allocInfo, &stagingBuffer, &stagingBufferAllocation, &stagingAllocInfo) != VK_SUCCESS) {
+            throw std::runtime_error("Failed to create staging buffer!");
+        }
+
+        memcpy(stagingAllocInfo.pMappedData, m_Pixels, static_cast<size_t>(imageSize));
 
         stbi_image_free(m_Pixels);
 
@@ -250,7 +262,7 @@ namespace Brisk
                 (uint32_t)texHeight,
                 1
             };
-            vkCmdCopyBufferToImage(cmd, stagingBuffer.Get(), m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
+            vkCmdCopyBufferToImage(cmd, stagingBuffer, m_Image, VK_IMAGE_LAYOUT_TRANSFER_DST_OPTIMAL, 1, &region);
 
             VkImageMemoryBarrier barrier1{};
             barrier1.sType = VK_STRUCTURE_TYPE_IMAGE_MEMORY_BARRIER;
@@ -286,7 +298,8 @@ namespace Brisk
             }
             vkQueueWaitIdle(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue());
 
-            stagingBuffer.Release();
+            vmaDestroyBuffer(cachedAllocator, stagingBuffer, stagingBufferAllocation);
+
 
             vkFreeCommandBuffers(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(),
                 Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsCommandPool(), 1, &cmd);

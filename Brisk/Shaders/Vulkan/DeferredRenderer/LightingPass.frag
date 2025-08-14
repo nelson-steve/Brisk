@@ -15,11 +15,10 @@
 layout(location = 0) in vec2 uv;
 layout(location = 0) out vec4 outColor;
 
-layout(set = 0, binding = 0) uniform MVPBuffer {
+layout(std140, set = 0, binding = 0) uniform MVPBuffer {
     mat4 ProjView;
     mat4 View;
     vec3 CamPos;
-    float _padding0;
 } MVP;
 
 // G-buffer textures
@@ -115,7 +114,7 @@ void main() {
     vec3 ambient = 0.3 * albedo;
     vec3 finalColor = ambient + litColor * albedo + emissive;
 
-    outColor = vec4(fragPos, 1.0);
+    outColor = vec4(finalColor, 1.0);
 
     // Visualize number of lights in this tile
     //float brightness = float(count) / float(MAX_LIGHTS_PER_CLUSTER);

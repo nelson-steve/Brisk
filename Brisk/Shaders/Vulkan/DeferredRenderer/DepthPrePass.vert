@@ -2,8 +2,9 @@
 
 layout(location = 0) in vec3 inPosition;
 
-layout(set = 0, binding = 0) uniform MVPBuffer {
-    mat4 projView;
+layout(std140, set = 0, binding = 0) uniform MVPBuffer {
+    mat4 ProjView;
+    mat4 View;
     vec3 CamPos;
 } MVP;
 
@@ -13,5 +14,5 @@ layout(push_constant) uniform MeshDataBuffer {
 } MeshData;
 
 void main() {
-    gl_Position = MVP.projView * MeshData.model * vec4(inPosition, 1.0);
+    gl_Position = MVP.ProjView * MeshData.model * vec4(inPosition, 1.0);
 }

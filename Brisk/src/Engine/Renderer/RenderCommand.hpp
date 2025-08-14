@@ -5,6 +5,7 @@
 #include "Buffer.hpp"
 //------------------
 #include <memory>
+#include <Core/Log.hpp>
 //---------------
 
 namespace Brisk 
@@ -12,9 +13,11 @@ namespace Brisk
 	class RenderCommand {
 	public:
 		inline static void SetViewport(std::shared_ptr<CommandBuffer> cmd, uint32_t x, uint32_t y, uint32_t width, uint32_t height, uint32_t minDepth, uint32_t maxDepth) {
+			BRISK_CORE_ASSERT(width != 0 && height != 0);
 			s_RendererAPI->SetViewport(cmd, x, y, width, height, minDepth, maxDepth);
 		}
 		inline static void SetScissor(std::shared_ptr<CommandBuffer> cmd, uint32_t offsetX, uint32_t offsetY, uint32_t extentX, uint32_t extentY) {
+			BRISK_CORE_ASSERT(extentX != 0 && extentY != 0);
 			s_RendererAPI->SetScissor(cmd, offsetX, offsetY, extentX, extentY);
 		}
 		inline static void Draw(std::shared_ptr<CommandBuffer> cmd, uint32_t vertexCount, uint32_t firstVertex){

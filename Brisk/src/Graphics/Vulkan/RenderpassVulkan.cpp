@@ -187,7 +187,7 @@ namespace Brisk
         clearValues.resize(m_ColorAttachmentCount);
 
         for (auto& clear : clearValues) {
-            clear.color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
+            clear.color = { { 0.2f, 0.2f, 0.2f, 1.0f } };
         }
         if (m_HasDepth) {
             VkClearValue depthClear{};

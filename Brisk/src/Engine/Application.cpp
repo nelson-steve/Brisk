@@ -37,7 +37,7 @@ namespace Brisk
 			/* 7 */"../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf",
 		};
 
-		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[3], false);
+		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[2], false);
 
 		Entity entity = m_SceneManager->pActiveScene->CreateEntity("Flight Helmet");
 		for (auto& node: asset1->m_Nodes)

@@ -9,11 +9,10 @@ layout(location = 5) in vec4  inTangent;
 layout(location = 6) in uvec4 inJointIndices;
 layout(location = 7) in vec4  inJointWeights;
 
-layout(set = 0, binding = 0) uniform MVPBuffer {
+layout(std140, set = 0, binding = 0) uniform MVPBuffer {
     mat4 ProjView;
     mat4 View;
     vec3 CamPos;
-    float _padding0;
 } MVP;
 
 layout(push_constant) uniform MeshDataBuffer {

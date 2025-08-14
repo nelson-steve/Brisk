@@ -215,7 +215,7 @@ namespace Brisk
                     RenderPassAttachment{ 2, AttachmentType::Color, m_Albedo,   LoadOp::Clear, StoreOp::Store    },
                     RenderPassAttachment{ 3, AttachmentType::Color, m_Material, LoadOp::Clear, StoreOp::Store    },
                     RenderPassAttachment{ 4, AttachmentType::Color, m_Emissive, LoadOp::Clear, StoreOp::Store    },
-                    //RenderPassAttachment{ 5, AttachmentType::Depth, m_DepthPre, LoadOp::Load,  StoreOp::DontCare  },
+                    RenderPassAttachment{ 5, AttachmentType::Depth, m_DepthPre, LoadOp::Load,  StoreOp::DontCare  },
                 }
             );
 
@@ -304,7 +304,7 @@ namespace Brisk
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassVS.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassFS.spv");
                 pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\DepthPrePass_vert.cso");
-                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\DepthPrePass_frag.cso ");
+                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\DepthPrePass_frag.cso");
 
                 pipelineSpecs.pDepthClampEnable = false;
                 pipelineSpecs.pRasterizationDiscardEnable = false;
@@ -854,7 +854,7 @@ namespace Brisk
                 } pc;
 
                 pc.index = primitive.materialIndex;
-                pc.model = t;
+                pc.model = glm::mat4(1.0f);
 
                 if (primitive.materialIndex < 0)
                     BRISK_CORE_WARN("Invalid material index");

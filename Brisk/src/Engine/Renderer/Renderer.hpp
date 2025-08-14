@@ -57,7 +57,6 @@ namespace Brisk
 		alignas(16) glm::mat4 ProjView;
 		alignas(16) glm::mat4 View;
 		alignas(16) glm::vec3 CamPos;
-		alignas(4) float _padding0;
 	};
 
 	class Renderer {

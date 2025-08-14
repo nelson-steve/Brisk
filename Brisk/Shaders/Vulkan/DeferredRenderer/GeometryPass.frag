@@ -123,8 +123,7 @@ void main() {
     }
 
     // Position and normal
-    outPosition = vec4(1.0, 0.0, 1.0, 1.0);
-    //outPosition = vec4(fragPosition, 1.0);
+    outPosition = vec4(fragPosition, 1.0);
     vec3 normal = fragNormal;
 
     // Metallic & Roughness

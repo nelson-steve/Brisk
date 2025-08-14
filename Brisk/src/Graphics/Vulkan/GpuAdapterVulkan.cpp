@@ -40,7 +40,7 @@ namespace Brisk
 		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.apiVersion = VK_API_VERSION_1_2;
 
-		m_Extensions = UtilitiesVulkan::GetRequiredExtensions();
+		m_InstanceExtensions = UtilitiesVulkan::GetRequiredExtensions();
 		m_ValidationLayersFound = false;
 #if _DEBUG
 		m_ValidationLayersFound = UtilitiesVulkan::CheckValidationLayerSupport(m_ValidationLayers);
@@ -50,8 +50,8 @@ namespace Brisk
 #endif
 		VkInstanceCreateInfo createInfo{ VK_STRUCTURE_TYPE_INSTANCE_CREATE_INFO };
 		createInfo.pApplicationInfo = &appInfo;
-		createInfo.enabledExtensionCount = static_cast<uint32_t>(m_Extensions.size());
-		createInfo.ppEnabledExtensionNames = m_Extensions.data();
+		createInfo.enabledExtensionCount = static_cast<uint32_t>(m_InstanceExtensions.size());
+		createInfo.ppEnabledExtensionNames = m_InstanceExtensions.data();
 #if _DEBUG
 		createInfo.enabledLayerCount =
 			m_ValidationLayersFound ? static_cast<uint32_t>(m_ValidationLayers.size()) : 0;
@@ -77,10 +77,12 @@ namespace Brisk
 		}
 #endif
 
-		m_RequiredExtensions = 
+		m_DeviceExtensions =
 		{ 
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
 		};
+
+		m_DeviceExtensions.push_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
 
 		std::vector<VkPhysicalDevice> availableDevices = RetrieveAvailableDevice(m_Instance);
 		bool deviceFound = false;
@@ -385,14 +387,15 @@ namespace Brisk
 		VkDeviceCreateInfo deviceCreateInfo{ VK_STRUCTURE_TYPE_DEVICE_CREATE_INFO };
 		deviceCreateInfo.queueCreateInfoCount = static_cast<uint16_t>(queueCreateInfos.size());
 		deviceCreateInfo.pQueueCreateInfos = queueCreateInfos.data();
-		deviceCreateInfo.enabledExtensionCount = static_cast<uint16_t>(m_RequiredExtensions.size());
-		deviceCreateInfo.ppEnabledExtensionNames = m_RequiredExtensions.data();
+		deviceCreateInfo.enabledExtensionCount = static_cast<uint16_t>(m_DeviceExtensions.size());
+		deviceCreateInfo.ppEnabledExtensionNames = m_DeviceExtensions.data();
 
 		VkPhysicalDeviceFeatures2 features { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_FEATURES_2 };
 		features.features.multiDrawIndirect = VK_TRUE;
 		features.features.pipelineStatisticsQuery = VK_TRUE;
+		features.features.shaderInt16 = VK_TRUE;
 		features.features.shaderInt64 = VK_TRUE;
-		//features.features.shaderInt16 = VK_TRUE;
+		features.features.samplerAnisotropy = VK_TRUE;
 
 		VkPhysicalDeviceVulkan11Features features11 { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
 		features11.storageBuffer16BitAccess = VK_TRUE;
@@ -402,11 +405,15 @@ namespace Brisk
 		features12.drawIndirectCount = VK_TRUE;
 		features12.storageBuffer8BitAccess = VK_TRUE;
 		features12.uniformAndStorageBuffer8BitAccess = VK_TRUE;
-		//features12.shaderFloat16 = VK_TRUE;
+		features12.shaderFloat16 = VK_TRUE;
 		features12.shaderInt8 = VK_TRUE;
 		features12.samplerFilterMinmax = VK_TRUE;
 		features12.scalarBlockLayout = VK_TRUE;
 
+		// for raytracing
+		//features12.bufferDeviceAddress = VK_TRUE;
+
+		// Bindless features
 		features12.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
 		features12.descriptorBindingSampledImageUpdateAfterBind = VK_TRUE;
 		features12.descriptorBindingUpdateUnusedWhilePending = VK_TRUE;
@@ -415,15 +422,37 @@ namespace Brisk
 		features12.runtimeDescriptorArray = VK_TRUE;
 		features12.descriptorIndexing = VK_TRUE;
 
+		//VkPhysicalDeviceVulkan13Features features13 = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
+		//features13.dynamicRendering = true;
+		//features13.synchronization2 = true;
+		//features13.maintenance4 = true;
+		//features13.shaderDemoteToHelperInvocation = true;
+
+		//VkPhysicalDeviceVulkan14Features features14 = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES };
+		//features14.maintenance5 = true;
+		//features14.maintenance6 = true;
+		//features14.pushDescriptor = true;
+
+		VkPhysicalDeviceMeshShaderFeaturesEXT featuresMesh = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT };
+		featuresMesh.taskShader = true;
+		featuresMesh.meshShader = true;
+
+		// Raytracing features
+		//VkPhysicalDeviceRayQueryFeaturesKHR featuresRayQueries = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_QUERY_FEATURES_KHR };
+		//featuresRayQueries.rayQuery = true;
+		//VkPhysicalDeviceAccelerationStructureFeaturesKHR featuresAccelerationStructure = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR };
+		//featuresAccelerationStructure.accelerationStructure = true;
+
 		deviceCreateInfo.pNext = &features;
 		features.pNext = &features11;
 		features11.pNext = &features12;
+		features12.pNext = &featuresMesh;
 #if _DEBUG
-		const std::vector<const char*> validation_layers = {
+		const std::vector<const char*> validationLayers = {
 			"VK_LAYER_KHRONOS_validation"
 		};
-		deviceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validation_layers.size());
-		deviceCreateInfo.ppEnabledLayerNames = validation_layers.data();
+		deviceCreateInfo.enabledLayerCount = static_cast<uint32_t>(validationLayers.size());
+		deviceCreateInfo.ppEnabledLayerNames = validationLayers.data();
 #else
 		deviceCreateInfo.enabledLayerCount = 0;
 #endif
@@ -469,7 +498,7 @@ namespace Brisk
 	}
 
 	bool GpuAdapterVulkan::IsDeviceSuitable(VkPhysicalDevice device) {
-		std::vector<const char*>& extensions = m_RequiredExtensions;
+		std::vector<const char*>& extensions = m_DeviceExtensions;
 		bool extensionsSupported = false;
 		uint32_t extensionCount;
 		vkEnumerateDeviceExtensionProperties(device, nullptr, &extensionCount, nullptr);

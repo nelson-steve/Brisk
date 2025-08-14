@@ -99,9 +99,9 @@ namespace Brisk
 		/// <summary>
 		/// Vulkan helper variables
 		/// </summary>
-		std::vector<const char*> m_Extensions;
+		std::vector<const char*> m_InstanceExtensions;
 		std::vector<const char*> m_Layers;
-		std::vector<const char*> m_RequiredExtensions;
+		std::vector<const char*> m_DeviceExtensions;
 		std::vector<const char*> m_ValidationLayers;
 		VkDebugUtilsMessengerCreateInfoEXT s_DebugCreateInfo;
 		VkDebugUtilsMessengerEXT s_DebugMessenger;

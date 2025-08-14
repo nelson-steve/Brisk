@@ -6,13 +6,44 @@
 #include "RenderPassVulkan.hpp"
 #include "DescriptorLayoutVulkan.hpp"
 #include "Engine/Renderer/Renderer.hpp"
-
-#include <spirv_reflect.h>
 #include "BufferVulkan.hpp"
 #include "TextureVulkan.hpp"
 
+//#include <shaderc/shaderc.hpp>
+#include <spirv_reflect.h>
+
 namespace Brisk
 {
+    static std::string ReadFileAsString(const std::string& fileName) {
+        std::ifstream file(fileName, std::ios::binary);
+        if (!file.is_open()) {
+            throw std::runtime_error("Failed to open shader source: " + fileName);
+        }
+        std::stringstream buffer;
+        buffer << file.rdbuf();
+        return buffer.str();
+    }
+
+//    std::vector<uint32_t> CompileGLSL(const std::string& source, shaderc_shader_kind kind, const std::string& filename) {
+//        shaderc::Compiler compiler;
+//        shaderc::CompileOptions options;
+//
+//#ifdef _DEBUG
+//        options.SetGenerateDebugInfo();
+//        options.SetOptimizationLevel(shaderc_optimization_level_zero);
+//#else
+//        options.SetOptimizationLevel(shaderc_optimization_level_performance);
+//#endif
+//
+//        shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(source, kind, filename.c_str(), options);
+//
+//        if (result.GetCompilationStatus() != shaderc_compilation_status_success) {
+//            throw std::runtime_error(result.GetErrorMessage());
+//        }
+//
+//        return { result.cbegin(), result.cend() };
+//    }
+
     void PipelineVulkan::Init(const GraphicsPipelineSpecs& specs) {
         m_GraphicsSpecs = specs;
 

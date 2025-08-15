@@ -8,6 +8,8 @@
 #include <fastgltf/tools.hpp>
 //-------------------
 
+//#include <meshoptimizer.h>
+
 namespace Brisk {
 	MeshAsset::~MeshAsset() {
 	}
@@ -420,11 +422,8 @@ namespace Brisk {
 				if (meshlet.VertexCount + (av == 0xff) + (bv == 0xff) + (cv == 0xff) > 64 || meshlet.IndexCount + 3 > 126)
 				{
 					meshletsData.push_back(meshlet);
-
-					for (size_t j = 0; j < meshlet.VertexCount; ++j)
-						meshletVertices[meshlet.Vertices[j]] = 0xff;
-
 					meshlet = {};
+					std::fill(meshletVertices.begin(), meshletVertices.end(), 0xff);
 				}
 
 				if (av == 0xff)

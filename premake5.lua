@@ -37,6 +37,7 @@ IncludeDir["VMA"]       = "%{wks.location}/Brisk/vendors/VMA/include"
 IncludeDir["SPIRV"]       = "%{wks.location}/Brisk/vendors/SPIRV-Reflect"
 IncludeDir["fastgltf"]       = "%{wks.location}/Brisk/vendors/fastgltf/include"
 IncludeDir["simdjson"]       = "%{wks.location}/Brisk/vendors/simdjson"
+IncludeDir["meshoptimizer"]       = "%{wks.location}/Brisk/vendors/meshoptimizer/src"
 -- IncludeDir["Vulkan"] = Vulkan_SDK .. "/Include"
 
 -- External libraries
@@ -46,6 +47,7 @@ group "Dependencies"
     include "Brisk/vendors/SPIRV-Reflect"
     include "Brisk/vendors/simdjson"
     include "Brisk/vendors/fastgltf"
+    include "Brisk/vendors/meshoptimizer"
 group ""
 
 project "Brisk"
@@ -82,6 +84,7 @@ project "Brisk"
         "Brisk/vendors/DirectX12Headers/include",
         "Brisk/vendors/AgilitySDK/include",
         "%{IncludeDir.fastgltf}",
+        "Brisk/vendors/meshoptimizer/src",
         Vulkan_SDK .. "/Include"
     }
 

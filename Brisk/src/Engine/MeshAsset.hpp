@@ -14,22 +14,30 @@ namespace Brisk
 {
 	class MeshAsset {
 	public:
-		struct MeshData {
-			glm::vec3 Position;
-			glm::vec3 Normal;
-			glm::vec2 UV0;
-			glm::vec2 UV1;
-			glm::vec3 Color;
+        struct MeshData {
+            glm::vec3 Position;
+            float _pad0;
+
+            glm::vec3 Normal;
+            float _pad1;     
+
+            glm::vec2 UV0;           
+            glm::vec2 UV1;           
+
+            glm::vec3 Color;         
+            float _pad2;             
 
             glm::vec4 Tangent;
+
             glm::uvec4 JointIndices;
-            glm::vec4 JointWeights;
-		};
+            glm::vec4 JointWeights; 
+        };
+
 
         struct Meshlet
         {
             uint32_t Vertices[64];
-            uint8_t Indices[126]; // up to 126/3 -> 42 triangles
+            uint8_t Indices[126];
             uint8_t IndexCount;
             uint8_t VertexCount;
         };

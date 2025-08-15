@@ -311,8 +311,8 @@ namespace Brisk
                 pipelineSpecs.pRasterizationDiscardEnable = false;
                 pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
                 pipelineSpecs.pLineWidth = 1.0f;
-                pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
-                pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
+                pipelineSpecs.pCullMode = Pipeline::CullMode::NONE;
+                pipelineSpecs.pFrontFace = Pipeline::FrontFace::COUTNER_CLOCKWISE;
                 pipelineSpecs.pDepthBiasEnable = false;
                 pipelineSpecs.pDepthTestEnable = true;  
                 pipelineSpecs.pDepthWriteEnable = true;

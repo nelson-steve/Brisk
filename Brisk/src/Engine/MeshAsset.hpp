@@ -26,6 +26,14 @@ namespace Brisk
             glm::vec4 JointWeights;
 		};
 
+        struct Meshlet
+        {
+            uint32_t Vertices[64];
+            uint8_t Indices[126]; // up to 126/3 -> 42 triangles
+            uint8_t IndexCount;
+            uint8_t VertexCount;
+        };
+
         struct MaterialData {
             // --- General ---
             alignas(4) int alphaMode;
@@ -159,6 +167,8 @@ namespace Brisk
 		std::vector<MaterialData> m_Materials;
 		std::shared_ptr<Buffer> m_VertexBuffer;
 		std::shared_ptr<Buffer> m_IndexBuffer;
+		std::shared_ptr<Buffer> m_VertexStorageBuffer;
         std::shared_ptr<Buffer> m_MaterialStorageBuffer;
+		std::shared_ptr<Buffer> m_MeshletsBuffer;
 	};
 }

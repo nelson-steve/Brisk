@@ -75,7 +75,7 @@ namespace Brisk
 		static std::unique_ptr<Renderer> Create();
 	private:
 		void RenderEntity(const MeshComponent& mesh, int alphaMode, bool push = false);
-		void Render(MeshAsset* mesh, std::vector<Entity> entities, bool pushMaterialIndex = false, bool pushModelMatrix = false);
+		void Render(MeshAsset* mesh, std::vector<Entity> entities, bool pushMaterialIndex = false, bool pushModelMatrix = false, bool meshShading = false);
 
 	public:
 		static std::shared_ptr<Swapchain> m_Swapchain;

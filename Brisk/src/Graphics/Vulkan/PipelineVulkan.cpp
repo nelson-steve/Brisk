@@ -54,8 +54,28 @@ namespace Brisk
         m_DescriptorSetLayouts[3] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
         std::vector<VkPushConstantRange> pushConstants;
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+        bool usingMeshShading = false;
         for (const std::string& path : specs.pShaderPathsVK) 
         {
+            std::filesystem::path fsPath(path);
+            std::string filename = fsPath.stem().string(); // "DepthPrePassMS"
+
+            // Check shader stage
+            if (filename.find("MS") != std::string::npos) {
+                usingMeshShading = true;
+                std::cout << "Mesh Shader detected: " + path << std::endl;
+            }
+            else if (filename.find("VS") != std::string::npos) {
+                std::cout << "Vertex Shader detected\n";
+            }
+            else if (filename.find("FS") != std::string::npos) {
+                std::cout << "Fragment Shader detected\n";
+            }
+            else {
+                std::cout << "Unknown shader stage\n";
+            }
+
+
             VkPipelineShaderStageCreateInfo shaderStage{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
             const std::vector<char>* shaderCode = UtilitiesVulkan::ReadShaderFile(path);
 
@@ -81,6 +101,10 @@ namespace Brisk
 
             shaderStage.pName = module.entry_point_name;
             shaderStage.stage = static_cast<VkShaderStageFlagBits>(module.shader_stage);
+
+            if (shaderStage.stage == VK_SHADER_STAGE_MESH_BIT_EXT) {
+                usingMeshShading = true;
+            }
 
             shaderStages.push_back(shaderStage);
 
@@ -171,7 +195,7 @@ namespace Brisk
         VkPipelineVertexInputStateCreateInfo vertexInputInfo{ VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO };
         VkVertexInputBindingDescription bindingDescription{};
         std::vector<VkVertexInputAttributeDescription> attributeDescriptions;
-        if (specs.pLayout.has_value()) {
+        if (specs.pLayout.has_value() && !usingMeshShading) {
             bindingDescription.binding = specs.pLayout.value().pBinding;
             bindingDescription.inputRate = VK_VERTEX_INPUT_RATE_VERTEX;
             bindingDescription.stride = specs.pLayout.value().pStride;
@@ -265,7 +289,7 @@ namespace Brisk
         VkGraphicsPipelineCreateInfo pipelineInfo{ VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO };
         pipelineInfo.stageCount = static_cast<uint32_t>(shaderStages.size());
         pipelineInfo.pStages = shaderStages.data();
-        pipelineInfo.pVertexInputState = &vertexInputInfo;
+        pipelineInfo.pVertexInputState = usingMeshShading ? nullptr : &vertexInputInfo;
         pipelineInfo.pInputAssemblyState = &inputAssembly;
         pipelineInfo.pViewportState = &viewportState;
         pipelineInfo.pRasterizationState = &rasterizer;

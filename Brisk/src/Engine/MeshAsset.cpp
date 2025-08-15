@@ -126,6 +126,7 @@ namespace Brisk {
 		uint32_t vertexPos = 0;
 		std::vector<MeshData> verticesData;
 		std::vector<uint32_t> indicesData;
+		std::vector<Meshlet> meshletsData;
 		verticesData.reserve(totalVertexCount);
 		indicesData.reserve(totalIndexCount);
 		for (const auto& gltfMesh : asset.meshes) {
@@ -400,6 +401,83 @@ namespace Brisk {
 			indexBufferDesc.p_AllowSRV = true;
 			m_IndexBuffer->Init(indexBufferDesc);
 		}
+
+		{
+			std::vector<uint8_t> meshletVertices(verticesData.size(), 0xff);
+
+			Meshlet meshlet = {};
+
+			for (size_t i = 0; i < indicesData.size(); i += 3)
+			{
+				unsigned int a = indicesData[i + 0];
+				unsigned int b = indicesData[i + 1];
+				unsigned int c = indicesData[i + 2];
+
+				uint8_t& av = meshletVertices[a];
+				uint8_t& bv = meshletVertices[b];
+				uint8_t& cv = meshletVertices[c];
+
+				if (meshlet.VertexCount + (av == 0xff) + (bv == 0xff) + (cv == 0xff) > 64 || meshlet.IndexCount + 3 > 126)
+				{
+					meshletsData.push_back(meshlet);
+
+					for (size_t j = 0; j < meshlet.VertexCount; ++j)
+						meshletVertices[meshlet.Vertices[j]] = 0xff;
+
+					meshlet = {};
+				}
+
+				if (av == 0xff)
+				{
+					av = meshlet.VertexCount;
+					meshlet.Vertices[meshlet.VertexCount++] = a;
+				}
+
+				if (bv == 0xff)
+				{
+					bv = meshlet.VertexCount;
+					meshlet.Vertices[meshlet.VertexCount++] = b;
+				}
+
+				if (cv == 0xff)
+				{
+					cv = meshlet.VertexCount;
+					meshlet.Vertices[meshlet.VertexCount++] = c;
+				}
+
+				meshlet.Indices[meshlet.IndexCount++] = av;
+				meshlet.Indices[meshlet.IndexCount++] = bv;
+				meshlet.Indices[meshlet.IndexCount++] = cv;
+			}
+
+			assert(meshlet.VertexCount <= 64);
+			assert(meshlet.IndexCount <= 126);
+
+
+			if (meshlet.IndexCount)
+				meshletsData.push_back(meshlet);
+
+			m_MeshletsBuffer = Buffer::Create();
+			BufferDesc meshletBufferDesc{};
+			meshletBufferDesc.p_Name = "Meshlet buffer";
+			meshletBufferDesc.p_Size = sizeof(meshletsData[0]) * meshletsData.size();
+			meshletBufferDesc.p_Data = meshletsData.data();
+			meshletBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+			meshletBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+			meshletBufferDesc.p_AllowSRV = true;
+			m_MeshletsBuffer->Init(meshletBufferDesc);
+
+			m_VertexStorageBuffer = Buffer::Create();
+			BufferDesc vertexBufferDesc{};
+			vertexBufferDesc.p_Name = "Vertices Storage buffer";
+			vertexBufferDesc.p_Size = sizeof(verticesData[0]) * verticesData.size();
+			vertexBufferDesc.p_Data = verticesData.data();
+			vertexBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+			vertexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+			vertexBufferDesc.p_AllowSRV = true;
+			m_VertexStorageBuffer->Init(vertexBufferDesc);
+		}
+
 		uint32_t texturesOffset = Engine::s_TexturesOffset;
 
 		m_Materials.reserve(asset.materials.size());

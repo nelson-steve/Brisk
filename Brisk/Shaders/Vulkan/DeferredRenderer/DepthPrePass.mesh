@@ -1,0 +1,80 @@
+#version 460
+#extension GL_EXT_shader_16bit_storage : require
+#extension GL_EXT_shader_8bit_storage  : require
+#extension GL_EXT_mesh_shader          : require
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout(triangles, max_vertices = 64, max_primitives = 42) out;
+
+struct MeshData {
+    vec3 Position;
+    vec3 Normal;
+    vec2 UV0;
+    vec2 UV1;
+    vec3 Color;
+
+    vec4  Tangent;
+    uvec4 JointIndices;
+    vec4  JointWeights;
+};
+
+layout(std140, set = 0, binding = 0) uniform MVPBuffer {
+    mat4 ProjView;
+    mat4 View;
+    vec3 CamPos;
+} MVP;
+
+layout(push_constant) uniform MeshDataBuffer {
+    mat4 model;
+    int materialIndex;
+} ObjectData;
+
+layout(set = 0, binding = 3) readonly buffer VerticesBuffer {
+    MeshData vertices[];
+} Vertices;
+
+struct Meshlet {
+    uint vertices[64];
+    uint8_t indices[126];
+    uint8_t indexCount;
+    uint8_t vertexCount;
+};
+
+layout(set = 0, binding = 4) readonly buffer MeshletsBuffer {
+    Meshlet meshlets[];
+} Meshlets;
+
+layout(location = 0) out vec4 color[];
+
+void main()
+{
+    uint mi = gl_WorkGroupID.x;
+    uint vCount = uint(Meshlets.meshlets[mi].vertexCount);
+    uint pCount = uint(Meshlets.meshlets[mi].indexCount) / 3;
+
+    // EXT version: set total vertices & primitives
+    SetMeshOutputsEXT(vCount, pCount);
+
+    // Set vertex data
+    for (uint i = 0; i < vCount; ++i)
+    {
+        uint vi = Meshlets.meshlets[mi].vertices[i];
+
+        vec3 position = Vertices.vertices[vi].Position;
+        vec3 normal   = Vertices.vertices[vi].Normal;
+
+        vec4 worldPos   = ObjectData.model * vec4(position, 1.0);
+        gl_MeshVerticesEXT[i].gl_Position = MVP.ProjView * worldPos;
+        color[i] = vec4(normal * 0.5 + vec3(0.5), 1.0);
+    }
+
+    // Set primitive indices per triangle
+    for (uint t = 0; t < pCount; ++t)
+    {
+        uint i0 = uint(Meshlets.meshlets[mi].indices[t * 3 + 0]);
+        uint i1 = uint(Meshlets.meshlets[mi].indices[t * 3 + 1]);
+        uint i2 = uint(Meshlets.meshlets[mi].indices[t * 3 + 2]);
+
+        gl_PrimitiveTriangleIndicesEXT[t] = uvec3(i0, i1, i2);
+    }
+}

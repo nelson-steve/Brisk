@@ -301,7 +301,8 @@ namespace Brisk
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_DepthPrePass;
 
-                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassVS.spv");
+                //pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassVS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassMS.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassFS.spv");
                 pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\DepthPrePass_vert.cso");
                 pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\DepthPrePass_frag.cso");
@@ -620,6 +621,11 @@ namespace Brisk
             m_GBufferPipeline->UpdateResources("Materials", {}, mesh->m_MaterialStorageBuffer);
         }
 
+        for (auto& [mesh, entities] : m_RenderGroups) {
+            m_DepthPrePassPipeline->UpdateResources("Vertices", {}, mesh->m_VertexStorageBuffer);
+            m_DepthPrePassPipeline->UpdateResources("Meshlets", {}, mesh->m_MeshletsBuffer);
+        }
+
         m_Fence->Wait();
         m_Fence->Reset();
 
@@ -721,7 +727,7 @@ namespace Brisk
         auto meshes = SceneManager::pActiveScene->Reg().view<MeshComponent, WorldTransformComponent>();
 
         for (auto& [mesh, entities] : m_RenderGroups) {
-            Render(mesh, entities, true, true);
+            Render(mesh, entities, true, true, true);
         }
 
         m_DepthPrePass->End(m_CmdBuffer);
@@ -834,9 +840,11 @@ namespace Brisk
         return local;
     }
 
-    void Renderer::Render(MeshAsset* mesh, std::vector<Entity> entities, bool pushMaterialIndex, bool pushModelMatrix) {
-        RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh->GetVertexBuffer() }, 0);
-        RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh->GetIndexBuffer(), 0);
+    void Renderer::Render(MeshAsset* mesh, std::vector<Entity> entities, bool pushMaterialIndex, bool pushModelMatrix, bool meshShading) {
+        if (!meshShading) {
+            RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh->GetVertexBuffer() }, 0);
+            RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh->GetIndexBuffer(), 0);
+        }
 
         for (Entity e : entities) {
             auto& meshComp = e.GetComponent<MeshComponent>();
@@ -862,9 +870,14 @@ namespace Brisk
                 if (pushMaterialIndex && pushModelMatrix)
                     m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, true);
 
-                if ((fastgltf::AlphaMode)mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)0U)
-                {
-                    RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
+                if (meshShading) {
+                    RenderCommand::DrawMeshTasks(m_CmdBuffer, 370);
+                }
+                else {
+                    if ((fastgltf::AlphaMode)mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)0U)
+                    {
+                        RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
+                    }
                 }
             }
         }

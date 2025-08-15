@@ -6,6 +6,9 @@ setlocal
 if not exist "Compiled" mkdir Compiled
 
 :: Compile deferred renderer shaders
+echo Compiling DepthPrePass.mesh...
+glslc DepthPrePass.mesh -o Compiled/DepthPrePassMS.spv --target-env=vulkan1.3 || goto :error
+
 echo Compiling DepthPrePass.vert...
 glslc DepthPrePass.vert -o Compiled/DepthPrePassVS.spv || goto :error
 

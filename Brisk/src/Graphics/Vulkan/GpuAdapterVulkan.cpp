@@ -38,7 +38,7 @@ namespace Brisk
 		appInfo.applicationVersion = VK_MAKE_VERSION(1, 0, 0);
 		appInfo.pEngineName = Engine::s_EngineSettings.EngineName.c_str();
 		appInfo.engineVersion = VK_MAKE_VERSION(1, 0, 0);
-		appInfo.apiVersion = VK_API_VERSION_1_2;
+		appInfo.apiVersion = VK_API_VERSION_1_4;
 
 		m_InstanceExtensions = UtilitiesVulkan::GetRequiredExtensions();
 		m_ValidationLayersFound = false;
@@ -143,6 +143,8 @@ namespace Brisk
 			layout->AddBinding(0, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_VERTEX_BIT, GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_COMPUTE_BIT,  GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+			layout->AddBinding(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT });
+			layout->AddBinding(4, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT });
 			layout->Init();
 			m_FrameGlobalDescriptorLayout = std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout();
 		}
@@ -422,16 +424,16 @@ namespace Brisk
 		features12.runtimeDescriptorArray = VK_TRUE;
 		features12.descriptorIndexing = VK_TRUE;
 
-		//VkPhysicalDeviceVulkan13Features features13 = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
-		//features13.dynamicRendering = true;
-		//features13.synchronization2 = true;
-		//features13.maintenance4 = true;
-		//features13.shaderDemoteToHelperInvocation = true;
+		VkPhysicalDeviceVulkan13Features features13 = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_3_FEATURES };
+		features13.dynamicRendering = true;
+		features13.synchronization2 = true;
+		features13.maintenance4 = true;
+		features13.shaderDemoteToHelperInvocation = true;
 
-		//VkPhysicalDeviceVulkan14Features features14 = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES };
-		//features14.maintenance5 = true;
-		//features14.maintenance6 = true;
-		//features14.pushDescriptor = true;
+		VkPhysicalDeviceVulkan14Features features14 = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_4_FEATURES };
+		features14.maintenance5 = true;
+		features14.maintenance6 = true;
+		features14.pushDescriptor = true;
 
 		VkPhysicalDeviceMeshShaderFeaturesEXT featuresMesh = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_MESH_SHADER_FEATURES_EXT };
 		featuresMesh.taskShader = true;
@@ -446,7 +448,9 @@ namespace Brisk
 		deviceCreateInfo.pNext = &features;
 		features.pNext = &features11;
 		features11.pNext = &features12;
-		features12.pNext = &featuresMesh;
+		features12.pNext = &features13;
+		features13.pNext = &features14;
+		features14.pNext = &featuresMesh;
 #if _DEBUG
 		const std::vector<const char*> validationLayers = {
 			"VK_LAYER_KHRONOS_validation"

@@ -43,14 +43,6 @@ namespace Brisk
 		for (auto& node: asset1->m_Nodes)
 			AddMeshToScene(node, entity, asset1);
 
-		//entity = m_SceneManager->pActiveScene->CreateEntity("Flight Helmet1");
-		//for (auto& node : asset1->m_Nodes)
-		//	AddMeshToScene(node, entity, asset1);
-
-		//entity = m_SceneManager->pActiveScene->CreateEntity("Flight Helmet2");
-		//for (auto& node : asset1->m_Nodes)
-		//	AddMeshToScene(node, entity, asset1);
-
 		Entity lightEntity = m_SceneManager->pActiveScene->CreateEntity("Light");
 		lightEntity.AddComponent<LightComponent>();
 	}

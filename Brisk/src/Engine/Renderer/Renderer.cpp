@@ -383,7 +383,8 @@ namespace Brisk
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_GeometryBufferPass;
 
-                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryPassVS.spv");
+                //pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryPassVS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryPassMS.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryPassFS.spv");
                 pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\GeometryPass_vert.cso");
                 pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\GeometryPass_frag.cso");
@@ -742,7 +743,7 @@ namespace Brisk
         for (auto& [mesh, entities] : m_RenderGroups) {
             //m_GBufferPipeline->UpdateResources("Materials", {}, mesh->m_MaterialStorageBuffer);
             m_GBufferPipeline->Bind(m_CmdBuffer);
-            Render(mesh, entities, true, true);
+            Render(mesh, entities, true, true, true);
         }
         m_GeometryBufferPass->End(m_CmdBuffer);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
@@ -852,31 +853,44 @@ namespace Brisk
 
             glm::mat4 t = GetWorldTransform(e);
 
-            auto& submesh = mesh->m_Meshes[meshComp.p_SubMeshIndex];
-            for (auto& primitive : submesh.primitives) {
-                uint32_t index = primitive.materialIndex != -1 ? primitive.materialIndex : 0;
-
+            if (meshShading) {
                 struct pcData {
                     glm::mat4 model;
                     uint32_t index;
                 } pc;
 
-                pc.index = primitive.materialIndex;
+                pc.index = 0;
                 pc.model = glm::mat4(1.0f);
 
-                if (primitive.materialIndex < 0)
-                    BRISK_CORE_WARN("Invalid material index");
+                //if (pushMaterialIndex && pushModelMatrix)
+                //    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, true);
 
-                if (pushMaterialIndex && pushModelMatrix)
-                    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, true);
+                RenderCommand::DrawMeshTasks(m_CmdBuffer, 370);
+            }
+            else {
+                auto& submesh = mesh->m_Meshes[meshComp.p_SubMeshIndex];
+                for (auto& primitive : submesh.primitives) {
+                    uint32_t index = primitive.materialIndex != -1 ? primitive.materialIndex : 0;
 
-                if (meshShading) {
-                    RenderCommand::DrawMeshTasks(m_CmdBuffer, 370);
-                }
-                else {
-                    if ((fastgltf::AlphaMode)mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)0U)
-                    {
-                        RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
+                    struct pcData {
+                        glm::mat4 model;
+                        uint32_t index;
+                    } pc;
+
+                    pc.index = primitive.materialIndex;
+                    pc.model = glm::mat4(1.0f);
+
+                    if (primitive.materialIndex < 0)
+                        BRISK_CORE_WARN("Invalid material index");
+
+                    if (pushMaterialIndex && pushModelMatrix)
+                        m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, true);
+
+                    else {
+                        if ((fastgltf::AlphaMode)mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)0U)
+                        {
+                            RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
+                        }
                     }
                 }
             }

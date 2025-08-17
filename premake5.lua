@@ -106,6 +106,7 @@ project "Brisk"
         "SPIRV-Reflect",
         "simdjson",
         "fastgltf",
+        "meshoptimizer",
     }
 
     filter "system:windows"

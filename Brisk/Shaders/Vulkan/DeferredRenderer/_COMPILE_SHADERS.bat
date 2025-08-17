@@ -16,6 +16,9 @@ echo Compiling DepthPrePass.frag...
 glslc DepthPrePass.frag -o Compiled/DepthPrePassFS.spv || goto :error
 
 
+echo Compiling GeometryPass.mesh...
+glslc GeometryPass.mesh -o Compiled/GeometryPassMS.spv --target-env=vulkan1.3 || goto :error
+
 echo Compiling GeometryPass.vert...
 glslc GeometryPass.vert -o Compiled/GeometryPassVS.spv || goto :error
 

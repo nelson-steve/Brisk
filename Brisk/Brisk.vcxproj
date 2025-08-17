@@ -273,6 +273,9 @@
     <ProjectReference Include="vendors\fastgltf\fastgltf.vcxproj">
       <Project>{60D16DDD-4C9E-C8E8-75B7-B69061E3FD76}</Project>
     </ProjectReference>
+    <ProjectReference Include="vendors\meshoptimizer\MeshOptimizer.vcxproj">
+      <Project>{35B4FA56-A174-768D-6AAF-BF0AD62EBB69}</Project>
+    </ProjectReference>
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

@@ -23,6 +23,24 @@
 
 namespace Brisk 
 {
+	struct SDFInstance {
+		glm::mat4 ObjectToWorld;
+		glm::mat4 WorldToObject;
+		glm::vec3 ObjAABBMin, objAABBMax;
+		uint32_t  SDFTexIndex;      // index into descriptor array of 3D SDFs
+		glm::vec3 SDFTexelObj;      // object-space SDF voxel size (for LOD)
+		float     MaxInfluenceDist; // clamp far distance (world units)
+	};
+
+	struct GDFFrameParams {
+		glm::mat4 WorldToGDF;     // world pos -> [0..dim) cell coords
+		glm::mat4 GDFToWorld;     // inverse
+		glm::ivec3 GDFDim;        // e.g., 128,128,128
+		float     GDFVoxelSize;   // world units per voxel
+		glm::vec3 GDFWorldMin;    // world-space min corner of volume
+		float     ClearDistance;  // large positive, e.g., 32767
+	};
+
 	struct LightData {
 		glm::vec4 position; // xyz = pos, w = radius
 		glm::vec4 color;    // xyz = color, w = intensity
@@ -81,12 +99,21 @@ namespace Brisk
 		static std::shared_ptr<Swapchain> m_Swapchain;
 
 		// Synchronization objects
-		std::shared_ptr<Semaphore> ClusteredTaskSemaphore;
+		std::shared_ptr<Semaphore> AABBGenerateSemaphore;
+		std::shared_ptr<Semaphore> AssignLightsSemaphore;
 		std::shared_ptr<Semaphore> ImageAvailableSemaphore;
 		std::shared_ptr<Semaphore> RenderFinishedSemaphore;
-		std::shared_ptr<Fence> m_Fence;
-		std::shared_ptr<Queue> m_GraphicsQueue;
-		std::shared_ptr<Queue> m_ComputeQueue;
+
+		std::shared_ptr<Fence> m_ClusterFence;
+		std::shared_ptr<Fence> m_GraphicsFence;
+
+		std::shared_ptr<Queue> m_GraphicsQueue0;
+		std::shared_ptr<Queue> m_GraphicsQueue1;
+
+		std::shared_ptr<Queue> m_ComputeQueue0;
+		std::shared_ptr<Queue> m_ComputeQueue1;
+
+		std::shared_ptr<Texture> m_GDFImage; // Global Distance Field
 
 		// Attachments
 		std::shared_ptr<Texture> m_Pos;

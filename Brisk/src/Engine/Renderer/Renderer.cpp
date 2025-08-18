@@ -9,6 +9,8 @@
 #include <fastgltf/types.hpp>
 //------------------------------------------------
 
+#define GDFResolution 128
+
 namespace Brisk
 {
     std::shared_ptr<Swapchain> Renderer::m_Swapchain;
@@ -49,6 +51,20 @@ namespace Brisk
 
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
+
+        m_GDFImage = Texture::Create();
+        {
+            Texture::TextureSpecification specs{};
+            specs.p_Width  = GDFResolution;
+            specs.p_Height = GDFResolution;
+            specs.p_Depth  = GDFResolution;
+            specs.p_Type = Texture::TextureType::TEXTURE3D;
+            specs.p_DebugName = "GDFImage";
+            specs.p_Usage = Core::TextureUsage::ImageUsageStorage | Core::TextureUsage::ImageUsageSampled | Core::TextureUsage::ImageUsageTransferSrc | Core::TextureUsage::ImageUsageTransferDst;
+            specs.p_Format = Core::Format::FORMAT_R16_SFLOAT;
+            m_GDFImage->Init(specs);
+        }
+
 
 #ifdef DISABLED_CODE // For shadow map
         //m_LightsUBO = Buffer::Create();
@@ -563,32 +579,46 @@ namespace Brisk
         m_LightingPipeline->UpdateResources("ClusterAABB", {}, m_ClusterTilesSSBO);
         m_LightingPipeline->UpdateResources("MVP",            {}, m_MVPBuffer);
 
-        m_Fence = Fence::Create();
-        m_Fence->Init();
+        m_ClusterFence = Fence::Create();
+        m_ClusterFence->Init();
+
+        m_GraphicsFence = Fence::Create();
+        m_GraphicsFence->Init();
 
         ImageAvailableSemaphore = Semaphore::Create();
         ImageAvailableSemaphore->Init();
 
-        ClusteredTaskSemaphore = Semaphore::Create();
-        ClusteredTaskSemaphore->Init();
+        AABBGenerateSemaphore = Semaphore::Create();
+        AABBGenerateSemaphore->Init();
+
+        AssignLightsSemaphore = Semaphore::Create();
+        AssignLightsSemaphore->Init();
 
         RenderFinishedSemaphore = Semaphore::Create();
         RenderFinishedSemaphore->Init();
 
-        m_GraphicsQueue = Queue::Create();
-        m_GraphicsQueue->Init(Queue::QueueType::Graphics);
-        m_ComputeQueue = Queue::Create();
-        m_ComputeQueue->Init(Queue::QueueType::Compute);
+        m_GraphicsQueue0 = Queue::Create();
+        m_GraphicsQueue0->Init(Queue::QueueType::Graphics);
+
+        m_GraphicsQueue1 = Queue::Create();
+        m_GraphicsQueue1->Init(Queue::QueueType::Graphics);
+
+        m_ComputeQueue0 = Queue::Create();
+        m_ComputeQueue0->Init(Queue::QueueType::Compute);
+
+        m_ComputeQueue1 = Queue::Create();
+        m_ComputeQueue1->Init(Queue::QueueType::Compute);
 
         m_CmdBuffer = CommandBuffer::Create();
         m_CmdBuffer->Allocate(CommandBuffer::PoolType::Graphics);
         m_ClusteredCmdBuffer = CommandBuffer::Create();
-        m_ClusteredCmdBuffer->Allocate(CommandBuffer::PoolType::Graphics);
+        m_ClusteredCmdBuffer->Allocate(CommandBuffer::PoolType::Compute);
 
         m_Editor = std::make_shared<Editor>();
         m_Editor->Create(m_UIPass, m_CmdBuffer, m_LightingOutput);
     }
 
+    bool once = true;
     void Renderer::RenderScene(float deltaTime)
     {
         if (!SceneManager::pActiveScene) return;
@@ -618,20 +648,22 @@ namespace Brisk
             m_RenderGroups[meshComp.p_Mesh.get()].push_back(entity);
         }
 
-        for (auto& [mesh, entities] : m_RenderGroups) {
-            m_GBufferPipeline->UpdateResources("Materials", {}, mesh->m_MaterialStorageBuffer);
+        if (once) {
+            once = false;
+            for (auto& [mesh, entities] : m_RenderGroups) {
+                m_GBufferPipeline->UpdateResources("Materials", {}, mesh->m_MaterialStorageBuffer);
+            }
+
+            for (auto& [mesh, entities] : m_RenderGroups) {
+                m_DepthPrePassPipeline->UpdateResources("Vertices", {}, mesh->m_VertexStorageBuffer);
+                m_DepthPrePassPipeline->UpdateResources("Meshlets", {}, mesh->m_MeshletsBuffer);
+            }
         }
 
-        for (auto& [mesh, entities] : m_RenderGroups) {
-            m_DepthPrePassPipeline->UpdateResources("Vertices", {}, mesh->m_VertexStorageBuffer);
-            m_DepthPrePassPipeline->UpdateResources("Meshlets", {}, mesh->m_MeshletsBuffer);
-        }
-
-        m_Fence->Wait();
-        m_Fence->Reset();
+        m_ClusterFence->Wait();
+        m_ClusterFence->Reset();
 
         m_ClusteredCmdBuffer->Reset();
-
         m_ClusteredCmdBuffer->Bind();
         //// --- CLUSTERS AABB GENERATOR COMPUTE TASK ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
@@ -649,11 +681,13 @@ namespace Brisk
 
         Queue::SubmitInfo clusteredSubmitInfo{};
         clusteredSubmitInfo.pCmdBuffers.push_back(m_ClusteredCmdBuffer);
-        m_GraphicsQueue->Submit(clusteredSubmitInfo, nullptr);
-        Engine::s_Application->GetGpuAdapter()->WaitIdle();
+        clusteredSubmitInfo.pSignalSemaphores.push_back(AABBGenerateSemaphore);
+        m_ComputeQueue0->Submit(clusteredSubmitInfo, m_ClusterFence);
+
+        m_ClusterFence->Wait();
+        m_ClusterFence->Reset();
 
         m_ClusteredCmdBuffer->Reset();
-
         m_ClusteredCmdBuffer->Bind();
         //// --- ASSIGN LIGHTS TO CLUSTERS COMPUTE TASK ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
@@ -685,8 +719,13 @@ namespace Brisk
 
         Queue::SubmitInfo clusteredSubmitInfo2{};
         clusteredSubmitInfo2.pCmdBuffers.push_back(m_ClusteredCmdBuffer);
-        m_GraphicsQueue->Submit(clusteredSubmitInfo2, nullptr);
-        Engine::s_Application->GetGpuAdapter()->WaitIdle();
+        clusteredSubmitInfo2.pWaitSemaphores.push_back(AABBGenerateSemaphore);
+        clusteredSubmitInfo2.pSignalSemaphores.push_back(AssignLightsSemaphore);
+        clusteredSubmitInfo2.pWaitStages.push_back(Core::PipelineStage::ComputeShader);
+        m_ComputeQueue0->Submit(clusteredSubmitInfo2, m_ClusterFence);
+
+        m_GraphicsFence->Wait();
+        m_GraphicsFence->Reset();
 
         m_Swapchain->AcquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &m_ImageIndex);
 
@@ -811,11 +850,13 @@ namespace Brisk
 
         Queue::SubmitInfo lightingSubmitInfo{};
         lightingSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
+        lightingSubmitInfo.pWaitSemaphores.push_back(AssignLightsSemaphore);
         lightingSubmitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore);
-        lightingSubmitInfo.pWaitStages.push_back(Queue::WaitStage::PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
+        lightingSubmitInfo.pWaitStages.push_back(Core::PipelineStage::ColorAttachment);
+        lightingSubmitInfo.pWaitStages.push_back(Core::PipelineStage::EarlyFragmentTest);
         lightingSubmitInfo.pCmdBuffers.push_back(m_CmdBuffer);
 
-        m_GraphicsQueue->Submit(lightingSubmitInfo, m_Fence);
+        m_GraphicsQueue0->Submit(lightingSubmitInfo, m_GraphicsFence);
 
         Queue::PresentInfo presentInfo{};
         presentInfo.pWaitSemaphores.push_back(RenderFinishedSemaphore);
@@ -823,9 +864,7 @@ namespace Brisk
         presentInfo.pImageIndex = m_ImageIndex;
 
         // Present
-        m_GraphicsQueue->Present(presentInfo);
-
-        Engine::s_Application->GetGpuAdapter()->WaitIdle();
+        m_GraphicsQueue0->Present(presentInfo);
 
         m_RenderGroups.clear();
     }
@@ -865,7 +904,7 @@ namespace Brisk
                 //if (pushMaterialIndex && pushModelMatrix)
                 //    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, true);
 
-                RenderCommand::DrawMeshTasks(m_CmdBuffer, 370);
+                RenderCommand::DrawMeshTasks(m_CmdBuffer, 6284);
             }
             else {
                 auto& submesh = mesh->m_Meshes[meshComp.p_SubMeshIndex];
@@ -946,7 +985,8 @@ namespace Brisk
         ImageAvailableSemaphore->Release();
         RenderFinishedSemaphore->Release();
 
-        m_Fence->Release();
+        m_ClusterFence->Release();
+        m_GraphicsFence->Release();
     }
 
     std::unique_ptr<Renderer> Renderer::Create()

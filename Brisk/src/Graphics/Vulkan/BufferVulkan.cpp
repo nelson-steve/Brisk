@@ -232,16 +232,18 @@ namespace Brisk
 	}
 
     void BufferVulkan::MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, MemoryBarrierParams barrier) {
-        VkMemoryBarrier memoryBarrier{ VK_STRUCTURE_TYPE_MEMORY_BARRIER };
-        memoryBarrier.srcAccessMask = UtilitiesVulkan::AccessTypeToVkAccessFlags(barrier.srcAccess);
-        memoryBarrier.dstAccessMask = UtilitiesVulkan::AccessTypeToVkAccessFlags(barrier.dstAccess);
+        VkBufferMemoryBarrier bufferBarrier{ VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER };
+        bufferBarrier.srcAccessMask = UtilitiesVulkan::AccessTypeToVkAccessFlags(barrier.srcAccess);
+        bufferBarrier.dstAccessMask = UtilitiesVulkan::AccessTypeToVkAccessFlags(barrier.dstAccess);
+        bufferBarrier.buffer = m_Handle;
+        bufferBarrier.size = VK_WHOLE_SIZE;
         vkCmdPipelineBarrier(
             std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(),
             UtilitiesVulkan::PipelineStageToVkPipelineStageFlags(barrier.srcStage), // srcStage
             UtilitiesVulkan::PipelineStageToVkPipelineStageFlags(barrier.srcStage), // dstStage
             0,
-            1, &memoryBarrier,
             0, nullptr,
+            1, &bufferBarrier,
             0, nullptr
         );
     }

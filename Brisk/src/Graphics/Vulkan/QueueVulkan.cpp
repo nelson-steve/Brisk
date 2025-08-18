@@ -6,6 +6,7 @@
 #include "SemaphoreVulkan.hpp"
 #include "CommandBufferVulkan.hpp"
 #include "FenceVulkan.hpp"
+#include "UtilitiesVulkan.hpp"
 //-----------------------
 
 namespace Brisk 
@@ -36,7 +37,7 @@ namespace Brisk
         BRISK_CORE_ASSERT(waitSemaphores.size() == waitStages.size());
 
         for (size_t i = 0; i < submitInfo.pWaitStages.size(); ++i) {
-            waitStages[i] = VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT;
+            waitStages[i] = UtilitiesVulkan::PipelineStageToVkPipelineStageFlags(submitInfo.pWaitStages[i]);
         }
 
         for (size_t i = 0; i < submitInfo.pWaitSemaphores.size(); ++i) {

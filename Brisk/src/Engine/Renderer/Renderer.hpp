@@ -23,25 +23,11 @@
 
 namespace Brisk 
 {
-	struct SDFInstance {
-		glm::mat4 ObjectToWorld;
-		glm::mat4 WorldToObject;
-		glm::vec3 ObjAABBMin, objAABBMax;
-		uint32_t  SDFTexIndex;      // index into descriptor array of 3D SDFs
-		glm::vec3 SDFTexelObj;      // object-space SDF voxel size (for LOD)
-		float     MaxInfluenceDist; // clamp far distance (world units)
+	struct Probe {
+		glm::vec3 Position;
 	};
 
-	struct GDFFrameParams {
-		glm::mat4 WorldToGDF;     // world pos -> [0..dim) cell coords
-		glm::mat4 GDFToWorld;     // inverse
-		glm::ivec3 GDFDim;        // e.g., 128,128,128
-		float     GDFVoxelSize;   // world units per voxel
-		glm::vec3 GDFWorldMin;    // world-space min corner of volume
-		float     ClearDistance;  // large positive, e.g., 32767
-	};
-
-	struct LightData {
+	struct PointLight {
 		glm::vec4 position; // xyz = pos, w = radius
 		glm::vec4 color;    // xyz = color, w = intensity
 	};
@@ -103,6 +89,7 @@ namespace Brisk
 		std::shared_ptr<Semaphore> AssignLightsSemaphore;
 		std::shared_ptr<Semaphore> ImageAvailableSemaphore;
 		std::shared_ptr<Semaphore> RenderFinishedSemaphore;
+		std::shared_ptr<Semaphore> VoxelizationFinishedSemaphore;
 
 		std::shared_ptr<Fence> m_ClusterFence;
 		std::shared_ptr<Fence> m_GraphicsFence;
@@ -113,8 +100,6 @@ namespace Brisk
 		std::shared_ptr<Queue> m_ComputeQueue0;
 		std::shared_ptr<Queue> m_ComputeQueue1;
 
-		std::shared_ptr<Texture> m_GDFImage; // Global Distance Field
-
 		// Attachments
 		std::shared_ptr<Texture> m_Pos;
 		std::shared_ptr<Texture> m_Normal;
@@ -124,6 +109,8 @@ namespace Brisk
 		std::shared_ptr<Texture> m_DepthPre;
 		std::shared_ptr<Texture> m_ShadowMap;
 		std::shared_ptr<Texture> m_LightingOutput;
+
+		std::shared_ptr<Texture> m_IrradiannceImage;
 
 		std::shared_ptr<Editor> m_Editor;
 
@@ -146,7 +133,6 @@ namespace Brisk
 		std::shared_ptr<Pipeline> m_AssignLightsToClustersPipeline;
 
 		std::shared_ptr<Buffer> m_MVPBuffer;
-		//std::shared_ptr<Buffer> m_PerObjectBuffer;
 
 		std::shared_ptr<Buffer> m_ClusterInfoUBO;
 		std::shared_ptr<Buffer> m_ClusterTilesSSBO;
@@ -155,7 +141,12 @@ namespace Brisk
 		std::shared_ptr<Buffer> m_LightsList;
 		std::shared_ptr<Buffer> m_ClusterLightIndexList;
 		std::shared_ptr<Buffer> m_ClusterLightOffsetList;
+		
+		std::shared_ptr<Buffer> m_ProbesBuffer;
+
 		std::shared_ptr<Buffer> m_AtomicCounters;
+
+		std::vector<Probe> m_Probes;
 
 		std::shared_ptr<CommandBuffer> m_CmdBuffer;
 		std::shared_ptr<CommandBuffer> m_ClusteredCmdBuffer;

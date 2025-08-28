@@ -63,7 +63,7 @@ namespace Brisk
 	{
 		Entity entity = { m_Registry.create(), this };
 		entity.AddComponent<LocalTransformComponent>();
-		entity.AddComponent<LightComponent>();
+		entity.AddComponent<PointLightComponent>();
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
 		return entity;
@@ -154,11 +154,6 @@ namespace Brisk
 	}
 
 	template<>
-	void Scene::OnComponentAdded<LightComponent>(Entity entity, LightComponent& component)
-	{
-	}
-
-	template<>
 	void Scene::OnComponentAdded<SkyboxComponent>(Entity entity, SkyboxComponent& component)
 	{
 	}
@@ -184,11 +179,6 @@ namespace Brisk
 	}
 
 	template<>
-	void Scene::OnComponentAdded<BoxCollider2DComponent>(Entity entity, BoxCollider2DComponent& component)
-	{
-	}
-
-	template<>
 	void Scene::OnComponentAdded<MaterialComponent>(Entity entity, MaterialComponent& component)
 	{
 	}
@@ -205,11 +195,6 @@ namespace Brisk
 
 	template<>
 	void Scene::OnComponentAdded<PhysicsComponent>(Entity entity, PhysicsComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentAdded<Physics2DComponent>(Entity entity, Physics2DComponent& component)
 	{
 	}
 

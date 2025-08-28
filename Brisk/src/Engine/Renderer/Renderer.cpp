@@ -5,66 +5,58 @@
 #include "ComputeCommand.hpp"
 #include "Engine/Component.hpp"
 #include "Graphics/Factories/SwapchainFactory.hpp"
-#include <random>
 #include <fastgltf/types.hpp>
 //------------------------------------------------
-
-#define GDFResolution 128
 
 namespace Brisk
 {
     std::shared_ptr<Swapchain> Renderer::m_Swapchain;
 
-    std::vector<LightData> GenerateRandomLights(uint32_t count, float range = 10.0f) {
-        std::vector<LightData> lights;
-        lights.reserve(count);
-
-        std::random_device rd;
-        std::mt19937 rng(rd());
-
-        std::uniform_real_distribution<float> posDist(-range, range);
-        std::uniform_real_distribution<float> radiusDist(10.0f, 50.0f); // light radius
-        std::uniform_real_distribution<float> colorDist(0.5f, 1.0f);  // bright colors
-        std::uniform_real_distribution<float> intensityDist(1.0f, 5.0f); // intensity
-
-        for (uint32_t i = 0; i < count; ++i) {
-            glm::vec3 pos = glm::vec3(posDist(rng), posDist(rng), posDist(rng));
-            float radius = radiusDist(rng);
-
-            glm::vec3 color = glm::vec3(colorDist(rng), colorDist(rng), colorDist(rng));
-            float intensity = intensityDist(rng);
-
-            LightData light;
-            light.position = glm::vec4(pos, radius);
-            light.color = glm::vec4(color, intensity);
-
-            lights.push_back(light);
-        }
-
-        return lights;
-    }
-
     void Renderer::Init()
     {
+        glm::vec3 probMinBounds = glm::vec3(-20, -10, -20);
+        glm::vec3 probMaxBounds = glm::vec3(-20, -10, -20);
+        glm::ivec3 probeResolution = glm::vec3(16, 8, 16);
+        uint32_t probeCount = probeResolution.x * probeResolution.y * probeResolution.z;
+
+        glm::vec3 probeSpacing = (probMaxBounds - probMinBounds) / glm::vec3(probeResolution);
+        glm::vec3 probeOrigin = probMinBounds;
+
+        for (int z = 0; z < probeResolution.z; ++z) {
+            for (int y = 0; y < probeResolution.z; ++y) {
+                for (int x = 0; x < probeResolution.z; ++x) {
+                    glm::vec3 pos = probeOrigin + glm::vec3(x + 0.5f, y + 0.5f, z + 0.5f) * probeSpacing;
+                    Probe p;
+                    p.Position = pos;
+                    m_Probes.push_back(p);
+                }
+            }
+        }
+
+        m_ProbesBuffer = Buffer::Create();
+        BufferDesc probesBufferDesc{};
+        probesBufferDesc.p_Size = sizeof(Probe) * probeCount;
+        probesBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+        probesBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        probesBufferDesc.p_Persistant = true;
+        m_ProbesBuffer->Init(probesBufferDesc);
+
+        m_IrradiannceImage = Texture::Create();
+        Texture::TextureSpecification specs{};
+        specs.p_Width = probeResolution.x;
+        specs.p_Height = probeResolution.y;
+        specs.p_Depth = probeResolution.z;
+        specs.p_Type = Texture::TextureType::TEXTURE3D;
+        specs.p_DebugName = "Irradiance";
+        specs.p_Usage = Core::TextureUsage::ImageUsageStorage | Core::TextureUsage::ImageUsageSampled | Core::TextureUsage::ImageUsageTransferDst;
+        specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
+        m_IrradiannceImage->Init(specs);
+
         RenderCommand::s_RendererAPI = RendererAPI::Create();
         ComputeCommand::s_ComputeAPI = ComputeAPI::Create();
 
         m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
-
-        m_GDFImage = Texture::Create();
-        {
-            Texture::TextureSpecification specs{};
-            specs.p_Width  = GDFResolution;
-            specs.p_Height = GDFResolution;
-            specs.p_Depth  = GDFResolution;
-            specs.p_Type = Texture::TextureType::TEXTURE3D;
-            specs.p_DebugName = "GDFImage";
-            specs.p_Usage = Core::TextureUsage::ImageUsageStorage | Core::TextureUsage::ImageUsageSampled | Core::TextureUsage::ImageUsageTransferSrc | Core::TextureUsage::ImageUsageTransferDst;
-            specs.p_Format = Core::Format::FORMAT_R16_SFLOAT;
-            m_GDFImage->Init(specs);
-        }
-
 
 #ifdef DISABLED_CODE // For shadow map
         //m_LightsUBO = Buffer::Create();
@@ -98,7 +90,6 @@ namespace Brisk
             // Depth Pre pass
             //----------------------------------------------------------------------------------------------------
             m_DepthPre = Texture::Create();
-
             {
                 Texture::TextureSpecification specs{};
                 specs.p_Width = 1920;
@@ -317,7 +308,6 @@ namespace Brisk
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_DepthPrePass;
 
-                //pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassVS.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassMS.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassFS.spv");
                 pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\DepthPrePass_vert.cso");
@@ -514,11 +504,23 @@ namespace Brisk
         }
 
         {
-            std::vector<LightData> lights = GenerateRandomLights(MAX_LIGHTS, 400);
+            auto lightsView = SceneManager::pActiveScene->Reg().view<PointLightComponent>();
+
+            std::vector<PointLight> lights;
+            for (auto e : lightsView) {
+                Entity entity = { e, SceneManager::pActiveScene.get() };
+                auto& light = entity.GetComponent<PointLightComponent>();
+
+                PointLight pointLight;
+                pointLight.position = glm::vec4(light.Position, light.Radius);
+                pointLight.color = glm::vec4(light.Color, light.Intensity);
+
+                lights.push_back(pointLight);
+            }
 
             m_LightsList = Buffer::Create();
             BufferDesc lightsBufferDesc{};
-            lightsBufferDesc.p_Size = sizeof(LightData) * lights.size();
+            lightsBufferDesc.p_Size = sizeof(lights) * lights.size();
             lightsBufferDesc.p_Data = lights.data();
             lightsBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
             lightsBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
@@ -579,12 +581,15 @@ namespace Brisk
         m_LightingPipeline->UpdateResources("ClusterAABB", {}, m_ClusterTilesSSBO);
         m_LightingPipeline->UpdateResources("MVP",            {}, m_MVPBuffer);
 
+        // Creating Fences
         m_ClusterFence = Fence::Create();
         m_ClusterFence->Init();
 
         m_GraphicsFence = Fence::Create();
         m_GraphicsFence->Init();
+        //
 
+        // Creating Semaphores
         ImageAvailableSemaphore = Semaphore::Create();
         ImageAvailableSemaphore->Init();
 
@@ -596,7 +601,9 @@ namespace Brisk
 
         RenderFinishedSemaphore = Semaphore::Create();
         RenderFinishedSemaphore->Init();
+        //
 
+        // Creating Queue
         m_GraphicsQueue0 = Queue::Create();
         m_GraphicsQueue0->Init(Queue::QueueType::Graphics);
 
@@ -608,11 +615,15 @@ namespace Brisk
 
         m_ComputeQueue1 = Queue::Create();
         m_ComputeQueue1->Init(Queue::QueueType::Compute);
+        //
 
+        // Creating Command Buffers
         m_CmdBuffer = CommandBuffer::Create();
         m_CmdBuffer->Allocate(CommandBuffer::PoolType::Graphics);
+
         m_ClusteredCmdBuffer = CommandBuffer::Create();
         m_ClusteredCmdBuffer->Allocate(CommandBuffer::PoolType::Compute);
+        // 
 
         m_Editor = std::make_shared<Editor>();
         m_Editor->Create(m_UIPass, m_CmdBuffer, m_LightingOutput);
@@ -692,7 +703,7 @@ namespace Brisk
         //// --- ASSIGN LIGHTS TO CLUSTERS COMPUTE TASK ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
         m_AssignLightsToClustersPipeline->Bind(m_ClusteredCmdBuffer);
-        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 3456, 1, 1);
+        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 16, 9, 24);
         m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
             {
                 Core::AccessType::ShaderWrite,
@@ -901,9 +912,10 @@ namespace Brisk
                 pc.index = 0;
                 pc.model = glm::mat4(1.0f);
 
-                //if (pushMaterialIndex && pushModelMatrix)
-                //    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, true);
+                if (pushMaterialIndex && pushModelMatrix)
+                    m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, true);
 
+                //RenderCommand::DrawMeshTasks(m_CmdBuffer, 370);
                 RenderCommand::DrawMeshTasks(m_CmdBuffer, 6284);
             }
             else {
@@ -925,12 +937,7 @@ namespace Brisk
                     if (pushMaterialIndex && pushModelMatrix)
                         m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, true);
 
-                    else {
-                        if ((fastgltf::AlphaMode)mesh->m_Materials[primitive.materialIndex].alphaMode == (fastgltf::AlphaMode)0U)
-                        {
-                            RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
-                        }
-                    }
+                    RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
                 }
             }
         }

@@ -5,10 +5,37 @@
 #include "MeshAsset.hpp"
 #include "Events/Event.hpp"
 #include <Graphics/Vulkan/GpuAdapterVulkan.hpp>
+#include <random>
 #include "Component.hpp"
 //------------------------
 namespace Brisk
 {
+	void Application::GenerateRandomLights(uint32_t count, float range) {
+		std::random_device rd;
+		std::mt19937 rng(rd());
+
+		std::uniform_real_distribution<float> posDist(-range, range);
+		std::uniform_real_distribution<float> radiusDist(10.0f, 50.0f); // light radius
+		std::uniform_real_distribution<float> colorDist(0.5f, 1.0f);  // bright colors
+		std::uniform_real_distribution<float> intensityDist(1.0f, 5.0f); // intensity
+
+		for (uint32_t i = 0; i < count; ++i) {
+			glm::vec3 pos = glm::vec3(posDist(rng), posDist(rng), posDist(rng));
+			float radius = radiusDist(rng);
+
+			glm::vec3 color = glm::vec3(colorDist(rng), colorDist(rng), colorDist(rng));
+			float intensity = intensityDist(rng);
+
+			Entity lightEntity = m_SceneManager->pActiveScene->CreateEntity("Light");
+			PointLightComponent& lc = lightEntity.AddComponent<PointLightComponent>();
+
+			lc.Position = glm::vec3(pos);
+			lc.Color = glm::vec3(color);
+			lc.Intensity = intensity;
+			lc.Radius = radius;
+		}
+	}
+
 	void Application::CreateApplication() {
 		m_Window = Window::Create(1920, 1080);
 		m_Window->SetEventCallBack(BIND_EVENT_FN(Application::OnEvent));
@@ -17,9 +44,6 @@ namespace Brisk
 		m_Adapter->Init();
 
 		m_EditorCamera = std::make_shared<Camera>((GLFWwindow*)m_Window->GetWindowHandle());
-
-		m_Renderer = Renderer::Create();
-		m_Renderer->Init();
 
 		m_SceneManager = std::make_unique<SceneManager>();
 		m_SceneManager->Init();
@@ -37,14 +61,16 @@ namespace Brisk
 			/* 7 */"../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf",
 		};
 
+		GenerateRandomLights(MAX_LIGHTS, 400);
+
+		m_Renderer = Renderer::Create();
+		m_Renderer->Init();
+
 		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[2], false);
 
 		Entity entity = m_SceneManager->pActiveScene->CreateEntity("Flight Helmet");
-		for (auto& node: asset1->m_Nodes)
+		for (auto& node : asset1->m_Nodes)
 			AddMeshToScene(node, entity, asset1);
-
-		Entity lightEntity = m_SceneManager->pActiveScene->CreateEntity("Light");
-		lightEntity.AddComponent<LightComponent>();
 	}
 
 	void Application::AddMeshToScene(MeshAsset::Node* node, std::optional<Entity> parent, std::shared_ptr<MeshAsset> meshAsset) {

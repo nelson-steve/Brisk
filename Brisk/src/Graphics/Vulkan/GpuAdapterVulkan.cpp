@@ -147,6 +147,7 @@ namespace Brisk
 			layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->AddBinding(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT });
 			layout->AddBinding(4, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT });
+			layout->AddBinding(5, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_IMAGE,  { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->Init();
 			m_FrameGlobalDescriptorLayout = std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout();
 		}
@@ -400,6 +401,8 @@ namespace Brisk
 		features.features.shaderInt16 = VK_TRUE;
 		features.features.shaderInt64 = VK_TRUE;
 		features.features.samplerAnisotropy = VK_TRUE;
+		features.features.geometryShader = VK_TRUE;
+		features.features.fragmentStoresAndAtomics = VK_TRUE;
 
 		VkPhysicalDeviceVulkan11Features features11 { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_VULKAN_1_1_FEATURES };
 		features11.storageBuffer16BitAccess = VK_TRUE;

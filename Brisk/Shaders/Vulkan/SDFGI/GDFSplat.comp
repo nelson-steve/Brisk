@@ -1,0 +1,82 @@
+#version 460
+#extension GL_EXT_nonuniform_qualifier : enable
+
+
+layout(local_size_x = 4, local_size_y = 4, local_size_z = 4) in;
+
+struct SDFInstance {
+    mat4 objectToWorld;
+    mat4 worldToObject;
+    vec3 objAABBMin; float _pad0;
+    vec3 objAABBMax; float _pad1;
+    uint sdfTexIndex;
+    vec3 sdfTexelObj; float maxInfluenceDist;
+};
+
+layout(std430, binding=0) readonly buffer Instances {
+    SDFInstance instances[];
+};
+
+layout(set=1, binding=0, r16f) uniform image3D GDF;
+layout(set=1, binding=1) uniform sampler3D GDFRead;
+
+// Bindless array of mesh SDFs
+layout(set=2, binding=0) uniform sampler3D meshSDFs[];
+
+layout(std140, binding=3) uniform Frame {
+    mat4 worldToGDF;
+    mat4 gdfToWorld;
+    ivec3 gdfDim; float gdfVoxelSize;
+    vec3 gdfWorldMin; float clearDistance;
+} frame;
+
+bool aabbOverlap( vec3 wMin, vec3 wMax, vec3 cellW ) {
+    return all(greaterThanEqual(cellW, wMin)) && all(lessThanEqual(cellW, wMax));
+}
+
+// Convert world → SDF UVW in [0,1] for object-space 3D tex
+vec3 worldToObjUVW(in SDFInstance i, vec3 world) {
+    vec3 obj = (i.worldToObject * vec4(world, 1.0)).xyz;
+    vec3 size = i.objAABBMax - i.objAABBMin;
+    return (obj - i.objAABBMin) / size; // assumes SDF tex domain matches AABB
+}
+
+void main() {
+    ivec3 gid = ivec3(gl_GlobalInvocationID.xyz);
+    if (any(greaterThanEqual(gid, frame.gdfDim))) return;
+
+    // World position at cell center
+    vec3 world = (frame.gdfToWorld * vec4(vec3(gid) + 0.5, 1.0)).xyz;
+
+    // Current distance at this voxel
+    float dist = imageLoad(GDF, gid).r;
+
+    // Iterate instances (can also batch per-tile on CPU to reduce loop)
+    // NOTE: For big scenes, prefer a per-tile instance list.
+    uint count = 19;
+    uint instanceCount = 19;
+
+    for (uint idx = 0; idx < instanceCount; ++idx) {
+        SDFInstance i = instances[idx];
+
+        if (!aabbOverlap(i.objAABBMin, i.objAABBMax, (i.worldToObject * vec4(world,1)).xyz))
+            continue;
+
+        // Sample object SDF
+        vec3 uvw = worldToObjUVW(i, world);
+
+        if (any(lessThan(uvw, vec3(0))) || any(greaterThan(uvw, vec3(1)))) continue;
+
+        float dObj = texture(meshSDFs[i.sdfTexIndex], uvw).r; // signed (object space units)
+        // Convert to world units by scaling with object-space texel size projected to world
+        // Simplest: multiply by average objecttoworld scale.
+        float uniformScale = length(i.objectToWorld[0].xyz);
+        float dWorld = dObj * uniformScale;
+
+        dWorld = clamp(dWorld, -i.maxInfluenceDist, i.maxInfluenceDist);
+
+        dist = min(dist, dWorld);
+    }
+
+    imageStore(GDF, gid, vec4(dist));
+}

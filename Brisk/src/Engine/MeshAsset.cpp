@@ -457,7 +457,7 @@ namespace Brisk {
 			const size_t max_triangles = MESH_MAXTRI;
 			std::vector<meshopt_Meshlet> meshlets(indicesData.size() / 3);
 			std::vector<unsigned int> meshlet_vertices(meshlets.size()* max_vertices);
-			std::vector<unsigned char> meshlet_triangles(meshlets.size()* max_triangles * 3);
+			std::vector<unsigned char> meshlet_triangles(meshlets.size() * max_triangles * 3);
 			meshlets.resize(meshopt_buildMeshletsScan(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indicesData.data(), indicesData.size(), verticesData.size(), max_vertices, max_triangles));
 
 			assert(meshlet.VertexCount <= 64);

@@ -68,6 +68,9 @@ namespace Brisk
             else if (filename.find("VS") != std::string::npos) {
                 std::cout << "Vertex Shader detected\n";
             }
+            else if (filename.find("GS") != std::string::npos) {
+                std::cout << "Geometry Shader detected\n";
+            }
             else if (filename.find("FS") != std::string::npos) {
                 std::cout << "Fragment Shader detected\n";
             }
@@ -528,14 +531,26 @@ namespace Brisk
                 switch (resource.p_Set) {
                     case SET_FRAME_GLOBAL:
                     {
-                        VkWriteDescriptorSet write{};
-                        write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                        write.descriptorType = static_cast<VkDescriptorType>(resource.p_Type);
-                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_GlobalSet;
-                        write.dstBinding = resource.p_Binding;
-                        write.descriptorCount = 1;
-                        write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
-                        vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+                        if (buffer) {
+                            VkWriteDescriptorSet write{};
+                            write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                            write.descriptorType = static_cast<VkDescriptorType>(resource.p_Type);
+                            write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_GlobalSet;
+                            write.dstBinding = resource.p_Binding;
+                            write.descriptorCount = 1;
+                            write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
+                            vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+                        }
+                        else {
+                            VkWriteDescriptorSet write{};
+                            write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                            write.descriptorType = static_cast<VkDescriptorType>(resource.p_Type);
+                            write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_GlobalSet;
+                            write.dstBinding = resource.p_Binding;
+                            write.descriptorCount = 1;
+                            write.pImageInfo = std::static_pointer_cast<TextureVulkan>(textures[0])->GetDescriptor();
+                            vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+                        }
                         break;
                     }
                     case SET_BINDLESS_TEXTURES:
@@ -598,8 +613,7 @@ namespace Brisk
     }
 
     void PipelineVulkan::BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data, uint32_t offset, bool vertexShader) {
-        if(vertexShader)
-            vkCmdPushConstants(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), m_PipelineLayout, VK_SHADER_STAGE_VERTEX_BIT | VK_SHADER_STAGE_FRAGMENT_BIT, 0, size, data);
+        vkCmdPushConstants(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), m_PipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, size, data);
     }
 
     void PipelineVulkan::Release() {

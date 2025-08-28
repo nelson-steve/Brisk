@@ -160,53 +160,56 @@ namespace Brisk
 		MaterialComponent(const MaterialComponent &) = default;
 	};
 
-	struct LightComponent
+	enum LightType
 	{
-		glm::vec3 direction = glm::vec3(-0.2f, -1.0f, -0.3f);
-		glm::vec3 position = glm::vec3(1.0);
-
-		float cutOff = 0.0;
-		float outerCutOff = 0.0;
-		float constant = 0.0;
-		float linear = 0.0;
-		float quadratic = 0.0;
-
-		std::string nameOfLight = "Directional";
-		glm::vec3 color = glm::vec3(1.0);
-
-		LightComponent() = default;
-		LightComponent(const LightComponent&) = default;
+		Point,
+		Directional,
+		Spot
 	};
 
-	//struct LightComponent
-	//{
-	//	enum LightType
-	//	{
-	//		Point,
-	//		Directional,
-	//		Spot
-	//	};
+	struct DirectionalLightComponent
+	{
+		glm::vec3 Direction = glm::vec3(0.0f, -1.0f, 0.0f);
+		glm::vec3 Color = glm::vec3(1.0);
+	
+		LightType Type = LightType::Directional;
 
-	//	LightType type = LightType::Directional;
+		DirectionalLightComponent() = default;
+		DirectionalLightComponent(const DirectionalLightComponent&) = default;
+	};
 
-	//	glm::vec3 direction = glm::vec3(-0.2f, -1.0f, -0.3f);
-	//	glm::vec3 position = glm::vec3(1.0);
-	//	glm::vec3 ambient = glm::vec3(0.05f, 0.05f, 0.05f);
-	//	glm::vec3 diffuse = glm::vec3(0.4f, 0.4f, 0.4f);
-	//	glm::vec3 specular = glm::vec3(0.5f, 0.5f, 0.5f);
+	struct PointLightComponent
+	{
+		glm::vec3 Position = glm::vec3(0.0f, 0.0f, 0.0f);
+		glm::vec3 Color = glm::vec3(1.0);
+		float Intensity;
+		float Radius;
+		float Constant;
+		float Linear;
+		float Quadratic;
 
-	//	float cutOff = 0.0;
-	//	float outerCutOff = 0.0;
-	//	float constant = 0.0;
-	//	float linear = 0.0;
-	//	float quadratic = 0.0;
+		LightType Type = LightType::Point;
 
-	//	std::string nameOfLight = "Directional";
-	//	// glm::vec3 color = glm::vec3(1.0);
+		PointLightComponent() = default;
+		PointLightComponent(const PointLightComponent&) = default;
+	};
 
-	//	LightComponent() = default;
-	//	LightComponent(const LightComponent &) = default;
-	//};
+	struct SpotLightComponent
+	{
+		glm::vec3 Position = glm::vec3(0.0f, 0.0f, 0.0f);
+		glm::vec3 Direction = glm::vec3(0.0f, -1.0f, 0.0f);
+		glm::vec3 Color = glm::vec3(1.0);
+		float InnerCutoff;
+		float OuterCutoff;
+		float Constant;
+		float Linear;
+		float Quadratic;
+
+		LightType Type = LightType::Spot;
+
+		SpotLightComponent() = default;
+		SpotLightComponent(const SpotLightComponent&) = default;
+	};
 
 	struct SkyboxComponent
 	{
@@ -214,44 +217,6 @@ namespace Brisk
 
 		SkyboxComponent() = default;
 		SkyboxComponent(const SkyboxComponent &) = default;
-	};
-
-	// Physics
-
-	struct Physics2DComponent
-	{
-		enum class BodyType
-		{
-			Static = 0,
-			Dynamic,
-			Kinematic
-		};
-		BodyType Type = BodyType::Static;
-		bool FixedRotation = false;
-		bool Gravity = false;
-
-		// Storage for runtime
-		void *RuntimeBody = nullptr;
-
-		Physics2DComponent() = default;
-		Physics2DComponent(const Physics2DComponent &) = default;
-	};
-
-	struct BoxCollider2DComponent
-	{
-		glm::vec2 Offset = {0.0f, 0.0f};
-		glm::vec2 Size = {0.5f, 0.5f};
-
-		float Density = 1.0f;
-		float Friction = 0.5f;
-		float Restitution = 0.0f;
-		float RestitutionThreshold = 0.5f;
-
-		// Storage for runtime
-		void *RuntimeFixture = nullptr;
-
-		BoxCollider2DComponent() = default;
-		BoxCollider2DComponent(const BoxCollider2DComponent &) = default;
 	};
 
 	struct PhysicsComponent
@@ -362,10 +327,10 @@ namespace Brisk
 					   ChildrenComponent,
 					   LocalTransformComponent,
 					   WorldTransformComponent,
-					   LightComponent,
+					   DirectionalLightComponent,
+					   PointLightComponent,
+					   SpotLightComponent,
 					   SkyboxComponent,
-					   Physics2DComponent,
-					   BoxCollider2DComponent,
 					   PhysicsComponent,
 					   BoxColliderComponent,
 					   SphereColliderComponent,

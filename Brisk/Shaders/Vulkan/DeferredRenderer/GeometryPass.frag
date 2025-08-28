@@ -113,12 +113,12 @@ void main() {
 
         if (material.alphaMode == 1) { // MASK
             if (baseColor.a < material.alphaCutoff) {
-                discard;
+                //discard;
             }
         } else if (material.alphaMode == 2) { // BLEND
             outAlbedo.a = baseColor.a; // Pass alpha to lighting pass
             // You typically render this in a **separate transparent pass**.
-            return; // Skip writing to G-buffer in opaque pass
+            //return; // Skip writing to G-buffer in opaque pass
         }
     }
 

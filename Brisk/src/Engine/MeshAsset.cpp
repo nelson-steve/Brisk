@@ -381,7 +381,6 @@ namespace Brisk {
 			m_Meshes.push_back(outMesh);
 		}
 
-
 		m_VertexBuffer = Buffer::Create();
 		BufferDesc vertexBufferDesc{};
 		vertexBufferDesc.p_Name = "Vertex buffer";
@@ -405,68 +404,59 @@ namespace Brisk {
 		}
 
 		{
-			std::vector<uint8_t> meshletVertices(verticesData.size(), 0xff);
+			for (auto& mesh : m_Meshes) {
+				for (auto& primitive : mesh.primitives) {
 
-			Meshlet meshlet = {};
+					std::vector<uint8_t> meshletVertices(verticesData.size(), 0xff);
+					Meshlet meshlet = {};
+					meshlet.MaterialIndex = primitive.materialIndex;
 
-			for (size_t i = 0; i < indicesData.size(); i += 3)
-			{
-				unsigned int a = indicesData[i + 0];
-				unsigned int b = indicesData[i + 1];
-				unsigned int c = indicesData[i + 2];
+					for (size_t i = 0; i < primitive.indexCount; i += 3) {
+						unsigned int a = indicesData[primitive.firstIndex + i + 0];
+						unsigned int b = indicesData[primitive.firstIndex + i + 1];
+						unsigned int c = indicesData[primitive.firstIndex + i + 2];
 
-				uint8_t& av = meshletVertices[a];
-				uint8_t& bv = meshletVertices[b];
-				uint8_t& cv = meshletVertices[c];
+						uint8_t& av = meshletVertices[a];
+						uint8_t& bv = meshletVertices[b];
+						uint8_t& cv = meshletVertices[c];
 
-				if (meshlet.VertexCount + (av == 0xff) + (bv == 0xff) + (cv == 0xff) > 64 || meshlet.IndexCount + 3 > 126)
-				{
-					meshletsData.push_back(meshlet);
-					meshlet = {};
-					std::fill(meshletVertices.begin(), meshletVertices.end(), 0xff);
+						if (meshlet.VertexCount + (av == 0xff) + (bv == 0xff) + (cv == 0xff) > 64 ||
+							meshlet.IndexCount + 3 > 126)
+						{
+							meshletsData.push_back(meshlet);
+							meshlet = {};
+							meshlet.MaterialIndex = primitive.materialIndex;
+							std::fill(meshletVertices.begin(), meshletVertices.end(), 0xff);
+						}
+
+						if (av == 0xff) {
+							av = meshlet.VertexCount;
+							meshlet.Vertices[meshlet.VertexCount++] = a;
+						}
+						if (bv == 0xff) {
+							bv = meshlet.VertexCount;
+							meshlet.Vertices[meshlet.VertexCount++] = b;
+						}
+						if (cv == 0xff) {
+							cv = meshlet.VertexCount;
+							meshlet.Vertices[meshlet.VertexCount++] = c;
+						}
+
+						meshlet.Indices[meshlet.IndexCount++] = av;
+						meshlet.Indices[meshlet.IndexCount++] = bv;
+						meshlet.Indices[meshlet.IndexCount++] = cv;
+					}
+
+					// Push last meshlet if it has data
+					if (meshlet.IndexCount > 0) {
+						assert(meshlet.VertexCount <= 64);
+						assert(meshlet.IndexCount <= 126);
+						meshletsData.push_back(meshlet);
+					}
 				}
-
-				if (av == 0xff)
-				{
-					av = meshlet.VertexCount;
-					meshlet.Vertices[meshlet.VertexCount++] = a;
-				}
-
-				if (bv == 0xff)
-				{
-					bv = meshlet.VertexCount;
-					meshlet.Vertices[meshlet.VertexCount++] = b;
-				}
-
-				if (cv == 0xff)
-				{
-					cv = meshlet.VertexCount;
-					meshlet.Vertices[meshlet.VertexCount++] = c;
-				}
-
-				meshlet.Indices[meshlet.IndexCount++] = av;
-				meshlet.Indices[meshlet.IndexCount++] = bv;
-				meshlet.Indices[meshlet.IndexCount++] = cv;
 			}
 
-#define MESH_MAXVTX 64
-#define MESH_MAXTRI 96
-
-			const size_t max_vertices = MESH_MAXVTX;
-			const size_t min_triangles = MESH_MAXTRI / 4;
-			const size_t max_triangles = MESH_MAXTRI;
-			std::vector<meshopt_Meshlet> meshlets(indicesData.size() / 3);
-			std::vector<unsigned int> meshlet_vertices(meshlets.size()* max_vertices);
-			std::vector<unsigned char> meshlet_triangles(meshlets.size() * max_triangles * 3);
-			meshlets.resize(meshopt_buildMeshletsScan(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indicesData.data(), indicesData.size(), verticesData.size(), max_vertices, max_triangles));
-
-			assert(meshlet.VertexCount <= 64);
-			assert(meshlet.IndexCount <= 126);
-
-
-			if (meshlet.IndexCount)
-				meshletsData.push_back(meshlet);
-
+			m_MeshletCount = meshletsData.size();
 			m_MeshletsBuffer = Buffer::Create();
 			BufferDesc meshletBufferDesc{};
 			meshletBufferDesc.p_Name = "Meshlet buffer";

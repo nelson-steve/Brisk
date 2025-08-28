@@ -119,6 +119,7 @@ namespace Brisk
 #define BRISK_CORE_INFO(...) 
 #define BRISK_CORE_WARN(...) 
 #define BRISK_CORE_ERROR(...)
+#define BRISK_CORE_ASSERT(...)
 
 //Application Log Macors
 #define BRISK_APP_TRACE(...)

@@ -61,6 +61,10 @@ namespace Brisk
 			/* 7 */"../Data/Models/gltf_models/BoomBox/glTF/BoomBox.gltf",
 		};
 
+		Entity lightEntity = m_SceneManager->pActiveScene->CreateEntity("Sun Light");
+		DirectionalLightComponent& lc = lightEntity.AddComponent<DirectionalLightComponent>();
+		lc.Direction = glm::vec3(0.0f, -1.0f, 0.0f);
+
 		GenerateRandomLights(MAX_LIGHTS, 400);
 
 		m_Renderer = Renderer::Create();

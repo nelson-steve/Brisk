@@ -44,6 +44,7 @@ struct Meshlet {
     uint8_t indices[126];   // flat index buffer (total indices, not triangles)
     uint8_t indexCount;     // total indices used (<= 126)
     uint8_t vertexCount;    // total vertices used (<= 64)
+    uint8_t materialIndex;    
 };
 
 layout(std430, set = 0, binding = 4) readonly buffer MeshletsBuffer {
@@ -53,6 +54,8 @@ layout(std430, set = 0, binding = 4) readonly buffer MeshletsBuffer {
 layout(location = 0) out vec3 fragPosition[];
 layout(location = 1) out vec3 fragNormal[];
 layout(location = 2) out vec2 fragUV[];
+layout(location = 3) out uint outMaterialIndex[];
+
 
 void main()
 {
@@ -89,5 +92,7 @@ void main()
         uint i2 = uint(Meshlets.meshlets[mi].indices[t*3u + 2u]);
 
         gl_PrimitiveTriangleIndicesEXT[t] = uvec3(i0, i1, i2);
+
+        outMaterialIndex[t] = uint(Meshlets.meshlets[mi].materialIndex);        
     }
 }

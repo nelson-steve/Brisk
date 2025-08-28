@@ -915,8 +915,7 @@ namespace Brisk
                 if (pushMaterialIndex && pushModelMatrix)
                     m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, true);
 
-                //RenderCommand::DrawMeshTasks(m_CmdBuffer, 370);
-                RenderCommand::DrawMeshTasks(m_CmdBuffer, 6284);
+                RenderCommand::DrawMeshTasks(m_CmdBuffer, meshComp.p_Mesh->GetMeshletCount());
             }
             else {
                 auto& submesh = mesh->m_Meshes[meshComp.p_SubMeshIndex];

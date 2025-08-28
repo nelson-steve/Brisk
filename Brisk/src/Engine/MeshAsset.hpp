@@ -40,6 +40,7 @@ namespace Brisk
             uint8_t Indices[126];
             uint8_t IndexCount;
             uint8_t VertexCount;
+            uint8_t MaterialIndex = 0;
         };
 
         struct MaterialData {
@@ -163,6 +164,8 @@ namespace Brisk
 		void Load(const std::filesystem::path& path);
         void Release();
 
+        uint32_t GetMeshletCount() const { return m_MeshletCount; }
+
 		std::shared_ptr<Buffer> GetIndexBuffer() const { return m_IndexBuffer; }
 		std::shared_ptr<Buffer> GetVertexBuffer() const { return m_VertexBuffer; }
 	private:
@@ -171,6 +174,7 @@ namespace Brisk
 	public:
 		std::vector<Node*> m_Nodes;
 		std::vector<Mesh> m_Meshes;
+        uint32_t m_MeshletCount;
 		std::vector<std::shared_ptr<Texture>> m_Textures;
 		std::vector<MaterialData> m_Materials;
 		std::shared_ptr<Buffer> m_VertexBuffer;

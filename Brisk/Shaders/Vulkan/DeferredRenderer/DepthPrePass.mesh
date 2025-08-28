@@ -45,6 +45,7 @@ struct Meshlet {
     uint8_t indices[126];   // flat index buffer (total indices, not triangles)
     uint8_t indexCount;     // total indices used (<= 126)
     uint8_t vertexCount;    // total vertices used (<= 64)
+    uint8_t materialIndex;
 };
 
 layout(std430, set = 0, binding = 4) readonly buffer MeshletsBuffer {

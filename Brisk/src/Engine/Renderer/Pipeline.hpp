@@ -5,7 +5,8 @@
 #include "Descriptor.hpp"
 #include "Core/Core.hpp"
 #include "GpuAdapter.hpp"
-//------------------------
+#include "CSMRenderPass.hpp"
+//--------------------------
 #include <cstdint>
 #include <vector>
 #include <string>
@@ -59,13 +60,6 @@ namespace Brisk
             COMPARE_OP_ALWAYS = 7,
         };
 
-        enum ShaderStage {
-            VERTEX,
-            GEOMETRY,
-            COMPUTE,
-            FRAGMENT,
-        };
-
         struct GraphicsPipelineSpecs {
             std::optional<VertexDataLayout> pLayout;
             bool pDepthClampEnable;
@@ -83,6 +77,7 @@ namespace Brisk
             bool pTransparent;
             std::string pDebugName;
             std::shared_ptr<RenderPass> pRenderPass;
+            std::shared_ptr<CSMRenderPass> pCSMRenderPass;
             std::vector<std::string> pShaderPathsVK;
             std::vector<std::string> pShaderPathsDX;
         };
@@ -98,7 +93,7 @@ namespace Brisk
 
         virtual void UpdateResources(const std::string& name, std::vector<std::shared_ptr<Texture>> textures, std::shared_ptr<Buffer> buffer) = 0;
         virtual void Bind(std::shared_ptr<CommandBuffer> cmd) = 0;
-        virtual void BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t, void* data, uint32_t offset, bool vertexShader) = 0;
+        virtual void BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data, uint32_t offset, Core::ShaderStageFlags stages) = 0;
 
         static std::shared_ptr<Pipeline> Create();
 

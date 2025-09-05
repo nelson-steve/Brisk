@@ -105,7 +105,7 @@ layout(push_constant) uniform MeshDataBuffer {
 } MeshData;
 
 void main() {
-    MaterialData material = Materials.materials[matIndex];
+    MaterialData material = Materials.materials[0];
 
     // Base Color
     vec4 baseColor = material.baseColorFactor;

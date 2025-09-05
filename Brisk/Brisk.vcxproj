@@ -128,6 +128,7 @@
     <ClInclude Include="src\Engine\Renderer\CommandBuffer.hpp" />
     <ClInclude Include="src\Engine\Renderer\CommandBufferAllocator.hpp" />
     <ClInclude Include="src\Engine\Renderer\ComputeCommand.hpp" />
+    <ClInclude Include="src\Engine\Renderer\CSMRenderPass.hpp" />
     <ClInclude Include="src\Engine\Renderer\Descriptor.hpp" />
     <ClInclude Include="src\Engine\Renderer\Fence.hpp" />
     <ClInclude Include="src\Engine\Renderer\Framebuffer.hpp" />
@@ -168,6 +169,7 @@
     <ClInclude Include="src\Graphics\Vulkan\CommandBufferAllocatorVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\CommandBufferVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\ComputeAPIVulkan.hpp" />
+    <ClInclude Include="src\Graphics\Vulkan\CSMRenderpassVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\Defines.h" />
     <ClInclude Include="src\Graphics\Vulkan\DescriptorLayoutVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\FenceVulkan.hpp" />
@@ -204,6 +206,7 @@
     <ClCompile Include="src\Engine\Renderer\CommanBuffer.cpp" />
     <ClCompile Include="src\Engine\Renderer\CommandBufferAllocator.cpp" />
     <ClCompile Include="src\Engine\Renderer\ComputeCommands.cpp" />
+    <ClCompile Include="src\Engine\Renderer\CSMRenderPass.cpp" />
     <ClCompile Include="src\Engine\Renderer\Descriptor.cpp" />
     <ClCompile Include="src\Engine\Renderer\Fence.cpp" />
     <ClCompile Include="src\Engine\Renderer\GpuAdapter.cpp" />
@@ -237,6 +240,7 @@
     <ClCompile Include="src\Graphics\Vulkan\BufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\CommandBufferAllocatorVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\CommandBufferVulkan.cpp" />
+    <ClCompile Include="src\Graphics\Vulkan\CSMRenderPassVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\DescriptorLayoutVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\FenceVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\GpuAdapterVulkan.cpp" />

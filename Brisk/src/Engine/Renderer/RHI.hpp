@@ -387,5 +387,43 @@ namespace Brisk {
             return a;
         }
 
+
+        enum class ShaderStageFlags : uint32_t {
+            None = 0,
+            Vertex = 1 << 0,
+            TessControl = 1 << 1,
+            TessEvaluation = 1 << 2,
+            Geometry = 1 << 3,
+            Fragment = 1 << 4,
+            Compute = 1 << 5,
+            RayGen = 1 << 6,
+            AnyHit = 1 << 7,
+            ClosestHit = 1 << 8,
+            Miss = 1 << 9,
+            Intersection = 1 << 10,
+            Callable = 1 << 11,
+            AllGraphics = 1 << 12,   // shorthand for all graphics shader stages
+            All = 0xFFFFFFFF // shorthand for all stages
+        };
+
+        // Bitwise operators
+        inline ShaderStageFlags operator|(ShaderStageFlags a, ShaderStageFlags b) {
+            return static_cast<ShaderStageFlags>(static_cast<uint32_t>(a) | static_cast<uint32_t>(b));
+        }
+
+        inline ShaderStageFlags operator&(ShaderStageFlags a, ShaderStageFlags b) {
+            return static_cast<ShaderStageFlags>(static_cast<uint32_t>(a) & static_cast<uint32_t>(b));
+        }
+
+        inline ShaderStageFlags& operator|=(ShaderStageFlags& a, ShaderStageFlags b) {
+            a = a | b;
+            return a;
+        }
+
+        inline ShaderStageFlags& operator&=(ShaderStageFlags& a, ShaderStageFlags b) {
+            a = a & b;
+            return a;
+        }
+
 	}
 }

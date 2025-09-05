@@ -411,6 +411,55 @@ namespace Brisk
 			return flags;
 		}
 
+		static VkShaderStageFlags ShaderStageToVkShaderStageFlags(Core::ShaderStageFlags stage) {
+			VkShaderStageFlags flags = 0;
+
+			if ((stage & Core::ShaderStageFlags::Vertex) == Core::ShaderStageFlags::Vertex)
+				flags |= VK_SHADER_STAGE_VERTEX_BIT;
+
+			if ((stage & Core::ShaderStageFlags::TessControl) == Core::ShaderStageFlags::TessControl)
+				flags |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
+
+			if ((stage & Core::ShaderStageFlags::TessEvaluation) == Core::ShaderStageFlags::TessEvaluation)
+				flags |= VK_SHADER_STAGE_TESSELLATION_EVALUATION_BIT;
+
+			if ((stage & Core::ShaderStageFlags::Geometry) == Core::ShaderStageFlags::Geometry)
+				flags |= VK_SHADER_STAGE_GEOMETRY_BIT;
+
+			if ((stage & Core::ShaderStageFlags::Fragment) == Core::ShaderStageFlags::Fragment)
+				flags |= VK_SHADER_STAGE_FRAGMENT_BIT;
+
+			if ((stage & Core::ShaderStageFlags::Compute) == Core::ShaderStageFlags::Compute)
+				flags |= VK_SHADER_STAGE_COMPUTE_BIT;
+
+			// Ray tracing stages (if you keep them)
+			if ((stage & Core::ShaderStageFlags::RayGen) == Core::ShaderStageFlags::RayGen)
+				flags |= VK_SHADER_STAGE_RAYGEN_BIT_KHR;
+
+			if ((stage & Core::ShaderStageFlags::AnyHit) == Core::ShaderStageFlags::AnyHit)
+				flags |= VK_SHADER_STAGE_ANY_HIT_BIT_KHR;
+
+			if ((stage & Core::ShaderStageFlags::ClosestHit) == Core::ShaderStageFlags::ClosestHit)
+				flags |= VK_SHADER_STAGE_CLOSEST_HIT_BIT_KHR;
+
+			if ((stage & Core::ShaderStageFlags::Miss) == Core::ShaderStageFlags::Miss)
+				flags |= VK_SHADER_STAGE_MISS_BIT_KHR;
+
+			if ((stage & Core::ShaderStageFlags::Intersection) == Core::ShaderStageFlags::Intersection)
+				flags |= VK_SHADER_STAGE_INTERSECTION_BIT_KHR;
+
+			if ((stage & Core::ShaderStageFlags::Callable) == Core::ShaderStageFlags::Callable)
+				flags |= VK_SHADER_STAGE_CALLABLE_BIT_KHR;
+
+			// Special groups
+			if ((stage & Core::ShaderStageFlags::AllGraphics) == Core::ShaderStageFlags::AllGraphics)
+				flags |= VK_SHADER_STAGE_ALL_GRAPHICS;
+
+			if ((stage & Core::ShaderStageFlags::All) == Core::ShaderStageFlags::All)
+				flags |= VK_SHADER_STAGE_ALL;
+
+			return flags;
+		}
 
 		static VkPipelineStageFlags PipelineStageToVkPipelineStageFlags(Core::PipelineStage stage) {
 			VkPipelineStageFlags flags = 0;

@@ -26,7 +26,7 @@ namespace Brisk
 		void HotReload();
 		virtual void UpdateResources(const std::string& name, std::vector<std::shared_ptr<Texture>> textures, std::shared_ptr<Buffer> buffer) override;
 		virtual void Bind(std::shared_ptr<CommandBuffer> cmd) override;
-		virtual void BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data, uint32_t offset, bool vertexShader) override;
+		virtual void BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data, uint32_t offset, Core::ShaderStageFlags stages) override;
 
 		const VkPipeline GetPipeline() const { return m_Pipeline; }
 		const VkPipelineLayout GetLayout() const { return m_PipelineLayout; }

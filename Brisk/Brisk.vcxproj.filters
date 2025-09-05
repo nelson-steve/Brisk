@@ -292,6 +292,8 @@
       <Filter>Platform\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\VmaUsage.h" />
+    <ClInclude Include="src\Engine\Renderer\CSMRenderPass.hpp" />
+    <ClInclude Include="src\Graphics\Vulkan\CSMRenderpassVulkan.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Log.cpp">
@@ -493,5 +495,7 @@
     <ClCompile Include="src\VolkUsage.cpp" />
     <ClCompile Include="src\stbimage.cc" />
     <ClCompile Include="src\volk.c" />
+    <ClCompile Include="src\Engine\Renderer\CSMRenderPass.cpp" />
+    <ClCompile Include="src\Graphics\Vulkan\CSMRenderPassVulkan.cpp" />
   </ItemGroup>
 </Project>

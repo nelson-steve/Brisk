@@ -13,6 +13,7 @@
 #include "Engine/Renderer/RenderPass.hpp"
 #include "Editor/Editor.hpp"
 #include "Engine/Component.hpp"
+#include "CSMRenderPass.hpp"
 //------------------------
 #include <memory>
 //---------------
@@ -77,10 +78,6 @@ namespace Brisk
 		static std::shared_ptr<Swapchain> GetSwapchain() { return m_Swapchain; }
 
 		static std::unique_ptr<Renderer> Create();
-	private:
-		void RenderEntity(const MeshComponent& mesh, int alphaMode, bool push = false);
-		void Render(MeshAsset* mesh, std::vector<Entity> entities, bool pushMaterialIndex = false, bool pushModelMatrix = false, bool meshShading = false);
-
 	public:
 		static std::shared_ptr<Swapchain> m_Swapchain;
 
@@ -107,7 +104,10 @@ namespace Brisk
 		std::shared_ptr<Texture> m_Material;
 		std::shared_ptr<Texture> m_Emissive;
 		std::shared_ptr<Texture> m_DepthPre;
-		std::shared_ptr<Texture> m_ShadowMap;
+		std::shared_ptr<Texture> m_ShadowMapLOD0;
+		std::shared_ptr<Texture> m_ShadowMapLOD1;
+		std::shared_ptr<Texture> m_ShadowMapLOD2;
+		std::shared_ptr<Texture> m_ShadowMapLOD3;
 		std::shared_ptr<Texture> m_LightingOutput;
 
 		std::shared_ptr<Texture> m_IrradiannceImage;
@@ -116,7 +116,7 @@ namespace Brisk
 
 		// RenderPasses
 		std::shared_ptr<RenderPass> m_DepthPrePass;
-		std::shared_ptr<RenderPass> m_ShadowMapPass;
+		std::shared_ptr<CSMRenderPass> m_CSMShadowMapPass;
 		std::shared_ptr<RenderPass> m_GeometryBufferPass;
 		std::shared_ptr<RenderPass> m_LightingPass;
 		std::shared_ptr<RenderPass> m_UIPass;
@@ -146,6 +146,7 @@ namespace Brisk
 
 		std::shared_ptr<Buffer> m_AtomicCounters;
 
+		std::vector<glm::mat4> m_SunMatrices;
 		std::vector<Probe> m_Probes;
 
 		std::shared_ptr<CommandBuffer> m_CmdBuffer;

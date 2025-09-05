@@ -10,9 +10,8 @@ layout(std140, set = 0, binding = 0) uniform MVPBuffer {
 
 layout(push_constant) uniform MeshDataBuffer {
     mat4 model;
-    int materialIndex;
 } MeshData;
 
 void main() {
-    gl_Position = MVP.ProjView * MeshData.model * vec4(inPosition, 1.0);
+    gl_Position = MVP.ProjView * mat4(1.0) * vec4(inPosition, 1.0);
 }

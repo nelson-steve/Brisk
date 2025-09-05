@@ -316,7 +316,7 @@ namespace Brisk
         BRISK_CORE_ASSERT(found);
     }
 
-	void PipelineDirectX12::BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t, void* data, uint32_t offset, bool vertexShader) {
+	void PipelineDirectX12::BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t, void* data, uint32_t offset, Core::ShaderStageFlags stages) {
 
 	}
 }

@@ -2,16 +2,10 @@
 
 layout(location = 0) in vec3 inPosition;
 
-layout(set = 0, binding = 0) uniform MVPBuffer {
-    mat4 projView;
-    vec3 CamPos;
-} MVP;
-
 layout(push_constant) uniform MeshDataBuffer {
-    mat4 model;
-    int materialIndex;
+    mat4 matrix;
 } MeshData;
 
 void main() {
-    gl_Position = MVP.lightSpaceMatrix * MeshData.model * vec4(inPosition, 1.0);
+    gl_Position = MeshData.matrix * mat4(1.0) * vec4(inPosition, 1.0);
 }

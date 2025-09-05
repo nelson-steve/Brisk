@@ -126,7 +126,8 @@ namespace Brisk {
 
 		uint32_t indexPos = 0;
 		uint32_t vertexPos = 0;
-		std::vector<MeshData> verticesData;
+		std::vector<MeshletVertex> meshletVerticesData;
+		std::vector<Vertex> verticesData;
 		std::vector<uint32_t> indicesData;
 		std::vector<Meshlet> meshletsData;
 		verticesData.reserve(totalVertexCount);
@@ -278,7 +279,7 @@ namespace Brisk {
 
 				// Combine into vertex struct
 				for (size_t i = 0; i < positions.size(); ++i) {
-					MeshData data{};
+					Vertex data{};
 					// Positions
 					data.Position = glm::vec3(positions[i].x(), positions[i].y(), positions[i].z());
 
@@ -324,8 +325,19 @@ namespace Brisk {
 					else
 						data.JointWeights = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
 
+					MeshletVertex meshletVertex{};
+					meshletVertex.Position = data.Position;
+					meshletVertex.Normal = data.Normal;
+					meshletVertex.UV0 = data.UV0;
+					meshletVertex.UV1 = data.UV1;
+					meshletVertex.Color = data.Color;
+					meshletVertex.Tangent = data.Tangent;
+					meshletVertex.JointIndices = data.JointIndices;
+					meshletVertex.JointWeights = data.JointWeights;
+
 					vertexCount++;
 					vertexPos++;
+					meshletVerticesData.push_back(meshletVertex);
 					verticesData.push_back(data);
 				}
 
@@ -470,8 +482,8 @@ namespace Brisk {
 			m_VertexStorageBuffer = Buffer::Create();
 			BufferDesc vertexBufferDesc{};
 			vertexBufferDesc.p_Name = "Vertices Storage buffer";
-			vertexBufferDesc.p_Size = sizeof(verticesData[0]) * verticesData.size();
-			vertexBufferDesc.p_Data = verticesData.data();
+			vertexBufferDesc.p_Size = sizeof(meshletVerticesData[0]) * meshletVerticesData.size();
+			vertexBufferDesc.p_Data = meshletVerticesData.data();
 			vertexBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
 			vertexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
 			vertexBufferDesc.p_AllowSRV = true;

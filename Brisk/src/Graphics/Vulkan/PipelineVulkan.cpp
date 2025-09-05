@@ -11,6 +11,7 @@
 
 //#include <shaderc/shaderc.hpp>
 #include <spirv_reflect.h>
+#include "CSMRenderpassVulkan.hpp"
 
 namespace Brisk
 {
@@ -24,25 +25,25 @@ namespace Brisk
         return buffer.str();
     }
 
-//    std::vector<uint32_t> CompileGLSL(const std::string& source, shaderc_shader_kind kind, const std::string& filename) {
-//        shaderc::Compiler compiler;
-//        shaderc::CompileOptions options;
-//
-//#ifdef _DEBUG
-//        options.SetGenerateDebugInfo();
-//        options.SetOptimizationLevel(shaderc_optimization_level_zero);
-//#else
-//        options.SetOptimizationLevel(shaderc_optimization_level_performance);
-//#endif
-//
-//        shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(source, kind, filename.c_str(), options);
-//
-//        if (result.GetCompilationStatus() != shaderc_compilation_status_success) {
-//            throw std::runtime_error(result.GetErrorMessage());
-//        }
-//
-//        return { result.cbegin(), result.cend() };
-//    }
+    //    std::vector<uint32_t> CompileGLSL(const std::string& source, shaderc_shader_kind kind, const std::string& filename) {
+    //        shaderc::Compiler compiler;
+    //        shaderc::CompileOptions options;
+    //
+    //#ifdef _DEBUG
+    //        options.SetGenerateDebugInfo();
+    //        options.SetOptimizationLevel(shaderc_optimization_level_zero);
+    //#else
+    //        options.SetOptimizationLevel(shaderc_optimization_level_performance);
+    //#endif
+    //
+    //        shaderc::SpvCompilationResult result = compiler.CompileGlslToSpv(source, kind, filename.c_str(), options);
+    //
+    //        if (result.GetCompilationStatus() != shaderc_compilation_status_success) {
+    //            throw std::runtime_error(result.GetErrorMessage());
+    //        }
+    //
+    //        return { result.cbegin(), result.cend() };
+    //    }
 
     void PipelineVulkan::Init(const GraphicsPipelineSpecs& specs) {
         m_GraphicsSpecs = specs;
@@ -55,7 +56,7 @@ namespace Brisk
         std::vector<VkPushConstantRange> pushConstants;
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
         bool usingMeshShading = false;
-        for (const std::string& path : specs.pShaderPathsVK) 
+        for (const std::string& path : specs.pShaderPathsVK)
         {
             std::filesystem::path fsPath(path);
             std::string filename = fsPath.stem().string(); // "DepthPrePassMS"
@@ -252,23 +253,25 @@ namespace Brisk
         depthStencil.front = depthStencil.back;
 
         std::vector<VkPipelineColorBlendAttachmentState> colorAttachments;
-        for (int i = 0; i < specs.pRenderPass->GetColorAttachmentCount(); i++) {
-            VkPipelineColorBlendAttachmentState colorBlendAttachment{};
-            if (!specs.pTransparent) {
-                colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-                colorBlendAttachment.blendEnable = VK_FALSE;
+        if (specs.pRenderPass) {
+            for (int i = 0; i < specs.pRenderPass->GetColorAttachmentCount(); i++) {
+                VkPipelineColorBlendAttachmentState colorBlendAttachment{};
+                if (!specs.pTransparent) {
+                    colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+                    colorBlendAttachment.blendEnable = VK_FALSE;
+                }
+                else {
+                    colorBlendAttachment.blendEnable = VK_TRUE;
+                    colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
+                    colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
+                    colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+                    colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
+                    colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
+                    colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
+                    colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
+                }
+                colorAttachments.push_back(colorBlendAttachment);
             }
-            else {
-                colorBlendAttachment.blendEnable = VK_TRUE;
-                colorBlendAttachment.colorWriteMask = VK_COLOR_COMPONENT_R_BIT | VK_COLOR_COMPONENT_G_BIT | VK_COLOR_COMPONENT_B_BIT | VK_COLOR_COMPONENT_A_BIT;
-                colorBlendAttachment.srcColorBlendFactor = VK_BLEND_FACTOR_SRC_ALPHA;
-                colorBlendAttachment.dstColorBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-                colorBlendAttachment.colorBlendOp = VK_BLEND_OP_ADD;
-                colorBlendAttachment.srcAlphaBlendFactor = VK_BLEND_FACTOR_ONE_MINUS_SRC_ALPHA;
-                colorBlendAttachment.dstAlphaBlendFactor = VK_BLEND_FACTOR_ZERO;
-                colorBlendAttachment.alphaBlendOp = VK_BLEND_OP_ADD;
-            }
-            colorAttachments.push_back(colorBlendAttachment);
         }
 
         VkPipelineColorBlendStateCreateInfo colorBlending{ VK_STRUCTURE_TYPE_PIPELINE_COLOR_BLEND_STATE_CREATE_INFO };
@@ -301,7 +304,10 @@ namespace Brisk
         pipelineInfo.pDepthStencilState = &depthStencil;
         pipelineInfo.pDynamicState = &dynamicState;
         pipelineInfo.layout = m_PipelineLayout;
-        pipelineInfo.renderPass = std::static_pointer_cast<RenderPassVulkan>(specs.pRenderPass)->GetRenderPass();
+        if (specs.pRenderPass)
+            pipelineInfo.renderPass = std::static_pointer_cast<RenderPassVulkan>(specs.pRenderPass)->GetRenderPass();
+        else
+            pipelineInfo.renderPass = std::static_pointer_cast<CSMRenderPassVulkan>(specs.pCSMRenderPass)->GetRenderPass();
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
@@ -467,8 +473,8 @@ namespace Brisk
 
     void PipelineVulkan::Bind(std::shared_ptr<CommandBuffer> cmd) {
         vkCmdBindPipeline(
-            std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), 
-            m_IsCompute ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS, 
+            std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(),
+            m_IsCompute ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS,
             m_Pipeline);
 
         // Totally production code
@@ -482,43 +488,43 @@ namespace Brisk
         for (const ShaderResource& resource : m_ShaderResources) {
             switch (resource.p_Set)
             {
-                case SET_FRAME_GLOBAL:
-                {
-                    if (!once1) {
-                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_GlobalSet, resource.p_Set);
-                        once1 = true;
-                    }
-                    break;
+            case SET_FRAME_GLOBAL:
+            {
+                if (!once1) {
+                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_GlobalSet, resource.p_Set);
+                    once1 = true;
                 }
-                case SET_BINDLESS_TEXTURES:
-                {
-                    if (!once2) {
-                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessSet, resource.p_Set);
-                        once2 = true;
-                    }
-                    break;
+                break;
+            }
+            case SET_BINDLESS_TEXTURES:
+            {
+                if (!once2) {
+                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessSet, resource.p_Set);
+                    once2 = true;
                 }
-                case SET_PER_MESH:
-                {
-                    if (!once3) {
-                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_PerMeshSet, resource.p_Set);
-                        once3 = true;
-                    }
-                    break;
+                break;
+            }
+            case SET_PER_MESH:
+            {
+                if (!once3) {
+                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_PerMeshSet, resource.p_Set);
+                    once3 = true;
                 }
-                case SET_CLUSTERED_LIGHTING:
-                {
-                    if (!once6) {
-                        BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_ClusteredLightingSet, resource.p_Set);
-                        once6 = true;
-                    }
-                    break;
+                break;
+            }
+            case SET_CLUSTERED_LIGHTING:
+            {
+                if (!once6) {
+                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_ClusteredLightingSet, resource.p_Set);
+                    once6 = true;
                 }
-                default:
-                {
-                    BRISK_CORE_ERROR("Descriptor set not found for set index {}", resource.p_Set);
-                    break;
-                }
+                break;
+            }
+            default:
+            {
+                BRISK_CORE_ERROR("Descriptor set not found for set index {}", resource.p_Set);
+                break;
+            }
             }
         }
     }
@@ -529,79 +535,79 @@ namespace Brisk
             if (resource.p_Name == name) {
                 resourceExists = true;
                 switch (resource.p_Set) {
-                    case SET_FRAME_GLOBAL:
-                    {
-                        if (buffer) {
-                            VkWriteDescriptorSet write{};
-                            write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                            write.descriptorType = static_cast<VkDescriptorType>(resource.p_Type);
-                            write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_GlobalSet;
-                            write.dstBinding = resource.p_Binding;
-                            write.descriptorCount = 1;
-                            write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
-                            vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
-                        }
-                        else {
-                            VkWriteDescriptorSet write{};
-                            write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                            write.descriptorType = static_cast<VkDescriptorType>(resource.p_Type);
-                            write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_GlobalSet;
-                            write.dstBinding = resource.p_Binding;
-                            write.descriptorCount = 1;
-                            write.pImageInfo = std::static_pointer_cast<TextureVulkan>(textures[0])->GetDescriptor();
-                            vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
-                        }
-                        break;
-                    }
-                    case SET_BINDLESS_TEXTURES:
-                    {
-                        std::vector<VkWriteDescriptorSet> writes;
-                        for (int i = 0; i < textures.size(); i++) {
-                            VkWriteDescriptorSet write{};
-                            write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                            write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                            write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessSet;
-                            write.dstBinding = 0;
-                            write.dstArrayElement = Engine::s_TexturesOffset + i;
-                            write.descriptorCount = 1;
-                            write.pImageInfo = std::static_pointer_cast<TextureVulkan>(textures[i])->GetDescriptor();
-                            writes.push_back(write);
-                        }
-
-                        vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), writes.size(), writes.data(), 0, nullptr);
-                        break;
-                    }
-                    case SET_PER_MESH:
-                    {
-                        VkWriteDescriptorSet write{};
-                        write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
-                        write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_PerMeshSet;
-                        write.dstBinding = resource.p_Binding;
-                        write.descriptorCount = 1;
-                        write.pImageInfo = std::static_pointer_cast<TextureVulkan>(textures[0])->GetDescriptor();
-
-                        vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
-                        break;
-                    }
-                    case SET_CLUSTERED_LIGHTING:
-                    {
+                case SET_FRAME_GLOBAL:
+                {
+                    if (buffer) {
                         VkWriteDescriptorSet write{};
                         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                         write.descriptorType = static_cast<VkDescriptorType>(resource.p_Type);
-                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_ClusteredLightingSet;
+                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_GlobalSet;
                         write.dstBinding = resource.p_Binding;
                         write.descriptorCount = 1;
                         write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
-
                         vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
-                        break;
                     }
-                    default:
-                    {
-                        BRISK_CORE_ERROR("Invalid descriptor set index");
-                        break;
+                    else {
+                        VkWriteDescriptorSet write{};
+                        write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                        write.descriptorType = static_cast<VkDescriptorType>(resource.p_Type);
+                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_GlobalSet;
+                        write.dstBinding = resource.p_Binding;
+                        write.descriptorCount = 1;
+                        write.pImageInfo = std::static_pointer_cast<TextureVulkan>(textures[0])->GetDescriptor();
+                        vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
                     }
+                    break;
+                }
+                case SET_BINDLESS_TEXTURES:
+                {
+                    std::vector<VkWriteDescriptorSet> writes;
+                    for (int i = 0; i < textures.size(); i++) {
+                        VkWriteDescriptorSet write{};
+                        write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                        write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessSet;
+                        write.dstBinding = 0;
+                        write.dstArrayElement = Engine::s_TexturesOffset + i;
+                        write.descriptorCount = 1;
+                        write.pImageInfo = std::static_pointer_cast<TextureVulkan>(textures[i])->GetDescriptor();
+                        writes.push_back(write);
+                    }
+
+                    vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), writes.size(), writes.data(), 0, nullptr);
+                    break;
+                }
+                case SET_PER_MESH:
+                {
+                    VkWriteDescriptorSet write{};
+                    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                    write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
+                    write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_PerMeshSet;
+                    write.dstBinding = resource.p_Binding;
+                    write.descriptorCount = 1;
+                    write.pImageInfo = std::static_pointer_cast<TextureVulkan>(textures[0])->GetDescriptor();
+
+                    vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+                    break;
+                }
+                case SET_CLUSTERED_LIGHTING:
+                {
+                    VkWriteDescriptorSet write{};
+                    write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
+                    write.descriptorType = static_cast<VkDescriptorType>(resource.p_Type);
+                    write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_ClusteredLightingSet;
+                    write.dstBinding = resource.p_Binding;
+                    write.descriptorCount = 1;
+                    write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
+
+                    vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+                    break;
+                }
+                default:
+                {
+                    BRISK_CORE_ERROR("Invalid descriptor set index");
+                    break;
+                }
                 }
 
                 break;
@@ -612,8 +618,9 @@ namespace Brisk
         }
     }
 
-    void PipelineVulkan::BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data, uint32_t offset, bool vertexShader) {
-        vkCmdPushConstants(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), m_PipelineLayout, VK_SHADER_STAGE_FRAGMENT_BIT, 0, size, data);
+    void PipelineVulkan::BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data, uint32_t offset, Core::ShaderStageFlags stages) {
+        VkShaderStageFlags flags = UtilitiesVulkan::ShaderStageToVkShaderStageFlags(stages);
+        vkCmdPushConstants(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), m_PipelineLayout, flags, 0, size, data);
     }
 
     void PipelineVulkan::Release() {

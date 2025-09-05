@@ -27,7 +27,11 @@ namespace Brisk
 
 		void OnUpdate(float t);
 
+		inline float GetNearClip() const { return m_NearClip; }
+		inline float GetFarClip() const { return m_FarClip; }
 		inline float GetDistance() const { return m_Distance; }
+		inline float GetFOV() const { return m_FOV; }
+		inline float GetAspectRatio() const { return m_AspectRatio; }
 		inline void SetDistance(float distance) { m_Distance = distance; }
 
 		inline void SetMouseOffset(float xOffset, float yOffset) { m_MouseOffset = glm::vec2(xOffset, yOffset); }

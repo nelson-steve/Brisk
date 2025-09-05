@@ -14,7 +14,17 @@ namespace Brisk
 {
 	class MeshAsset {
 	public:
-        struct MeshData {
+        struct Vertex {
+            glm::vec3 Position;
+            glm::vec3 Normal;
+            glm::vec2 UV0;
+            glm::vec2 UV1;
+            glm::vec3 Color;
+            glm::vec4 Tangent;
+            glm::uvec4 JointIndices;
+            glm::vec4 JointWeights;
+        };
+        struct MeshletVertex {
             glm::vec3 Position;
             float _pad0;
 

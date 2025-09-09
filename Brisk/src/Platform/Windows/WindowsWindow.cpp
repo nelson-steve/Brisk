@@ -2,7 +2,6 @@
 #include "WindowsWindow.hpp"
 #include "Core/Log.hpp"
 #include "Engine/Engine.hpp"
-#include "Editor/Editor.hpp"
 #include "Engine/Events/ApplicationEvent.hpp"
 #include "Engine/Events/MouseEvent.hpp"
 #include "Engine/Events/KeyEvent.hpp"

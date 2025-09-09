@@ -22,7 +22,7 @@ namespace Brisk
             if (hasSwapchain) break;
         }
 
-        uint32_t framebufferCount = hasSwapchain ? Engine::s_Application->GetRenderer()->GetSwapchain()->GetImageCount() : 1;
+        uint32_t framebufferCount = hasSwapchain ? Application::GetRenderer()->GetSwapchain()->GetImageCount() : 1;
         imageViews.resize(framebufferCount);
         {
             for (const auto& attachment : outputs) {
@@ -39,7 +39,7 @@ namespace Brisk
 
                 auto texture = !isSwapchain ? std::static_pointer_cast<TextureVulkan>(attachment.pImage) : nullptr;
                 VkAttachmentDescription desc{};
-                desc.format = isSwapchain ? std::static_pointer_cast<SwapchainVulkan>(Engine::s_Application->GetRenderer()->GetSwapchain())->GetFormat().format : texture->GetFormat();
+                desc.format = isSwapchain ? std::static_pointer_cast<SwapchainVulkan>(Application::GetRenderer()->GetSwapchain())->GetFormat().format : texture->GetFormat();
                 desc.samples = VK_SAMPLE_COUNT_1_BIT;
 
                 if(attachment.pLoadOp == LoadOp::Clear)
@@ -81,8 +81,8 @@ namespace Brisk
                         m_FramebufferHeight = texture->GetHeight();
                     }
                     else {
-                        m_FramebufferWidth = Engine::s_Application->GetRenderer()->GetSwapchain()->GetExtentWidth();
-                        m_FramebufferHeight = Engine::s_Application->GetRenderer()->GetSwapchain()->GetExtentHeight();
+                        m_FramebufferWidth = Application::GetRenderer()->GetSwapchain()->GetExtentWidth();
+                        m_FramebufferHeight = Application::GetRenderer()->GetSwapchain()->GetExtentHeight();
                     }
                 }
 
@@ -135,7 +135,7 @@ namespace Brisk
             renderPassInfo.dependencyCount = subpassDependencies.size();
             renderPassInfo.pDependencies = subpassDependencies.data();
 
-            if (vkCreateRenderPass(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
+            if (vkCreateRenderPass(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
                 throw std::runtime_error("Failed to create Vulkan render pass");
             }
 
@@ -146,7 +146,7 @@ namespace Brisk
             nameInfo.pObjectName = "renderpass";
 
 #if _DEBUG
-            vkSetDebugUtilsObjectNameEXT(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
+            vkSetDebugUtilsObjectNameEXT(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
 #endif
         }
 
@@ -156,7 +156,7 @@ namespace Brisk
                 auto texture = !isSwapchain ? std::static_pointer_cast<TextureVulkan>(attachment.pImage) : nullptr;
 
                 if (isSwapchain) {
-                    imageViews[i].push_back(std::static_pointer_cast<SwapchainVulkan>(Engine::s_Application->GetRenderer()->GetSwapchain())->GetSwapchainImageViews()[i]);
+                    imageViews[i].push_back(std::static_pointer_cast<SwapchainVulkan>(Application::GetRenderer()->GetSwapchain())->GetSwapchainImageViews()[i]);
                 }
                 else {
                     imageViews[i].push_back(std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetView());
@@ -176,7 +176,7 @@ namespace Brisk
 
             BRISK_CORE_INFO("Framebuffer width: {} height: {}", m_FramebufferWidth, m_FramebufferHeight);
 
-            if (vkCreateFramebuffer(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS) {
+            if (vkCreateFramebuffer(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS) {
                 throw std::runtime_error("Failed to create Vulkan framebuffer");
             }
         }
@@ -187,7 +187,7 @@ namespace Brisk
         clearValues.resize(m_ColorAttachmentCount);
 
         for (auto& clear : clearValues) {
-            clear.color = { { 0.2f, 0.2f, 0.2f, 1.0f } };
+            clear.color = { { 0.0f, 0.0f, 0.0f, 1.0f } };
         }
         if (m_HasDepth) {
             VkClearValue depthClear{};
@@ -218,8 +218,8 @@ namespace Brisk
 
     void RenderPassVulkan::Release() {
         for(auto framebuffer : m_Framebuffers)
-            vkDestroyFramebuffer(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), framebuffer, nullptr);
+            vkDestroyFramebuffer(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), framebuffer, nullptr);
 
-        vkDestroyRenderPass(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_RenderPass, nullptr);
+        vkDestroyRenderPass(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_RenderPass, nullptr);
     }
 }

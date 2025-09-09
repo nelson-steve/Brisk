@@ -12,13 +12,13 @@ namespace Brisk
         switch (type)
         {
             case Brisk::Queue::QueueType::Graphics:
-                m_CommandQueue = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetGraphicsQueue();
+                m_CommandQueue = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetGraphicsQueue();
                 break;
             case Brisk::Queue::QueueType::Compute:
-                m_CommandQueue = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetComputeQueue();
+                m_CommandQueue = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetComputeQueue();
                 break;
             case Brisk::Queue::QueueType::Transfer:
-                m_CommandQueue = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetTransferQueue();
+                m_CommandQueue = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetTransferQueue();
                 break;
             default:
                 BRISK_CORE_ERROR("Invalid Queue Type");
@@ -42,6 +42,6 @@ namespace Brisk
     }
 
     void QueueDirectX12::Present(Queue::PresentInfo info) {
-        std::static_pointer_cast<SwapchainDirectX12>(Engine::s_Application->GetRenderer()->GetSwapchain())->Present();
+        std::static_pointer_cast<SwapchainDirectX12>(Application::GetRenderer()->GetSwapchain())->Present();
     }
 }

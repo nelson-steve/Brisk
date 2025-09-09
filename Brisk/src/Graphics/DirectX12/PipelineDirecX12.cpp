@@ -176,7 +176,7 @@ namespace Brisk
             throw std::runtime_error("Failed to serialize root signature");
         }
 
-        Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRootSignature(0, serialized->GetBufferPointer(),
+        Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRootSignature(0, serialized->GetBufferPointer(),
             serialized->GetBufferSize(), IID_PPV_ARGS(&m_RootSignature));
 
         std::cout << std::endl;
@@ -224,7 +224,7 @@ namespace Brisk
         psoDesc.SampleDesc.Count = 1;
         psoDesc.SampleMask = UINT_MAX;
 
-        hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_PipelineState));
+        hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateGraphicsPipelineState(&psoDesc, IID_PPV_ARGS(&m_PipelineState));
         if (FAILED(hr)) {
             throw std::runtime_error("Failed to create pipeline state");
         }
@@ -253,7 +253,7 @@ namespace Brisk
             &serializedRootSig, &errorBlob))) {
             throw std::runtime_error("Failed to serialize root signature");
         }
-        if (FAILED(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRootSignature(0, serializedRootSig->GetBufferPointer(),
+        if (FAILED(Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRootSignature(0, serializedRootSig->GetBufferPointer(),
             serializedRootSig->GetBufferSize(),
             IID_PPV_ARGS(&m_RootSignature)))) {
             throw std::runtime_error("Failed to create root signature");
@@ -273,7 +273,7 @@ namespace Brisk
         computePsoDesc.CS = { csBlob->GetBufferPointer(), csBlob->GetBufferSize() };
         computePsoDesc.Flags = D3D12_PIPELINE_STATE_FLAG_NONE;
 
-        if (FAILED(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateComputePipelineState(&computePsoDesc, IID_PPV_ARGS(&m_PipelineState)))) {
+        if (FAILED(Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateComputePipelineState(&computePsoDesc, IID_PPV_ARGS(&m_PipelineState)))) {
             throw std::runtime_error("Failed to create pipeline state");
         }
 	}
@@ -281,8 +281,8 @@ namespace Brisk
 	void PipelineDirectX12::Bind(std::shared_ptr<CommandBuffer> cmd) {
         ID3D12DescriptorHeap* heaps[] = 
         { 
-            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap().Get(),
-            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetSamplerHeap().Get(),
+            Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap().Get(),
+            Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetSamplerHeap().Get(),
         };
         std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->SetDescriptorHeaps(_countof(heaps), heaps);
 

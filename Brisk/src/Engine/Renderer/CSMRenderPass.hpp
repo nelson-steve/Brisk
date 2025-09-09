@@ -4,8 +4,6 @@
 #include "Core/Core.hpp"
 #include "RenderPass.hpp"
 //------------------------
-#include <volk.h>
-//----------------
 
 namespace Brisk 
 {

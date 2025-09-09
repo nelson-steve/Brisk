@@ -84,6 +84,7 @@ namespace Brisk
 		virtual void Release() = 0;
 		virtual void Init(const fastgltf::Image& image, const fastgltf::Asset& asset) = 0;
 
+		virtual uint64_t AddTextureToImGui() = 0;
 		virtual void TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, std::vector<ImageBarrierParams> params) = 0;
 		virtual void CopyImage(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> src, std::shared_ptr<Texture> dest, uint32_t width, uint32_t height) = 0;
 		TextureSpecification GetSpecs() const { return m_Specs; }
@@ -91,7 +92,6 @@ namespace Brisk
 		virtual uint32_t GetHeight() const = 0;
 		virtual bool IsDepth() { return m_Specs.p_IsDepth; }
 		virtual void Resize() = 0;
-
 
 		static SamplerAddressMode GetVkWrapMode(int32_t wrapMode)
 		{

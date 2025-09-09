@@ -49,10 +49,10 @@ namespace Brisk
         m_GraphicsSpecs = specs;
 
         m_DescriptorSetLayouts.resize(4);
-        m_DescriptorSetLayouts[0] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[1] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[2] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[3] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
+        m_DescriptorSetLayouts[0] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
+        m_DescriptorSetLayouts[1] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
+        m_DescriptorSetLayouts[2] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
+        m_DescriptorSetLayouts[3] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
         std::vector<VkPushConstantRange> pushConstants;
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
         bool usingMeshShading = false;
@@ -89,7 +89,7 @@ namespace Brisk
             createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode->data());
 
             VkShaderModule shaderModule;
-            if (vkCreateShaderModule(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+            if (vkCreateShaderModule(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
                 throw std::runtime_error("failed to create shader module!");
             }
             shaderStage.module = shaderModule;
@@ -146,16 +146,16 @@ namespace Brisk
                     bindings.push_back(binding);
                 }
                 if (set->set == 0) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_FrameGlobalDescriptorLayout;
+                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_FrameGlobalDescriptorLayout;
                 }
                 else if (set->set == 2) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_PerMeshDescriptorLayout;
+                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_PerMeshDescriptorLayout;
                 }
                 else if (set->set == 3) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_ClusteredLightingDescriptorLayout;
+                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_ClusteredLightingDescriptorLayout;
                 }
                 else if (isBindless) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout;
+                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_BindlessDescriptorLayout;
                 }
                 else {
                     VkDescriptorSetLayoutCreateInfo layoutInfo{};
@@ -164,7 +164,7 @@ namespace Brisk
                     layoutInfo.pBindings = bindings.data();
 
                     VkDescriptorSetLayout descriptorSetLayout;
-                    if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+                    if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
                         throw std::runtime_error("Failed to create descriptor set layout!");
                     }
                     m_DescriptorSetLayouts[setIndex] = descriptorSetLayout;
@@ -192,7 +192,7 @@ namespace Brisk
         pipelineLayoutInfo.pushConstantRangeCount = static_cast<uint32_t>(pushConstants.size());
         pipelineLayoutInfo.pPushConstantRanges = pushConstants.data();
 
-        if (vkCreatePipelineLayout(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &pipelineLayoutInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS) {
+        if (vkCreatePipelineLayout(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &pipelineLayoutInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create pipeline layout!");
         }
 
@@ -311,7 +311,7 @@ namespace Brisk
         pipelineInfo.subpass = 0;
         pipelineInfo.basePipelineHandle = VK_NULL_HANDLE;
 
-        if (vkCreateGraphicsPipelines(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_Pipeline) != VK_SUCCESS) {
+        if (vkCreateGraphicsPipelines(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), VK_NULL_HANDLE, 1, &pipelineInfo, nullptr, &m_Pipeline) != VK_SUCCESS) {
             throw std::runtime_error("failed to create graphics pipeline!");
         }
 
@@ -321,7 +321,7 @@ namespace Brisk
         nameInfo.objectHandle = (uint64_t)m_Pipeline;
         nameInfo.pObjectName = specs.pDebugName.c_str();
 #if _DEBUG
-        vkSetDebugUtilsObjectNameEXT(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
+        vkSetDebugUtilsObjectNameEXT(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
 #endif
     }
 
@@ -330,12 +330,12 @@ namespace Brisk
         m_IsCompute = true;
 
         m_DescriptorSetLayouts.resize(6);
-        m_DescriptorSetLayouts[0] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[1] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[2] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[3] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[4] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[5] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_DummyDescriptorLayout;
+        m_DescriptorSetLayouts[0] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
+        m_DescriptorSetLayouts[1] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
+        m_DescriptorSetLayouts[2] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
+        m_DescriptorSetLayouts[3] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
+        m_DescriptorSetLayouts[4] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
+        m_DescriptorSetLayouts[5] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
         std::vector<VkPushConstantRange> pushConstants;
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
@@ -349,7 +349,7 @@ namespace Brisk
         createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode->data());
 
         VkShaderModule shaderModule;
-        if (vkCreateShaderModule(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
+        if (vkCreateShaderModule(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create shader module!");
         }
         shaderStage.module = shaderModule;
@@ -404,13 +404,13 @@ namespace Brisk
             }
 
             if (set->set == 3) {
-                m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_ClusteredLightingDescriptorLayout;
+                m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_ClusteredLightingDescriptorLayout;
             }
             else if (set->set == 0) {
-                m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_FrameGlobalDescriptorLayout;
+                m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_FrameGlobalDescriptorLayout;
             }
             else if (isBindless) {
-                m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessDescriptorLayout;
+                m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_BindlessDescriptorLayout;
             }
             else {
                 VkDescriptorSetLayoutCreateInfo layoutInfo{};
@@ -419,7 +419,7 @@ namespace Brisk
                 layoutInfo.pBindings = bindings.data();
 
                 VkDescriptorSetLayout descriptorSetLayout;
-                if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
+                if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
                     throw std::runtime_error("Failed to create descriptor set layout!");
                 }
                 m_DescriptorSetLayouts[setIndex] = descriptorSetLayout;
@@ -445,7 +445,7 @@ namespace Brisk
         computePipelineLayoutCreateInfo.pushConstantRangeCount = static_cast<uint32_t>(pushConstants.size());
         computePipelineLayoutCreateInfo.pPushConstantRanges = pushConstants.data();
 
-        if (vkCreatePipelineLayout(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &computePipelineLayoutCreateInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS) {
+        if (vkCreatePipelineLayout(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &computePipelineLayoutCreateInfo, nullptr, &m_PipelineLayout) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create pipeline layout!");
         }
 
@@ -453,7 +453,7 @@ namespace Brisk
         pipelineInfo.stage = shaderStage;
         pipelineInfo.layout = m_PipelineLayout;
 
-        if (vkCreateComputePipelines(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), nullptr, 1, &pipelineInfo, nullptr, &m_Pipeline) != VK_SUCCESS) {
+        if (vkCreateComputePipelines(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), nullptr, 1, &pipelineInfo, nullptr, &m_Pipeline) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create compute pipeline!");
         }
     }
@@ -491,7 +491,7 @@ namespace Brisk
             case SET_FRAME_GLOBAL:
             {
                 if (!once1) {
-                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_GlobalSet, resource.p_Set);
+                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_GlobalSet, resource.p_Set);
                     once1 = true;
                 }
                 break;
@@ -499,7 +499,7 @@ namespace Brisk
             case SET_BINDLESS_TEXTURES:
             {
                 if (!once2) {
-                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessSet, resource.p_Set);
+                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_BindlessSet, resource.p_Set);
                     once2 = true;
                 }
                 break;
@@ -507,7 +507,7 @@ namespace Brisk
             case SET_PER_MESH:
             {
                 if (!once3) {
-                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_PerMeshSet, resource.p_Set);
+                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_PerMeshSet, resource.p_Set);
                     once3 = true;
                 }
                 break;
@@ -515,7 +515,7 @@ namespace Brisk
             case SET_CLUSTERED_LIGHTING:
             {
                 if (!once6) {
-                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_ClusteredLightingSet, resource.p_Set);
+                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_ClusteredLightingSet, resource.p_Set);
                     once6 = true;
                 }
                 break;
@@ -541,21 +541,21 @@ namespace Brisk
                         VkWriteDescriptorSet write{};
                         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                         write.descriptorType = static_cast<VkDescriptorType>(resource.p_Type);
-                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_GlobalSet;
+                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_GlobalSet;
                         write.dstBinding = resource.p_Binding;
                         write.descriptorCount = 1;
                         write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
-                        vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+                        vkUpdateDescriptorSets(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
                     }
                     else {
                         VkWriteDescriptorSet write{};
                         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                         write.descriptorType = static_cast<VkDescriptorType>(resource.p_Type);
-                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_GlobalSet;
+                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_GlobalSet;
                         write.dstBinding = resource.p_Binding;
                         write.descriptorCount = 1;
                         write.pImageInfo = std::static_pointer_cast<TextureVulkan>(textures[0])->GetDescriptor();
-                        vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+                        vkUpdateDescriptorSets(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
                     }
                     break;
                 }
@@ -566,7 +566,7 @@ namespace Brisk
                         VkWriteDescriptorSet write{};
                         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                         write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_BindlessSet;
+                        write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_BindlessSet;
                         write.dstBinding = 0;
                         write.dstArrayElement = Engine::s_TexturesOffset + i;
                         write.descriptorCount = 1;
@@ -574,7 +574,7 @@ namespace Brisk
                         writes.push_back(write);
                     }
 
-                    vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), writes.size(), writes.data(), 0, nullptr);
+                    vkUpdateDescriptorSets(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), writes.size(), writes.data(), 0, nullptr);
                     break;
                 }
                 case SET_PER_MESH:
@@ -582,12 +582,12 @@ namespace Brisk
                     VkWriteDescriptorSet write{};
                     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                     write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
-                    write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_PerMeshSet;
+                    write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_PerMeshSet;
                     write.dstBinding = resource.p_Binding;
                     write.descriptorCount = 1;
                     write.pImageInfo = std::static_pointer_cast<TextureVulkan>(textures[0])->GetDescriptor();
 
-                    vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+                    vkUpdateDescriptorSets(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
                     break;
                 }
                 case SET_CLUSTERED_LIGHTING:
@@ -595,12 +595,12 @@ namespace Brisk
                     VkWriteDescriptorSet write{};
                     write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                     write.descriptorType = static_cast<VkDescriptorType>(resource.p_Type);
-                    write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->m_ClusteredLightingSet;
+                    write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_ClusteredLightingSet;
                     write.dstBinding = resource.p_Binding;
                     write.descriptorCount = 1;
                     write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
 
-                    vkUpdateDescriptorSets(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+                    vkUpdateDescriptorSets(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
                     break;
                 }
                 default:
@@ -625,12 +625,12 @@ namespace Brisk
 
     void PipelineVulkan::Release() {
         for (VkShaderModule module : m_Modules) {
-            vkDestroyShaderModule(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), module, nullptr);
+            vkDestroyShaderModule(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), module, nullptr);
         }
         //for (VkDescriptorSetLayout layout : m_DescriptorSetLayouts) {
-        //    vkDestroyDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), layout, nullptr);
+        //    vkDestroyDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), layout, nullptr);
         //}
-        vkDestroyPipelineLayout(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_PipelineLayout, nullptr);
-        vkDestroyPipeline(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), m_Pipeline, nullptr);
+        vkDestroyPipelineLayout(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), m_PipelineLayout, nullptr);
+        vkDestroyPipeline(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), m_Pipeline, nullptr);
     }
 }

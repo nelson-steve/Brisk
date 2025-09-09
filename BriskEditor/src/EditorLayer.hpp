@@ -3,13 +3,11 @@
 #include "IEditorPanel.hpp"
 #include "Engine/Renderer/Texture.hpp"
 #include "Engine/Renderer/RenderPass.hpp"
+#include "Layers/Layer.hpp"
 
 #include "imgui.h"
 #include "ImGuiBackends/imgui_impl_glfw.h"
-
 #include "ImGuiBackends/imgui_impl_vulkan.h"
-
-
 #include "glm/glm.hpp"
 
 #include <unordered_map>
@@ -19,10 +17,18 @@ struct ID3D12DescriptorHeap;
 
 namespace Brisk 
 {
-	class Editor {
+	class EditorLayer : public Layer {
 	public:
-		Editor() = default;
-		void Create(std::shared_ptr<RenderPass> renderpass, std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> tex);
+		EditorLayer() = default;
+		virtual ~EditorLayer() = default;
+
+		virtual void OnAttach() override;
+		virtual void OnDetach() override;
+
+		void OnUpdate(float ts) override;
+		virtual void OnImGuiRender() override;
+		void OnEvent(Event& e) override;
+
 		void Update();
 		void Render(std::shared_ptr<CommandBuffer> cmd);
 		void Release();

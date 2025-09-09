@@ -3,6 +3,8 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "Brisk", "Brisk\Brisk.vcxproj", "{80A2E90C-ECB6-11BE-B538-B51D210C0EEF}"
 EndProject
+Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "BriskEditor", "BriskEditor\BriskEditor.vcxproj", "{47987AD7-B34D-F3CC-3C42-EDA3A8F6E9D0}"
+EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Dependencies", "Dependencies", "{53E47842-3FC8-3998-A828-34EB942B241A}"
 EndProject
 Project("{8BC9CEB8-8B4A-11D0-8D11-00A0C91BC942}") = "GLFW", "Brisk\vendors\GLFW\GLFW.vcxproj", "{154B857C-0182-860D-AA6E-6C109684020F}"
@@ -27,6 +29,10 @@ Global
 		{80A2E90C-ECB6-11BE-B538-B51D210C0EEF}.Debug|x64.Build.0 = Debug|x64
 		{80A2E90C-ECB6-11BE-B538-B51D210C0EEF}.Release|x64.ActiveCfg = Release|x64
 		{80A2E90C-ECB6-11BE-B538-B51D210C0EEF}.Release|x64.Build.0 = Release|x64
+		{47987AD7-B34D-F3CC-3C42-EDA3A8F6E9D0}.Debug|x64.ActiveCfg = Debug|x64
+		{47987AD7-B34D-F3CC-3C42-EDA3A8F6E9D0}.Debug|x64.Build.0 = Debug|x64
+		{47987AD7-B34D-F3CC-3C42-EDA3A8F6E9D0}.Release|x64.ActiveCfg = Release|x64
+		{47987AD7-B34D-F3CC-3C42-EDA3A8F6E9D0}.Release|x64.Build.0 = Release|x64
 		{154B857C-0182-860D-AA6E-6C109684020F}.Debug|x64.ActiveCfg = Debug|x64
 		{154B857C-0182-860D-AA6E-6C109684020F}.Debug|x64.Build.0 = Debug|x64
 		{154B857C-0182-860D-AA6E-6C109684020F}.Release|x64.ActiveCfg = Release|x64

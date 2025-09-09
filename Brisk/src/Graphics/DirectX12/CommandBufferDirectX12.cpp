@@ -19,17 +19,17 @@ namespace Brisk
 		switch (type)
 		{
 			case PoolType::Graphics:
-				hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(
+				hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(
 					D3D12_COMMAND_LIST_TYPE_DIRECT,
 					IID_PPV_ARGS(&m_ParentAllocator));
 				break;
 			case PoolType::Compute:
-				hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(
+				hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(
 					D3D12_COMMAND_LIST_TYPE_COMPUTE,
 					IID_PPV_ARGS(&m_ParentAllocator));
 				break;
 			case PoolType::Transfer:
-				hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(
+				hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(
 					D3D12_COMMAND_LIST_TYPE_COPY,
 					IID_PPV_ARGS(&m_ParentAllocator));
 				break;
@@ -39,7 +39,7 @@ namespace Brisk
 			BRISK_CORE_ERROR("Failed to create Graphics command allocator");
 		}
 
-		Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandList(
+		Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandList(
 			0,                                 // Node mask (use 0 for single-GPU)
 			D3D12_COMMAND_LIST_TYPE_DIRECT,
 			m_ParentAllocator.Get(),

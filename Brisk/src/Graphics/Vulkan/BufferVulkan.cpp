@@ -57,7 +57,7 @@ namespace Brisk
         bool hostCached = false;
         bool deviceLocal = false;
 
-        VmaAllocator cachedAllocator = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator();
+        VmaAllocator cachedAllocator = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetVmaAllocator();
 
         if (desc.p_Memory == BufferDesc::MemoryUsage::CPU_To_GPU) {
             vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU;
@@ -124,18 +124,18 @@ namespace Brisk
             nameInfo.pObjectName = "storage buffer";
 
 #if _DEBUG
-            vkSetDebugUtilsObjectNameEXT(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
+            //vkSetDebugUtilsObjectNameEXT(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
 #endif
 
             {
                 VkCommandBufferAllocateInfo allocInfoCmd{};
                 allocInfoCmd.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
                 allocInfoCmd.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
-                allocInfoCmd.commandPool = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsCommandPool();
+                allocInfoCmd.commandPool = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetGraphicsCommandPool();
                 allocInfoCmd.commandBufferCount = 1;
 
                 VkCommandBuffer commandBuffer;
-                vkAllocateCommandBuffers(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), &allocInfoCmd, &commandBuffer);
+                vkAllocateCommandBuffers(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &allocInfoCmd, &commandBuffer);
 
                 VkCommandBufferBeginInfo beginInfo{};
                 beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
@@ -154,12 +154,12 @@ namespace Brisk
                 submitInfo.commandBufferCount = 1;
                 submitInfo.pCommandBuffers = &commandBuffer;
 
-                vkQueueSubmit(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
-                vkQueueWaitIdle(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue());
+                vkQueueSubmit(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetGraphicsQueue(), 1, &submitInfo, VK_NULL_HANDLE);
+                vkQueueWaitIdle(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetGraphicsQueue());
 
                 // --- 7. Cleanup command buffer ---
-                vkFreeCommandBuffers(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 
-                    std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetGraphicsCommandPool(), 1, &commandBuffer);
+                vkFreeCommandBuffers(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), 
+                    std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetGraphicsCommandPool(), 1, &commandBuffer);
             }
 
             vmaDestroyBuffer(cachedAllocator, stagingBuffer, stagingAllocation);
@@ -208,7 +208,7 @@ namespace Brisk
                     range.memory = mem;
                     range.offset = 0;
                     range.size = desc.p_Size;
-                    vkFlushMappedMemoryRanges(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetDevice(), 1, &range);
+                    vkFlushMappedMemoryRanges(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), 1, &range);
                 }
             }
             else {
@@ -250,6 +250,6 @@ namespace Brisk
 
 	void BufferVulkan::Release() {
         BRISK_CORE_INFO("Destroying vma buffer");
-		vmaDestroyBuffer(std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter())->GetVmaAllocator(), m_Handle, m_Allocation);
+		vmaDestroyBuffer(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetVmaAllocator(), m_Handle, m_Allocation);
 	}
 }

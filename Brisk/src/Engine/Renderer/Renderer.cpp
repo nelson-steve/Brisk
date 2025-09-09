@@ -124,11 +124,11 @@ namespace Brisk
     {
         m_SunMatrices.reserve(NUM_CASCADES);
 
-        float nearClip = Engine::s_Application->GetCamera()->GetNearClip();
-        float farClip = Engine::s_Application->GetCamera()->GetFarClip();
-        glm::mat4 cameraProj = Engine::s_Application->GetCamera()->GetProjection();
-        glm::mat4 cameraView = Engine::s_Application->GetCamera()->GetViewMatrix();
-        glm::vec3 lightDir = glm::normalize(glm::vec3(-0.4f, -1.0f, -0.3f));;
+        float nearClip = Application::GetCamera()->GetNearClip();
+        float farClip = Application::GetCamera()->GetFarClip();
+        glm::mat4 cameraProj = Application::GetCamera()->GetProjection();
+        glm::mat4 cameraView = Application::GetCamera()->GetViewMatrix();
+        glm::vec3 lightDir = glm::normalize(glm::vec3(-0.3f, -1.0f, -0.5f));
         float lambda = 0.7f;
 
         for (int i = 0; i < NUM_CASCADES; i++) {
@@ -142,20 +142,6 @@ namespace Brisk
 
             m_SunMatrices.push_back(lightMatrix);
         }
-
-        float near_plane = 1.0f, far_plane = 1000.0f;
-        glm::mat4 lightProjection = glm::ortho(-100.0f, 100.0f, -100.0f, 100.0f, near_plane, far_plane);
-
-        glm::mat4 lightView = glm::lookAt(glm::vec3(0.0f) - lightDir * 100.0f,
-            glm::vec3(0.0f, 0.0f, 0.0f),
-            glm::vec3(0.0f, 1.0f, 0.0f));
-
-        glm::mat4 lightSpaceMatrix = lightProjection * lightView;
-
-        m_SunMatrices[0] = lightSpaceMatrix;
-        m_SunMatrices[1] = lightSpaceMatrix;
-        m_SunMatrices[2] = lightSpaceMatrix;
-        m_SunMatrices[3] = lightSpaceMatrix;
 
         glm::vec3 probMinBounds = glm::vec3(-20, -10, -20);
         glm::vec3 probMaxBounds = glm::vec3(-20, -10, -20);
@@ -198,7 +184,7 @@ namespace Brisk
         RenderCommand::s_RendererAPI = RendererAPI::Create();
         ComputeCommand::s_ComputeAPI = ComputeAPI::Create();
 
-        m_Swapchain = SwapchainFactory::CreateSwapchain(Engine::s_Application->GetWindow());
+        m_Swapchain = SwapchainFactory::CreateSwapchain(Application::GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
 #ifdef DISABLED_CODE // For shadow map
@@ -206,7 +192,7 @@ namespace Brisk
         //m_LightsUBO->Init(sizeof(LightsMVP), nullptr, Core::BufferUsage::UniformBuffer,
         //    Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
 
-        //Engine::s_Application->GetGpuAdapter()->AddResource(GpuDescriptorResourceType::SceneLightsUBO, nullptr, m_LightsUBO, 0);
+        //Application::GetGpuAdapter()->AddResource(GpuDescriptorResourceType::SceneLightsUBO, nullptr, m_LightsUBO, 0);
 
         //glm::vec3 lightDir = glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f));
         //float distance = 2000.0f;
@@ -456,7 +442,8 @@ namespace Brisk
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_DepthPrePass;
 
-                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassVS.spv");
+                //pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassVS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassMS.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassFS.spv");
                 pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\DepthPrePass_vert.cso");
                 pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\DepthPrePass_frag.cso");
@@ -470,7 +457,7 @@ namespace Brisk
                 pipelineSpecs.pDepthBiasEnable = false;
                 pipelineSpecs.pDepthTestEnable = true;  
                 pipelineSpecs.pDepthWriteEnable = true;
-                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS;
+                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_EQUAL;
                 pipelineSpecs.pDepthBoundsTestEnable = false;
                 pipelineSpecs.pStencilTestEnable = false;
                 pipelineSpecs.pDebugName = "DepthPrePas pipeline";
@@ -771,10 +758,7 @@ namespace Brisk
 
         m_ClusteredCmdBuffer = CommandBuffer::Create();
         m_ClusteredCmdBuffer->Allocate(CommandBuffer::PoolType::Compute);
-        // 
-
-        m_Editor = std::make_shared<Editor>();
-        m_Editor->Create(m_UIPass, m_CmdBuffer, m_LightingOutput);
+        //
     }
 
     bool once = true;
@@ -783,15 +767,21 @@ namespace Brisk
         if (!SceneManager::pActiveScene) return;
 
         MVP mvp{};
-        mvp.ProjView = Engine::s_Application->GetCamera()->GetViewProjection();
-        mvp.View = Engine::s_Application->GetCamera()->GetViewMatrix();
-        mvp.CamPos = Engine::s_Application->GetCamera()->GetPosition();
+        mvp.ProjView = Application::GetCamera()->GetViewProjection();
+        mvp.View = Application::GetCamera()->GetViewMatrix();
+        mvp.CamPos = Application::GetCamera()->GetPosition();
+
+        //m_SunMatrices[0] = Application::GetCamera()->GetViewProjection();
+        //m_SunMatrices[1] = Application::GetCamera()->GetViewProjection();
+        //m_SunMatrices[2] = Application::GetCamera()->GetViewProjection();
+        //m_SunMatrices[3] = Application::GetCamera()->GetViewProjection();
+
 
         m_MVPBuffer->UpdatePersistantData(sizeof(MVP), &mvp);
 
         ClusterInfo clusterInfo{};
-        clusterInfo.View = Engine::s_Application->GetCamera()->GetViewMatrix();
-        clusterInfo.InverseProj = glm::inverse(Engine::s_Application->GetCamera()->GetProjection());
+        clusterInfo.View = Application::GetCamera()->GetViewMatrix();
+        clusterInfo.InverseProj = glm::inverse(Application::GetCamera()->GetProjection());
         clusterInfo.TileSizes = glm::uvec4(16, 9, 24, 0);
         clusterInfo.ScreenDimensions = glm::uvec2(1920, 1080);
         clusterInfo.zNear = 0.1f;
@@ -901,7 +891,7 @@ namespace Brisk
             RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_ShadowMapLOD0->GetWidth(), m_ShadowMapLOD0->GetHeight(), 0, 1);
             RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_ShadowMapLOD0->GetWidth(), m_ShadowMapLOD0->GetHeight());
 
-            //glm::mat4 matrix = Engine::s_Application->GetCamera()->GetViewProjection();
+            //glm::mat4 matrix = Application::GetCamera()->GetViewProjection();
             glm::mat4 matrix = lightMatrix;
             m_ShadowMapPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Vertex);
 
@@ -945,21 +935,15 @@ namespace Brisk
         auto meshes = SceneManager::pActiveScene->Reg().view<MeshComponent, WorldTransformComponent>();
 
         for (auto& [mesh, entities] : m_RenderGroups) {
-            RenderCommand::BindVertexBuffer(m_CmdBuffer, { mesh->GetVertexBuffer() }, 0);
-            RenderCommand::BindIndexBuffer(m_CmdBuffer, mesh->GetIndexBuffer(), 0);
-
             for (Entity e : entities) {
                 auto& meshComp = e.GetComponent<MeshComponent>();
                 auto& transform = e.GetComponent<WorldTransformComponent>();
 
                 //glm::mat4 t = GetWorldTransform(e);
 
-                auto& submesh = mesh->m_Meshes[meshComp.p_SubMeshIndex];
-                for (auto& primitive : submesh.primitives) {
-                    glm::mat4 matrix{ 1.0f };
-                    m_DepthPrePassPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Vertex);
-                    RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
-                }
+                glm::mat4 matrix{ 1.0f };
+                m_DepthPrePassPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Vertex);
+                RenderCommand::DrawMeshTasks(m_CmdBuffer, meshComp.p_Mesh->GetMeshletCount());
             }
         }
 
@@ -991,8 +975,6 @@ namespace Brisk
         }
         m_GeometryBufferPass->End(m_CmdBuffer);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-
-        m_Editor->Update();
 
         Texture::ImageBarrierParams params{};
         params.oldLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
@@ -1034,8 +1016,8 @@ namespace Brisk
 
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
-            
-        m_Editor->Render(m_CmdBuffer);
+
+        Application::GetGuiLayer()->Render(m_CmdBuffer);
 
         m_UIPass->End(m_CmdBuffer);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1107,8 +1089,6 @@ namespace Brisk
         m_GBufferDoubleSidedPipeline->Release();
         m_GBufferAlphaBlendPipeline->Release();
         m_LightingPipeline->Release();
-
-        m_Editor->Release();
 
         m_Swapchain->Release();
 

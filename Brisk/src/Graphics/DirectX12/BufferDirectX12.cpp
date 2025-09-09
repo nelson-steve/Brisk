@@ -70,7 +70,7 @@ namespace Brisk
             heapProps.VisibleNodeMask = 1;
 
             // Create resource
-            HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
+            HRESULT hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
                 &heapProps,
                 D3D12_HEAP_FLAG_NONE,
                 &resourceDesc,
@@ -98,21 +98,21 @@ namespace Brisk
                 m_Buffer->Unmap(0, nullptr);
             }
 
-            uint32_t index = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementCbvSrvUavHeapIndex();
+            uint32_t index = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementCbvSrvUavHeapIndex();
 
-            m_CpuHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetCPUDescriptorHandleForHeapStart();
-            uint32_t descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            m_CpuHandle = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetCPUDescriptorHandleForHeapStart();
+            uint32_t descriptorSize = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
             m_CpuHandle.ptr += descriptorSize * index;
 
-            m_GpuHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetGPUDescriptorHandleForHeapStart();
-            descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            m_GpuHandle = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetGPUDescriptorHandleForHeapStart();
+            descriptorSize = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
             m_GpuHandle.ptr += descriptorSize * index;
 
             D3D12_CONSTANT_BUFFER_VIEW_DESC cbvDesc = {};
             cbvDesc.BufferLocation = m_Buffer->GetGPUVirtualAddress();
             cbvDesc.SizeInBytes = (desc.p_Size + 255) & ~255;
 
-            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateConstantBufferView(&cbvDesc, m_CpuHandle);
+            Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateConstantBufferView(&cbvDesc, m_CpuHandle);
         }
 
         // Create SRV buffer
@@ -133,7 +133,7 @@ namespace Brisk
             bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
             if (desc.p_Data) {
-                HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
+                HRESULT hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
                     &defaultHeapProps,
                     D3D12_HEAP_FLAG_NONE,
                     &bufferDesc,
@@ -148,7 +148,7 @@ namespace Brisk
 
                 bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
                 Microsoft::WRL::ComPtr<ID3D12Resource> vertexBufferUpload;
-                hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
+                hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
                     &uploadHeapProps,
                     D3D12_HEAP_FLAG_NONE,
                     &bufferDesc,
@@ -173,8 +173,8 @@ namespace Brisk
                 ComPtr<ID3D12CommandAllocator> commandAllocator;
                 ComPtr<ID3D12GraphicsCommandList> commandList;
 
-                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator));
-                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList));
+                Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator));
+                Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList));
 
                 UpdateSubresources(commandList.Get(), m_Buffer.Get(), vertexBufferUpload.Get(), 0, 0, 1, &subresourceData);
 
@@ -190,14 +190,14 @@ namespace Brisk
                 commandList->Close();
 
                 ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
-                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetGraphicsQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+                Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetGraphicsQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
                 ComPtr<ID3D12Fence> fence;
                 UINT64 fenceValue = 1;
-                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
+                Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
                 HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
-                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetGraphicsQueue()->Signal(fence.Get(), fenceValue);
+                Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetGraphicsQueue()->Signal(fence.Get(), fenceValue);
                 if (fence->GetCompletedValue() < fenceValue) {
                     fence->SetEventOnCompletion(fenceValue, fenceEvent);
                     WaitForSingleObject(fenceEvent, INFINITE);
@@ -208,7 +208,7 @@ namespace Brisk
                 commandList->Reset(commandAllocator.Get(), nullptr);
             }
             else {
-                HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
+                HRESULT hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
                     &defaultHeapProps,
                     D3D12_HEAP_FLAG_NONE,
                     &bufferDesc,
@@ -219,14 +219,14 @@ namespace Brisk
                 if (FAILED(hr)) throw std::runtime_error("Failed to create GPU buffer");
             }
 
-            uint32_t index = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementCbvSrvUavHeapIndex();
+            uint32_t index = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementCbvSrvUavHeapIndex();
 
-            m_CpuHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetCPUDescriptorHandleForHeapStart();
-            uint32_t descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            m_CpuHandle = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetCPUDescriptorHandleForHeapStart();
+            uint32_t descriptorSize = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
             m_CpuHandle.ptr += descriptorSize * index;
 
-            m_GpuHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetGPUDescriptorHandleForHeapStart();
-            descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            m_GpuHandle = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetGPUDescriptorHandleForHeapStart();
+            descriptorSize = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
             m_GpuHandle.ptr += descriptorSize * index;
 
             D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -238,7 +238,7 @@ namespace Brisk
             srvDesc.Buffer.StructureByteStride = sizeof(MeshAsset::MaterialData);
             srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
-            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateShaderResourceView(m_Buffer.Get(), &srvDesc, m_CpuHandle);
+            Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateShaderResourceView(m_Buffer.Get(), &srvDesc, m_CpuHandle);
         }
 
         // Create UAV buffer
@@ -259,7 +259,7 @@ namespace Brisk
             bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
             if (desc.p_Data) {
-                HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
+                HRESULT hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
                     &defaultHeapProps,
                     D3D12_HEAP_FLAG_NONE,
                     &bufferDesc,
@@ -274,7 +274,7 @@ namespace Brisk
 
                 bufferDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
                 Microsoft::WRL::ComPtr<ID3D12Resource> vertexBufferUpload;
-                hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
+                hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
                     &uploadHeapProps,
                     D3D12_HEAP_FLAG_NONE,
                     &bufferDesc,
@@ -299,8 +299,8 @@ namespace Brisk
                 ComPtr<ID3D12CommandAllocator> commandAllocator;
                 ComPtr<ID3D12GraphicsCommandList> commandList;
 
-                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator));
-                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList));
+                Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&commandAllocator));
+                Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandList(0, D3D12_COMMAND_LIST_TYPE_DIRECT, commandAllocator.Get(), nullptr, IID_PPV_ARGS(&commandList));
 
                 UpdateSubresources(commandList.Get(), m_Buffer.Get(), vertexBufferUpload.Get(), 0, 0, 1, &subresourceData);
 
@@ -316,14 +316,14 @@ namespace Brisk
                 commandList->Close();
 
                 ID3D12CommandList* ppCommandLists[] = { commandList.Get() };
-                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetGraphicsQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
+                Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetGraphicsQueue()->ExecuteCommandLists(_countof(ppCommandLists), ppCommandLists);
 
                 ComPtr<ID3D12Fence> fence;
                 UINT64 fenceValue = 1;
-                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
+                Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateFence(0, D3D12_FENCE_FLAG_NONE, IID_PPV_ARGS(&fence));
                 HANDLE fenceEvent = CreateEvent(nullptr, FALSE, FALSE, nullptr);
 
-                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetGraphicsQueue()->Signal(fence.Get(), fenceValue);
+                Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetGraphicsQueue()->Signal(fence.Get(), fenceValue);
                 if (fence->GetCompletedValue() < fenceValue) {
                     fence->SetEventOnCompletion(fenceValue, fenceEvent);
                     WaitForSingleObject(fenceEvent, INFINITE);
@@ -334,7 +334,7 @@ namespace Brisk
                 commandList->Reset(commandAllocator.Get(), nullptr);
             }
             else {
-                HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
+                HRESULT hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
                     &defaultHeapProps,
                     D3D12_HEAP_FLAG_NONE,
                     &bufferDesc,
@@ -345,14 +345,14 @@ namespace Brisk
                 if (FAILED(hr)) throw std::runtime_error("Failed to create GPU buffer");
             }
 
-            uint32_t index = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementCbvSrvUavHeapIndex();
+            uint32_t index = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementCbvSrvUavHeapIndex();
 
-            m_CpuHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetCPUDescriptorHandleForHeapStart();
-            uint32_t descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            m_CpuHandle = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetCPUDescriptorHandleForHeapStart();
+            uint32_t descriptorSize = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
             m_CpuHandle.ptr += descriptorSize * index;
 
-            m_GpuHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetGPUDescriptorHandleForHeapStart();
-            descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            m_GpuHandle = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetGPUDescriptorHandleForHeapStart();
+            descriptorSize = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
             m_GpuHandle.ptr += descriptorSize * index;
 
             D3D12_UNORDERED_ACCESS_VIEW_DESC uavDesc = {};
@@ -363,7 +363,7 @@ namespace Brisk
             uavDesc.Buffer.StructureByteStride = sizeof(MeshAsset::MaterialData);
             uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
-            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateUnorderedAccessView(m_Buffer.Get(), nullptr, &uavDesc, m_CpuHandle);
+            Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateUnorderedAccessView(m_Buffer.Get(), nullptr, &uavDesc, m_CpuHandle);
         }
     }
 

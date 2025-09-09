@@ -4,6 +4,7 @@
 
 #include <functional>
 #include <string>
+#include <iostream>
 
 namespace Brisk 
 {

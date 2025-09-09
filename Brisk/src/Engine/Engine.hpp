@@ -2,7 +2,6 @@
 
 // INCLUDES
 #include "Application.hpp"
-#include "Editor/Editor.hpp"
 #include "EngineGlobal.hpp"
 //------------------------
 #include <memory>
@@ -32,17 +31,9 @@ namespace Brisk
 		/// <summary>
 		/// Engine wide update
 		/// </summary>
-		static void Run();
-		/// <summary>
-		/// Ends all Engine systems
-		/// </summary>
 		static void Terminate();
 
 	public:
-		/// <summary>
-		/// Main window of the engine
-		/// </summary>
-		static std::shared_ptr<Application> s_Application;
 		/// <summary>
 		/// Stores basic information about the engine
 		/// </summary>

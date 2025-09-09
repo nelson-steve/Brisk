@@ -1,0 +1,117 @@
+#version 450
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+#define MAX_LIGHTS 2048
+#define MAX_LIGHTS_PER_CLUSTER 128
+
+struct TileAABB {
+    vec4 minPoint;
+    vec4 maxPoint;
+};
+
+layout (std430, set = 3, binding = 0) buffer clusterAABBBuffer {
+    TileAABB clusters[];
+} ClusterAABB;
+
+layout(set = 3, binding = 1) uniform ClusterInfoBuffer {
+    mat4 view;  
+    mat4 invProj;
+    uvec4 tileSizes;
+    vec2 screenDimensions;
+    float zNear;
+    float zFar;
+    uint numLights;
+    uint _padding0;
+} ClusterInfo;
+
+struct LightData {
+    vec4 position; // xyz = pos, w = radius
+    vec4 color;    // xyz = color, w = intensity
+};
+
+// xyz = pos, w = radius
+// xyz = color, w = intensity
+layout(std430, set = 0, binding = 1) readonly buffer LightsListBuffer {
+    LightData lights[MAX_LIGHTS];
+} LightsList;
+
+layout(std430, set = 3,  binding = 2) buffer ClusterLightIndexListBuffer {
+    uint lightIndices[]; // flattened light indices
+} ClusterLightIndexList;
+
+layout(std430, set = 3,  binding = 3) buffer ClusterLightOffsetListBuffer {
+    uvec2 lightOffsets[]; // start, count per cluster
+} ClusterLightOffsetList;
+
+// atomic counter for each cluster
+layout(std430, set = 3,  binding = 4) buffer AtomicCountersBuffer {
+    uint counters[];
+} AtomicCounters;
+
+layout (std430, set = 3, binding = 5) buffer GlobalIndexCountBuffer {
+    uint globalIndexCount;
+} GlobalIndex;
+
+float sqDistPointAABB(vec3 point, uint tile){
+    float sqDist = 0.0;
+    TileAABB currentCell = ClusterAABB.clusters[tile];
+	for (uint i = 0; i < 3; ++i)
+	{
+		float v = point[i];
+		if (v < currentCell.minPoint[i])
+		{
+			float diff = currentCell.minPoint[i] - v;
+			sqDist += (diff * diff);
+		}
+		else if (v > currentCell.maxPoint[i])
+		{
+			float diff = currentCell.maxPoint[i] - v;
+			sqDist += (diff * diff);
+		}
+	}
+
+    return sqDist;
+}
+
+bool testSphereAABB(uint light, uint tile){
+    float radius = LightsList.lights[light].position.w;
+    vec3 center  = vec3(ClusterInfo.view * vec4(LightsList.lights[light].position.xyz, 1.0));
+    float squaredDistance = sqDistPointAABB(center, tile);
+
+    return squaredDistance < (radius * radius);
+}
+
+void main()
+{
+	uint tileIndex =
+		gl_WorkGroupID.x +
+		gl_WorkGroupID.y * gl_NumWorkGroups.x +
+		gl_WorkGroupID.z * gl_NumWorkGroups.x * gl_NumWorkGroups.y;
+
+    if (gl_GlobalInvocationID.x == 0 && gl_GlobalInvocationID.y == 0 && gl_GlobalInvocationID.z == 0) {
+        GlobalIndex.globalIndexCount = 0;
+    }
+
+	// uint tileIndex = gl_GlobalInvocationID.x;
+
+	uint visibleLightIndices[MAX_LIGHTS_PER_CLUSTER];
+
+	uint lightIter = 0;
+	for (uint i = 0; i < ClusterInfo.numLights && lightIter < MAX_LIGHTS_PER_CLUSTER; ++i)
+	{
+		if (testSphereAABB(i, tileIndex))
+		{
+			visibleLightIndices[lightIter++] = i;
+		}
+	}
+
+	uint offset = atomicAdd(GlobalIndex.globalIndexCount, lightIter);
+
+	for (uint i = 0; i < lightIter; ++i)
+	{
+		ClusterLightIndexList.lightIndices[offset + i] = visibleLightIndices[i];
+	}
+
+    ClusterLightOffsetList.lightOffsets[tileIndex].x = offset;
+    ClusterLightOffsetList.lightOffsets[tileIndex].y = lightIter;
+}

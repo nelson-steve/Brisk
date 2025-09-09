@@ -11,7 +11,7 @@ namespace Brisk
         // Initialization (only once)
         VkSampler sampler = std::static_pointer_cast<TextureVulkan>(tex)->GetSampler();
         VkImageView view = std::static_pointer_cast<TextureVulkan>(tex)->GetView();
-        m_RenderTargetID = (ImTextureID)ImGui_ImplVulkan_AddTexture(
+        ImTextureID m_RenderTargetID = (ImTextureID)ImGui_ImplVulkan_AddTexture(
             sampler,
             view,
             VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL
@@ -24,7 +24,7 @@ namespace Brisk
         ImGui::Begin("Scene");
         ImVec2 viewportSize = ImGui::GetContentRegionAvail();
 
-        float aspectRatio = static_cast<float>(m_SceneTexture->GetWidth()) / static_cast<float>(m_SceneTexture->GetHeight());
+        float aspectRatio = static_cast<float>(Application::GetRenderer()->m_LightingOutput->GetWidth()) / static_cast<float>(Application::GetRenderer()->m_LightingOutput->GetHeight());
 
         ImVec2 imageSize;
         if (viewportSize.x / viewportSize.y > aspectRatio) {
@@ -44,7 +44,7 @@ namespace Brisk
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-        ImGui::Image(m_RenderTargetID, imageSize);
+        ImGui::Image((ImTextureID)Application::GetRenderer()->m_ImGuiIdScene, imageSize);
 
         ImGui::PopStyleColor(2);
         ImGui::PopStyleVar();

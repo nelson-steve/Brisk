@@ -41,7 +41,7 @@ namespace Brisk
 		renderPassInfo.dependencyCount = 1;
 		renderPassInfo.pDependencies = &dependency;
 
-		if (vkCreateRenderPass(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
+		if (vkCreateRenderPass(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create Vulkan render pass");
 		}
 
@@ -56,7 +56,7 @@ namespace Brisk
 			framebufferInfo.height = 2048;
 			framebufferInfo.layers = 1;
 
-			if (vkCreateFramebuffer(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &framebufferInfo, nullptr, &framebuffer) != VK_SUCCESS) {
+			if (vkCreateFramebuffer(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &framebufferInfo, nullptr, &framebuffer) != VK_SUCCESS) {
 				throw std::runtime_error("Failed to create Vulkan render pass");
 			}
 			m_Framebuffers.push_back(framebuffer);
@@ -65,9 +65,9 @@ namespace Brisk
 
 	void CSMRenderPassVulkan::Release() {
 		for (auto framebuffer : m_Framebuffers)
-			vkDestroyFramebuffer(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), framebuffer, nullptr);
+			vkDestroyFramebuffer(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), framebuffer, nullptr);
 
-		vkDestroyRenderPass(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_RenderPass, nullptr);
+		vkDestroyRenderPass(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_RenderPass, nullptr);
 	}
 
 	void CSMRenderPassVulkan::Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t framebuffer) {

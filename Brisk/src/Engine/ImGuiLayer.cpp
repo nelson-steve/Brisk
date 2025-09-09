@@ -1,31 +1,17 @@
-#include "Editor.hpp"
+#include "ImGuiLayer.hpp"
 #include "Engine/Engine.hpp"
-#include "AssetsPanel.hpp"
-#include "ConsolePanel.hpp"
-#include "GamePanel.hpp"
-#include "HeirarchyPanel.hpp"
-#include "InspectorPanel.hpp"
-#include "ScenePanel.hpp"
-#include "MaterialPanel.hpp"
-#include <Graphics/Vulkan/GpuAdapterVulkan.hpp>
-#include <Graphics/Vulkan/RenderpassVulkan.hpp>
-#include <Graphics/DirectX12/GpuAdapterDirectX12.hpp>
+#include "Graphics/Vulkan/GpuAdapterVulkan.hpp"
+#include "Graphics/Vulkan/RenderpassVulkan.hpp"
+#include "Graphics/DirectX12/GpuAdapterDirectX12.hpp"
+#include "Graphics/DirectX12/CommandBufferDirectX12.hpp"
 
 #include "ImGuiBackends/imgui_impl_dx12.h"
 #include <ImGuiBackends/imgui_impl_win32.h>
 
 #include <memory>
-#include <Graphics/DirectX12/CommandBufferDirectX12.hpp>
 
-namespace Brisk 
+namespace Brisk
 {
-    struct PerformanceStat
-    {
-        std::string name;
-        float value;
-        std::string unit;
-    };
-
     void SetLightGreenishTheme() {
         auto& colors = ImGui::GetStyle().Colors;
 
@@ -245,7 +231,7 @@ namespace Brisk
 
     }
 
-	void Editor::Create(std::shared_ptr<RenderPass> renderpass, std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> tex) {
+    void ImGuiLayer::OnAttach() {
         // Setup Dear ImGui context
         IMGUI_CHECKVERSION();
         ImGui::CreateContext();
@@ -262,9 +248,9 @@ namespace Brisk
         io.FontDefault = io.Fonts->AddFontFromFileTTF("../Data/Fonts/Nunito/Nunito-Medium.ttf", 18.0f);
 
         LavenderTheme();
-        
+
 #ifdef BRISK_ENABLE_DIRECTX12
-        auto gpuAdapter = std::static_pointer_cast<GpuAdapterDirectX12>(Engine::s_Application->GetGpuAdapter());
+        auto gpuAdapter = std::static_pointer_cast<GpuAdapterDirectX12>(Application::GetGpuAdapter());
         // 1. Create descriptor heap for ImGui fonts/textures
         D3D12_DESCRIPTOR_HEAP_DESC desc = {};
         desc.Type = D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV;
@@ -274,7 +260,7 @@ namespace Brisk
         gpuAdapter->GetDevice()->CreateDescriptorHeap(&desc, IID_PPV_ARGS(&imguiSrvDescHeap));
 
         uint32_t numFramesInFlight = 3;
-        ImGui_ImplWin32_Init(Engine::s_Application->GetWindow()->GetHWNDWindowHandle());
+        ImGui_ImplWin32_Init(Application::GetWindow()->GetHWNDWindowHandle());
         ImGui_ImplDX12_Init(gpuAdapter->GetDevice().Get(),
             numFramesInFlight,
             DXGI_FORMAT_R8G8B8A8_UNORM,
@@ -283,9 +269,9 @@ namespace Brisk
             imguiSrvDescHeap->GetGPUDescriptorHandleForHeapStart());
 
 #else
-        ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Engine::s_Application->GetWindow()->GetWindowHandle(), true);
+        ImGui_ImplGlfw_InitForVulkan((GLFWwindow*)Application::GetWindow()->GetWindowHandle(), true);
 
-        auto gpuAdapter = std::static_pointer_cast<GpuAdapterVulkan>(Engine::s_Application->GetGpuAdapter());
+        auto gpuAdapter = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter());
 
         ImGui_ImplVulkan_InitInfo info{};
         info.Instance = gpuAdapter->GetInstance();
@@ -294,7 +280,7 @@ namespace Brisk
         info.QueueFamily = 0;
         info.Queue = gpuAdapter->GetGraphicsQueue();
         info.DescriptorPool = gpuAdapter->GetDescriptorPool();
-        info.RenderPass = std::static_pointer_cast<RenderPassVulkan>(renderpass)->GetRenderPass();
+        info.RenderPass = std::static_pointer_cast<RenderPassVulkan>(Application::GetRenderer()->m_UIPass)->GetRenderPass();
         info.ImageCount = 2;
         info.MinImageCount = 2;
         info.MSAASamples = VK_SAMPLE_COUNT_1_BIT;
@@ -302,110 +288,34 @@ namespace Brisk
 
         ImGui_ImplVulkan_Init(&info);
 
-        VkCommandBuffer commandBuffer = std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get();
+        Application::GetRenderer()->m_ImGuiIdScene = Application::GetRenderer()->m_LightingOutput->AddTextureToImGui();
 
-        vkResetCommandPool(info.Device, gpuAdapter->GetGraphicsCommandPool(), 0);
+        //VkCommandBuffer commandBuffer = std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get();
 
-        VkCommandBufferBeginInfo beginInfo = {};
-        beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-        beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
+        //vkResetCommandPool(info.Device, gpuAdapter->GetGraphicsCommandPool(), 0);
 
-        vkBeginCommandBuffer(commandBuffer, &beginInfo);
+        //VkCommandBufferBeginInfo beginInfo = {};
+        //beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
+        //beginInfo.flags = VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT;
 
-        vkEndCommandBuffer(commandBuffer);
+        ////vkBeginCommandBuffer(commandBuffer, &beginInfo);
 
-        VkSubmitInfo submitInfo = {};
-        submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-        submitInfo.commandBufferCount = 1;
-        submitInfo.pCommandBuffers = &commandBuffer;
+        ////vkEndCommandBuffer(commandBuffer);
 
-        vkQueueSubmit(info.Queue, 1, &submitInfo, VK_NULL_HANDLE);
-        vkDeviceWaitIdle(info.Device); // Wait until done
+        //VkSubmitInfo submitInfo = {};
+        //submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+        //submitInfo.commandBufferCount = 1;
+        ////submitInfo.pCommandBuffers = &commandBuffer;
+
+        //vkQueueSubmit(info.Queue, 1, &submitInfo, VK_NULL_HANDLE);
+        //vkDeviceWaitIdle(info.Device); // Wait until done
 #endif
 
         // 6. Destroy Temporary Font Upload Resources
         //ImGui_ImplVulkan_DestroyFontUploadObjects(); // REQUIRED!
-
-        ScenePanel* scenePanel = new ScenePanel();
-        scenePanel->SetImage(tex);
-        m_Panels.insert({ "Scene" , scenePanel });
-
-        AssetsPanel* assetsPanel = new AssetsPanel();
-        m_Panels.insert({ "Assets" , assetsPanel });
-
-        ConsolePanel* consolePanel = new ConsolePanel();
-        m_Panels.insert({ "Console" , consolePanel });
-
-        MaterialPanel* materialPanel = new MaterialPanel();
-        m_Panels.insert({ "Material" , materialPanel });
-
-        GamePanel* gamePanel = new GamePanel();
-        m_Panels.insert({ "Game" , gamePanel });
-
-        HeirarchyPanel* heirarchyPanel = new HeirarchyPanel();
-        m_Panels.insert({ "Heirarchy" , heirarchyPanel });
-
-        InspectorPanel* inspectorPanel = new InspectorPanel();
-        m_Panels.insert({ "Inspector" , inspectorPanel });
-
-        for (const auto& panel : m_Panels) {
-            panel.second->OnCreate();
-        }
-	}
-
-    void ShowPerformanceStatsWindow(float deltaTime, const std::vector<PerformanceStat>& stats)
-    {
-        ImGui::Begin("Performance Stats");
-
-        ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-        ImGui::Text("Delta Time: %.3f ms", ImGui::GetIO().DeltaTime * 1000.0f);
-        for (const auto& stat : stats)
-        {
-            ImGui::Text("%s: %.3f %s", stat.name.c_str(), stat.value, stat.unit.c_str());
-        }
-
-        ImGui::End();
     }
 
-    void MenuBar() {
-        if (ImGui::BeginMainMenuBar())
-        {
-            if (ImGui::BeginMenu("File"))
-            {
-                if (ImGui::MenuItem("New", "Ctrl+N")) { }
-                if (ImGui::MenuItem("Open", "Ctrl+O")) { }
-                if (ImGui::MenuItem("Save", "Ctrl+S")) { }
-                if (ImGui::MenuItem("Exit", "Alt+F4")) { }
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("Edit"))
-            {
-                if (ImGui::MenuItem("Undo", "Ctrl+Z")) { }
-                if (ImGui::MenuItem("Redo", "Ctrl+Y", false, false)) { }
-                if (ImGui::MenuItem("Cut", "Ctrl+X")) { }
-                if (ImGui::MenuItem("Copy", "Ctrl+C")) { }
-                if (ImGui::MenuItem("Paste", "Ctrl+V")) { }
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("Tools"))
-            {
-                if (ImGui::MenuItem("Options", "")) { }
-                ImGui::EndMenu();
-            }
-
-            if (ImGui::BeginMenu("Options"))
-            {
-                if (ImGui::MenuItem("Settings", "")) { }
-                ImGui::EndMenu();
-            }
-
-            ImGui::EndMainMenuBar();
-        }
-    }
-
-    void Editor::Update() {
+    void ImGuiLayer::Begin() {
 #ifdef BRISK_ENABLE_DIRECTX12
         ImGui_ImplDX12_NewFrame();
         ImGui_ImplWin32_NewFrame();
@@ -415,28 +325,18 @@ namespace Brisk
 #endif
         ImGui::NewFrame();
 
-        MenuBar();
-
         ImGui::DockSpaceOverViewport(0, ImGui::GetMainViewport());
+    }
 
-        for (const auto& panel : m_Panels) {
-            panel.second->OnUpdate();
-        }
-
-        std::vector<PerformanceStat> stats = {
-            {"GPU Usage", 65.0f, "%"},
-            {"CPU Usage", 45.3f, "%"},
-            {"Memory Usage", 1536.0f, "MB"},
-            {"Render Time", 16.67f, "ms"}
-        };
-
-        float deltaTime = 0.1;
-        ShowPerformanceStatsWindow(deltaTime, stats);
-
+    void ImGuiLayer::End() {
         ImGui::Render();
     }
 
-    void Editor::Render(std::shared_ptr<CommandBuffer> cmd) {
+    void ImGuiLayer::OnEvent(Event& e) {
+
+    }
+
+    void ImGuiLayer::Render(std::shared_ptr<CommandBuffer> cmd) {
 #ifdef BRISK_ENABLE_DIRECTX12
         std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->SetDescriptorHeaps(1, &imguiSrvDescHeap);
         ImGui_ImplDX12_RenderDrawData(ImGui::GetDrawData(), std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get().Get());
@@ -445,10 +345,7 @@ namespace Brisk
 #endif
     }
 
-    void Editor::Release() {
-        for (const auto& panel : m_Panels) {
-            panel.second->OnDestroy();
-        }
+    void ImGuiLayer::OnDetach() {
 #ifdef BRISK_ENABLE_DIRECTX12
 
 #else

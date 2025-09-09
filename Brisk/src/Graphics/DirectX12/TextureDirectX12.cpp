@@ -48,7 +48,7 @@ namespace Brisk
         else if ((specs.p_Usage & Core::TextureUsage::ImageUsageColorAttachment) != Core::TextureUsage::Undefined)
             state = D3D12_RESOURCE_STATE_RENDER_TARGET;
 
-        HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
+        HRESULT hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
             &heapProps,
             D3D12_HEAP_FLAG_NONE,
             &texDesc,
@@ -66,21 +66,21 @@ namespace Brisk
         m_Texture->SetName(wideStrDebugName.c_str());
 
         if ((specs.p_Usage & Core::TextureUsage::ImageUsageDepthStencilAttachment) != Core::TextureUsage::Undefined) {
-            m_DsvHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDsvHeap()->GetCPUDescriptorHandleForHeapStart();
-            uint32_t descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
-            uint32_t index = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementDsvHeapIndex();
+            m_DsvHandle = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDsvHeap()->GetCPUDescriptorHandleForHeapStart();
+            uint32_t descriptorSize = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_DSV);
+            uint32_t index = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementDsvHeapIndex();
             m_DsvHandle.ptr += descriptorSize * index;
 
             D3D12_DEPTH_STENCIL_VIEW_DESC dsvDesc = {};
             dsvDesc.Format = UtilitiesDirectX12::FormatToDXGIFormat(specs.p_Format);
             dsvDesc.ViewDimension = D3D12_DSV_DIMENSION_TEXTURE2D;
 
-            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateDepthStencilView(m_Texture.Get(), &dsvDesc, m_DsvHandle);
+            Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateDepthStencilView(m_Texture.Get(), &dsvDesc, m_DsvHandle);
         }
         if ((specs.p_Usage & Core::TextureUsage::ImageUsageSampled) != Core::TextureUsage::Undefined) {
-            m_SrvHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetCPUDescriptorHandleForHeapStart();
-            uint32_t descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
-            uint32_t index = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementCbvSrvUavHeapIndex();
+            m_SrvHandle = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetCbvSrvUavHeap()->GetCPUDescriptorHandleForHeapStart();
+            uint32_t descriptorSize = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_CBV_SRV_UAV);
+            uint32_t index = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementCbvSrvUavHeapIndex();
             m_SrvHandle.ptr += descriptorSize * index;
 
             D3D12_SHADER_RESOURCE_VIEW_DESC srvDesc = {};
@@ -89,19 +89,19 @@ namespace Brisk
             srvDesc.Shader4ComponentMapping = D3D12_DEFAULT_SHADER_4_COMPONENT_MAPPING;
             srvDesc.Texture2D.MipLevels = 1;
 
-            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateShaderResourceView(m_Texture.Get(), &srvDesc, m_SrvHandle);
+            Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateShaderResourceView(m_Texture.Get(), &srvDesc, m_SrvHandle);
         }
         if ((specs.p_Usage & Core::TextureUsage::ImageUsageColorAttachment) != Core::TextureUsage::Undefined) {
-            m_RtvHandle = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetRtvHeap()->GetCPUDescriptorHandleForHeapStart();
-            uint32_t descriptorSize = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-            uint32_t index = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementRtvHeapIndex();
+            m_RtvHandle = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetRtvHeap()->GetCPUDescriptorHandleForHeapStart();
+            uint32_t descriptorSize = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+            uint32_t index = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetAndIncrementRtvHeapIndex();
             m_RtvHandle.ptr += descriptorSize * index;
 
             D3D12_RENDER_TARGET_VIEW_DESC rtvDesc = {};
             rtvDesc.Format = UtilitiesDirectX12::FormatToDXGIFormat(specs.p_Format);
             rtvDesc.ViewDimension = D3D12_RTV_DIMENSION_TEXTURE2D;
 
-            Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRenderTargetView(m_Texture.Get(), &rtvDesc, m_RtvHandle);
+            Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateRenderTargetView(m_Texture.Get(), &rtvDesc, m_RtvHandle);
         }
     }
 
@@ -118,7 +118,7 @@ namespace Brisk
             },
             [&](const fastgltf::sources::Array& arrays) {
                 ComPtr<ID3D12CommandAllocator> commandAllocator;
-                HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(
+                HRESULT hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(
                     D3D12_COMMAND_LIST_TYPE_DIRECT,
                     IID_PPV_ARGS(&commandAllocator));
                 unsigned char* imageData = stbi_load_from_memory((stbi_uc*)arrays.bytes.data(),
@@ -141,7 +141,7 @@ namespace Brisk
                 textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
                 CD3DX12_HEAP_PROPERTIES defaultHeapProps(D3D12_HEAP_TYPE_DEFAULT);
-                if (FAILED(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
+                if (FAILED(Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
                     &defaultHeapProps,
                     D3D12_HEAP_FLAG_NONE,
                     &textureDesc,
@@ -154,13 +154,13 @@ namespace Brisk
                 }
 
                 UINT64 uploadBufferSize;
-                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetCopyableFootprints(&textureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &uploadBufferSize);
+                Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetCopyableFootprints(&textureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &uploadBufferSize);
 
                 CD3DX12_HEAP_PROPERTIES uploadHeapProps(D3D12_HEAP_TYPE_UPLOAD);
                 CD3DX12_RESOURCE_DESC uploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
 
                 ComPtr<ID3D12Resource> uploadBuffer;
-                if (FAILED(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
+                if (FAILED(Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
                     &uploadHeapProps,
                     D3D12_HEAP_FLAG_NONE,
                     &uploadBufferDesc,
@@ -178,7 +178,7 @@ namespace Brisk
                 textureData.SlicePitch = textureData.RowPitch * height;
 
                 ComPtr<ID3D12GraphicsCommandList> commandList;
-                Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandList(
+                Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandList(
                     0, D3D12_COMMAND_LIST_TYPE_DIRECT,
                     commandAllocator.Get(),
                     nullptr,
@@ -197,8 +197,8 @@ namespace Brisk
                 commandList->Close();
 
                 ID3D12CommandList* cmdLists[] = { commandList.Get() };
-                std::static_pointer_cast<GpuAdapterDirectX12>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue()->ExecuteCommandLists(_countof(cmdLists), cmdLists);
-                Engine::s_Application->GetGpuAdapter()->WaitIdle();
+                std::static_pointer_cast<GpuAdapterDirectX12>(Application::GetGpuAdapter())->GetGraphicsQueue()->ExecuteCommandLists(_countof(cmdLists), cmdLists);
+                Application::GetGpuAdapter()->WaitIdle();
 
                 stbi_image_free(imageData);
             },
@@ -267,7 +267,7 @@ namespace Brisk
 
     void TextureDirectX12::Init(const std::string& path) {
         ComPtr<ID3D12CommandAllocator> commandAllocator;
-        HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(
+        HRESULT hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(
             D3D12_COMMAND_LIST_TYPE_DIRECT,
             IID_PPV_ARGS(&commandAllocator));
         int texWidth, texHeight, texChannels;
@@ -290,7 +290,7 @@ namespace Brisk
         textureDesc.Flags = D3D12_RESOURCE_FLAG_NONE;
 
         CD3DX12_HEAP_PROPERTIES defaultHeapProps(D3D12_HEAP_TYPE_DEFAULT);
-        if (FAILED(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
+        if (FAILED(Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
             &defaultHeapProps,
             D3D12_HEAP_FLAG_NONE,
             &textureDesc,
@@ -303,13 +303,13 @@ namespace Brisk
         }
 
         UINT64 uploadBufferSize;
-        Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetCopyableFootprints(&textureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &uploadBufferSize);
+        Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->GetCopyableFootprints(&textureDesc, 0, 1, 0, nullptr, nullptr, nullptr, &uploadBufferSize);
 
         CD3DX12_HEAP_PROPERTIES uploadHeapProps(D3D12_HEAP_TYPE_UPLOAD);
         CD3DX12_RESOURCE_DESC uploadBufferDesc = CD3DX12_RESOURCE_DESC::Buffer(uploadBufferSize);
 
         ComPtr<ID3D12Resource> uploadBuffer;
-        if (FAILED(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
+        if (FAILED(Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommittedResource(
             &uploadHeapProps,
             D3D12_HEAP_FLAG_NONE,
             &uploadBufferDesc,
@@ -327,7 +327,7 @@ namespace Brisk
         textureData.SlicePitch = textureData.RowPitch * texHeight;
 
         ComPtr<ID3D12GraphicsCommandList> commandList;
-        Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandList(
+        Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandList(
             0, D3D12_COMMAND_LIST_TYPE_DIRECT,
             commandAllocator.Get(),
             nullptr,
@@ -346,8 +346,8 @@ namespace Brisk
         commandList->Close();
 
         ID3D12CommandList* cmdLists[] = { commandList.Get() };
-        std::static_pointer_cast<GpuAdapterDirectX12>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue()->ExecuteCommandLists(_countof(cmdLists), cmdLists);
-        Engine::s_Application->GetGpuAdapter()->WaitIdle();
+        std::static_pointer_cast<GpuAdapterDirectX12>(Application::GetGpuAdapter())->GetGraphicsQueue()->ExecuteCommandLists(_countof(cmdLists), cmdLists);
+        Application::GetGpuAdapter()->WaitIdle();
 
         stbi_image_free(pixels);
     }

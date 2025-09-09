@@ -10,6 +10,12 @@
 //------------------------
 namespace Brisk
 {
+	ImGuiLayer* Application::m_ImGuiLayer;
+	std::shared_ptr<GpuAdapter> Application::m_Adapter;
+	std::shared_ptr<Window> Application::m_Window;
+	std::shared_ptr<Renderer> Application::m_Renderer;
+	std::shared_ptr<Camera> Application::m_EditorCamera;
+
 	void Application::GenerateRandomLights(uint32_t count, float range) {
 		std::random_device rd;
 		std::mt19937 rng(rd());
@@ -36,7 +42,7 @@ namespace Brisk
 		}
 	}
 
-	void Application::CreateApplication() {
+	Application::Application(std::string name) {
 		m_Window = Window::Create(1920, 1080);
 		m_Window->SetEventCallBack(BIND_EVENT_FN(Application::OnEvent));
 
@@ -70,7 +76,13 @@ namespace Brisk
 		m_Renderer = Renderer::Create();
 		m_Renderer->Init();
 
-		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[2], false);
+		m_ImGuiLayer = new ImGuiLayer();
+		PushOverlay(m_ImGuiLayer);
+
+		Entity sunLight = m_SceneManager->pActiveScene->CreateEntity("Sun Light");
+		lc = sunLight.AddComponent<DirectionalLightComponent>();
+
+		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[1], false);
 
 		Entity entity = m_SceneManager->pActiveScene->CreateEntity("Flight Helmet");
 		for (auto& node : asset1->m_Nodes)
@@ -106,12 +118,30 @@ namespace Brisk
 		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 		dispatcher.Dispatch<MouseMovedEvent>(BIND_EVENT_FN(Application::OnMouseMoved));
 		dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(Application::OnMouseScrolled));
+
+
 	}
 
-	void Application::Update(float deltaTime) {
-		m_Renderer->RenderScene(deltaTime);
-		m_EditorCamera->OnUpdate(deltaTime);
-		m_Window->ProcessEvents();
+	void Application::Run() {
+		auto currentTime = std::chrono::high_resolution_clock::now();
+		while (!ShouldClose()) {
+			auto newTime = std::chrono::high_resolution_clock::now();
+			float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+			currentTime = newTime;
+
+			for (Layer* layer : m_LayerStack)
+				layer->OnUpdate(frameTime);
+
+			m_ImGuiLayer->Begin();
+			for (Layer* layer : m_LayerStack)
+				layer->OnImGuiRender();
+
+			m_ImGuiLayer->End();
+
+			m_Renderer->RenderScene(frameTime);
+			m_EditorCamera->OnUpdate(frameTime);
+			m_Window->ProcessEvents();
+		}
 	}
 
 	bool Application::OnWindowClose(WindowCloseEvent &e) {
@@ -132,6 +162,16 @@ namespace Brisk
 		m_EditorCamera->MouseMoved();
 		m_EditorCamera->OnMouseScroll(e.GetYOffset());
 		return false;
+	}
+
+	void Application::PushLayer(Layer* layer)
+	{
+		m_LayerStack.PushLayer(layer);
+	}
+
+	void Application::PushOverlay(Layer* layer)
+	{
+		m_LayerStack.PushOverlay(layer);
 	}
 
 	void Application::Close() {

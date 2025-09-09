@@ -52,7 +52,7 @@ group ""
 
 project "Brisk"
     location "Brisk"
-    kind "ConsoleApp"
+    kind "StaticLib"
     language "C++"
     cppdialect "C++20"
     staticruntime "on"
@@ -71,7 +71,6 @@ project "Brisk"
     includedirs {
         "Brisk/src",
         "Brisk/vendors/GLFW/include",
-        "Brisk/vendors/imgui",
         "Brisk/vendors/Volk",
         "Brisk/vendors/spdlog/include",
         "Brisk/vendors/stb_image/include",
@@ -80,6 +79,7 @@ project "Brisk"
         "Brisk/vendors/glm",
         "Brisk/vendors/VMA/include",
         "Brisk/vendors/SPIRV-Reflect",
+        "Brisk/vendors/imgui",        
         "Brisk/vendors/simdjson",
         "Brisk/vendors/DirectX12Headers/include",
         "Brisk/vendors/AgilitySDK/include",
@@ -133,3 +133,60 @@ project "Brisk"
 
     filter "configurations:Release"
         optimize "On"
+
+project "BriskEditor"
+    location "BriskEditor"
+    kind "ConsoleApp"
+    language "C++"
+    cppdialect "C++20"
+    staticruntime "on"
+
+    targetdir ("bin/" .. outputdir .. "/%{prj.name}")
+    objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
+
+    files {
+        "%{prj.name}/src/**.h",
+        "%{prj.name}/src/**.hpp",
+        "%{prj.name}/src/**.cpp",
+    }
+
+    includedirs {
+        "Brisk/src",
+        "Brisk/vendors",
+        "Brisk/vendors/glm",
+        "Brisk/vendors/entt/include",
+        "Brisk/vendors/stb_image/include",
+        "Brisk/vendors/spdlog/include",
+        "Brisk/vendors/imgui",
+        "Brisk/vendors/Volk",
+        Vulkan_SDK .. "/Include",
+        "Brisk/vendors/VMA/include",
+        "Brisk/vendors/GLFW/include",
+        "Brisk/vendors/DirectX12Headers/include",
+    }
+
+    libdirs {
+    }
+
+    defines {
+        "VK_NO_PROTOTYPES",
+    }
+
+
+    links {
+        "Brisk"
+    }
+
+    filter "system:windows"
+        systemversion "latest"
+        defines 
+        { 
+            "BRISK_PLATFORM_WINDOWS", 
+        }
+
+    filter "configurations:Debug"
+        symbols "On"
+
+    filter "configurations:Release"
+        optimize "On"
+        

@@ -6,10 +6,10 @@ namespace Brisk
 {
 	void CommandBufferAllocatorVulkan::Init() {
 		VkCommandPoolCreateInfo poolInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
-		poolInfo.queueFamilyIndex = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueueFamily();
+		poolInfo.queueFamilyIndex = Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueueFamily();
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 
-		if (vkCreateCommandPool(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
+		if (vkCreateCommandPool(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &poolInfo, nullptr, &m_CommandPool) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create command pool!");
 		}
 	}
@@ -23,7 +23,7 @@ namespace Brisk
 
 		std::static_pointer_cast<CommandBufferVulkan>(cmd)->SetParentAllocator(m_CommandPool);
 
-		if (vkAllocateCommandBuffers(Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 
+		if (vkAllocateCommandBuffers(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(),
 			&allocInfo, 
 			&std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get()) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to allocate command buffer!");

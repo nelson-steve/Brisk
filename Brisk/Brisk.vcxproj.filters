@@ -4,9 +4,6 @@
     <Filter Include="Core">
       <UniqueIdentifier>{2EB4837C-1AEB-840D-C3D7-6A10AFED000F}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Editor">
-      <UniqueIdentifier>{8C1A20B0-78BC-4A86-6177-5EDA4DB8D1D6}</UniqueIdentifier>
-    </Filter>
     <Filter Include="Engine">
       <UniqueIdentifier>{DBC7D3B0-C769-FE86-B024-12DB9C6585D7}</UniqueIdentifier>
     </Filter>
@@ -15,6 +12,9 @@
     </Filter>
     <Filter Include="Engine\Renderer">
       <UniqueIdentifier>{E1119970-4D9D-0635-56AE-8929C2B86235}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Entrypoint">
+      <UniqueIdentifier>{61A7ACD1-4D5F-EE1E-B666-C77AA23D890F}</UniqueIdentifier>
     </Filter>
     <Filter Include="Graphics">
       <UniqueIdentifier>{1653CE33-0220-293F-2B39-17E717655ECD}</UniqueIdentifier>
@@ -27,9 +27,6 @@
     </Filter>
     <Filter Include="Graphics\Vulkan">
       <UniqueIdentifier>{D64BCAB8-42D7-377D-4BE8-BA71B7F2937D}</UniqueIdentifier>
-    </Filter>
-    <Filter Include="Main">
-      <UniqueIdentifier>{4AF3887C-362A-8A0D-DF16-7010CB2C060F}</UniqueIdentifier>
     </Filter>
     <Filter Include="Platform">
       <UniqueIdentifier>{2AC788B4-1694-E3BF-3FAD-D1672BD9184E}</UniqueIdentifier>
@@ -50,33 +47,6 @@
     </ClInclude>
     <ClInclude Include="src\Core\Timer.hpp">
       <Filter>Core</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\AssetsPanel.hpp">
-      <Filter>Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\ConsolePanel.hpp">
-      <Filter>Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\Editor.hpp">
-      <Filter>Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\GamePanel.hpp">
-      <Filter>Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\HeirarchyPanel.hpp">
-      <Filter>Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\IEditorPanel.hpp">
-      <Filter>Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\InspectorPanel.hpp">
-      <Filter>Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\MaterialPanel.hpp">
-      <Filter>Editor</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Editor\ScenePanel.hpp">
-      <Filter>Editor</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Application.hpp">
       <Filter>Engine</Filter>
@@ -118,6 +88,9 @@
       <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Buffer.hpp">
+      <Filter>Engine\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Renderer\CSMRenderPass.hpp">
       <Filter>Engine\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Renderer\CommandBuffer.hpp">
@@ -195,6 +168,9 @@
     <ClInclude Include="src\Engine\Window.hpp">
       <Filter>Engine</Filter>
     </ClInclude>
+    <ClInclude Include="src\Entrypoint\Entrypoint.h">
+      <Filter>Entrypoint</Filter>
+    </ClInclude>
     <ClInclude Include="src\Graphics\DirectX12\BufferDirectX12.hpp">
       <Filter>Graphics\DirectX12</Filter>
     </ClInclude>
@@ -238,6 +214,9 @@
       <Filter>Graphics\Factories</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Vulkan\BufferVulkan.hpp">
+      <Filter>Graphics\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Vulkan\CSMRenderpassVulkan.hpp">
       <Filter>Graphics\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Vulkan\CommandBufferAllocatorVulkan.hpp">
@@ -292,36 +271,13 @@
       <Filter>Platform\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\VmaUsage.h" />
-    <ClInclude Include="src\Engine\Renderer\CSMRenderPass.hpp" />
-    <ClInclude Include="src\Graphics\Vulkan\CSMRenderpassVulkan.hpp" />
+    <ClInclude Include="src\Engine\ImGuiLayer.hpp" />
+    <ClInclude Include="src\Layers\Layer.hpp" />
+    <ClInclude Include="src\Layers\LayerStack.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Log.cpp">
       <Filter>Core</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Editor\AssetsPanel.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Editor\ConsolePanel.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Editor\Editor.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Editor\GamePanel.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Editor\HeirarchyPanel.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Editor\InspectorPanel.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Editor\MaterialPanel.cpp">
-      <Filter>Editor</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Editor\ScenePanel.cpp">
-      <Filter>Editor</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Application.cpp">
       <Filter>Engine</Filter>
@@ -342,6 +298,9 @@
       <Filter>Engine</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Renderer\Buffer.cpp">
+      <Filter>Engine\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Renderer\CSMRenderPass.cpp">
       <Filter>Engine\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Renderer\CommanBuffer.cpp">
@@ -446,6 +405,9 @@
     <ClCompile Include="src\Graphics\Vulkan\BufferVulkan.cpp">
       <Filter>Graphics\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\Vulkan\CSMRenderPassVulkan.cpp">
+      <Filter>Graphics\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="src\Graphics\Vulkan\CommandBufferAllocatorVulkan.cpp">
       <Filter>Graphics\Vulkan</Filter>
     </ClCompile>
@@ -485,9 +447,6 @@
     <ClCompile Include="src\Graphics\Vulkan\volk.cpp">
       <Filter>Graphics\Vulkan</Filter>
     </ClCompile>
-    <ClCompile Include="src\Main\main.cpp">
-      <Filter>Main</Filter>
-    </ClCompile>
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp">
       <Filter>Platform\Windows</Filter>
     </ClCompile>
@@ -495,7 +454,8 @@
     <ClCompile Include="src\VolkUsage.cpp" />
     <ClCompile Include="src\stbimage.cc" />
     <ClCompile Include="src\volk.c" />
-    <ClCompile Include="src\Engine\Renderer\CSMRenderPass.cpp" />
-    <ClCompile Include="src\Graphics\Vulkan\CSMRenderPassVulkan.cpp" />
+    <ClCompile Include="src\Engine\ImGuiLayer.cpp" />
+    <ClCompile Include="src\Layers\Layer.cpp" />
+    <ClCompile Include="src\Layers\LayerStack.cpp" />
   </ItemGroup>
 </Project>

@@ -1,0 +1,89 @@
+#version 430 core
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+
+#define MAX_LIGHTS_PER_CLUSTER 128
+
+struct TileAABB {
+    vec4 minPoint;
+    vec4 maxPoint;
+};
+
+layout (std430, set = 3, binding = 0) buffer clusterAABBBuffer {
+    TileAABB clusters[];
+} ClusterAABB;
+
+layout (std140, set = 3, binding = 1) uniform ClusterInfoBuffer {
+    mat4 view;
+    mat4 invProj;
+    uvec4 tileSizes;
+    vec2 screenDimensions;
+    float zNear;
+    float zFar;
+    uint numLights;
+    uint _padding0;
+} ClusterInfo;
+
+vec4 ClipToView(vec4 clip) {
+    //View space transform
+    vec4 view = ClusterInfo.invProj * clip;
+
+    //Perspective projection
+    view = view / view.w;
+    
+    return view;
+}
+
+vec4 ScreenToView(vec4 screen) {
+    //Convert to NDC
+    vec2 texCoord = screen.xy / vec2(1920.0, 1080.0);
+
+    //Convert to clipSpace
+    //vec4 clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y)* 2.0 - 1.0, screen.z, screen.w); // Opengl
+    vec4 clip = vec4(texCoord * 2.0 - 1.0, screen.z, screen.w); // Vulkan
+
+    return ClipToView(clip);
+}
+
+vec3 LineIntersectionToZPlane(vec3 A, vec3 B, float zDistance) {
+    //Because this is a Z based normal this is fixed
+    vec3 normal = vec3(0.0, 0.0, 1.0);
+
+    vec3 ab =  B - A;
+
+    //Computing the intersection length for the line and the plane
+    float t = (zDistance - dot(normal, A)) / dot(normal, ab);
+
+    //Computing the actual xyz position of the point along the line
+    vec3 result = A + t * ab;
+
+    return result;
+}
+
+void main() {
+    const vec3 eyePos = vec3(0.0);
+
+    uint tileSizePx = ClusterInfo.tileSizes[3];
+    uint tileIndex = gl_WorkGroupID.x +
+                     gl_WorkGroupID.y * gl_NumWorkGroups.x +
+                     gl_WorkGroupID.z * (gl_NumWorkGroups.x * gl_NumWorkGroups.y);
+
+    vec4 maxPoint_SS = vec4(vec2(gl_WorkGroupID.x + 1, gl_WorkGroupID.y + 1) * tileSizePx, -1.0, 1.0);
+    vec4 minPoint_SS = vec4(gl_WorkGroupID.xy * tileSizePx, -1.0, 1.0);
+
+    vec3 maxPoint_VS = ScreenToView(maxPoint_SS).xyz;
+    vec3 minPoint_VS = ScreenToView(minPoint_SS).xyz;
+
+    float tileNear = ClusterInfo.zNear * pow(ClusterInfo.zFar/ClusterInfo.zNear, gl_WorkGroupID.z/float(gl_NumWorkGroups.z));
+    float tileFar  = -ClusterInfo.zNear * pow(ClusterInfo.zFar/ClusterInfo.zNear, (gl_WorkGroupID.z + 1)/float(gl_NumWorkGroups.z));
+
+    vec3 minPointNear = LineIntersectionToZPlane(eyePos, minPoint_VS, tileNear);
+    vec3 minPointFar  = LineIntersectionToZPlane(eyePos, minPoint_VS, tileFar);
+    vec3 maxPointNear = LineIntersectionToZPlane(eyePos, maxPoint_VS, tileNear);
+    vec3 maxPointFar  = LineIntersectionToZPlane(eyePos, maxPoint_VS, tileFar);
+
+    vec3 minPointAABB = min(min(minPointNear, minPointFar),min(maxPointNear, maxPointFar));
+    vec3 maxPointAABB = max(max(minPointNear, minPointFar),max(maxPointNear, maxPointFar));
+
+    ClusterAABB.clusters[tileIndex].minPoint  = vec4(minPointAABB , 0.0);
+    ClusterAABB.clusters[tileIndex].maxPoint  = vec4(maxPointAABB , 0.0);
+}

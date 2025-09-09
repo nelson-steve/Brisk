@@ -137,7 +137,7 @@ namespace Brisk {
 #elif defined(VK_USE_PLATFORM_VI_NN)
             err = vkCreateViSurfaceNN()
 #else
-            err = glfwCreateWindowSurface(instance, (GLFWwindow*)(Engine::s_Application->GetWindow()->GetWindowHandle()), nullptr, &surface->GetRef());
+            err = glfwCreateWindowSurface(instance, (GLFWwindow*)(Application::GetWindow()->GetWindowHandle()), nullptr, &surface->GetRef());
             if (err != VK_SUCCESS) {
                 BRISK_CORE_ERROR("Failed to create window surface!");
 #endif

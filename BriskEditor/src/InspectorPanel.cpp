@@ -103,7 +103,6 @@ namespace Brisk
 
 			if (open)
 			{
-				
 				DrawVec3Control("Position", SceneManager::pActiveScene->Reg().get<WorldTransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Position);
 				DrawVec3Control("Rotation", SceneManager::pActiveScene->Reg().get<WorldTransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Position);
 				DrawVec3Control("Scale", SceneManager::pActiveScene->Reg().get<WorldTransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Scale);

@@ -642,7 +642,7 @@ namespace Brisk {
 			i++;
 		}
 
-		Engine::s_Application->GetRenderer()->AddGlobalTexture(m_Textures);
+		Application::GetRenderer()->AddGlobalTexture(m_Textures);
 		Engine::s_TexturesOffset += m_Textures.size();
 	}
 

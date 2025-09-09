@@ -13,8 +13,8 @@ namespace Brisk
         DXGI_FORMAT backBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};
         swapChainDesc.BufferCount = mode == Mode::DOUBLE_BUFFERING ? 2 : 3;
-        swapChainDesc.Width = Engine::s_Application->GetWindow()->GetWidth();
-        swapChainDesc.Height = Engine::s_Application->GetWindow()->GetHeight();
+        swapChainDesc.Width = Application::GetWindow()->GetWidth();
+        swapChainDesc.Height = Application::GetWindow()->GetHeight();
         swapChainDesc.Format = backBufferFormat;
         swapChainDesc.BufferUsage = DXGI_USAGE_RENDER_TARGET_OUTPUT;
         swapChainDesc.SwapEffect = DXGI_SWAP_EFFECT_FLIP_DISCARD;
@@ -22,9 +22,9 @@ namespace Brisk
 
         ComPtr<IDXGISwapChain1> tempSwapChain;
         
-        HRESULT hr = Engine::s_Application->GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDXGIFactory()->CreateSwapChainForHwnd(
-            std::static_pointer_cast<GpuAdapterDirectX12>(Engine::s_Application->GetGpuAdapter())->GetGraphicsQueue(),
-            (HWND)Engine::s_Application->GetWindow()->GetHWNDWindowHandle(),
+        HRESULT hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDXGIFactory()->CreateSwapChainForHwnd(
+            std::static_pointer_cast<GpuAdapterDirectX12>(Application::GetGpuAdapter())->GetGraphicsQueue(),
+            (HWND)Application::GetWindow()->GetHWNDWindowHandle(),
             &swapChainDesc,
             nullptr,
             nullptr,
@@ -38,13 +38,13 @@ namespace Brisk
         // Convert to IDXGISwapChain4 for modern features
         tempSwapChain.As(&m_SwapChain);
 
-        UINT rtvDescriptorSize = std::static_pointer_cast<GpuAdapterDirectX12>(Engine::s_Application->GetGpuAdapter())->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
-        D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = std::static_pointer_cast<GpuAdapterDirectX12>(Engine::s_Application->GetGpuAdapter())->GetRtvHeap()->GetCPUDescriptorHandleForHeapStart();
+        UINT rtvDescriptorSize = std::static_pointer_cast<GpuAdapterDirectX12>(Application::GetGpuAdapter())->GetDevice()->GetDescriptorHandleIncrementSize(D3D12_DESCRIPTOR_HEAP_TYPE_RTV);
+        D3D12_CPU_DESCRIPTOR_HANDLE rtvHandle = std::static_pointer_cast<GpuAdapterDirectX12>(Application::GetGpuAdapter())->GetRtvHeap()->GetCPUDescriptorHandleForHeapStart();
 
         m_BackBuffers.resize((uint32_t)mode);
         for (UINT i = 0; i < (uint32_t)mode; ++i) {
             m_SwapChain->GetBuffer(i, IID_PPV_ARGS(&m_BackBuffers[i]));
-            std::static_pointer_cast<GpuAdapterDirectX12>(Engine::s_Application->GetGpuAdapter())->GetDevice()->CreateRenderTargetView(m_BackBuffers[i].Get(), nullptr, rtvHandle);
+            std::static_pointer_cast<GpuAdapterDirectX12>(Application::GetGpuAdapter())->GetDevice()->CreateRenderTargetView(m_BackBuffers[i].Get(), nullptr, rtvHandle);
             m_RtvHandles.push_back(rtvHandle);
             rtvHandle.ptr += rtvDescriptorSize;
         }
@@ -65,7 +65,7 @@ namespace Brisk
     void SwapchainDirectX12::Present() {
         HRESULT hr = m_SwapChain->Present(true, 0);
         if (FAILED(hr)) {
-            HRESULT error = std::static_pointer_cast<GpuAdapterDirectX12>(Engine::s_Application->GetGpuAdapter())->GetDevice()->GetDeviceRemovedReason();
+            HRESULT error = std::static_pointer_cast<GpuAdapterDirectX12>(Application::GetGpuAdapter())->GetDevice()->GetDeviceRemovedReason();
             throw std::runtime_error("Failed to present swapchain in DirectX12.");
         }
     }

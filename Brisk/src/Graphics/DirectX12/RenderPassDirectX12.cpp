@@ -77,10 +77,10 @@ namespace Brisk
             else if (attachment.pAttachmentType == AttachmentType::Swapchain)
             {
                 isSwapchain = true;
-                for (int i = 0; i < std::static_pointer_cast<SwapchainDirectX12>(Engine::s_Application->GetRenderer()->GetSwapchain())->m_RtvHandles.size(); i++) {
+                for (int i = 0; i < std::static_pointer_cast<SwapchainDirectX12>(Application::GetRenderer()->GetSwapchain())->m_RtvHandles.size(); i++) {
                     D3D12_RENDER_PASS_RENDER_TARGET_DESC rtDesc{};
-                    rtDesc.cpuDescriptor = std::static_pointer_cast<SwapchainDirectX12>(Engine::s_Application->GetRenderer()->GetSwapchain())->m_RtvHandles[i];
-                    m_RTVHandles.push_back(std::static_pointer_cast<SwapchainDirectX12>(Engine::s_Application->GetRenderer()->GetSwapchain())->m_RtvHandles[i]);
+                    rtDesc.cpuDescriptor = std::static_pointer_cast<SwapchainDirectX12>(Application::GetRenderer()->GetSwapchain())->m_RtvHandles[i];
+                    m_RTVHandles.push_back(std::static_pointer_cast<SwapchainDirectX12>(Application::GetRenderer()->GetSwapchain())->m_RtvHandles[i]);
 
                     if (attachment.pLoadOp == LoadOp::Clear)
                         rtDesc.BeginningAccess.Type = D3D12_RENDER_PASS_BEGINNING_ACCESS_TYPE_CLEAR;

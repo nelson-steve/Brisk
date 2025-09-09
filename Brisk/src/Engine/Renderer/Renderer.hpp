@@ -11,7 +11,6 @@
 #include "RenderGraph.hpp"
 #include "Engine/Renderer/CommandBufferAllocator.hpp"
 #include "Engine/Renderer/RenderPass.hpp"
-#include "Editor/Editor.hpp"
 #include "Engine/Component.hpp"
 #include "CSMRenderPass.hpp"
 //------------------------
@@ -112,7 +111,7 @@ namespace Brisk
 
 		std::shared_ptr<Texture> m_IrradiannceImage;
 
-		std::shared_ptr<Editor> m_Editor;
+		uint64_t m_ImGuiIdScene;
 
 		// RenderPasses
 		std::shared_ptr<RenderPass> m_DepthPrePass;

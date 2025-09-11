@@ -739,6 +739,7 @@ namespace Brisk
     {
         if (!SceneManager::pActiveScene) return;
 
+        glm::vec3 lightDir; 
         MVP mvp{};
         mvp.ProjView = Application::GetCamera()->GetViewProjection();
         mvp.View = Application::GetCamera()->GetViewMatrix();
@@ -779,7 +780,7 @@ namespace Brisk
             float farClip = Application::GetCamera()->GetFarClip();
             glm::mat4 cameraProj = Application::GetCamera()->GetProjection();
             glm::mat4 cameraView = Application::GetCamera()->GetViewMatrix();
-            glm::vec3 lightDir = glm::normalize(glm::vec3(-0.3f, -1.0f, -0.5f));
+            lightDir = glm::normalize(glm::vec3(-0.3f, -1.0f, -0.5f));
             float lambda = 0.7f;
 
             auto lightView = SceneManager::pActiveScene->Reg().view<DirectionalLightComponent>();

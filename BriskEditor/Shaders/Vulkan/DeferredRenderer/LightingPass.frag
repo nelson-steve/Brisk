@@ -1,7 +1,5 @@
 #version 450
 
-#define MAX_LIGHTS 2048
-#define MAX_LIGHTS_PER_CLUSTER 128
 #define NUM_CLUSTERS_X 16
 #define NUM_CLUSTERS_Y 9
 #define NUM_CLUSTERS_Z 24
@@ -178,7 +176,7 @@ void main() {
     }
 
     float shadow = computeShadow(fragPos, MVP.View);
-    litColor *= shadow;
+    //litColor *= shadow;
 
     vec3 ambient = 0.3 * albedo;
     vec3 finalColor = ambient + litColor * albedo + emissive;

@@ -79,9 +79,6 @@ namespace Brisk
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);
 
-		Entity sunLight = m_SceneManager->pActiveScene->CreateEntity("Sun Light");
-		lc = sunLight.AddComponent<DirectionalLightComponent>();
-
 		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[2], false);
 
 		Entity entity = m_SceneManager->pActiveScene->CreateEntity("Flight Helmet");

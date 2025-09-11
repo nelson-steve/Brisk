@@ -1,7 +1,7 @@
 #version 450
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
-#define MAX_LIGHTS 2048
+#define MAX_LIGHTS 10000
 #define MAX_LIGHTS_PER_CLUSTER 128
 
 struct TileAABB {

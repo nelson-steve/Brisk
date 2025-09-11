@@ -17,7 +17,7 @@
 #include <memory>
 //---------------
 
-#define MAX_LIGHTS 2048
+#define MAX_LIGHTS 10000
 #define MAX_LIGHTS_PER_CLUSTER 128
 #define NUM_CLUSTERS 16 * 9 * 24
 

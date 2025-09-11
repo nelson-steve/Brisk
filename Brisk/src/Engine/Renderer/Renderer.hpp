@@ -63,6 +63,11 @@ namespace Brisk
 		alignas(16) glm::vec3 CamPos;
 	};
 
+	struct ShadowData {
+		alignas(16) glm::mat4 lightSpaceMatrices[4];
+		alignas(16) glm::vec4 cascadeSplits;;
+	};
+
 	class Renderer {
 	public:
 		void Init();
@@ -112,6 +117,10 @@ namespace Brisk
 		std::shared_ptr<Texture> m_IrradiannceImage;
 
 		uint64_t m_ImGuiIdScene;
+		uint64_t m_ImGuiIdShadowMap0;
+		uint64_t m_ImGuiIdShadowMap1;
+		uint64_t m_ImGuiIdShadowMap2;
+		uint64_t m_ImGuiIdShadowMap3;
 
 		// RenderPasses
 		std::shared_ptr<RenderPass> m_DepthPrePass;
@@ -132,6 +141,7 @@ namespace Brisk
 		std::shared_ptr<Pipeline> m_AssignLightsToClustersPipeline;
 
 		std::shared_ptr<Buffer> m_MVPBuffer;
+		std::shared_ptr<Buffer> m_ShadowDataBuffer;
 
 		std::shared_ptr<Buffer> m_ClusterInfoUBO;
 		std::shared_ptr<Buffer> m_ClusterTilesSSBO;

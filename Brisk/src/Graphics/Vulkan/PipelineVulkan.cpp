@@ -548,13 +548,18 @@ namespace Brisk
                         vkUpdateDescriptorSets(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
                     }
                     else {
+                        std::vector<VkDescriptorImageInfo> imageInfos;
+                        for (int i = 0; i < textures.size(); i++) {
+                        VkDescriptorImageInfo* imageInfo = std::static_pointer_cast<TextureVulkan>(textures[i])->GetDescriptor();
+                            imageInfos.push_back(*imageInfo);
+                        }
                         VkWriteDescriptorSet write{};
                         write.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET;
                         write.descriptorType = static_cast<VkDescriptorType>(resource.p_Type);
                         write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_GlobalSet;
                         write.dstBinding = resource.p_Binding;
-                        write.descriptorCount = 1;
-                        write.pImageInfo = std::static_pointer_cast<TextureVulkan>(textures[0])->GetDescriptor();
+                        write.descriptorCount = imageInfos.size();
+                        write.pImageInfo = imageInfos.data();
                         vkUpdateDescriptorSets(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
                     }
                     break;

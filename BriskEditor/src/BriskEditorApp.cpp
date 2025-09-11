@@ -1,5 +1,5 @@
 #include <Entrypoint/Entrypoint.h>
-#include "Editor.hpp"
+#include "EditorLayer.hpp"
 
 namespace Brisk 
 {

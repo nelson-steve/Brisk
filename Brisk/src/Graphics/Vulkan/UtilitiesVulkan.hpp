@@ -417,6 +417,9 @@ namespace Brisk
 			if ((stage & Core::ShaderStageFlags::Vertex) == Core::ShaderStageFlags::Vertex)
 				flags |= VK_SHADER_STAGE_VERTEX_BIT;
 
+			if ((stage & Core::ShaderStageFlags::Mesh) == Core::ShaderStageFlags::Mesh)
+				flags |= VK_SHADER_STAGE_MESH_BIT_EXT;
+
 			if ((stage & Core::ShaderStageFlags::TessControl) == Core::ShaderStageFlags::TessControl)
 				flags |= VK_SHADER_STAGE_TESSELLATION_CONTROL_BIT;
 

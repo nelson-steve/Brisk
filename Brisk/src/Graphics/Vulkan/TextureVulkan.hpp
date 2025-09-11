@@ -18,8 +18,7 @@ namespace Brisk
 		VkImage		GetImage() { return m_Image; }
 		VkSampler	GetSampler() { return m_Sampler; }
 		VkFormat	GetFormat() { return m_Format; }
-		VkDescriptorImageInfo GetDescriptor() const { return m_Descriptor; }
-		const VkDescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
+		VkDescriptorImageInfo* GetDescriptor() { return &m_Descriptor; }
 
 		virtual uint64_t AddTextureToImGui() override;
 		virtual void TransitionImageLayout(std::shared_ptr<CommandBuffer> cmd, std::vector<ImageBarrierParams> params) override;

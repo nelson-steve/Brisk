@@ -1,6 +1,6 @@
 #include "GamePanel.hpp"
 
-#include "Editor.hpp"
+#include "EditorLayer.hpp"
 
 namespace Brisk 
 {

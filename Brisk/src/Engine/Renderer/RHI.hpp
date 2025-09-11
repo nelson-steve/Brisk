@@ -391,18 +391,19 @@ namespace Brisk {
         enum class ShaderStageFlags : uint32_t {
             None = 0,
             Vertex = 1 << 0,
-            TessControl = 1 << 1,
-            TessEvaluation = 1 << 2,
-            Geometry = 1 << 3,
-            Fragment = 1 << 4,
-            Compute = 1 << 5,
-            RayGen = 1 << 6,
-            AnyHit = 1 << 7,
-            ClosestHit = 1 << 8,
-            Miss = 1 << 9,
-            Intersection = 1 << 10,
-            Callable = 1 << 11,
-            AllGraphics = 1 << 12,   // shorthand for all graphics shader stages
+            Mesh = 1 << 1,
+            TessControl = 1 << 2,
+            TessEvaluation = 1 << 3,
+            Geometry = 1 << 4,
+            Fragment = 1 << 5,
+            Compute = 1 << 6,
+            RayGen = 1 << 7,
+            AnyHit = 1 << 8,
+            ClosestHit = 1 << 9,
+            Miss = 1 << 10,
+            Intersection = 1 << 11,
+            Callable = 1 << 12,
+            AllGraphics = 1 << 13,   // shorthand for all graphics shader stages
             All = 0xFFFFFFFF // shorthand for all stages
         };
 

@@ -2,6 +2,7 @@
 
 // INCLUDES
 #include "Scene.hpp"
+#include "Core/Core.hpp"
 //-----------------
 #include "entt.hpp"
 //----------------
@@ -65,7 +66,7 @@ namespace Brisk
 		template<typename T>
 		void RemoveComponent()
 		{
-			Albedo_CORE_ASSERT(HasComponent<T>(), "Entity does not have component!");
+			//BRISK_CORE_ASSERT(HasComponent<T>(), "Entity does not have component!");
 			m_Scene->m_Registry.remove<T>(m_EntityHandle);
 		}
 

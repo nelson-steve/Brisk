@@ -1,6 +1,6 @@
 #include "MaterialPanel.hpp"
 
-#include "Editor.hpp"
+#include "EditorLayer.hpp"
 
 namespace Brisk 
 {

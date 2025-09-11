@@ -30,10 +30,9 @@ layout(std140, set = 0, binding = 0) uniform MVPBuffer {
     vec3 CamPos;
 } MVP;
 
-//layout(push_constant) uniform MeshDataBuffer {
-//    mat4 model;
-//    int  materialIndex;
-//} ObjectData;
+layout(push_constant) uniform MeshDataBuffer {
+    mat4 model;
+} ObjectData;
 
 // SSBOs are std430 by default in Vulkan GLSL, but we can be explicit
 layout(std430, set = 0, binding = 3) readonly buffer VerticesBuffer {

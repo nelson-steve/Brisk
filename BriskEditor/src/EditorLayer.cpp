@@ -1,4 +1,4 @@
-#include "Editor.hpp"
+#include "EditorLayer.hpp"
 #include "Engine/Engine.hpp"
 #include "AssetsPanel.hpp"
 #include "ConsolePanel.hpp"

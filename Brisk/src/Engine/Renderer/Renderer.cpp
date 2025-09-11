@@ -103,45 +103,9 @@ namespace Brisk
         return lightProj * lightView;
     }
 
-    glm::mat4 CreateLightSpaceMatrix(glm::vec3 lightDir,
-        glm::vec3 sceneCenter,
-        float orthoSize,
-        float nearPlane,
-        float farPlane)
-    {
-        glm::mat4 lightView = glm::lookAt(sceneCenter - lightDir * 50.0f,
-            sceneCenter,
-            glm::vec3(0.0f, 1.0f, 0.0f));
-
-        glm::mat4 lightProj = glm::ortho(-orthoSize, orthoSize,
-            -orthoSize, orthoSize,
-            nearPlane, farPlane);
-
-        return lightProj * lightView;
-    }
-
     void Renderer::Init()
     {
-        m_SunMatrices.reserve(NUM_CASCADES);
-
-        float nearClip = Application::GetCamera()->GetNearClip();
-        float farClip = Application::GetCamera()->GetFarClip();
-        glm::mat4 cameraProj = Application::GetCamera()->GetProjection();
-        glm::mat4 cameraView = Application::GetCamera()->GetViewMatrix();
-        glm::vec3 lightDir = glm::normalize(glm::vec3(-0.3f, -1.0f, -0.5f));
-        float lambda = 0.7f;
-
-        for (int i = 0; i < NUM_CASCADES; i++) {
-            glm::mat4 lightMatrix = CalculateCascadeMatrix(
-                i, NUM_CASCADES,
-                nearClip, farClip,
-                lambda,
-                cameraProj, cameraView,
-                lightDir
-            );
-
-            m_SunMatrices.push_back(lightMatrix);
-        }
+        m_SunMatrices.resize(NUM_CASCADES);
 
         glm::vec3 probMinBounds = glm::vec3(-20, -10, -20);
         glm::vec3 probMaxBounds = glm::vec3(-20, -10, -20);
@@ -618,6 +582,14 @@ namespace Brisk
         mvpBufferDesc.p_Persistant = true;
         m_MVPBuffer->Init(mvpBufferDesc);
 
+        m_ShadowDataBuffer = Buffer::Create();
+        BufferDesc shadowBufferDesc{};
+        shadowBufferDesc.p_Size = sizeof(ShadowData);
+        shadowBufferDesc.p_Usage = BufferDesc::Usage::UniformBuffer;
+        shadowBufferDesc.p_Memory = BufferDesc::MemoryUsage::CPU_To_GPU;
+        shadowBufferDesc.p_Persistant = true;
+        m_ShadowDataBuffer->Init(shadowBufferDesc);
+
         {
             m_ClusterTilesSSBO = Buffer::Create();
             BufferDesc clusterTilesBufferDesc{};
@@ -715,6 +687,7 @@ namespace Brisk
         m_LightingPipeline->UpdateResources("sampler_Depth",    { m_DepthPre }, nullptr);
         m_LightingPipeline->UpdateResources("ClusterAABB", {}, m_ClusterTilesSSBO);
         m_LightingPipeline->UpdateResources("MVP",            {}, m_MVPBuffer);
+        m_LightingPipeline->UpdateResources("ShadowMaps",       { m_ShadowMapLOD0, m_ShadowMapLOD1, m_ShadowMapLOD2, m_ShadowMapLOD3 }, nullptr);
 
         // Creating Fences
         m_ClusterFence = Fence::Create();
@@ -771,12 +744,6 @@ namespace Brisk
         mvp.View = Application::GetCamera()->GetViewMatrix();
         mvp.CamPos = Application::GetCamera()->GetPosition();
 
-        //m_SunMatrices[0] = Application::GetCamera()->GetViewProjection();
-        //m_SunMatrices[1] = Application::GetCamera()->GetViewProjection();
-        //m_SunMatrices[2] = Application::GetCamera()->GetViewProjection();
-        //m_SunMatrices[3] = Application::GetCamera()->GetViewProjection();
-
-
         m_MVPBuffer->UpdatePersistantData(sizeof(MVP), &mvp);
 
         ClusterInfo clusterInfo{};
@@ -807,6 +774,42 @@ namespace Brisk
                 m_GBufferPipeline->UpdateResources("Vertices", {}, mesh->m_VertexStorageBuffer);
                 m_GBufferPipeline->UpdateResources("Meshlets", {}, mesh->m_MeshletsBuffer);
             }
+
+            float nearClip = Application::GetCamera()->GetNearClip();
+            float farClip = Application::GetCamera()->GetFarClip();
+            glm::mat4 cameraProj = Application::GetCamera()->GetProjection();
+            glm::mat4 cameraView = Application::GetCamera()->GetViewMatrix();
+            glm::vec3 lightDir = glm::normalize(glm::vec3(-0.3f, -1.0f, -0.5f));
+            float lambda = 0.7f;
+
+            auto lightView = SceneManager::pActiveScene->Reg().view<DirectionalLightComponent>();
+            for (auto e : lightView) {
+                Entity entity = { e, SceneManager::pActiveScene.get() };
+                auto& lc = entity.GetComponent<DirectionalLightComponent>();
+                lightDir = lc.Direction;
+            }
+
+            for (int i = 0; i < NUM_CASCADES; i++) {
+                glm::mat4 lightMatrix = CalculateCascadeMatrix(
+                    i, NUM_CASCADES,
+                    nearClip, farClip,
+                    lambda,
+                    cameraProj, cameraView,
+                    lightDir
+                );
+
+                m_SunMatrices[i] = lightMatrix;
+            }
+
+            ShadowData shadowData{};
+            shadowData.lightSpaceMatrices[0] = m_SunMatrices[0];
+            shadowData.lightSpaceMatrices[1] = m_SunMatrices[1];
+            shadowData.lightSpaceMatrices[2] = m_SunMatrices[2];
+            shadowData.lightSpaceMatrices[3] = m_SunMatrices[3];
+            shadowData.cascadeSplits = glm::vec4(76, 172, 349, 1000);
+            m_ShadowDataBuffer->UpdatePersistantData(sizeof(ShadowData), &shadowData);
+
+            m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer);
         }
 
         m_ClusterFence->Wait();
@@ -884,14 +887,13 @@ namespace Brisk
         // --- SHADOW MAP PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
         uint32_t framebuffer = 0;
+        m_ShadowMapPipeline->Bind(m_CmdBuffer);
         for (const glm::mat4& lightMatrix : m_SunMatrices) {
             m_CSMShadowMapPass->Begin(m_CmdBuffer, framebuffer++);
-            m_ShadowMapPipeline->Bind(m_CmdBuffer);
 
             RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_ShadowMapLOD0->GetWidth(), m_ShadowMapLOD0->GetHeight(), 0, 1);
             RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_ShadowMapLOD0->GetWidth(), m_ShadowMapLOD0->GetHeight());
 
-            //glm::mat4 matrix = Application::GetCamera()->GetViewProjection();
             glm::mat4 matrix = lightMatrix;
             m_ShadowMapPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Vertex);
 
@@ -942,7 +944,7 @@ namespace Brisk
                 //glm::mat4 t = GetWorldTransform(e);
 
                 glm::mat4 matrix{ 1.0f };
-                m_DepthPrePassPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Vertex);
+                m_DepthPrePassPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
                 RenderCommand::DrawMeshTasks(m_CmdBuffer, meshComp.p_Mesh->GetMeshletCount());
             }
         }
@@ -969,7 +971,7 @@ namespace Brisk
                 pc.index = 0;
                 pc.model = glm::mat4(1.0f);
 
-                m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, Core::ShaderStageFlags::Fragment);
+                m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, Core::ShaderStageFlags::Fragment | Core::ShaderStageFlags::Mesh);
                 RenderCommand::DrawMeshTasks(m_CmdBuffer, meshComp.p_Mesh->GetMeshletCount());
             }
         }
@@ -986,6 +988,20 @@ namespace Brisk
 
         m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
 
+        {
+            Texture::ImageBarrierParams params{};
+            params.oldLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
+            params.newLayout = Core::ImageLayout::ShaderReadOnlyOptimal;
+            params.srcAccess = Core::AccessType::DepthStencilWrite;
+            params.dstAccess = Core::AccessType::ShaderRead;
+            params.srcStage = Core::PipelineStage::LateFragmentTest;
+            params.dstStage = Core::PipelineStage::FragmentShader;
+            m_ShadowMapLOD0->TransitionImageLayout(m_CmdBuffer, { params });
+            m_ShadowMapLOD1->TransitionImageLayout(m_CmdBuffer, { params });
+            m_ShadowMapLOD2->TransitionImageLayout(m_CmdBuffer, { params });
+            m_ShadowMapLOD3->TransitionImageLayout(m_CmdBuffer, { params });
+        }
+
         //// --- LIGHTING PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
         m_LightingPass->Begin(m_CmdBuffer);
@@ -994,6 +1010,7 @@ namespace Brisk
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight());
 
+        m_LightingPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::vec3), &lightDir, 0, Core::ShaderStageFlags::Fragment);
         RenderCommand::Draw(m_CmdBuffer, 3, 0);
 
         m_LightingPass->End(m_CmdBuffer);
@@ -1006,7 +1023,7 @@ namespace Brisk
             //params.srcAccess = Core::AccessType::DepthStencilWrite;
             //params.dstAccess = Core::AccessType::ShaderRead;
             //params.srcStage = Core::PipelineStage::LateFragmentTest;
-            //params.dstStage = Core::PipelineStage::FragmentShader;
+            //params.dstStage = Core::PipelineStage::FragmentShader;    
             //m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
         }
 

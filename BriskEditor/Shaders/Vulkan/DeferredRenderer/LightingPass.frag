@@ -12,6 +12,8 @@
 #define NearZ 0.1
 #define FarZ 1000.0
 
+#define NUM_CASCADES 4
+
 layout(location = 0) in vec2 uv;
 layout(location = 0) out vec4 outColor;
 
@@ -50,6 +52,17 @@ layout(std430, set = 3, binding = 3) readonly buffer ClusterLightOffsetListBuffe
     uvec2 lightOffsets[];
 } ClusterLightOffsetList;
 
+layout(std140, set = 0, binding = 6) uniform ShadowData {
+    mat4 lightSpaceMatrices[NUM_CASCADES];
+    vec4 cascadeSplits;
+} u_Shadow;
+
+layout(set = 0, binding = 7) uniform sampler2D ShadowMaps[NUM_CASCADES];
+
+layout(push_constant) uniform PushConstants {
+    vec3 sunLightDir;
+};
+
 // --- Light Shading ---
 vec3 applyLight(vec3 fragPos, vec3 normal, uint lightIdx) {
     vec3 lightPos = LightsList.lights[lightIdx].position.xyz;
@@ -66,6 +79,16 @@ vec3 applyLight(vec3 fragPos, vec3 normal, uint lightIdx) {
 
     return color * intensity * attenuation * NdotL;
 }
+
+vec3 applyDirectionalLight(vec3 fragPos, vec3 normal) {
+    float dirLightIntensity = 1.0;
+    vec3 dirLightColor = vec3(1.0);
+    // vec3 dirLightDir = normalize(dirLightPos - fragPos);
+    vec3 L = normalize(-sunLightDir); // light shines along -dirLightDir
+    float NdotL = max(dot(normal, L), 0.0);
+    return dirLightColor * dirLightIntensity * NdotL;
+}
+
 
 uint computeClusterIndex(vec3 fragPosView) {
     vec2 fragCoord = gl_FragCoord.xy;
@@ -89,6 +112,49 @@ uint computeClusterIndex(vec3 fragPosView) {
     return tileX + tileY * NUM_CLUSTERS_X + tileZ * NUM_CLUSTERS_X * NUM_CLUSTERS_Y;
 }
 
+int chooseCascade(vec3 worldPos, mat4 viewMatrix) {
+    vec4 viewPos = viewMatrix * vec4(worldPos, 1.0);
+    float depth = -viewPos.z; // camera looks along -Z
+    for (int i = 0; i < NUM_CASCADES; i++) {
+        if (depth < u_Shadow.cascadeSplits[i]) {
+            return i;
+        }
+    }
+    return NUM_CASCADES - 1; // farthest cascade
+}
+
+vec3 projectToShadowMap(vec3 worldPos, int cascadeIndex) {
+    vec4 lightSpacePos = u_Shadow.lightSpaceMatrices[cascadeIndex] * vec4(worldPos, 1.0);
+    // Perspective divide
+    lightSpacePos.xyz /= lightSpacePos.w;
+    // Convert from [-1,1] NDC to [0,1] UV
+    return lightSpacePos.xyz * 0.5 + 0.5;
+}
+
+float sampleShadow(int cascadeIndex, vec3 shadowCoord) {
+    if (shadowCoord.z > 1.0) return 1.0; // behind light frustum, lit
+    
+    float shadow = 0.0;
+    float bias = 0.001; // depth bias to reduce acne
+    int samples = 3; // 3x3 kernel
+    float texelSize = 1.0 / textureSize(ShadowMaps[cascadeIndex], 0).x;
+    
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            float pcfDepth = texture(ShadowMaps[cascadeIndex], shadowCoord.xy + vec2(x, y) * texelSize).r;
+            shadow += (shadowCoord.z - bias <= pcfDepth) ? 1.0 : 0.0;
+        }
+    }
+    shadow /= (samples * samples);
+    return shadow;
+}
+
+float computeShadow(vec3 worldPos, mat4 viewMatrix) {
+    int cascadeIndex = chooseCascade(worldPos, viewMatrix);
+    vec3 shadowCoord = projectToShadowMap(worldPos, cascadeIndex);
+    return sampleShadow(cascadeIndex, shadowCoord);
+}
+
 // --- Main ---
 void main() {
     vec3 fragPos = texture(sampler_Position, uv).rgb;
@@ -110,6 +176,9 @@ void main() {
         uint lightIdx = LightIndices.lightIndexList[offset + i];
         litColor += applyLight(fragPos, normal, lightIdx);
     }
+
+    float shadow = computeShadow(fragPos, MVP.View);
+    litColor *= shadow;
 
     vec3 ambient = 0.3 * albedo;
     vec3 finalColor = ambient + litColor * albedo + emissive;

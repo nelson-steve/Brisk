@@ -289,6 +289,11 @@ namespace Brisk
         ImGui_ImplVulkan_Init(&info);
 
         Application::GetRenderer()->m_ImGuiIdScene = Application::GetRenderer()->m_LightingOutput->AddTextureToImGui();
+        Application::GetRenderer()->m_ImGuiIdShadowMap0 = Application::GetRenderer()->m_ShadowMapLOD0->AddTextureToImGui();
+        Application::GetRenderer()->m_ImGuiIdShadowMap1 = Application::GetRenderer()->m_ShadowMapLOD1->AddTextureToImGui();
+        Application::GetRenderer()->m_ImGuiIdShadowMap2 = Application::GetRenderer()->m_ShadowMapLOD2->AddTextureToImGui();
+        Application::GetRenderer()->m_ImGuiIdShadowMap3 = Application::GetRenderer()->m_ShadowMapLOD3->AddTextureToImGui();
+
 
         //VkCommandBuffer commandBuffer = std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get();
 

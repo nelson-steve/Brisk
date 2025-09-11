@@ -13,5 +13,5 @@ layout(push_constant) uniform MeshDataBuffer {
 } MeshData;
 
 void main() {
-    gl_Position = MVP.ProjView * mat4(1.0) * vec4(inPosition, 1.0);
+    gl_Position = MVP.ProjView * MeshData.model * vec4(inPosition, 1.0);
 }

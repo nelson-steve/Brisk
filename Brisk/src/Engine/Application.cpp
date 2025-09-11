@@ -82,7 +82,7 @@ namespace Brisk
 		Entity sunLight = m_SceneManager->pActiveScene->CreateEntity("Sun Light");
 		lc = sunLight.AddComponent<DirectionalLightComponent>();
 
-		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[1], false);
+		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[2], false);
 
 		Entity entity = m_SceneManager->pActiveScene->CreateEntity("Flight Helmet");
 		for (auto& node : asset1->m_Nodes)

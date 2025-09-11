@@ -21,7 +21,7 @@ namespace Brisk {
 
 		inline const VkBuffer Get() const { return m_Handle; }
 
-		const VkDescriptorBufferInfo* GetDescriptor() {
+		VkDescriptorBufferInfo* GetDescriptor() {
 			bufferInfo.buffer = m_Handle;
 			bufferInfo.offset = 0;
 			bufferInfo.range = VK_WHOLE_SIZE;

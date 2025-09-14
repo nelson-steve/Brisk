@@ -750,11 +750,8 @@ namespace Brisk
         ClusterInfo clusterInfo{};
         clusterInfo.View = Application::GetCamera()->GetViewMatrix();
         clusterInfo.InverseProj = glm::inverse(Application::GetCamera()->GetProjection());
-        clusterInfo.TileSizes = glm::uvec4(16, 9, 24, 0);
-        clusterInfo.ScreenDimensions = glm::uvec2(1920, 1080);
-        clusterInfo.zNear = 0.1f;
-        clusterInfo.zFar = 1000.0f;
-        clusterInfo.numLights = MAX_LIGHTS;
+        clusterInfo.TileSizes = glm::uvec4(16, 9, 24, 60);
+        clusterInfo.ScreenDimensions = glm::uvec4(m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight(), 1, 1000);
         m_ClusterInfoUBO->UpdatePersistantData(sizeof(ClusterInfo), &clusterInfo);
 
         auto view = SceneManager::pActiveScene->Reg().view<MeshComponent, WorldTransformComponent>();

@@ -1,7 +1,7 @@
 #version 450
 layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
-#define MAX_LIGHTS 10000
+#define MAX_LIGHTS 2048
 #define MAX_LIGHTS_PER_CLUSTER 128
 
 struct TileAABB {
@@ -13,15 +13,11 @@ layout (std430, set = 3, binding = 0) buffer clusterAABBBuffer {
     TileAABB clusters[];
 } ClusterAABB;
 
-layout(set = 3, binding = 1) uniform ClusterInfoBuffer {
-    mat4 view;  
+layout (std140, set = 3, binding = 1) uniform ClusterInfoBuffer {
+    mat4 view;
     mat4 invProj;
     uvec4 tileSizes;
-    vec2 screenDimensions;
-    float zNear;
-    float zFar;
-    uint numLights;
-    uint _padding0;
+    uvec4 screen; // xy = dimensions, zw = near far
 } ClusterInfo;
 
 struct LightData {
@@ -92,12 +88,10 @@ void main()
         GlobalIndex.globalIndexCount = 0;
     }
 
-	// uint tileIndex = gl_GlobalInvocationID.x;
-
 	uint visibleLightIndices[MAX_LIGHTS_PER_CLUSTER];
 
 	uint lightIter = 0;
-	for (uint i = 0; i < ClusterInfo.numLights && lightIter < MAX_LIGHTS_PER_CLUSTER; ++i)
+	for (uint i = 0; i < MAX_LIGHTS && lightIter < MAX_LIGHTS_PER_CLUSTER; ++i)
 	{
 		if (testSphereAABB(i, tileIndex))
 		{

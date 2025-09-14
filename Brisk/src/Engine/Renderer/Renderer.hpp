@@ -17,7 +17,7 @@
 #include <memory>
 //---------------
 
-#define MAX_LIGHTS 10000
+#define MAX_LIGHTS 2048
 #define MAX_LIGHTS_PER_CLUSTER 128
 #define NUM_CLUSTERS 16 * 9 * 24
 
@@ -45,11 +45,7 @@ namespace Brisk
 		alignas(16) glm::mat4 View;
 		alignas(16) glm::mat4 InverseProj;
 		alignas(16) glm::uvec4 TileSizes;
-		alignas(8)  glm::uvec2 ScreenDimensions;
-		alignas(4)  float zNear;
-		alignas(4)  float zFar;
-		alignas(4)  uint32_t numLights;
-		alignas(4)  uint32_t _padding0;
+		alignas(16) glm::uvec4 ScreenDimensions; // x.y -> screen dimension, z.w -> near far
 	};
 
 	struct alignas(16) LightsMVP {

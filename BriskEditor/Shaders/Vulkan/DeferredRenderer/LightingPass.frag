@@ -7,7 +7,7 @@
 
 #define ScreenX 1920.0
 #define ScreenY 1080.0
-#define NearZ 0.1
+#define NearZ 1.0
 #define FarZ 1000.0
 
 #define NUM_CASCADES 4

@@ -16,11 +16,7 @@ layout (std140, set = 3, binding = 1) uniform ClusterInfoBuffer {
     mat4 view;
     mat4 invProj;
     uvec4 tileSizes;
-    vec2 screenDimensions;
-    float zNear;
-    float zFar;
-    uint numLights;
-    uint _padding0;
+    uvec4 screen; // xy = dimensions, zw = near far
 } ClusterInfo;
 
 vec4 ClipToView(vec4 clip) {
@@ -35,7 +31,7 @@ vec4 ClipToView(vec4 clip) {
 
 vec4 ScreenToView(vec4 screen) {
     //Convert to NDC
-    vec2 texCoord = screen.xy / vec2(1920.0, 1080.0);
+    vec2 texCoord = screen.xy / ClusterInfo.screen.xy;
 
     //Convert to clipSpace
     //vec4 clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y)* 2.0 - 1.0, screen.z, screen.w); // Opengl
@@ -62,7 +58,10 @@ vec3 LineIntersectionToZPlane(vec3 A, vec3 B, float zDistance) {
 void main() {
     const vec3 eyePos = vec3(0.0);
 
-    uint tileSizePx = ClusterInfo.tileSizes[3];
+    float zNear = ClusterInfo.screen.z;
+    float zFar  = ClusterInfo.screen.w;
+
+    uint tileSizePx = ClusterInfo.tileSizes.w;
     uint tileIndex = gl_WorkGroupID.x +
                      gl_WorkGroupID.y * gl_NumWorkGroups.x +
                      gl_WorkGroupID.z * (gl_NumWorkGroups.x * gl_NumWorkGroups.y);
@@ -73,8 +72,8 @@ void main() {
     vec3 maxPoint_VS = ScreenToView(maxPoint_SS).xyz;
     vec3 minPoint_VS = ScreenToView(minPoint_SS).xyz;
 
-    float tileNear = ClusterInfo.zNear * pow(ClusterInfo.zFar/ClusterInfo.zNear, gl_WorkGroupID.z/float(gl_NumWorkGroups.z));
-    float tileFar  = -ClusterInfo.zNear * pow(ClusterInfo.zFar/ClusterInfo.zNear, (gl_WorkGroupID.z + 1)/float(gl_NumWorkGroups.z));
+    float tileNear = -zNear * pow(zFar/zNear, gl_WorkGroupID.z/float(gl_NumWorkGroups.z));
+    float tileFar  = -zNear * pow(zFar/zNear, (gl_WorkGroupID.z + 1)/float(gl_NumWorkGroups.z));
 
     vec3 minPointNear = LineIntersectionToZPlane(eyePos, minPoint_VS, tileNear);
     vec3 minPointFar  = LineIntersectionToZPlane(eyePos, minPoint_VS, tileFar);

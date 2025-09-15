@@ -124,6 +124,7 @@ namespace Brisk
 		std::shared_ptr<RenderPass> m_GeometryBufferPass;
 		std::shared_ptr<RenderPass> m_LightingPass;
 		std::shared_ptr<RenderPass> m_UIPass;
+		std::shared_ptr<RenderPass> m_ClusteredDebugPass;
 
 		// Pipelines
 		std::shared_ptr<Pipeline> m_DepthPrePassPipeline;
@@ -142,6 +143,8 @@ namespace Brisk
 		std::shared_ptr<Buffer> m_ClusterInfoUBO;
 		std::shared_ptr<Buffer> m_ClusterTilesSSBO;
 		std::shared_ptr<Buffer> m_GlobalIndexCountSSBO;
+		std::shared_ptr<Buffer> m_ClustersVertexBuffer;
+		std::shared_ptr<Buffer> m_ClustersIndexBuffer;
 
 		std::shared_ptr<Buffer> m_LightsList;
 		std::shared_ptr<Buffer> m_ClusterLightIndexList;

@@ -44,6 +44,8 @@ namespace Brisk
 		std::shared_ptr<Texture> pImage;
 		LoadOp pLoadOp;
 		StoreOp pStoreOp;
+		Core::ImageLayout pInitialLayout;
+		Core::ImageLayout pFinalLayout;
 	};
 
 	class RenderPass {

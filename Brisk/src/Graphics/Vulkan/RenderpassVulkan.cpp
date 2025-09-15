@@ -58,20 +58,8 @@ namespace Brisk
                 desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
                 desc.initialLayout = attachment.pLoadOp == LoadOp::Load ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_UNDEFINED;
 
-                if (!isSwapchain) {
-                    if ((attachment.pImage->GetSpecs().p_Usage & Core::TextureUsage::ImageUsageColorAttachment) != Core::TextureUsage::Undefined) {
-                        desc.finalLayout = attachment.pLoadOp == LoadOp::Load ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
-                    }
-                    if ((attachment.pImage->GetSpecs().p_Usage & Core::TextureUsage::ImageUsageTransferSrc) != Core::TextureUsage::Undefined) {
-                        desc.finalLayout = VK_IMAGE_LAYOUT_TRANSFER_SRC_OPTIMAL;
-                    }
-                    if (attachment.pImage->IsDepth()) {
-                        desc.finalLayout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
-                    }
-                }
-                else {
-                    desc.finalLayout = VK_IMAGE_LAYOUT_PRESENT_SRC_KHR;
-                }
+                desc.initialLayout = UtilitiesVulkan::ImageLayoutToVkImageLayout(attachment.pInitialLayout);
+                desc.finalLayout = UtilitiesVulkan::ImageLayoutToVkImageLayout(attachment.pFinalLayout);
 
                 attachments.push_back(desc);
 

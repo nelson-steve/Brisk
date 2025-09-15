@@ -216,7 +216,7 @@ namespace Brisk
                     },
                 },
                 {   
-                    RenderPassAttachment{ 0, AttachmentType::Depth, m_DepthPre, LoadOp::Clear, StoreOp::Store }
+                    RenderPassAttachment{ 0, AttachmentType::Depth, m_DepthPre, LoadOp::Clear, StoreOp::Store, Core::ImageLayout::Undefined, Core::ImageLayout::DepthStencilAttachmentOptimal }
                 }
             );
 
@@ -315,12 +315,12 @@ namespace Brisk
                     },
                 },
                 {   
-                    RenderPassAttachment{ 0, AttachmentType::Color, m_Pos,      LoadOp::Clear, StoreOp::Store    },
-                    RenderPassAttachment{ 1, AttachmentType::Color, m_Normal,   LoadOp::Clear, StoreOp::Store    },
-                    RenderPassAttachment{ 2, AttachmentType::Color, m_Albedo,   LoadOp::Clear, StoreOp::Store    },
-                    RenderPassAttachment{ 3, AttachmentType::Color, m_Material, LoadOp::Clear, StoreOp::Store    },
-                    RenderPassAttachment{ 4, AttachmentType::Color, m_Emissive, LoadOp::Clear, StoreOp::Store    },
-                    RenderPassAttachment{ 5, AttachmentType::Depth, m_DepthPre, LoadOp::Load,  StoreOp::DontCare  },
+                    RenderPassAttachment{ 0, AttachmentType::Color, m_Pos,      LoadOp::Clear, StoreOp::Store   , Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
+                    RenderPassAttachment{ 1, AttachmentType::Color, m_Normal,   LoadOp::Clear, StoreOp::Store   , Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
+                    RenderPassAttachment{ 2, AttachmentType::Color, m_Albedo,   LoadOp::Clear, StoreOp::Store   , Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
+                    RenderPassAttachment{ 3, AttachmentType::Color, m_Material, LoadOp::Clear, StoreOp::Store   , Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
+                    RenderPassAttachment{ 4, AttachmentType::Color, m_Emissive, LoadOp::Clear, StoreOp::Store   , Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
+                    RenderPassAttachment{ 5, AttachmentType::Depth, m_DepthPre, LoadOp::Load,  StoreOp::DontCare, Core::ImageLayout::DepthStencilAttachmentOptimal, Core::ImageLayout::DepthStencilAttachmentOptimal},
                 }
             );
 
@@ -359,9 +359,37 @@ namespace Brisk
                     },
                 },
                 {
-                    RenderPassAttachment{ 0, AttachmentType::Color, m_LightingOutput, LoadOp::Clear, StoreOp::Store }
+                    RenderPassAttachment{ 0, AttachmentType::Color, m_LightingOutput, LoadOp::Clear, StoreOp::Store, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal }
                 }
             );
+
+            // Clustered debug pass
+            //----------------------------------------------------------------------------------------------------
+            m_ClusteredDebugPass = RenderPass::Create();
+            m_ClusteredDebugPass->Init(
+                {
+                    RenderPassDependency {
+                        -1,
+                        0,
+                        Core::AccessType::None, // src access
+                        Core::AccessType::ColorAttachmentWrite, // dst access
+                        Core::PipelineStage::ColorAttachment, // src stage
+                        Core::PipelineStage::ColorAttachment // dst stage
+                    },
+                    RenderPassDependency {
+                        0,
+                        -1,
+                        Core::AccessType::ColorAttachmentWrite, // src access
+                        Core::AccessType::ShaderRead, // dst access
+                        Core::PipelineStage::ColorAttachment, // src stage
+                        Core::PipelineStage::FragmentShader // dst stage
+                    },
+                },
+                {
+                    RenderPassAttachment{ 0, AttachmentType::Color, m_LightingOutput, LoadOp::Load, StoreOp::Store, Core::ImageLayout::ColorAttachmentOptimal, Core::ImageLayout::ShaderReadOnlyOptimal }
+                }
+            );
+
 
             // UI pass
             //----------------------------------------------------------------------------------------------------
@@ -386,7 +414,7 @@ namespace Brisk
                     },
                 },
                 {
-                    RenderPassAttachment{ 0, AttachmentType::Swapchain, nullptr, LoadOp::Clear, StoreOp::Store }
+                    RenderPassAttachment{ 0, AttachmentType::Swapchain, nullptr, LoadOp::Clear, StoreOp::Store, Core::ImageLayout::Undefined, Core::ImageLayout::PresentSrc }
                 }
             );
         }
@@ -598,6 +626,20 @@ namespace Brisk
             clusterTilesBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
             m_ClusterTilesSSBO->Init(clusterTilesBufferDesc);
 
+            //m_ClustersVertexBuffer = Buffer::Create();
+            //BufferDesc clusterVertexBufferDesc{};
+            //clusterVertexBufferDesc.p_Size = sizeof(glm::vec3) * NUM_CLUSTERS;
+            //clusterVertexBufferDesc.p_Usage = BufferDesc::Usage::VertexBuffer;
+            //clusterVertexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+            //m_ClustersVertexBuffer->Init(clusterVertexBufferDesc);
+
+            //m_ClustersVertexBuffer = Buffer::Create();
+            //BufferDesc clusterIndexBufferDesc{};
+            //clusterIndexBufferDesc.p_Size = sizeof(uint32_t) * ;
+            //clusterIndexBufferDesc.p_Usage = BufferDesc::Usage::IndexBuffer;
+            //clusterIndexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+            //m_ClustersVertexBuffer->Init(clusterIndexBufferDesc);
+
             m_ClusterInfoUBO = Buffer::Create();
             BufferDesc clusterInfoBufferDesc{};
             clusterInfoBufferDesc.p_Size = sizeof(ClusterInfo);
@@ -750,7 +792,8 @@ namespace Brisk
         ClusterInfo clusterInfo{};
         clusterInfo.View = Application::GetCamera()->GetViewMatrix();
         clusterInfo.InverseProj = glm::inverse(Application::GetCamera()->GetProjection());
-        clusterInfo.TileSizes = glm::uvec4(16, 9, 24, 60);
+        uint32_t sizePx = (unsigned int)std::ceilf(1920 / 16.0f);
+        clusterInfo.TileSizes = glm::uvec4(16, 9, 24, sizePx);
         clusterInfo.ScreenDimensions = glm::uvec4(m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight(), 1, 1000);
         m_ClusterInfoUBO->UpdatePersistantData(sizeof(ClusterInfo), &clusterInfo);
 
@@ -881,6 +924,13 @@ namespace Brisk
 
         m_CmdBuffer->Reset();
         m_CmdBuffer->Bind();
+
+
+        /*
+        for each cluster
+            render indexed for cube but change vertex buffer
+        
+        */
 
         // --- SHADOW MAP PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------

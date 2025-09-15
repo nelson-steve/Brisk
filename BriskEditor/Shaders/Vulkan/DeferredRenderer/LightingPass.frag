@@ -90,21 +90,18 @@ vec3 applyDirectionalLight(vec3 fragPos, vec3 normal) {
 
 uint computeClusterIndex(vec3 fragPosView) {
     vec2 fragCoord = gl_FragCoord.xy;
+    uvec2 screenSize = uvec2(textureSize(sampler_Position, 0));
 
-    // Compute cluster XY
-    uvec3 tileSize = uvec3(16, 9, 24);
-    uvec2 screenSize = uvec2(1920, 1080);
-
-    uint tileX = uint(fragCoord.x * float(NUM_CLUSTERS_X) / screenSize.x);
-    uint tileY = uint(fragCoord.y * float(NUM_CLUSTERS_Y) / screenSize.y);
-
-    // Compute cluster Z (logarithmic depth slicing)
-    float viewZ = -fragPosView.z;
-    float z = clamp((log(viewZ) - log(NearZ)) / (log(FarZ) - log(NearZ)), 0.0, 1.0);
-    uint tileZ = uint(z * float(NUM_CLUSTERS_Z));
-
+    // Cluster XY
+    uint tileX = uint(fragCoord.x * float(NUM_CLUSTERS_X) / float(screenSize.x));
+    uint tileY = uint(fragCoord.y * float(NUM_CLUSTERS_Y) / float(screenSize.y));
     tileX = clamp(tileX, 0u, NUM_CLUSTERS_X - 1);
     tileY = clamp(tileY, 0u, NUM_CLUSTERS_Y - 1);
+
+    // Cluster Z (logarithmic depth slicing)
+    float viewZ = -fragPosView.z; // must be positive in view space
+    float z = clamp((log(viewZ) - log(NearZ)) / (log(FarZ) - log(NearZ)), 0.0, 1.0);
+    uint tileZ = uint(z * float(NUM_CLUSTERS_Z));
     tileZ = clamp(tileZ, 0u, NUM_CLUSTERS_Z - 1);
 
     return tileX + tileY * NUM_CLUSTERS_X + tileZ * NUM_CLUSTERS_X * NUM_CLUSTERS_Y;
@@ -170,12 +167,12 @@ void main() {
     uint count = offsetCount.y;
 
     vec3 litColor = vec3(0.0);
-    for (uint i = 0; i < count; ++i) {
+    for (uint i = 0; i < 2048; ++i) {
         uint lightIdx = LightIndices.lightIndexList[offset + i];
-        litColor += applyLight(fragPos, normal, lightIdx);
+        litColor += applyLight(fragPos, normal, i);
     }
 
-    float shadow = computeShadow(fragPos, MVP.View);
+    //float shadow = computeShadow(fragPos, MVP.View);
     //litColor *= shadow;
 
     vec3 ambient = 0.3 * albedo;

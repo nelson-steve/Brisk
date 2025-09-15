@@ -29,13 +29,13 @@ vec4 ClipToView(vec4 clip) {
     return view;
 }
 
-vec4 ScreenToView(vec4 screen) {
+vec4 ScreenToView(vec2 screen) {
     //Convert to NDC
-    vec2 texCoord = screen.xy / ClusterInfo.screen.xy;
+    //vec2 texCoord = screen / ClusterInfo.screen.xy;
 
     //Convert to clipSpace
-    //vec4 clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y)* 2.0 - 1.0, screen.z, screen.w); // Opengl
-    vec4 clip = vec4(texCoord * 2.0 - 1.0, screen.z, screen.w); // Vulkan
+    // vec4 clip = vec4(vec2(texCoord.x, 1.0 - texCoord.y)* 2.0 - 1.0, 0.0, 1.0);
+    vec4 clip = vec4(screen * 2.0 - 1.0, 0.0, 1.0);
 
     return ClipToView(clip);
 }
@@ -61,13 +61,15 @@ void main() {
     float zNear = ClusterInfo.screen.z;
     float zFar  = ClusterInfo.screen.w;
 
-    uint tileSizePx = ClusterInfo.tileSizes.w;
     uint tileIndex = gl_WorkGroupID.x +
                      gl_WorkGroupID.y * gl_NumWorkGroups.x +
                      gl_WorkGroupID.z * (gl_NumWorkGroups.x * gl_NumWorkGroups.y);
 
-    vec4 maxPoint_SS = vec4(vec2(gl_WorkGroupID.x + 1, gl_WorkGroupID.y + 1) * tileSizePx, -1.0, 1.0);
-    vec4 minPoint_SS = vec4(gl_WorkGroupID.xy * tileSizePx, -1.0, 1.0);
+	vec2 normPerTileSize = vec2(1.0 / float(ClusterInfo.tileSizes.x),
+		1.0 / float(ClusterInfo.tileSizes.y));
+
+    vec2 maxPoint_SS = vec2(gl_WorkGroupID.xy + 1) * normPerTileSize;
+    vec2 minPoint_SS = gl_WorkGroupID.xy * normPerTileSize;
 
     vec3 maxPoint_VS = ScreenToView(maxPoint_SS).xyz;
     vec3 minPoint_VS = ScreenToView(minPoint_SS).xyz;

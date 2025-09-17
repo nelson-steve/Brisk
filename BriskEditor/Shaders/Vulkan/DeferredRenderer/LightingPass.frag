@@ -167,13 +167,13 @@ void main() {
     uint count = offsetCount.y;
 
     vec3 litColor = vec3(0.0);
-    for (uint i = 0; i < 2048; ++i) {
+    for (uint i = 0; i < count; ++i) {
         uint lightIdx = LightIndices.lightIndexList[offset + i];
-        litColor += applyLight(fragPos, normal, i);
+        litColor += applyLight(fragPos, normal, lightIdx);
     }
 
-    //float shadow = computeShadow(fragPos, MVP.View);
-    //litColor *= shadow;
+    float shadow = computeShadow(fragPos, MVP.View);
+    litColor *= shadow;
 
     vec3 ambient = 0.3 * albedo;
     vec3 finalColor = ambient + litColor * albedo + emissive;

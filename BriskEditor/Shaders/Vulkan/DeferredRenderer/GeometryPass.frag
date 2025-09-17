@@ -99,13 +99,8 @@ layout(std430, set = 0, binding = 2) readonly buffer MaterialsBuffer {
     MaterialData materials[];
 } Materials;
 
-layout(push_constant) uniform MeshDataBuffer {
-    mat4 model;
-    int materialIndex;
-} MeshData;
-
 void main() {
-    MaterialData material = Materials.materials[0];
+    MaterialData material = Materials.materials[matIndex];
 
     // Base Color
     vec4 baseColor = material.baseColorFactor;

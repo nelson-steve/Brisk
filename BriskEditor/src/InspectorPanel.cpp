@@ -152,7 +152,7 @@ namespace Brisk
 				DrawVec3Control("Rotation", rotation);
 				glm::vec3 euler = glm::vec3(rotation.x, rotation.y, rotation.z);
 				glm::quat q = glm::quat(euler);
-				SceneManager::pActiveScene->Reg().get<WorldTransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Rotation = q;
+				//SceneManager::pActiveScene->Reg().get<WorldTransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Rotation = q;
 
 				DrawVec3Control("Scale", SceneManager::pActiveScene->Reg().get<WorldTransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Scale);
 				ImGui::TreePop();

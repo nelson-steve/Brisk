@@ -31,7 +31,8 @@ namespace Brisk
         float fovy = 2.0f * atan(1.0f / proj[1][1]);
         float aspect = proj[1][1] / proj[0][0];
 
-        projCopy = glm::perspective(fovy, aspect, splitNear, splitFar);
+        projCopy = glm::perspectiveZO(fovy, aspect, splitNear, splitFar);
+        projCopy[1][1] *= -1.0f;
 
         // Inverse of (proj * view) gives NDC -> world
         glm::mat4 inv = glm::inverse(projCopy * view);
@@ -98,7 +99,8 @@ namespace Brisk
             max = glm::max(max, glm::vec3(tr));
         }
 
-        glm::mat4 lightProj = glm::ortho(min.x, max.x, min.y, max.y, min.z, max.z);
+        glm::mat4 lightProj = glm::orthoZO(min.x, max.x, min.y, max.y, min.z, max.z);
+        lightProj[1][1] *= -1.0f;
 
         return lightProj * lightView;
     }
@@ -445,7 +447,7 @@ namespace Brisk
                 pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
                 pipelineSpecs.pLineWidth = 1.0f;
                 pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
-                pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
+                pipelineSpecs.pFrontFace = Pipeline::FrontFace::COUTNER_CLOCKWISE;
                 pipelineSpecs.pDepthBiasEnable = false;
                 pipelineSpecs.pDepthTestEnable = true;  
                 pipelineSpecs.pDepthWriteEnable = true;
@@ -482,7 +484,7 @@ namespace Brisk
                 pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
                 pipelineSpecs.pLineWidth = 1.0f;
                 pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
-                pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
+                pipelineSpecs.pFrontFace = Pipeline::FrontFace::COUTNER_CLOCKWISE;
                 pipelineSpecs.pDepthBiasEnable = false;
                 pipelineSpecs.pDepthTestEnable = true;
                 pipelineSpecs.pDepthWriteEnable = true;
@@ -527,7 +529,7 @@ namespace Brisk
                 pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
                 pipelineSpecs.pLineWidth = 1.0f;
                 pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
-                pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
+                pipelineSpecs.pFrontFace = Pipeline::FrontFace::COUTNER_CLOCKWISE;
                 pipelineSpecs.pDepthBiasEnable = false;
                 pipelineSpecs.pDepthTestEnable = true;
                 pipelineSpecs.pDepthWriteEnable = false;
@@ -815,43 +817,43 @@ namespace Brisk
                 m_GBufferPipeline->UpdateResources("Vertices", {}, mesh->m_VertexStorageBuffer);
                 m_GBufferPipeline->UpdateResources("Meshlets", {}, mesh->m_MeshletsBuffer);
             }
-
-            float nearClip = Application::GetCamera()->GetNearClip();
-            float farClip = Application::GetCamera()->GetFarClip();
-            glm::mat4 cameraProj = Application::GetCamera()->GetProjection();
-            glm::mat4 cameraView = Application::GetCamera()->GetViewMatrix();
-            lightDir = glm::normalize(glm::vec3(-0.3f, -1.0f, -0.5f));
-            float lambda = 0.7f;
-
-            auto lightView = SceneManager::pActiveScene->Reg().view<DirectionalLightComponent>();
-            for (auto e : lightView) {
-                Entity entity = { e, SceneManager::pActiveScene.get() };
-                auto& lc = entity.GetComponent<DirectionalLightComponent>();
-                lightDir = lc.Direction;
-            }
-
-            for (int i = 0; i < NUM_CASCADES; i++) {
-                glm::mat4 lightMatrix = CalculateCascadeMatrix(
-                    i, NUM_CASCADES,
-                    nearClip, farClip,
-                    lambda,
-                    cameraProj, cameraView,
-                    lightDir
-                );
-
-                m_SunMatrices[i] = lightMatrix;
-            }
-
-            ShadowData shadowData{};
-            shadowData.lightSpaceMatrices[0] = m_SunMatrices[0];
-            shadowData.lightSpaceMatrices[1] = m_SunMatrices[1];
-            shadowData.lightSpaceMatrices[2] = m_SunMatrices[2];
-            shadowData.lightSpaceMatrices[3] = m_SunMatrices[3];
-            shadowData.cascadeSplits = glm::vec4(76, 172, 349, 1000);
-            m_ShadowDataBuffer->UpdatePersistantData(sizeof(ShadowData), &shadowData);
-
-            m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer);
         }
+
+        float nearClip = Application::GetCamera()->GetNearClip();
+        float farClip = Application::GetCamera()->GetFarClip();
+        glm::mat4 cameraProj = Application::GetCamera()->GetProjection();
+        glm::mat4 cameraView = Application::GetCamera()->GetViewMatrix();
+        lightDir = glm::normalize(glm::vec3(-0.3f, -1.0f, -0.5f));
+        float lambda = 0.7f;
+
+        auto lightView = SceneManager::pActiveScene->Reg().view<DirectionalLightComponent>();
+        for (auto e : lightView) {
+            Entity entity = { e, SceneManager::pActiveScene.get() };
+            auto& lc = entity.GetComponent<DirectionalLightComponent>();
+            lightDir = lc.Direction;
+        }
+
+        for (int i = 0; i < NUM_CASCADES; i++) {
+            glm::mat4 lightMatrix = CalculateCascadeMatrix(
+                i, NUM_CASCADES,
+                nearClip, farClip,
+                lambda,
+                cameraProj, cameraView,
+                lightDir
+            );
+
+            m_SunMatrices[i] = lightMatrix;
+        }
+
+        ShadowData shadowData{};
+        shadowData.lightSpaceMatrices[0] = m_SunMatrices[0];
+        shadowData.lightSpaceMatrices[1] = m_SunMatrices[1];
+        shadowData.lightSpaceMatrices[2] = m_SunMatrices[2];
+        shadowData.lightSpaceMatrices[3] = m_SunMatrices[3];
+        shadowData.cascadeSplits = glm::vec4(76, 172, 349, 1000);
+        m_ShadowDataBuffer->UpdatePersistantData(sizeof(ShadowData), &shadowData);
+
+        m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer);
 
         m_ClusterFence->Wait();
         m_ClusterFence->Reset();
@@ -991,7 +993,7 @@ namespace Brisk
 
                 //glm::mat4 t = GetWorldTransform(e);
 
-                glm::mat4 matrix{ 1.0f };
+                glm::mat4 matrix = transform.GetTransform();
                 m_DepthPrePassPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
                 RenderCommand::DrawMeshTasks(m_CmdBuffer, meshComp.p_Mesh->GetMeshletCount());
             }
@@ -1017,9 +1019,9 @@ namespace Brisk
                     uint32_t index;
                 } pc;
                 pc.index = 0;
-                pc.model = glm::mat4(1.0f);
+                pc.model = transform.GetTransform();
 
-                m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, Core::ShaderStageFlags::Fragment | Core::ShaderStageFlags::Mesh);
+                m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4) + sizeof(uint32_t), &pc, 0, Core::ShaderStageFlags::Mesh);
                 RenderCommand::DrawMeshTasks(m_CmdBuffer, meshComp.p_Mesh->GetMeshletCount());
             }
         }

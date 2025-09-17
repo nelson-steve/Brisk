@@ -71,7 +71,7 @@ void main()
         vec3 pos    = Vertices.vertices[vi].Position;
         vec3 normal = Vertices.vertices[vi].Normal;
 
-        vec4 worldPos = mat4(1.0) * vec4(pos, 1.0);
+        vec4 worldPos = ObjectData.model * vec4(pos, 1.0);
         gl_MeshVerticesEXT[i].gl_Position = MVP.ProjView * worldPos;
 
         // (Optional) Normal transform to visualize color:

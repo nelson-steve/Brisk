@@ -21,7 +21,7 @@ namespace Brisk
 		std::mt19937 rng(rd());
 
 		std::uniform_real_distribution<float> posDist(-range, range);
-		std::uniform_real_distribution<float> radiusDist(10.0f, 50.0f); // light radius
+		std::uniform_real_distribution<float> radiusDist(50.0f, 100.0f); // light radius
 		std::uniform_real_distribution<float> colorDist(0.5f, 1.0f);  // bright colors
 		std::uniform_real_distribution<float> intensityDist(1.0f, 5.0f); // intensity
 
@@ -71,7 +71,7 @@ namespace Brisk
 		DirectionalLightComponent& lc = lightEntity.AddComponent<DirectionalLightComponent>();
 		lc.Direction = glm::vec3(0.0f, -1.0f, 0.0f);
 
-		GenerateRandomLights(MAX_LIGHTS, 400);
+		GenerateRandomLights(MAX_LIGHTS, 800);
 
 		m_Renderer = Renderer::Create();
 		m_Renderer->Init();
@@ -80,10 +80,9 @@ namespace Brisk
 		PushOverlay(m_ImGuiLayer);
 
 		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[2], false);
-
-		Entity entity = m_SceneManager->pActiveScene->CreateEntity("Flight Helmet");
+		Entity entity1 = m_SceneManager->pActiveScene->CreateEntity("Flight Helmet");
 		for (auto& node : asset1->m_Nodes)
-			AddMeshToScene(node, entity, asset1);
+			AddMeshToScene(node, entity1, asset1);
 	}
 
 	void Application::AddMeshToScene(MeshAsset::Node* node, std::optional<Entity> parent, std::shared_ptr<MeshAsset> meshAsset) {

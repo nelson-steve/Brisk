@@ -1,7 +1,10 @@
-#version 430 core
-layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+#version 450
 
-#define MAX_LIGHTS_PER_CLUSTER 128
+#extension GL_GOOGLE_include_directive: require
+
+#include "../config.hpp"
+
+layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
 
 struct TileAABB {
     vec4 minPoint;

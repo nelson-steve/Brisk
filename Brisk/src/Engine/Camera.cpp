@@ -10,7 +10,8 @@ namespace Brisk
 {
 	Camera::Camera(GLFWwindow* window) 
 		: m_Window(window), 
-		m_Projection(glm::perspective(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip)) {
+		m_Projection(glm::perspectiveZO(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip)) {
+		m_Projection[1][1] *= -1.0f;
 		UpdateView();
 	}
 
@@ -26,6 +27,7 @@ namespace Brisk
 	void Camera::UpdateProjection() {
 		m_AspectRatio = m_ViewportWidth / m_ViewportHeight;
 		m_Projection = glm::perspectiveZO(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip);
+		m_Projection[1][1] *= -1.0f;
 	}
 
 	void Camera::UpdateView() {

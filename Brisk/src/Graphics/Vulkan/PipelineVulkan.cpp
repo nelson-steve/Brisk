@@ -550,7 +550,7 @@ namespace Brisk
                     else {
                         std::vector<VkDescriptorImageInfo> imageInfos;
                         for (int i = 0; i < textures.size(); i++) {
-                        VkDescriptorImageInfo* imageInfo = std::static_pointer_cast<TextureVulkan>(textures[i])->GetDescriptor();
+                            VkDescriptorImageInfo* imageInfo = std::static_pointer_cast<TextureVulkan>(textures[i])->GetDescriptor();
                             imageInfos.push_back(*imageInfo);
                         }
                         VkWriteDescriptorSet write{};

@@ -1,5 +1,9 @@
 #version 450
 
+#extension GL_GOOGLE_include_directive: require
+
+#include "../config.hpp"
+
 #define NUM_CLUSTERS_X 16
 #define NUM_CLUSTERS_Y 9
 #define NUM_CLUSTERS_Z 24
@@ -181,8 +185,8 @@ void main() {
     outColor = vec4(finalColor, 1.0);
 
     // Visualize number of lights in this tile
-    //float brightness = float(count) / float(MAX_LIGHTS_PER_CLUSTER);
-    //outColor = vec4(vec3(brightness), 1.0);
+    float brightness = float(count) / float(MAX_LIGHTS_PER_CLUSTER);
+    outColor = vec4(vec3(brightness), 1.0);
 
     // Debug: visualize tile index as color
     //vec3 debugColor = vec3(

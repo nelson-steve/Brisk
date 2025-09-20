@@ -197,14 +197,4 @@ namespace Brisk
 	void Scene::OnComponentAdded<PhysicsComponent>(Entity entity, PhysicsComponent& component)
 	{
 	}
-
-	template<>
-	void Scene::OnComponentAdded<ParentComponent>(Entity entity, ParentComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentAdded<ChildrenComponent>(Entity entity, ChildrenComponent& component)
-	{
-	}
 }

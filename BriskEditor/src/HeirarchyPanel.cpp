@@ -14,8 +14,8 @@ namespace Brisk
 
         ImGuiTreeNodeFlags flags = ImGuiTreeNodeFlags_OpenOnArrow | ImGuiTreeNodeFlags_SpanAvailWidth;
 
-        bool hasChildren = entity.HasComponent<ChildrenComponent>();
-        if (!hasChildren)
+        //bool hasChildren = entity.HasComponent<ChildrenComponent>();
+        //if (!hasChildren)
             flags |= ImGuiTreeNodeFlags_Leaf;
 
         if (SceneManager::pActiveScene->GetSelectedEntity() == entity)
@@ -34,11 +34,11 @@ namespace Brisk
         }
 
         if (open) {
-            if (hasChildren) {
-                auto& children = reg.get<ChildrenComponent>(entity).children;
-                for (auto child : children)
-                    DrawEntityNode(child);
-            }
+            //if (hasChildren) {
+            //    auto& children = reg.get<ChildrenComponent>(entity).children;
+            //    for (auto child : children)
+            //        DrawEntityNode(child);
+            //}
             ImGui::TreePop();
         }
     }
@@ -48,10 +48,10 @@ namespace Brisk
         ImGui::Begin("Hierarchy");
 
         SceneManager::pActiveScene->Reg().view<TagComponent>().each([&](entt::entity entity, TagComponent& name) {
-            if (!SceneManager::pActiveScene->Reg().any_of<ParentComponent>(entity)) {
+            //if (!SceneManager::pActiveScene->Reg().any_of<ParentComponent>(entity)) {
                 Entity outEntity = { entity, SceneManager::pActiveScene.get() };
                 DrawEntityNode(outEntity);
-            }
+            //}
         });
 
 

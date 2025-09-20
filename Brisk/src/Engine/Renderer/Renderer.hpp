@@ -162,8 +162,6 @@ namespace Brisk
 		RenderCommand m_RenderCommand;
 		uint32_t m_ImageIndex;
 
-		std::unordered_map<MeshAsset*, std::vector<Entity>> m_RenderGroups;
-
 		std::vector<std::shared_ptr<Texture>> m_GlobalTextures;
 	};
 }

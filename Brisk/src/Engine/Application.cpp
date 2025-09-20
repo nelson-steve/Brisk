@@ -79,32 +79,18 @@ namespace Brisk
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);
 
-		std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[2], false);
-		Entity entity1 = m_SceneManager->pActiveScene->CreateEntity("Flight Helmet");
-		for (auto& node : asset1->m_Nodes)
-			AddMeshToScene(node, entity1, asset1);
-	}
-
-	void Application::AddMeshToScene(MeshAsset::Node* node, std::optional<Entity> parent, std::shared_ptr<MeshAsset> meshAsset) {
-		Entity entity = m_SceneManager->pActiveScene->CreateEntity(node->name);
-
-		if (node->meshIndex != UINT32_MAX) {
-			MeshComponent& mc = entity.AddComponent<MeshComponent>();
-			mc.p_Mesh = meshAsset;
-			mc.p_SubMeshIndex = node->meshIndex;
-			mc.p_Name = node->name;
+		{
+			std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[2], false);
+			Entity entity1 = m_SceneManager->pActiveScene->CreateEntity("Sponza");
+			MeshComponent& mc = entity1.AddComponent<MeshComponent>();
+			mc.p_Mesh = asset1;
 		}
-
-		if (parent.has_value()) {
-			entity.AddComponent<ParentComponent>().parent = parent.value();
-			if(parent.value().HasComponent<ChildrenComponent>())
-				parent.value().GetComponent<ChildrenComponent>().children.push_back(entity);
-			else
-				parent.value().AddComponent<ChildrenComponent>().children.push_back(entity);
-		}
-
-		for (auto n : node->children)
-			AddMeshToScene(n, entity, meshAsset);
+		//{
+		//	std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[3], false);
+		//	Entity entity1 = m_SceneManager->pActiveScene->CreateEntity("Flight Helmet");
+		//	MeshComponent& mc = entity1.AddComponent<MeshComponent>();
+		//	mc.p_Mesh = asset1;
+		//}
 	}
 
 	void Application::OnEvent(Event &event) {

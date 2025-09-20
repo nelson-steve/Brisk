@@ -29,14 +29,6 @@ namespace Brisk
 			: Tag(tag) {}
 	};
 
-	struct ParentComponent {
-		Entity parent;
-	};
-
-	struct ChildrenComponent {
-		std::vector<Entity> children;
-	};
-
 	struct LocalTransformComponent
 	{
 		std::string name = "Local Transform Component";
@@ -323,8 +315,6 @@ namespace Brisk
 
 	using AllComponents =
 		ComponentGroup<MeshComponent,
-					   ParentComponent,
-					   ChildrenComponent,
 					   LocalTransformComponent,
 					   WorldTransformComponent,
 					   DirectionalLightComponent,

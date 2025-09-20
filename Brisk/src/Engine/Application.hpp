@@ -25,7 +25,6 @@ namespace Brisk
 		void OnEvent(Event& event);
 		void Run();
 		void Close();
-		void AddMeshToScene(MeshAsset::Node* node, std::optional<Entity> parent, std::shared_ptr<MeshAsset>);
 
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* layer);

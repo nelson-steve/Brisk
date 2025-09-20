@@ -451,7 +451,7 @@ namespace Brisk
                 pipelineSpecs.pDepthBiasEnable = false;
                 pipelineSpecs.pDepthTestEnable = true;  
                 pipelineSpecs.pDepthWriteEnable = true;
-                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_EQUAL;
+                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_GREATER;
                 pipelineSpecs.pDepthBoundsTestEnable = false;
                 pipelineSpecs.pStencilTestEnable = false;
                 pipelineSpecs.pDebugName = "DepthPrePas pipeline";
@@ -488,7 +488,7 @@ namespace Brisk
                 pipelineSpecs.pDepthBiasEnable = false;
                 pipelineSpecs.pDepthTestEnable = true;
                 pipelineSpecs.pDepthWriteEnable = true;
-                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_EQUAL;
+                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_GREATER;
                 pipelineSpecs.pDepthBoundsTestEnable = false;
                 pipelineSpecs.pStencilTestEnable = false;
                 pipelineSpecs.pDebugName = "CSMShadowMap pipeline";
@@ -533,7 +533,7 @@ namespace Brisk
                 pipelineSpecs.pDepthBiasEnable = false;
                 pipelineSpecs.pDepthTestEnable = true;
                 pipelineSpecs.pDepthWriteEnable = false;
-                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_EQUAL;
+                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_GREATER;
                 pipelineSpecs.pDepthBoundsTestEnable = false;
                 pipelineSpecs.pStencilTestEnable = false;
                 pipelineSpecs.pDebugName = "GeometryPass pipeline";
@@ -570,7 +570,7 @@ namespace Brisk
                 pipelineSpecs.pDepthBiasEnable = false;
                 pipelineSpecs.pDepthTestEnable = false;
                 pipelineSpecs.pDepthWriteEnable = false;
-                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_EQUAL;
+                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_NEVER;
                 pipelineSpecs.pDepthBoundsTestEnable = false;
                 pipelineSpecs.pStencilTestEnable = false;
                 pipelineSpecs.pDebugName = "LightingPass pipeline";

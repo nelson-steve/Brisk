@@ -8,16 +8,27 @@
 
 namespace Brisk 
 {
+	inline glm::mat4 InfinitePerspective(float fovY, float aspect, float zNear) {
+		float f = 1.0f / tan(fovY * 0.5f);
+		glm::mat4 result(0.0f);
+		result[0][0] = f / aspect;
+		result[1][1] = f;
+		result[2][2] = -1.0f;
+		result[2][3] = -2.0f * zNear;
+		result[3][2] = -1.0f;
+		return result;
+	}
+
 	Camera::Camera(GLFWwindow* window) 
 		: m_Window(window), 
-		m_Projection(glm::perspectiveZO(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip)) {
+		m_Projection(InfinitePerspective(glm::radians(m_FOV), m_AspectRatio, m_NearClip)) {
 		m_Projection[1][1] *= -1.0f;
 		UpdateView();
 	}
 
 	Camera::Camera(float fov, float aspectRatio, float nearClip, float farClip, GLFWwindow* window)
 		: m_FOV(fov), m_AspectRatio(aspectRatio), m_NearClip(nearClip), m_FarClip(farClip), m_Window(window) {
-		m_Projection = glm::perspective(glm::radians(fov), aspectRatio, nearClip, farClip);
+		m_Projection = InfinitePerspective(glm::radians(m_FOV), m_AspectRatio, m_NearClip);
 		UpdateView();
 	}
 
@@ -26,7 +37,7 @@ namespace Brisk
 
 	void Camera::UpdateProjection() {
 		m_AspectRatio = m_ViewportWidth / m_ViewportHeight;
-		m_Projection = glm::perspectiveZO(glm::radians(m_FOV), m_AspectRatio, m_NearClip, m_FarClip);
+		m_Projection = InfinitePerspective(glm::radians(m_FOV), m_AspectRatio, m_NearClip);
 		m_Projection[1][1] *= -1.0f;
 	}
 

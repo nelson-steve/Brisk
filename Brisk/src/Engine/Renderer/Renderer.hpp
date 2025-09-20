@@ -96,6 +96,7 @@ namespace Brisk
 
 		std::shared_ptr<Queue> m_ComputeQueue0;
 		std::shared_ptr<Queue> m_ComputeQueue1;
+		// Synchronization objects - End
 
 		// Attachments
 		std::shared_ptr<Texture> m_Pos;
@@ -111,12 +112,7 @@ namespace Brisk
 		std::shared_ptr<Texture> m_LightingOutput;
 
 		std::shared_ptr<Texture> m_IrradiannceImage;
-
-		uint64_t m_ImGuiIdScene;
-		uint64_t m_ImGuiIdShadowMap0;
-		uint64_t m_ImGuiIdShadowMap1;
-		uint64_t m_ImGuiIdShadowMap2;
-		uint64_t m_ImGuiIdShadowMap3;
+		// Attachments - End
 
 		// RenderPasses
 		std::shared_ptr<RenderPass> m_DepthPrePass;
@@ -125,6 +121,7 @@ namespace Brisk
 		std::shared_ptr<RenderPass> m_LightingPass;
 		std::shared_ptr<RenderPass> m_UIPass;
 		std::shared_ptr<RenderPass> m_ClusteredDebugPass;
+		// RenderPasses - End
 
 		// Pipelines
 		std::shared_ptr<Pipeline> m_DepthPrePassPipeline;
@@ -136,7 +133,9 @@ namespace Brisk
 
 		std::shared_ptr<Pipeline> m_AABBGeneratorPipeline;
 		std::shared_ptr<Pipeline> m_AssignLightsToClustersPipeline;
+		// Pipelines - End
 
+		// Buffer
 		std::shared_ptr<Buffer> m_MVPBuffer;
 		std::shared_ptr<Buffer> m_ShadowDataBuffer;
 
@@ -153,9 +152,16 @@ namespace Brisk
 		std::shared_ptr<Buffer> m_ProbesBuffer;
 
 		std::shared_ptr<Buffer> m_AtomicCounters;
+		// Buffer - End
 
 		std::vector<glm::mat4> m_SunMatrices;
 		std::vector<Probe> m_Probes;
+
+		uint64_t m_ImGuiIdScene;
+		uint64_t m_ImGuiIdShadowMap0;
+		uint64_t m_ImGuiIdShadowMap1;
+		uint64_t m_ImGuiIdShadowMap2;
+		uint64_t m_ImGuiIdShadowMap3;
 
 		std::shared_ptr<CommandBuffer> m_CmdBuffer;
 		std::shared_ptr<CommandBuffer> m_ClusteredCmdBuffer;

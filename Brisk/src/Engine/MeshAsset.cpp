@@ -11,37 +11,13 @@
 #include <meshoptimizer.h>
 
 namespace Brisk {
+	std::shared_ptr<Buffer> MeshAsset::m_VertexBuffer;
+	std::shared_ptr<Buffer> MeshAsset::m_IndexBuffer;
+	std::shared_ptr<Buffer> MeshAsset::m_MeshletsBuffer;
+	std::shared_ptr<Buffer> MeshAsset::m_MeshletDataBuffer;
+	std::shared_ptr<Buffer> MeshAsset::m_MaterialStorageBuffer;
+
 	MeshAsset::~MeshAsset() {
-	}
-
-	void MeshAsset::LoadNodes(Node* parent, uint32_t nodeIndex, const fastgltf::Asset& asset) {
-		const fastgltf::Node& gltfNode = asset.nodes[nodeIndex];
-
-		Node* newNode = new Node();
-		newNode->parent = parent;
-		newNode->name = gltfNode.name;
-
-		// Load transform
-		newNode->matrix = glm::make_mat4(fastgltf::getTransformMatrix(gltfNode).data());
-
-		if (gltfNode.meshIndex.has_value()) {
-			newNode->meshIndex = static_cast<uint32_t>(*gltfNode.meshIndex);
-		}
-		else {
-			newNode->meshIndex = UINT32_MAX;
-		}
-
-		if (gltfNode.children.size() > 0) {
-			for (const auto& childIndex : gltfNode.children) {
-				LoadNodes(newNode, static_cast<uint32_t>(childIndex), asset);
-			}
-		}
-
-		if (parent) {
-			parent->children.push_back(newNode);
-		}
-
-		m_Nodes.push_back(newNode);
 	}
 
 	void MeshAsset::Load(const std::filesystem::path& path) {
@@ -93,15 +69,11 @@ namespace Brisk {
 
 		if (asset.scenes.empty()) return;
 		auto& scene = asset.scenes[asset.defaultScene.value_or(0)];
-		for (const auto& node : scene.nodeIndices) {
-			LoadNodes(nullptr, node, asset);
-		}
 
-		uint32_t totalVertexCount = 0;
-		uint32_t totalIndexCount = 0;
+		uint32_t vertexCount = 0;
+		uint32_t indexCount = 0;
 		for (const auto& gltfMesh : asset.meshes) {
 			for (auto it = gltfMesh.primitives.begin(); it != gltfMesh.primitives.end(); ++it) {
-				Primitive outPrimitive{};
 				const fastgltf::Attribute* positionIt = it->findAttribute("POSITION");
 
 				BRISK_CORE_ASSERT(positionIt != it->attributes.end());
@@ -111,35 +83,25 @@ namespace Brisk {
 				if (!positionAccessor.bufferViewIndex.has_value())
 					continue;
 
-				// Load positions
 				if (positionAccessor.componentType == fastgltf::ComponentType::Float &&
 					positionAccessor.type == fastgltf::AccessorType::Vec3) {
-					totalVertexCount += positionAccessor.count;
+					vertexCount += positionAccessor.count;
 				}
 
 				if (it->indicesAccessor.has_value()) {
 					const auto& indexAccessor = asset.accessors[it->indicesAccessor.value()];
-					totalIndexCount += indexAccessor.count;
+					indexCount += indexAccessor.count;
 				}
 			}
 		}
 
-		uint32_t indexPos = 0;
-		uint32_t vertexPos = 0;
-		std::vector<MeshletVertex> meshletVerticesData;
-		std::vector<Vertex> verticesData;
-		std::vector<uint32_t> indicesData;
-		std::vector<Meshlet> meshletsData;
-		verticesData.reserve(totalVertexCount);
-		indicesData.reserve(totalIndexCount);
+		uint32_t maxVertexCount = 0;
+
+		m_Geometry.vertices.reserve(m_Geometry.vertices.size() + vertexCount);
+		m_Geometry.indices.reserve(m_Geometry.indices.size() + indexCount);
 		for (const auto& gltfMesh : asset.meshes) {
-			Mesh outMesh{};
 			for (auto it = gltfMesh.primitives.begin(); it != gltfMesh.primitives.end(); ++it) {
-				Primitive outPrimitive{};
-				uint32_t indexStart = indexPos;
-				uint32_t vertexStart = vertexPos;
-				uint32_t indexCount = 0;
-				uint32_t vertexCount = 0;
+				Mesh mesh;
 
 				const fastgltf::Attribute* positionIt = it->findAttribute("POSITION");
 				const fastgltf::Attribute* normalIt = it->findAttribute("NORMAL");
@@ -214,20 +176,20 @@ namespace Brisk {
 				}
 
 				// Load color
-				std::vector<fastgltf::math::fvec3> color;
-				bool hasColor = (colorIt != it->attributes.end());
-				if (hasColor) {
-					auto& colorAccessor = asset.accessors[colorIt->accessorIndex];
-					if (colorAccessor.componentType == fastgltf::ComponentType::Float &&
-						colorAccessor.type == fastgltf::AccessorType::Vec3 &&
-						colorAccessor.bufferViewIndex.has_value()) {
-						color.resize(colorAccessor.count);
-						fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, colorAccessor, color.data());
-					}
-					else {
-						hasColor = false;
-					}
-				}
+				//std::vector<fastgltf::math::fvec3> color;
+				//bool hasColor = (colorIt != it->attributes.end());
+				//if (hasColor) {
+				//	auto& colorAccessor = asset.accessors[colorIt->accessorIndex];
+				//	if (colorAccessor.componentType == fastgltf::ComponentType::Float &&
+				//		colorAccessor.type == fastgltf::AccessorType::Vec3 &&
+				//		colorAccessor.bufferViewIndex.has_value()) {
+				//		color.resize(colorAccessor.count);
+				//		fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, colorAccessor, color.data());
+				//	}
+				//	else {
+				//		hasColor = false;
+				//	}
+				//}
 
 				// Load tangent
 				std::vector<fastgltf::math::fvec4> tangent;
@@ -245,250 +207,255 @@ namespace Brisk {
 					}
 				}
 
-				// Load tangent
-				std::vector<fastgltf::math::uvec4> jointIndices;
-				bool hasjointIndices = (jointsIt != it->attributes.end());
-				if (hasjointIndices) {
-					auto& jointIndicesAccessor = asset.accessors[jointsIt->accessorIndex];
-					if (jointIndicesAccessor.componentType == fastgltf::ComponentType::UnsignedInt &&
-						jointIndicesAccessor.type == fastgltf::AccessorType::Vec4 &&
-						jointIndicesAccessor.bufferViewIndex.has_value()) {
-						jointIndices.resize(jointIndicesAccessor.count);
-						fastgltf::copyFromAccessor<fastgltf::math::uvec4>(asset, jointIndicesAccessor, jointIndices.data());
-					}
-					else {
-						hasjointIndices = false;
-					}
-				}
+				// Load joint indices
+				//std::vector<fastgltf::math::uvec4> jointIndices;
+				//bool hasjointIndices = (jointsIt != it->attributes.end());
+				//if (hasjointIndices) {
+				//	auto& jointIndicesAccessor = asset.accessors[jointsIt->accessorIndex];
+				//	if (jointIndicesAccessor.componentType == fastgltf::ComponentType::UnsignedInt &&
+				//		jointIndicesAccessor.type == fastgltf::AccessorType::Vec4 &&
+				//		jointIndicesAccessor.bufferViewIndex.has_value()) {
+				//		jointIndices.resize(jointIndicesAccessor.count);
+				//		fastgltf::copyFromAccessor<fastgltf::math::uvec4>(asset, jointIndicesAccessor, jointIndices.data());
+				//	}
+				//	else {
+				//		hasjointIndices = false;
+				//	}
+				//}
 
-				// Load tangent
-				std::vector<fastgltf::math::uvec4> jointWeights;
-				bool hasjointWeights = (weightsIt != it->attributes.end());
-				if (hasjointWeights) {
-					auto& jointWeightsAccessor = asset.accessors[weightsIt->accessorIndex];
-					if (jointWeightsAccessor.componentType == fastgltf::ComponentType::UnsignedInt &&
-						jointWeightsAccessor.type == fastgltf::AccessorType::Vec4 &&
-						jointWeightsAccessor.bufferViewIndex.has_value()) {
-						jointWeights.resize(jointWeightsAccessor.count);
-						fastgltf::copyFromAccessor<fastgltf::math::uvec4>(asset, jointWeightsAccessor, jointWeights.data());
-					}
-					else {
-						hasjointWeights = false;
-					}
-				}
+				// Load joint weights
+				//std::vector<fastgltf::math::uvec4> jointWeights;
+				//bool hasjointWeights = (weightsIt != it->attributes.end());
+				//if (hasjointWeights) {
+				//	auto& jointWeightsAccessor = asset.accessors[weightsIt->accessorIndex];
+				//	if (jointWeightsAccessor.componentType == fastgltf::ComponentType::UnsignedInt &&
+				//		jointWeightsAccessor.type == fastgltf::AccessorType::Vec4 &&
+				//		jointWeightsAccessor.bufferViewIndex.has_value()) {
+				//		jointWeights.resize(jointWeightsAccessor.count);
+				//		fastgltf::copyFromAccessor<fastgltf::math::uvec4>(asset, jointWeightsAccessor, jointWeights.data());
+				//	}
+				//	else {
+				//		hasjointWeights = false;
+				//	}
+				//}
 
-				// Combine into vertex struct
+				std::vector<uint32_t> indices;
+				std::vector<Vertex> vertices;
+				std::vector<glm::vec3> localPositions;
 				for (size_t i = 0; i < positions.size(); ++i) {
-					Vertex data{};
+					Vertex vertex{};
 					// Positions
-					data.Position = glm::vec3(positions[i].x(), positions[i].y(), positions[i].z());
+					vertex.vx = positions[i].x();
+					vertex.vy = positions[i].y();
+					vertex.vz = positions[i].z();
 
 					// Normals
-					if (hasNormals && i < normals.size())
-						data.Normal = glm::vec3(normals[i].x(), normals[i].y(), normals[i].z());
-					else
-						data.Normal = glm::vec3(0.0f);
+					if (hasNormals && i < normals.size()) {
+						vertex.nx = normals[i].x();
+						vertex.ny = normals[i].y();
+						vertex.nz = normals[i].z();
+					}
 
 					//  UV0
-					if (hasTexcoords0 && i < texcoords0.size())
-						data.UV0 = glm::vec2(texcoords0[i].x(), texcoords0[i].y());
-					else
-						data.UV0 = glm::vec2(0.0f);
+					if (hasTexcoords0 && i < texcoords0.size()) {
+						vertex.tx = texcoords0[i].x();
+						vertex.ty = texcoords0[i].y();
+					}
 
-					// UV1
-					if (hasTexcoords1 && i < texcoords1.size())
-						data.UV1 = glm::vec2(texcoords1[i].x(), texcoords1[i].y());
-					else
-						data.UV1 = glm::vec2(0.0f);
-
-					// Colors
-					if (hasColor && i < color.size())
-						data.Color = glm::vec3(color[i].x(), color[i].y(), color[i].z());
-					else
-						data.Color = glm::vec3(0.0f);
-
-					// Tangents
-					if (hasTangent && i < tangent.size())
-						data.Tangent = glm::vec4(tangent[i].x(), tangent[i].y(), tangent[i].z(), tangent[i].w());
-					else
-						data.Tangent = glm::vec4(0.0f);
-
-					// JointIndices
-					if (hasjointIndices && i < jointIndices.size())
-						data.JointIndices = glm::uvec4(jointIndices[i].x(), jointIndices[i].y(), jointIndices[i].z(), jointIndices[i].w());
-					else
-						data.JointIndices = glm::uvec4(0.0f);
-
-					// JointWeights
-					if (hasjointWeights && i < jointWeights.size())
-						data.JointWeights = glm::vec4(jointWeights[i].x(), jointWeights[i].y(), jointWeights[i].z(), jointWeights[i].w());
-					else
-						data.JointWeights = glm::vec4(0.0f, 0.0f, 0.0f, 1.0f);
-
-					MeshletVertex meshletVertex{};
-					meshletVertex.Position = data.Position;
-					meshletVertex.Normal = data.Normal;
-					meshletVertex.UV0 = data.UV0;
-					meshletVertex.UV1 = data.UV1;
-					meshletVertex.Color = data.Color;
-					meshletVertex.Tangent = data.Tangent;
-					meshletVertex.JointIndices = data.JointIndices;
-					meshletVertex.JointWeights = data.JointWeights;
-
-					vertexCount++;
-					vertexPos++;
-					meshletVerticesData.push_back(meshletVertex);
-					verticesData.push_back(data);
+					vertices.push_back(vertex);
 				}
 
-				size_t primitiveIndex = std::distance(gltfMesh.primitives.begin(), it);
-				const auto& primitive = *it;
-
-				//// Load indices
 				if (it->indicesAccessor.has_value()) {
 					const auto& indexAccessor = asset.accessors[it->indicesAccessor.value()];
 					indexCount = indexAccessor.count;
 
 					switch (indexAccessor.componentType) {
 					case fastgltf::ComponentType::UnsignedByte: {
-						std::vector<uint8_t> indices(indexAccessor.count);
-						fastgltf::copyFromAccessor<uint8_t>(asset, indexAccessor, indices.data());
-						for (uint8_t i : indices) {
-							indicesData.push_back(static_cast<uint32_t>(i) + vertexStart);
-							indexPos++;
+						std::vector<uint8_t> tempIndices(indexAccessor.count);
+						fastgltf::copyFromAccessor<uint8_t>(asset, indexAccessor, tempIndices.data());
+						for (uint8_t i : tempIndices) {
+							indices.push_back(static_cast<uint32_t>(i));
 						}
 						break;
 					}
 					case fastgltf::ComponentType::UnsignedShort: {
-						std::vector<uint16_t> indices(indexAccessor.count);
-						fastgltf::copyFromAccessor<uint16_t>(asset, indexAccessor, indices.data());
-						for (uint16_t i : indices) {
-							indicesData.push_back(static_cast<uint32_t>(i) + vertexStart);
-							indexPos++;
+						std::vector<uint16_t> tempIndices(indexAccessor.count);
+						fastgltf::copyFromAccessor<uint16_t>(asset, indexAccessor, tempIndices.data());
+						for (uint16_t i : tempIndices) {
+							indices.push_back(static_cast<uint32_t>(i));
 						}
 						break;
 					}
 					case fastgltf::ComponentType::UnsignedInt: {
-						std::vector<uint32_t> indices(indexAccessor.count);
-						fastgltf::copyFromAccessor<uint32_t>(asset, indexAccessor, indices.data());
-						for (uint32_t i : indices) {
-							indicesData.push_back(static_cast<uint32_t>(i) + vertexStart);
-							indexPos++;
+						std::vector<uint32_t> tempIndices(indexAccessor.count);
+						fastgltf::copyFromAccessor<uint32_t>(asset, indexAccessor, tempIndices.data());
+						for (uint32_t i : tempIndices) {
+							indices.push_back(static_cast<uint32_t>(i));
 						}
 						break;
 					}
 					default:
 						throw std::runtime_error("Unsupported index component type.");
 					}
-					outPrimitive.has_indices = true;
 				}
 
-				outPrimitive.materialIndex = it->materialIndex.has_value() ? it->materialIndex.value() : -1;
-				outPrimitive.firstIndex = indexStart;
-				outPrimitive.indexCount = indexCount;
-				outPrimitive.vertexCount = vertexCount;
+				std::vector<uint32_t> remap(vertices.size());
+				size_t uniqueVertices = meshopt_generateVertexRemap(remap.data(), indices.data(), indices.size(), vertices.data(), vertices.size(), sizeof(Vertex));
 
-				outMesh.primitives.push_back(outPrimitive);
+				meshopt_remapVertexBuffer(vertices.data(), vertices.data(), vertices.size(), sizeof(Vertex), remap.data());
+				meshopt_remapIndexBuffer(indices.data(), indices.data(), indices.size(), remap.data());
+
+				vertices.resize(uniqueVertices);
+
+				//if (fast)
+				//	meshopt_optimizeVertexCacheFifo(indices.data(), indices.data(), indices.size(), vertices.size(), 16);
+				//else
+					meshopt_optimizeVertexCache(indices.data(), indices.data(), indices.size(), vertices.size());
+
+				meshopt_optimizeVertexFetch(vertices.data(), indices.data(), indices.size(), vertices.data(), vertices.size(), sizeof(Vertex));
+
+				mesh.vertexOffset = uint32_t(m_Geometry.vertices.size());
+				mesh.vertexCount = uint32_t(vertices.size());
+
+				m_Geometry.vertices.insert(m_Geometry.vertices.end(), vertices.begin(), vertices.end());
+
+				glm::vec3 center{ 0.0f };
+				for (auto& v : vertices) {
+					center += glm::vec3(v.vx, v.vy, v.vz);
+					localPositions.push_back(glm::vec3(v.vx, v.vy, v.vz));
+				}
+				center = center / float(vertices.size());
+
+				float radius = 0;
+				for (auto& v : vertices) {
+					radius = std::max(radius, glm::distance(center, glm::vec3(v.vx, v.vy, v.vz)));
+				}
+
+				mesh.center = center;
+				mesh.radius = radius;
+
+				m_Geometry.indices.insert(m_Geometry.indices.end(), indices.begin(), indices.end());
+
+				//if (fast)
+				//	meshopt_optimizeVertexCacheFifo(lodIndices.data(), lodIndices.data(), lodIndices.size(), vertices.size(), 16);
+				//else
+				meshopt_optimizeVertexCache(indices.data(), indices.data(), indices.size(), vertices.size());
+
+#define MESH_MAXVTX 64
+#define MESH_MAXTRI 96
+				{
+					const size_t max_vertices = MESH_MAXVTX;
+					const size_t min_triangles = MESH_MAXTRI / 4;
+					const size_t max_triangles = MESH_MAXTRI;
+					const float cone_weight = 0.25f;
+					const float fill_weight = 0.5f;
+
+					std::vector<meshopt_Meshlet> meshlets(meshopt_buildMeshletsBound(indices.size(), max_vertices, min_triangles));
+					std::vector<unsigned int> meshlet_vertices(meshlets.size() * max_vertices);
+					std::vector<unsigned char> meshlet_triangles(meshlets.size() * max_triangles * 3);
+
+					//if (fast)
+					//	meshlets.resize(meshopt_buildMeshletsScan(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indices.data(), indices.size(), vertices.size(), max_vertices, max_triangles));
+					//else if (clrt && lod0) // only use spatial algo for lod0 as this is the only lod that is used for raytracing
+					//	meshlets.resize(meshopt_buildMeshletsSpatial(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indices.data(), indices.size(), &vertices[0].x, vertices.size(), sizeof(vec3), max_vertices, min_triangles, max_triangles, fill_weight));
+					//else
+						meshlets.resize(meshopt_buildMeshlets(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indices.data(), indices.size(), &localPositions[0].x, localPositions.size(), sizeof(glm::vec3), max_vertices, max_triangles, cone_weight));
+
+					for (auto& meshlet : meshlets)
+					{
+						meshopt_optimizeMeshlet(&meshlet_vertices[meshlet.vertex_offset], &meshlet_triangles[meshlet.triangle_offset], meshlet.triangle_count, meshlet.vertex_count);
+
+						size_t dataOffset = m_Geometry.meshletdata.size();
+
+						unsigned int minVertex = ~0u, maxVertex = 0;
+						for (unsigned int i = 0; i < meshlet.vertex_count; ++i)
+						{
+							minVertex = std::min(meshlet_vertices[meshlet.vertex_offset + i], minVertex);
+							maxVertex = std::max(meshlet_vertices[meshlet.vertex_offset + i], maxVertex);
+						}
+
+						bool shortRefs = maxVertex - minVertex < (1 << 16);
+
+						for (unsigned int i = 0; i < meshlet.vertex_count; ++i)
+						{
+							unsigned int ref = meshlet_vertices[meshlet.vertex_offset + i] - minVertex;
+							if (shortRefs && i % 2)
+								m_Geometry.meshletdata.back() |= ref << 16;
+							else
+								m_Geometry.meshletdata.push_back(ref);
+						}
+
+						const unsigned int* indexGroups = reinterpret_cast<const unsigned int*>(&meshlet_triangles[0] + meshlet.triangle_offset);
+						unsigned int indexGroupCount = (meshlet.triangle_count * 3 + 3) / 4;
+
+						for (unsigned int i = 0; i < indexGroupCount; ++i)
+							m_Geometry.meshletdata.push_back(indexGroups[i]);
+
+						Meshlet m = {};
+						m.dataOffset = uint32_t(dataOffset);
+						m.baseVertex = mesh.vertexOffset + minVertex;
+						m.triangleCount = meshlet.triangle_count;
+						m.vertexCount = meshlet.vertex_count;
+						m.shortRefs = shortRefs;
+
+						m_Geometry.meshlets.push_back(m);
+					}
+
+					m_Geometry.meshes.push_back(mesh);
+				}
 			}
-			m_Meshes.push_back(outMesh);
 		}
+
+		m_IndexBuffer = Buffer::Create();
+		BufferDesc indexBufferDesc{};
+		indexBufferDesc.p_Name = "Index buffer";
+		indexBufferDesc.p_Size = sizeof(m_Geometry.indices[0]) * m_Geometry.indices.size();
+		indexBufferDesc.p_Data = m_Geometry.indices.data();
+		indexBufferDesc.p_Usage = BufferDesc::Usage::IndexBuffer;
+		indexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+		indexBufferDesc.p_AllowSRV = true;
+		m_IndexBuffer->Init(indexBufferDesc);
 
 		m_VertexBuffer = Buffer::Create();
 		BufferDesc vertexBufferDesc{};
-		vertexBufferDesc.p_Name = "Vertex buffer";
-		vertexBufferDesc.p_Size = sizeof(verticesData[0]) * verticesData.size();
-		vertexBufferDesc.p_Data = verticesData.data();
-		vertexBufferDesc.p_Usage = BufferDesc::Usage::VertexBuffer;
+		vertexBufferDesc.p_Name = "Vertices Storage buffer";
+		vertexBufferDesc.p_Size = sizeof(m_Geometry.vertices[0]) * m_Geometry.vertices.size();
+		vertexBufferDesc.p_Data = m_Geometry.vertices.data();
+		vertexBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
 		vertexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
 		vertexBufferDesc.p_AllowSRV = true;
 		m_VertexBuffer->Init(vertexBufferDesc);
 
-		if (indicesData.size() > 0) {
-			m_IndexBuffer = Buffer::Create();
-			BufferDesc indexBufferDesc{};
-			indexBufferDesc.p_Name = "Index buffer";
-			indexBufferDesc.p_Size = sizeof(indicesData[0]) * indicesData.size();
-			indexBufferDesc.p_Data = indicesData.data();
-			indexBufferDesc.p_Usage = BufferDesc::Usage::IndexBuffer;
-			indexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
-			indexBufferDesc.p_AllowSRV = true;
-			m_IndexBuffer->Init(indexBufferDesc);
-		}
+		m_MeshBuffer = Buffer::Create();
+		BufferDesc meshBufferDesc{};
+		meshBufferDesc.p_Name = "Meshes Storage buffer";
+		meshBufferDesc.p_Size = sizeof(m_Geometry.meshes[0]) * m_Geometry.meshes.size();
+		meshBufferDesc.p_Data = m_Geometry.meshes.data();
+		meshBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+		meshBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+		meshBufferDesc.p_AllowSRV = true;
+		m_MeshBuffer->Init(meshBufferDesc);
 
-		{
-			for (auto& mesh : m_Meshes) {
-				for (auto& primitive : mesh.primitives) {
+		m_MeshletDataBuffer = Buffer::Create();
+		BufferDesc meshletDataBufferDesc{};
+		meshletDataBufferDesc.p_Name = "Meshes Storage buffer";
+		meshletDataBufferDesc.p_Size = sizeof(m_Geometry.meshletdata[0]) * m_Geometry.meshletdata.size();
+		meshletDataBufferDesc.p_Data = m_Geometry.meshletdata.data();
+		meshletDataBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+		meshletDataBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+		meshletDataBufferDesc.p_AllowSRV = true;
+		m_MeshletDataBuffer->Init(meshletDataBufferDesc);
 
-					std::vector<uint8_t> meshletVertices(verticesData.size(), 0xff);
-					Meshlet meshlet = {};
-					meshlet.MaterialIndex = primitive.materialIndex;
+		m_MeshletsBuffer = Buffer::Create();
+		BufferDesc meshletBufferDesc{};
+		meshletBufferDesc.p_Name = "Meshlets Storage buffer";
+		meshletBufferDesc.p_Size = sizeof(m_Geometry.meshlets[0]) * m_Geometry.meshlets.size();
+		meshletBufferDesc.p_Data = m_Geometry.meshlets.data();
+		meshletBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+		meshletBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+		meshletBufferDesc.p_AllowSRV = true;
+		m_MeshletsBuffer->Init(meshletBufferDesc);
 
-					for (size_t i = 0; i < primitive.indexCount; i += 3) {
-						unsigned int a = indicesData[primitive.firstIndex + i + 0];
-						unsigned int b = indicesData[primitive.firstIndex + i + 1];
-						unsigned int c = indicesData[primitive.firstIndex + i + 2];
-
-						uint8_t& av = meshletVertices[a];
-						uint8_t& bv = meshletVertices[b];
-						uint8_t& cv = meshletVertices[c];
-
-						if (meshlet.VertexCount + (av == 0xff) + (bv == 0xff) + (cv == 0xff) > 64 ||
-							meshlet.IndexCount + 3 > 126)
-						{
-							meshletsData.push_back(meshlet);
-							meshlet = {};
-							meshlet.MaterialIndex = primitive.materialIndex;
-							std::fill(meshletVertices.begin(), meshletVertices.end(), 0xff);
-						}
-
-						if (av == 0xff) {
-							av = meshlet.VertexCount;
-							meshlet.Vertices[meshlet.VertexCount++] = a;
-						}
-						if (bv == 0xff) {
-							bv = meshlet.VertexCount;
-							meshlet.Vertices[meshlet.VertexCount++] = b;
-						}
-						if (cv == 0xff) {
-							cv = meshlet.VertexCount;
-							meshlet.Vertices[meshlet.VertexCount++] = c;
-						}
-
-						meshlet.Indices[meshlet.IndexCount++] = av;
-						meshlet.Indices[meshlet.IndexCount++] = bv;
-						meshlet.Indices[meshlet.IndexCount++] = cv;
-					}
-
-					// Push last meshlet if it has data
-					if (meshlet.IndexCount > 0) {
-						assert(meshlet.VertexCount <= 64);
-						assert(meshlet.IndexCount <= 126);
-						meshletsData.push_back(meshlet);
-					}
-				}
-			}
-
-			m_MeshletCount = meshletsData.size();
-			m_MeshletsBuffer = Buffer::Create();
-			BufferDesc meshletBufferDesc{};
-			meshletBufferDesc.p_Name = "Meshlet buffer";
-			meshletBufferDesc.p_Size = sizeof(meshletsData[0]) * meshletsData.size();
-			meshletBufferDesc.p_Data = meshletsData.data();
-			meshletBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
-			meshletBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
-			meshletBufferDesc.p_AllowSRV = true;
-			m_MeshletsBuffer->Init(meshletBufferDesc);
-
-			m_VertexStorageBuffer = Buffer::Create();
-			BufferDesc vertexBufferDesc{};
-			vertexBufferDesc.p_Name = "Vertices Storage buffer";
-			vertexBufferDesc.p_Size = sizeof(meshletVerticesData[0]) * meshletVerticesData.size();
-			vertexBufferDesc.p_Data = meshletVerticesData.data();
-			vertexBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
-			vertexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
-			vertexBufferDesc.p_AllowSRV = true;
-			m_VertexStorageBuffer->Init(vertexBufferDesc);
-		}
 
 		uint32_t texturesOffset = Engine::s_TexturesOffset;
 

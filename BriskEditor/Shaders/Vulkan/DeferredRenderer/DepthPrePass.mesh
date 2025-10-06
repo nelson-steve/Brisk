@@ -3,25 +3,31 @@
 #extension GL_EXT_shader_8bit_storage  : require
 #extension GL_EXT_mesh_shader          : require
 
-layout(local_size_x = 64, local_size_y = 1, local_size_z = 1) in;
-layout(triangles, max_vertices = 64, max_primitives = 96) out;
+#define MESH_MAXVTX 64
+#define MESH_MAXTRI 96
+#define MESH_WGSIZE 64
 
-struct MeshData {
-    vec3 Position;
-    float _pad0;
+layout(local_size_x = MESH_WGSIZE, local_size_y = 1, local_size_z = 1) in;
+layout(triangles, max_vertices = MESH_MAXVTX, max_primitives = MESH_MAXTRI) out;
 
-    vec3 Normal;
-    float _pad1;
+struct Vertex {
+    float vx, vy, vz;
+    float nx, ny, nz;
+    float tx, ty;
+};
 
-    vec2 UV0;
-    vec2 UV1;
+struct Meshlet
+{
+	vec3 center;
+	float radius;
+	int8_t cone_axis[3];
+	int8_t cone_cutoff;
 
-    vec3 Color;
-    float _pad2;
-
-    vec4 Tangent;
-    uvec4 JointIndices;
-    vec4 JointWeights;
+	uint dataOffset;
+	uint baseVertex;
+	uint8_t vertexCount;
+	uint8_t triangleCount;
+	uint8_t shortRefs;
 };
 
 layout(std140, set = 0, binding = 0) uniform MVPBuffer {
@@ -34,42 +40,50 @@ layout(push_constant) uniform MeshDataBuffer {
     mat4 model;
 } ObjectData;
 
-// SSBOs are std430 by default in Vulkan GLSL, but we can be explicit
 layout(std430, set = 0, binding = 3) readonly buffer VerticesBuffer {
-    MeshData vertices[];
+    Vertex vertices[];
 } Vertices;
-
-struct Meshlet {
-    uint    vertices[64];   // local-to-meshlet vertex table
-    uint8_t indices[126];   // flat index buffer (total indices, not triangles)
-    uint8_t indexCount;     // total indices used (<= 126)
-    uint8_t vertexCount;    // total vertices used (<= 64)
-    uint8_t materialIndex;
-};
 
 layout(std430, set = 0, binding = 4) readonly buffer MeshletsBuffer {
     Meshlet meshlets[];
 } Meshlets;
 
-// Not needed for depth-only, but kept if your pipeline expects it
+layout(set = 0, binding = 8) readonly buffer MeshletDataBuffer {
+	uint meshletData[];
+} MeshletData;
+
+layout(set = 0, binding = 8) readonly buffer MeshletDataBuffer16 {
+	uint16_t meshletData16[];
+} MeshletData16;
+
+layout(set = 0, binding = 8) readonly buffer MeshletDataBuffer8 {
+	uint8_t meshletData8[];
+} MeshletData8;
+
 layout(location = 0) out vec4 color[];
 
 void main()
 {
+	uint ti = gl_LocalInvocationIndex;
+
     uint mi     = gl_WorkGroupID.x;
-    uint vCount = uint(Meshlets.meshlets[mi].vertexCount);
-    uint iCount = uint(Meshlets.meshlets[mi].indexCount);
-    uint pCount = iCount / 3u;
+    uint vertexCount = uint(Meshlets.meshlets[mi].vertexCount);
+    uint triangleCount = uint(Meshlets.meshlets[mi].triangleCount);
 
-    // Required. Declare vertex/prims before writing outputs
-    SetMeshOutputsEXT(vCount, pCount);
+    SetMeshOutputsEXT(vertexCount, triangleCount);
 
-    for (uint i = 0u; i < vCount; ++i)
+	uint dataOffset = Meshlets.meshlets[mi].dataOffset;
+	uint baseVertex = Meshlets.meshlets[mi].baseVertex;
+	bool shortRefs = uint(Meshlets.meshlets[mi].shortRefs) == 1;
+	uint vertexOffset = dataOffset;
+	uint indexOffset = dataOffset + (shortRefs ? (vertexCount + 1) / 2 : vertexCount);    
+
+    for (uint i = ti; i < vertexCount; i += MESH_WGSIZE)
     {
-        uint vi = Meshlets.meshlets[mi].vertices[i];
+		uint vi = shortRefs ? uint(MeshletData16.meshletData16[vertexOffset * 2 + i]) + baseVertex : MeshletData.meshletData[vertexOffset + i] + baseVertex;
 
-        vec3 pos    = Vertices.vertices[vi].Position;
-        vec3 normal = Vertices.vertices[vi].Normal;
+        vec3 pos    = vec3(Vertices.vertices[vi].vx, Vertices.vertices[vi].vy, Vertices.vertices[vi].vz);
+        vec3 normal = vec3(Vertices.vertices[vi].nx, Vertices.vertices[vi].ny, Vertices.vertices[vi].nz);
 
         vec4 worldPos = ObjectData.model * vec4(pos, 1.0);
         gl_MeshVerticesEXT[i].gl_Position = MVP.ProjView * worldPos;
@@ -82,13 +96,15 @@ void main()
         color[i] = vec4(normalize(normal) * 0.5 + vec3(0.5), 1.0);
     }
 
-    // Write triangle indices (advance by 3)
-    for (uint t = 0u; t < pCount; ++t)
-    {
-        uint i0 = uint(Meshlets.meshlets[mi].indices[t*3u + 0u]);
-        uint i1 = uint(Meshlets.meshlets[mi].indices[t*3u + 1u]);
-        uint i2 = uint(Meshlets.meshlets[mi].indices[t*3u + 2u]);
+    barrier();
 
-        gl_PrimitiveTriangleIndicesEXT[t] = uvec3(i0, i1, i2);
+	for (uint i = ti; i < triangleCount; i += MESH_WGSIZE)
+    {
+		uint offset = indexOffset * 4 + i * 3;
+		uint a = uint(MeshletData8.meshletData8[offset]), b = uint(MeshletData8.meshletData8[offset + 1]), c = uint(MeshletData8.meshletData8[offset + 2]);
+
+		gl_PrimitiveTriangleIndicesEXT[i] = uvec3(a, b, c);
+
+        //outMaterialIndex[t] = uint(Meshlets.meshlets[mi].materialIndex);                
     }
 }

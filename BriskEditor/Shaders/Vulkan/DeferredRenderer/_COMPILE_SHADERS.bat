@@ -35,6 +35,9 @@ glslc SSAOPass.frag -o Compiled/SSAOPassFS.spv || goto :error
 echo Compiling ShadowMapPass.vert...
 glslc ShadowMapPass.vert -o Compiled/ShadowMapPassVS.spv || goto :error
 
+echo Compiling ShadowMapPass.mesh...
+glslc ShadowMapPass.mesh -o Compiled/ShadowMapPassMS.spv --target-env=vulkan1.3 || goto :error
+
 echo Compiling ShadowMapPass.frag...
 glslc ShadowMapPass.frag -o Compiled/ShadowMapPassFS.spv || goto :error
 

@@ -15,42 +15,42 @@ namespace Brisk
 	class MeshAsset {
 	public:
         struct Vertex {
-            glm::vec3 Position;
-            glm::vec3 Normal;
-            glm::vec2 UV0;
-            glm::vec2 UV1;
-            glm::vec3 Color;
-            glm::vec4 Tangent;
-            glm::uvec4 JointIndices;
-            glm::vec4 JointWeights;
-        };
-        struct MeshletVertex {
-            glm::vec3 Position;
-            float _pad0;
-
-            glm::vec3 Normal;
-            float _pad1;     
-
-            glm::vec2 UV0;           
-            glm::vec2 UV1;           
-
-            glm::vec3 Color;         
-            float _pad2;             
-
-            glm::vec4 Tangent;
-
-            glm::uvec4 JointIndices;
-            glm::vec4 JointWeights; 
+            float vx, vy, vz; // 4 + 4 + 4 = 12
+            float nx, ny, nz; // 4 + 4 + 4 = 12
+            float tx, ty;     // 4 + 4 = 8
         };
 
-
-        struct Meshlet
+        struct alignas(16) Mesh
         {
-            uint32_t Vertices[64];
-            uint8_t Indices[126];
-            uint8_t IndexCount;
-            uint8_t VertexCount;
-            uint8_t MaterialIndex = 0;
+            glm::vec3 center;
+            float radius;
+
+            uint32_t vertexOffset;
+            uint32_t vertexCount;
+        };
+
+        struct alignas(16) Meshlet
+        {
+            glm::vec3 center;
+            float radius;
+            int8_t cone_axis[3];
+            int8_t cone_cutoff;
+
+            uint32_t dataOffset;
+            uint32_t baseVertex;
+            uint8_t vertexCount;
+            uint8_t triangleCount;
+            uint8_t shortRefs;
+            uint8_t padding;
+        };
+
+        struct Geometry
+        {
+            std::vector<Vertex> vertices;
+            std::vector<uint32_t> indices;
+            std::vector<Meshlet> meshlets;
+            std::vector<uint32_t> meshletdata;
+            std::vector<Mesh> meshes;
         };
 
         struct MaterialData {
@@ -143,54 +143,25 @@ namespace Brisk
             alignas(16) glm::vec3 attenuationColor;
         };
 
-
-		struct Primitive {
-			uint32_t firstIndex = 0;
-			uint32_t indexCount = 0;
-			uint32_t vertexCount = 0;
-            int32_t materialIndex = -1;
-			bool has_indices = false;
-		};
-
-		struct Mesh {
-			std::vector<Primitive> primitives;
-		};
-
-		struct Node {
-			Node* parent;
-			std::vector<Node*> children;
-			uint32_t meshIndex;
-			glm::mat4 matrix;
-			std::string name;
-			~Node() {
-				for (auto& child : children) {
-					delete child;
-				}
-			}
-		};
 	public:
 		MeshAsset() = default;
 		~MeshAsset();
 		void Load(const std::filesystem::path& path);
         void Release();
 
-        uint32_t GetMeshletCount() const { return m_MeshletCount; }
-
 		std::shared_ptr<Buffer> GetIndexBuffer() const { return m_IndexBuffer; }
 		std::shared_ptr<Buffer> GetVertexBuffer() const { return m_VertexBuffer; }
-	private:
-		void LoadNodes(Node* parent, uint32_t nodeIndex, const fastgltf::Asset& asset);
-	/*private:*/
+    /*private:*/
 	public:
-		std::vector<Node*> m_Nodes;
-		std::vector<Mesh> m_Meshes;
+        Geometry m_Geometry;
         uint32_t m_MeshletCount;
 		std::vector<std::shared_ptr<Texture>> m_Textures;
 		std::vector<MaterialData> m_Materials;
-		std::shared_ptr<Buffer> m_VertexBuffer;
-		std::shared_ptr<Buffer> m_IndexBuffer;
-		std::shared_ptr<Buffer> m_VertexStorageBuffer;
-        std::shared_ptr<Buffer> m_MaterialStorageBuffer;
-		std::shared_ptr<Buffer> m_MeshletsBuffer;
+		static std::shared_ptr<Buffer> m_VertexBuffer;
+		static std::shared_ptr<Buffer> m_IndexBuffer;
+		static std::shared_ptr<Buffer> m_MeshletsBuffer;
+		static std::shared_ptr<Buffer> m_MeshletDataBuffer;
+        static std::shared_ptr<Buffer> m_MaterialStorageBuffer;
+		std::shared_ptr<Buffer> m_MeshBuffer;
 	};
 }

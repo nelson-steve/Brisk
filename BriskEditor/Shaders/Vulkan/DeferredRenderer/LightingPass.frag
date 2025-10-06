@@ -182,7 +182,7 @@ void main() {
     vec3 ambient = 0.3 * albedo;
     vec3 finalColor = ambient + litColor * albedo + emissive;
 
-    outColor = vec4(finalColor, 1.0);
+    outColor = vec4(fragPos, 1.0);
 
     // Visualize number of lights in this tile
     // float brightness = float(count) / float(MAX_LIGHTS_PER_CLUSTER);

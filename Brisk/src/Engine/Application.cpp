@@ -80,7 +80,7 @@ namespace Brisk
 		PushOverlay(m_ImGuiLayer);
 
 		{
-			std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[2], false);
+			std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[3], false);
 			Entity entity1 = m_SceneManager->pActiveScene->CreateEntity("Sponza");
 			MeshComponent& mc = entity1.AddComponent<MeshComponent>();
 			mc.p_Mesh = asset1;

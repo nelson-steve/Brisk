@@ -431,7 +431,7 @@ namespace Brisk
                 vertexLayout.pBinding = 0;
                 vertexLayout.pStride = sizeof(MeshAsset::Vertex);
                 vertexLayout.pAttributes = {
-                    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Position)},
+                    //{0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Position)},
                 };
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_DepthPrePass;
@@ -469,12 +469,12 @@ namespace Brisk
                 vertexLayout.pBinding = 0;
                 vertexLayout.pStride = sizeof(MeshAsset::Vertex);
                 vertexLayout.pAttributes = {
-                    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Position)},
+                    //{0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Position)},
                 };
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pCSMRenderPass = m_CSMShadowMapPass;
 
-                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/ShadowMapPassVS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/ShadowMapPassMS.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/ShadowMapPassFS.spv");
                 pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\ShadowMapPass_vert.cso");
                 pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\ShadowMapPass_frag.cso");
@@ -506,14 +506,14 @@ namespace Brisk
                 vertexLayout.pBinding = 0;
                 vertexLayout.pStride = sizeof(MeshAsset::Vertex);
                 vertexLayout.pAttributes = {
-                    {0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Position)},
-                    {0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Normal)},
-                    {0, 2, Core::Format::FORMAT_R32G32_SFLOAT,       offsetof(MeshAsset::Vertex, MeshAsset::Vertex::UV0)},
-                    {0, 3, Core::Format::FORMAT_R32G32_SFLOAT,       offsetof(MeshAsset::Vertex, MeshAsset::Vertex::UV1)},
-                    {0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Color)},
-                    {0, 5, Core::Format::FORMAT_R32G32B32A32_SFLOAT, offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Tangent)},
-                    {0, 6, Core::Format::FORMAT_R32G32B32A32_UINT,   offsetof(MeshAsset::Vertex, MeshAsset::Vertex::JointIndices)},
-                    {0, 7, Core::Format::FORMAT_R32G32B32A32_SFLOAT, offsetof(MeshAsset::Vertex, MeshAsset::Vertex::JointWeights)},
+                    //{0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Position)},
+                    //{0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Normal)},
+                    //{0, 2, Core::Format::FORMAT_R32G32_SFLOAT,       offsetof(MeshAsset::Vertex, MeshAsset::Vertex::UV)},
+                    //{0, 3, Core::Format::FORMAT_R32G32_SFLOAT,       offsetof(MeshAsset::Vertex, MeshAsset::Vertex::UV1)},
+                    //{0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Color)},
+                    //{0, 5, Core::Format::FORMAT_R32G32B32A32_SFLOAT, offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Tangent)},
+                    //{0, 6, Core::Format::FORMAT_R32G32B32A32_UINT,   offsetof(MeshAsset::Vertex, MeshAsset::Vertex::JointIndices)},
+                    //{0, 7, Core::Format::FORMAT_R32G32B32A32_SFLOAT, offsetof(MeshAsset::Vertex, MeshAsset::Vertex::JointWeights)},
                 };
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_GeometryBufferPass;
@@ -783,6 +783,16 @@ namespace Brisk
     {
         if (!SceneManager::pActiveScene) return;
 
+        if (once) {
+            m_GBufferPipeline->UpdateResources("Vertices", {}, MeshAsset::m_VertexBuffer);
+            m_GBufferPipeline->UpdateResources("Meshlets", {}, MeshAsset::m_MeshletsBuffer);
+            m_GBufferPipeline->UpdateResources("MeshletData", {}, MeshAsset::m_MeshletDataBuffer);
+            m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer);
+            m_GBufferPipeline->UpdateResources("Materials", {}, MeshAsset::m_MaterialStorageBuffer);
+
+            once = false;
+        }
+
         glm::vec3 lightDir; 
         MVP mvp{};
         mvp.ProjView = Application::GetCamera()->GetViewProjection();
@@ -832,8 +842,6 @@ namespace Brisk
         shadowData.lightSpaceMatrices[3] = m_SunMatrices[3];
         shadowData.cascadeSplits = glm::vec4(76, 172, 349, 1000);
         m_ShadowDataBuffer->UpdatePersistantData(sizeof(ShadowData), &shadowData);
-
-        m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer);
 
         m_ClusterFence->Wait();
         m_ClusterFence->Reset();
@@ -925,20 +933,19 @@ namespace Brisk
             RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_ShadowMapLOD0->GetWidth(), m_ShadowMapLOD0->GetHeight());
 
             glm::mat4 matrix = lightMatrix;
-            m_ShadowMapPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Vertex);
+            m_ShadowMapPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
 
-            auto view = SceneManager::pActiveScene->Reg().view<MeshComponent>();
-            for (auto e : view) {
+            auto meshes = SceneManager::pActiveScene->Reg().view<MeshComponent, WorldTransformComponent>();
+            for (auto e : meshes) {
                 Entity entity = { e, SceneManager::pActiveScene.get() };
                 auto& meshComp = entity.GetComponent<MeshComponent>();
-                RenderCommand::BindVertexBuffer(m_CmdBuffer, { meshComp.p_Mesh->GetVertexBuffer() }, 0);
-                RenderCommand::BindIndexBuffer(m_CmdBuffer, meshComp.p_Mesh->GetIndexBuffer(), 0);
+                auto& transform = entity.GetComponent<WorldTransformComponent>();
 
-                for (auto& submesh : meshComp.p_Mesh->m_Meshes) {
-                    for (auto& primitive : submesh.primitives) {
-                        RenderCommand::DrawIndexed(m_CmdBuffer, primitive.indexCount, 1, primitive.firstIndex, 0, 0);
-                    }
-                }
+                m_ShadowMapPipeline->Bind(m_CmdBuffer);
+
+                glm::mat4 matrix = transform.GetTransform();
+
+                RenderCommand::DrawMeshTasks(m_CmdBuffer, meshComp.p_Mesh->m_Geometry.meshlets.size());
             }
 
             m_CSMShadowMapPass->End(m_CmdBuffer);
@@ -969,14 +976,12 @@ namespace Brisk
             auto& meshComp = entity.GetComponent<MeshComponent>();
             auto& transform = entity.GetComponent<WorldTransformComponent>();
 
-            m_DepthPrePassPipeline->UpdateResources("Vertices", {}, meshComp.p_Mesh->m_VertexStorageBuffer);
-            m_DepthPrePassPipeline->UpdateResources("Meshlets", {}, meshComp.p_Mesh->m_MeshletsBuffer);
             m_DepthPrePassPipeline->Bind(m_CmdBuffer);
 
             glm::mat4 matrix = transform.GetTransform();
 
             m_DepthPrePassPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-            RenderCommand::DrawMeshTasks(m_CmdBuffer, meshComp.p_Mesh->GetMeshletCount());
+            RenderCommand::DrawMeshTasks(m_CmdBuffer, meshComp.p_Mesh->m_Geometry.meshlets.size());
         }
 
         m_DepthPrePass->End(m_CmdBuffer);
@@ -994,15 +999,12 @@ namespace Brisk
             auto& meshComp = entity.GetComponent<MeshComponent>();
             auto& transform = entity.GetComponent<WorldTransformComponent>();
 
-            m_GBufferPipeline->UpdateResources("Materials", {}, meshComp.p_Mesh->m_MaterialStorageBuffer);
-            m_GBufferPipeline->UpdateResources("Vertices", {}, meshComp.p_Mesh->m_VertexStorageBuffer);
-            m_GBufferPipeline->UpdateResources("Meshlets", {}, meshComp.p_Mesh->m_MeshletsBuffer);
             m_GBufferPipeline->Bind(m_CmdBuffer);
 
             glm::mat4 matrix = transform.GetTransform();
 
             m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-            RenderCommand::DrawMeshTasks(m_CmdBuffer, meshComp.p_Mesh->GetMeshletCount());
+            RenderCommand::DrawMeshTasks(m_CmdBuffer, meshComp.p_Mesh->m_Geometry.meshlets.size());
         }
 
         m_GeometryBufferPass->End(m_CmdBuffer);

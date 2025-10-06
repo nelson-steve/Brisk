@@ -100,7 +100,7 @@ layout(std430, set = 0, binding = 2) readonly buffer MaterialsBuffer {
 } Materials;
 
 void main() {
-    MaterialData material = Materials.materials[matIndex];
+    MaterialData material = Materials.materials[0];
 
     // Base Color
     vec4 baseColor = material.baseColorFactor;

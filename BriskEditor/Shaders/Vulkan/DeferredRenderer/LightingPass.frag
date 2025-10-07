@@ -1,20 +1,6 @@
 #version 450
 
-#extension GL_GOOGLE_include_directive: require
-
 #include "../config.hpp"
-
-#define NUM_CLUSTERS_X 16
-#define NUM_CLUSTERS_Y 9
-#define NUM_CLUSTERS_Z 24
-#define NUM_TOTAL_CLUSTERS (NUM_CLUSTERS_X * NUM_CLUSTERS_Y * NUM_CLUSTERS_Z)
-
-#define ScreenX 1920.0
-#define ScreenY 1080.0
-#define NearZ 1.0
-#define FarZ 1000.0
-
-#define NUM_CASCADES 4
 
 layout(location = 0) in vec2 uv;
 layout(location = 0) out vec4 outColor;
@@ -182,7 +168,7 @@ void main() {
     vec3 ambient = 0.3 * albedo;
     vec3 finalColor = ambient + litColor * albedo + emissive;
 
-    outColor = vec4(fragPos, 1.0);
+    outColor = vec4(finalColor, 1.0);
 
     // Visualize number of lights in this tile
     // float brightness = float(count) / float(MAX_LIGHTS_PER_CLUSTER);

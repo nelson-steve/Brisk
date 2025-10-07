@@ -2,33 +2,13 @@
 #extension GL_EXT_shader_16bit_storage : require
 #extension GL_EXT_shader_8bit_storage  : require
 #extension GL_EXT_mesh_shader          : require
+#extension GL_GOOGLE_include_directive: require
 
-#define MESH_MAXVTX 64
-#define MESH_MAXTRI 96
-#define MESH_WGSIZE 64
+#include "Mesh.hpp"
+#include "../config.hpp"
 
 layout(local_size_x = MESH_WGSIZE, local_size_y = 1, local_size_z = 1) in;
 layout(triangles, max_vertices = MESH_MAXVTX, max_primitives = MESH_MAXTRI) out;
-
-struct Vertex {
-    float vx, vy, vz;
-    float nx, ny, nz;
-    float tx, ty;
-};
-
-struct Meshlet
-{
-	vec3 center;
-	float radius;
-	int8_t cone_axis[3];
-	int8_t cone_cutoff;
-
-	uint dataOffset;
-	uint baseVertex;
-	uint8_t vertexCount;
-	uint8_t triangleCount;
-	uint8_t shortRefs;
-};
 
 layout(std140, set = 0, binding = 0) uniform MVPBuffer {
     mat4 ProjView;

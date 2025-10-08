@@ -89,6 +89,6 @@ void main()
 
 		gl_PrimitiveTriangleIndicesEXT[i] = uvec3(a, b, c);
 
-        //outMaterialIndex[t] = uint(Meshlets.meshlets[mi].materialIndex);                
+        //outMaterialIndex[i] = uint(Meshlets.meshlets[mi].materialIndex);                
     }
 }

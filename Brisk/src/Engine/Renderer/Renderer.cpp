@@ -27,7 +27,6 @@ namespace Brisk
         glm::mat4 projCopy = proj;
 
         // This assumes a perspective matrix created with glm::perspective
-        // Replace near/far in projCopy manually
         float fovy = 2.0f * atan(1.0f / proj[1][1]);
         float aspect = proj[1][1] / proj[0][0];
 
@@ -153,33 +152,6 @@ namespace Brisk
         m_Swapchain = SwapchainFactory::CreateSwapchain(Application::GetWindow());
         m_Swapchain->Create(Swapchain::DOUBLE_BUFFERING);
 
-#ifdef DISABLED_CODE // For shadow map
-        //m_LightsUBO = Buffer::Create();
-        //m_LightsUBO->Init(sizeof(LightsMVP), nullptr, Core::BufferUsage::UniformBuffer,
-        //    Core::MemoryProperty::HostVisible | Core::MemoryProperty::HostCoherent, true);
-
-        //Application::GetGpuAdapter()->AddResource(GpuDescriptorResourceType::SceneLightsUBO, nullptr, m_LightsUBO, 0);
-
-        //glm::vec3 lightDir = glm::normalize(glm::vec3(0.0f, -1.0f, 0.0f));
-        //float distance = 2000.0f;
-
-        //glm::vec3 up = glm::abs(glm::dot(lightDir, glm::vec3(0, 1, 0))) > 0.99f
-        //    ? glm::vec3(0, 0, 1)
-        //    : glm::vec3(0, 1, 0);
-
-        //glm::vec3 lightPos = -lightDir * distance;
-        //glm::mat4 lightView = glm::lookAt(lightPos, glm::vec3(0.0f), up);
-
-        //float orthoRange = 500.0f;
-        //float nearPlane = 0.1f;
-        //float farPlane = 1000.0f;
-        //glm::mat4 lightProj = glm::ortho(-orthoRange, orthoRange, -orthoRange, orthoRange, nearPlane, farPlane);
-
-        //LightsMVP mvp{};    
-        //mvp.ViewProjection = lightProj * lightView;
-        //mvp.Model = glm::mat4(1.0f);
-        //m_LightsUBO->UpdatePersistantData(sizeof(LightsMVP), &mvp);
-#endif
         // Renderpasses
         {
             // Depth Pre pass
@@ -431,12 +403,10 @@ namespace Brisk
                 vertexLayout.pBinding = 0;
                 vertexLayout.pStride = sizeof(MeshAsset::Vertex);
                 vertexLayout.pAttributes = {
-                    //{0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Position)},
                 };
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_DepthPrePass;
 
-                //pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassVS.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassMS.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/DepthPrePassFS.spv");
                 pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\DepthPrePass_vert.cso");
@@ -469,7 +439,6 @@ namespace Brisk
                 vertexLayout.pBinding = 0;
                 vertexLayout.pStride = sizeof(MeshAsset::Vertex);
                 vertexLayout.pAttributes = {
-                    //{0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT, offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Position)},
                 };
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pCSMRenderPass = m_CSMShadowMapPass;
@@ -506,19 +475,10 @@ namespace Brisk
                 vertexLayout.pBinding = 0;
                 vertexLayout.pStride = sizeof(MeshAsset::Vertex);
                 vertexLayout.pAttributes = {
-                    //{0, 0, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Position)},
-                    //{0, 1, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Normal)},
-                    //{0, 2, Core::Format::FORMAT_R32G32_SFLOAT,       offsetof(MeshAsset::Vertex, MeshAsset::Vertex::UV)},
-                    //{0, 3, Core::Format::FORMAT_R32G32_SFLOAT,       offsetof(MeshAsset::Vertex, MeshAsset::Vertex::UV1)},
-                    //{0, 4, Core::Format::FORMAT_R32G32B32_SFLOAT,    offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Color)},
-                    //{0, 5, Core::Format::FORMAT_R32G32B32A32_SFLOAT, offsetof(MeshAsset::Vertex, MeshAsset::Vertex::Tangent)},
-                    //{0, 6, Core::Format::FORMAT_R32G32B32A32_UINT,   offsetof(MeshAsset::Vertex, MeshAsset::Vertex::JointIndices)},
-                    //{0, 7, Core::Format::FORMAT_R32G32B32A32_SFLOAT, offsetof(MeshAsset::Vertex, MeshAsset::Vertex::JointWeights)},
                 };
                 pipelineSpecs.pLayout = vertexLayout;
                 pipelineSpecs.pRenderPass = m_GeometryBufferPass;
 
-                //pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryPassVS.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryPassMS.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/GeometryPassFS.spv");
                 pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\GeometryPass_vert.cso");

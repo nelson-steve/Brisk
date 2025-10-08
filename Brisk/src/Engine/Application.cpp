@@ -61,8 +61,11 @@ namespace Brisk
 			/* 1 */"../Data/Models/revolver/revolver.gltf",
 			/* 2 */"../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf",
 			/* 3 */"../Data/Models/damaged_helmet/DamagedHelmet.gltf",
-			/* 4 */"../Data/Models/gltf_models/FlightHelmet/glTF/FlightHelmet.gltf",
-			/* 5 */"../Data/Models/cerberus/cerberus.gltf",
+			/* 4 */"../Data/Models/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf",
+			/* 5 */"../Data/glTFModels/2.0/ABeautifulGame/glTF/ABeautifulGame.gltf",
+			/* 6 */"../Data/glTFModels/2.0/ToyCar/glTF/ToyCar.gltf",
+			/* 7 */"../Data/Models/gltf_models/FlightHelmet/glTF/FlightHelmet.gltf",
+			/* 8 */"../Data/Models/cerberus/cerberus.gltf",
 		};
 
 		Entity lightEntity = m_SceneManager->pActiveScene->CreateEntity("Sun Light");
@@ -78,7 +81,7 @@ namespace Brisk
 		PushOverlay(m_ImGuiLayer);
 
 		{
-			std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[3], false);
+			std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[6], false);
 			Entity entity1 = m_SceneManager->pActiveScene->CreateEntity("Sponza");
 			MeshComponent& mc = entity1.AddComponent<MeshComponent>();
 			mc.p_Mesh = asset1;

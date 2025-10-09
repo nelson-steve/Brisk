@@ -48,6 +48,7 @@ namespace Brisk {
 				//fastgltf::Options::AllowDouble |
 				fastgltf::Options::LoadExternalBuffers |
 				fastgltf::Options::LoadExternalImages |
+				fastgltf::Options::DecomposeNodeMatrices |
 				fastgltf::Options::GenerateMeshIndices;
 
 			auto gltfFile = fastgltf::MappedGltfFile::FromPath(path);
@@ -99,9 +100,16 @@ namespace Brisk {
 
 		m_Geometry.vertices.reserve(m_Geometry.vertices.size() + vertexCount);
 		m_Geometry.indices.reserve(m_Geometry.indices.size() + indexCount);
+
+		std::vector<std::pair<uint32_t, uint32_t>> primitives;
+		std::vector<uint32_t> primitiveMaterials;
+
 		for (const auto& gltfMesh : asset.meshes) {
+			
+			size_t meshOffset = m_Geometry.meshes.size();
+
 			for (auto it = gltfMesh.primitives.begin(); it != gltfMesh.primitives.end(); ++it) {
-				Mesh mesh;
+				primitiveMaterials.push_back(it->materialIndex.value());
 
 				const fastgltf::Attribute* positionIt = it->findAttribute("POSITION");
 				const fastgltf::Attribute* normalIt = it->findAttribute("NORMAL");
@@ -314,6 +322,7 @@ namespace Brisk {
 
 				meshopt_optimizeVertexFetch(vertices.data(), indices.data(), indices.size(), vertices.data(), vertices.size(), sizeof(Vertex));
 
+				Mesh mesh{};
 				mesh.vertexOffset = uint32_t(m_Geometry.vertices.size());
 				mesh.vertexCount = uint32_t(vertices.size());
 
@@ -343,68 +352,103 @@ namespace Brisk {
 
 #define MESH_MAXVTX 64
 #define MESH_MAXTRI 96
+
+				const size_t max_vertices = MESH_MAXVTX;
+				const size_t min_triangles = MESH_MAXTRI / 4;
+				const size_t max_triangles = MESH_MAXTRI;
+				const float cone_weight = 0.25f;
+				const float fill_weight = 0.5f;
+
+				std::vector<meshopt_Meshlet> meshlets(meshopt_buildMeshletsBound(indices.size(), max_vertices, min_triangles));
+				std::vector<unsigned int> meshlet_vertices(meshlets.size()* max_vertices);
+				std::vector<unsigned char> meshlet_triangles(meshlets.size()* max_triangles * 3);
+
+				//if (fast)
+				//	meshlets.resize(meshopt_buildMeshletsScan(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indices.data(), indices.size(), vertices.size(), max_vertices, max_triangles));
+				//else if (clrt && lod0) // only use spatial algo for lod0 as this is the only lod that is used for raytracing
+				//	meshlets.resize(meshopt_buildMeshletsSpatial(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indices.data(), indices.size(), &vertices[0].x, vertices.size(), sizeof(vec3), max_vertices, min_triangles, max_triangles, fill_weight));
+				//else
+				meshlets.resize(meshopt_buildMeshlets(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indices.data(), indices.size(), &localPositions[0].x, localPositions.size(), sizeof(glm::vec3), max_vertices, max_triangles, cone_weight));
+
+				for (auto& meshlet : meshlets)
 				{
-					const size_t max_vertices = MESH_MAXVTX;
-					const size_t min_triangles = MESH_MAXTRI / 4;
-					const size_t max_triangles = MESH_MAXTRI;
-					const float cone_weight = 0.25f;
-					const float fill_weight = 0.5f;
+					meshopt_optimizeMeshlet(&meshlet_vertices[meshlet.vertex_offset], &meshlet_triangles[meshlet.triangle_offset], meshlet.triangle_count, meshlet.vertex_count);
 
-					std::vector<meshopt_Meshlet> meshlets(meshopt_buildMeshletsBound(indices.size(), max_vertices, min_triangles));
-					std::vector<unsigned int> meshlet_vertices(meshlets.size() * max_vertices);
-					std::vector<unsigned char> meshlet_triangles(meshlets.size() * max_triangles * 3);
+					size_t dataOffset = m_Geometry.meshletdata.size();
 
-					//if (fast)
-					//	meshlets.resize(meshopt_buildMeshletsScan(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indices.data(), indices.size(), vertices.size(), max_vertices, max_triangles));
-					//else if (clrt && lod0) // only use spatial algo for lod0 as this is the only lod that is used for raytracing
-					//	meshlets.resize(meshopt_buildMeshletsSpatial(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indices.data(), indices.size(), &vertices[0].x, vertices.size(), sizeof(vec3), max_vertices, min_triangles, max_triangles, fill_weight));
-					//else
-						meshlets.resize(meshopt_buildMeshlets(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indices.data(), indices.size(), &localPositions[0].x, localPositions.size(), sizeof(glm::vec3), max_vertices, max_triangles, cone_weight));
-
-					for (auto& meshlet : meshlets)
+					unsigned int minVertex = ~0u, maxVertex = 0;
+					for (unsigned int i = 0; i < meshlet.vertex_count; ++i)
 					{
-						meshopt_optimizeMeshlet(&meshlet_vertices[meshlet.vertex_offset], &meshlet_triangles[meshlet.triangle_offset], meshlet.triangle_count, meshlet.vertex_count);
-
-						size_t dataOffset = m_Geometry.meshletdata.size();
-
-						unsigned int minVertex = ~0u, maxVertex = 0;
-						for (unsigned int i = 0; i < meshlet.vertex_count; ++i)
-						{
-							minVertex = std::min(meshlet_vertices[meshlet.vertex_offset + i], minVertex);
-							maxVertex = std::max(meshlet_vertices[meshlet.vertex_offset + i], maxVertex);
-						}
-
-						bool shortRefs = maxVertex - minVertex < (1 << 16);
-
-						for (unsigned int i = 0; i < meshlet.vertex_count; ++i)
-						{
-							unsigned int ref = meshlet_vertices[meshlet.vertex_offset + i] - minVertex;
-							if (shortRefs && i % 2)
-								m_Geometry.meshletdata.back() |= ref << 16;
-							else
-								m_Geometry.meshletdata.push_back(ref);
-						}
-
-						const unsigned int* indexGroups = reinterpret_cast<const unsigned int*>(&meshlet_triangles[0] + meshlet.triangle_offset);
-						unsigned int indexGroupCount = (meshlet.triangle_count * 3 + 3) / 4;
-
-						for (unsigned int i = 0; i < indexGroupCount; ++i)
-							m_Geometry.meshletdata.push_back(indexGroups[i]);
-
-						Meshlet m = {};
-						m.dataOffset = uint32_t(dataOffset);
-						m.baseVertex = mesh.vertexOffset + minVertex;
-						m.triangleCount = meshlet.triangle_count;
-						m.vertexCount = meshlet.vertex_count;
-						m.shortRefs = shortRefs;
-
-						m_Geometry.meshlets.push_back(m);
+						minVertex = std::min(meshlet_vertices[meshlet.vertex_offset + i], minVertex);
+						maxVertex = std::max(meshlet_vertices[meshlet.vertex_offset + i], maxVertex);
 					}
 
-					m_Geometry.meshes.push_back(mesh);
+					bool shortRefs = maxVertex - minVertex < (1 << 16);
+
+					for (unsigned int i = 0; i < meshlet.vertex_count; ++i)
+					{
+						unsigned int ref = meshlet_vertices[meshlet.vertex_offset + i] - minVertex;
+						if (shortRefs && i % 2)
+							m_Geometry.meshletdata.back() |= ref << 16;
+						else
+							m_Geometry.meshletdata.push_back(ref);
+					}
+
+					const unsigned int* indexGroups = reinterpret_cast<const unsigned int*>(&meshlet_triangles[0] + meshlet.triangle_offset);
+					unsigned int indexGroupCount = (meshlet.triangle_count * 3 + 3) / 4;
+
+					for (unsigned int i = 0; i < indexGroupCount; ++i)
+						m_Geometry.meshletdata.push_back(indexGroups[i]);
+
+					Meshlet m = {};
+					m.dataOffset = uint32_t(dataOffset);
+					m.baseVertex = mesh.vertexOffset + minVertex;
+					m.triangleCount = meshlet.triangle_count;
+					m.vertexCount = meshlet.vertex_count;
+					m.shortRefs = shortRefs;
+
+					m_Geometry.meshlets.push_back(m);
 				}
+
+				m_Geometry.meshes.push_back(mesh);
+
+				mesh.meshletCount = uint32_t(meshlets.size());
+				mesh.meshletOffset = uint32_t(m_Geometry.meshlets.size() - meshlets.size());
+			}
+
+			primitives.push_back(std::make_pair(meshOffset, m_Geometry.meshes.size() - meshOffset));
+		}
+
+		for (const auto& node : asset.nodes) {
+			if (!node.meshIndex.has_value()) continue;
+			std::pair<uint32_t, uint32_t> range = primitives[node.meshIndex.value()];
+			for (int i = 0; i < range.second; i++) {
+				const auto& trs = std::get<fastgltf::TRS>(node.transform);
+
+				//primitiveMaterials[range.first + i];
+
+				MeshDraw draw = {};
+				draw.position = glm::vec3(trs.translation[0], trs.translation[1], trs.translation[2]);
+				draw.scale = std::max(trs.scale[0], std::max(trs.scale[1], trs.scale[2]));
+				draw.orientation = glm::quat(trs.rotation[0], trs.rotation[1], trs.rotation[2], trs.rotation[3]);
+				draw.meshIndex = range.first + i;
+				draw.materialIndex = 0;
+				draw.meshletCount = m_Geometry.meshes[draw.meshIndex].meshletCount;
+				draw.meshletOffset = m_Geometry.meshes[draw.meshIndex].meshletOffset;
+
+				m_Geometry.draws.push_back(draw);
 			}
 		}
+
+		m_IndexBuffer = Buffer::Create();
+		BufferDesc indexBufferDesc{};
+		indexBufferDesc.p_Name = "Index buffer";
+		indexBufferDesc.p_Size = sizeof(m_Geometry.draws[0]) * m_Geometry.draws.size();
+		indexBufferDesc.p_Data = m_Geometry.draws.data();
+		indexBufferDesc.p_Usage = BufferDesc::Usage::IndirectBuffer;
+		indexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+		indexBufferDesc.p_AllowSRV = true;
+		m_IndexBuffer->Init(indexBufferDesc);
 
 		m_IndexBuffer = Buffer::Create();
 		BufferDesc indexBufferDesc{};

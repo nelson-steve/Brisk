@@ -27,6 +27,8 @@ namespace Brisk
 
             uint32_t vertexOffset;
             uint32_t vertexCount;
+            uint32_t meshletCount;
+            uint32_t meshletOffset;
         };
 
         struct alignas(16) Meshlet
@@ -44,6 +46,20 @@ namespace Brisk
             uint8_t padding;
         };
 
+        struct alignas(16) MeshDraw
+        {
+            glm::vec3 position;
+            float scale;
+            glm::quat orientation;
+
+            uint32_t meshIndex;
+            uint32_t meshletVisibilityOffset;
+            uint32_t postPass;
+            uint32_t materialIndex;
+            uint32_t meshletCount;
+            uint32_t meshletOffset;
+        };
+
         struct Geometry
         {
             std::vector<Vertex> vertices;
@@ -51,6 +67,7 @@ namespace Brisk
             std::vector<Meshlet> meshlets;
             std::vector<uint32_t> meshletdata;
             std::vector<Mesh> meshes;
+            std::vector<MeshDraw> draws;
         };
 
         struct alignas(16) MaterialData {

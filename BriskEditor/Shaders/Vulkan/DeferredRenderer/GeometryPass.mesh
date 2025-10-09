@@ -41,6 +41,10 @@ layout(set = 0, binding = 8) readonly buffer MeshletDataBuffer8 {
 	uint8_t meshletData8[];
 } MeshletData8;
 
+layout(set = 0, binding = 9) readonly buffer MeshDrawsBuffer {
+	MeshDraw meshDraws[];
+} MeshDraws;
+
 layout(location = 0) out vec3 fragPosition[];
 layout(location = 1) out vec3 fragNormal[];
 layout(location = 2) out vec2 fragUV[];

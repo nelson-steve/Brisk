@@ -17,3 +17,15 @@ struct Meshlet
 	uint8_t triangleCount;
 	uint8_t shortRefs;
 };
+
+struct MeshDraw
+{
+    vec3 position;
+    float scale;
+    vec4 orientation;
+
+    uint meshIndex;
+    uint meshletVisibilityOffset;
+    uint postPass;
+    uint materialIndex;
+};

@@ -105,6 +105,7 @@ namespace Brisk
 		std::vector<MaterialData> m_Materials;
 		static std::shared_ptr<Buffer> m_VertexBuffer;
 		static std::shared_ptr<Buffer> m_IndexBuffer;
+		static std::shared_ptr<Buffer> m_DrawsBuffer;
 		static std::shared_ptr<Buffer> m_MeshletsBuffer;
 		static std::shared_ptr<Buffer> m_MeshletDataBuffer;
         static std::shared_ptr<Buffer> m_MaterialStorageBuffer;

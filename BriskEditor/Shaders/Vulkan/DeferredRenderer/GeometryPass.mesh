@@ -3,6 +3,7 @@
 #extension GL_EXT_shader_8bit_storage  : require
 #extension GL_EXT_mesh_shader          : require
 #extension GL_GOOGLE_include_directive: require
+#extension GL_ARB_shader_draw_parameters: require
 
 #include "Mesh.hpp"
 #include "../config.hpp"
@@ -52,9 +53,13 @@ layout(location = 3) flat out uint outMaterialIndex[];
 
 void main()
 {
+    MeshDraw draw = MeshDraws.meshDraws[gl_DrawIDARB];
+    uint meshletCount = draw.meshletCount;
+    uint meshletOffset = draw.meshletOffset;
+
 	uint ti = gl_LocalInvocationIndex;
 
-    uint mi     = gl_WorkGroupID.x;
+    uint mi     =  meshletOffset + gl_WorkGroupID.x;
     uint vertexCount = uint(Meshlets.meshlets[mi].vertexCount);
     uint triangleCount = uint(Meshlets.meshlets[mi].triangleCount);
 

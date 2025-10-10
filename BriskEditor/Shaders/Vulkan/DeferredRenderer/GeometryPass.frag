@@ -4,7 +4,7 @@
 layout(location = 0) in vec3 fragPosition;
 layout(location = 1) in vec3 fragNormal;
 layout(location = 2) in vec2 fragUV;
-layout(location = 3) flat in uint matIndex;
+layout(location = 3) flat in uint drawId;
 
 layout(location = 0) out vec4 outPosition;
 layout(location = 1) out vec4 outNormal;
@@ -36,8 +36,13 @@ layout(std430, set = 0, binding = 2) readonly buffer MaterialsBuffer {
     MaterialData materials[];
 } Materials;
 
+layout(set = 0, binding = 9) readonly buffer MeshDrawsBuffer {
+	MeshDraw meshDraws[];
+} MeshDraws;
+
 void main() {
-    MaterialData material = Materials.materials[0];
+    MeshDraw draw = MeshDraws.meshDraws[drawId];
+    MaterialData material = Materials.materials[draw.materialIndex];
 
     vec4 baseColor = material.baseColorFactor;
     if (material.baseColorTextureIndex != 0) {

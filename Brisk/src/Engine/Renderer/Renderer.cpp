@@ -745,6 +745,7 @@ namespace Brisk
 
         if (once) {
             m_GBufferPipeline->UpdateResources("Vertices", {}, MeshAsset::m_VertexBuffer);
+            m_GBufferPipeline->UpdateResources("MeshDraws", {}, MeshAsset::m_DrawsBuffer);
             m_GBufferPipeline->UpdateResources("Meshlets", {}, MeshAsset::m_MeshletsBuffer);
             m_GBufferPipeline->UpdateResources("MeshletData", {}, MeshAsset::m_MeshletDataBuffer);
             m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer);
@@ -963,8 +964,10 @@ namespace Brisk
 
             glm::mat4 matrix = transform.GetTransform();
 
-            m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-            RenderCommand::DrawMeshTasks(m_CmdBuffer, meshComp.p_Mesh->m_Geometry.meshlets.size());
+            for (auto& draw : meshComp.p_Mesh->m_Geometry.draws) {
+                m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
+                RenderCommand::DrawMeshTasks(m_CmdBuffer, draw.meshletCount);
+            }
         }
 
         m_GeometryBufferPass->End(m_CmdBuffer);

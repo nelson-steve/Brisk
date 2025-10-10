@@ -28,4 +28,6 @@ struct MeshDraw
     uint meshletVisibilityOffset;
     uint postPass;
     uint materialIndex;
+    uint meshletCount;
+    uint meshletOffset;
 };

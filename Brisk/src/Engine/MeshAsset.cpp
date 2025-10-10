@@ -13,6 +13,7 @@
 namespace Brisk {
 	std::shared_ptr<Buffer> MeshAsset::m_VertexBuffer;
 	std::shared_ptr<Buffer> MeshAsset::m_IndexBuffer;
+	std::shared_ptr<Buffer> MeshAsset::m_DrawsBuffer;
 	std::shared_ptr<Buffer> MeshAsset::m_MeshletsBuffer;
 	std::shared_ptr<Buffer> MeshAsset::m_MeshletDataBuffer;
 	std::shared_ptr<Buffer> MeshAsset::m_MaterialStorageBuffer;
@@ -410,10 +411,10 @@ namespace Brisk {
 					m_Geometry.meshlets.push_back(m);
 				}
 
-				m_Geometry.meshes.push_back(mesh);
-
 				mesh.meshletCount = uint32_t(meshlets.size());
 				mesh.meshletOffset = uint32_t(m_Geometry.meshlets.size() - meshlets.size());
+
+				m_Geometry.meshes.push_back(mesh);
 			}
 
 			primitives.push_back(std::make_pair(meshOffset, m_Geometry.meshes.size() - meshOffset));
@@ -440,15 +441,15 @@ namespace Brisk {
 			}
 		}
 
-		m_IndexBuffer = Buffer::Create();
-		BufferDesc indexBufferDesc{};
-		indexBufferDesc.p_Name = "Index buffer";
-		indexBufferDesc.p_Size = sizeof(m_Geometry.draws[0]) * m_Geometry.draws.size();
-		indexBufferDesc.p_Data = m_Geometry.draws.data();
-		indexBufferDesc.p_Usage = BufferDesc::Usage::IndirectBuffer;
-		indexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
-		indexBufferDesc.p_AllowSRV = true;
-		m_IndexBuffer->Init(indexBufferDesc);
+		m_DrawsBuffer = Buffer::Create();
+		BufferDesc drawBufferDesc{};
+		drawBufferDesc.p_Name = "Index buffer";
+		drawBufferDesc.p_Size = sizeof(m_Geometry.draws[0]) * m_Geometry.draws.size();
+		drawBufferDesc.p_Data = m_Geometry.draws.data();
+		drawBufferDesc.p_Usage = BufferDesc::Usage::IndirectBuffer;
+		drawBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+		drawBufferDesc.p_AllowSRV = true;
+		m_DrawsBuffer->Init(drawBufferDesc);
 
 		m_IndexBuffer = Buffer::Create();
 		BufferDesc indexBufferDesc{};

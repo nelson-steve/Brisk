@@ -437,6 +437,10 @@ namespace Brisk {
 				draw.meshletCount = m_Geometry.meshes[draw.meshIndex].meshletCount;
 				draw.meshletOffset = m_Geometry.meshes[draw.meshIndex].meshletOffset;
 
+				draw.groupCountX = m_Geometry.meshes[draw.meshIndex].meshletCount;
+				draw.groupCountY = 1;
+				draw.groupCountZ = 1;
+
 				m_Geometry.draws.push_back(draw);
 			}
 		}
@@ -446,7 +450,7 @@ namespace Brisk {
 		drawBufferDesc.p_Name = "Index buffer";
 		drawBufferDesc.p_Size = sizeof(m_Geometry.draws[0]) * m_Geometry.draws.size();
 		drawBufferDesc.p_Data = m_Geometry.draws.data();
-		drawBufferDesc.p_Usage = BufferDesc::Usage::IndirectBuffer;
+		drawBufferDesc.p_Usage = Core::BufferUsage::IndirectBuffer | Core::BufferUsage::StorageBuffer;
 		drawBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
 		drawBufferDesc.p_AllowSRV = true;
 		m_DrawsBuffer->Init(drawBufferDesc);
@@ -456,7 +460,7 @@ namespace Brisk {
 		indexBufferDesc.p_Name = "Index buffer";
 		indexBufferDesc.p_Size = sizeof(m_Geometry.indices[0]) * m_Geometry.indices.size();
 		indexBufferDesc.p_Data = m_Geometry.indices.data();
-		indexBufferDesc.p_Usage = BufferDesc::Usage::IndexBuffer;
+		indexBufferDesc.p_Usage = Core::BufferUsage::IndexBuffer;
 		indexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
 		indexBufferDesc.p_AllowSRV = true;
 		m_IndexBuffer->Init(indexBufferDesc);
@@ -466,7 +470,7 @@ namespace Brisk {
 		vertexBufferDesc.p_Name = "Vertices Storage buffer";
 		vertexBufferDesc.p_Size = sizeof(m_Geometry.vertices[0]) * m_Geometry.vertices.size();
 		vertexBufferDesc.p_Data = m_Geometry.vertices.data();
-		vertexBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+		vertexBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
 		vertexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
 		vertexBufferDesc.p_AllowSRV = true;
 		m_VertexBuffer->Init(vertexBufferDesc);
@@ -476,7 +480,7 @@ namespace Brisk {
 		meshBufferDesc.p_Name = "Meshes Storage buffer";
 		meshBufferDesc.p_Size = sizeof(m_Geometry.meshes[0]) * m_Geometry.meshes.size();
 		meshBufferDesc.p_Data = m_Geometry.meshes.data();
-		meshBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+		meshBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
 		meshBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
 		meshBufferDesc.p_AllowSRV = true;
 		m_MeshBuffer->Init(meshBufferDesc);
@@ -486,7 +490,7 @@ namespace Brisk {
 		meshletDataBufferDesc.p_Name = "Meshes Storage buffer";
 		meshletDataBufferDesc.p_Size = sizeof(m_Geometry.meshletdata[0]) * m_Geometry.meshletdata.size();
 		meshletDataBufferDesc.p_Data = m_Geometry.meshletdata.data();
-		meshletDataBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+		meshletDataBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
 		meshletDataBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
 		meshletDataBufferDesc.p_AllowSRV = true;
 		m_MeshletDataBuffer->Init(meshletDataBufferDesc);
@@ -496,7 +500,7 @@ namespace Brisk {
 		meshletBufferDesc.p_Name = "Meshlets Storage buffer";
 		meshletBufferDesc.p_Size = sizeof(m_Geometry.meshlets[0]) * m_Geometry.meshlets.size();
 		meshletBufferDesc.p_Data = m_Geometry.meshlets.data();
-		meshletBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+		meshletBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
 		meshletBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
 		meshletBufferDesc.p_AllowSRV = true;
 		m_MeshletsBuffer->Init(meshletBufferDesc);
@@ -639,7 +643,7 @@ namespace Brisk {
 		BufferDesc materialsBufferDesc{};
 		materialsBufferDesc.p_Size = sizeof(m_Materials[0]) * m_Materials.size();
 		materialsBufferDesc.p_Data = m_Materials.data();
-		materialsBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+		materialsBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
 		materialsBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
 		materialsBufferDesc.p_AllowUAV = true;
 		m_MaterialStorageBuffer->Init(materialsBufferDesc);

@@ -25,9 +25,9 @@ struct MeshDraw
     vec4 orientation;
 
     uint meshIndex;
-    uint meshletVisibilityOffset;
-    uint postPass;
     uint materialIndex;
     uint meshletCount;
     uint meshletOffset;
+
+    uint groupcount[3];
 };

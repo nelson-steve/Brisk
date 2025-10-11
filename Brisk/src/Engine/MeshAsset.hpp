@@ -53,11 +53,14 @@ namespace Brisk
             glm::quat orientation;
 
             uint32_t meshIndex;
-            uint32_t meshletVisibilityOffset;
-            uint32_t postPass;
             uint32_t materialIndex;
             uint32_t meshletCount;
             uint32_t meshletOffset;
+
+            //VkDrawMeshTasksIndirectCommandEXT
+            uint32_t groupCountX;
+            uint32_t groupCountY;
+            uint32_t groupCountZ;
         };
 
         struct Geometry

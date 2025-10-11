@@ -14,33 +14,7 @@ namespace Brisk
         m_Desc = desc;
         VmaMemoryUsage vmaUsage = VMA_MEMORY_USAGE_UNKNOWN;
         VkBufferUsageFlags usageFlags = 0;
-
-        switch (desc.p_Usage) {
-            case BufferDesc::Usage::VertexBuffer:
-                usageFlags |= VK_BUFFER_USAGE_VERTEX_BUFFER_BIT;
-                break;
-            case BufferDesc::Usage::IndexBuffer:
-                usageFlags |= VK_BUFFER_USAGE_INDEX_BUFFER_BIT;
-                break;
-            case BufferDesc::Usage::UniformBuffer:
-                usageFlags |= VK_BUFFER_USAGE_UNIFORM_BUFFER_BIT;
-                break;
-            case BufferDesc::Usage::StorageBuffer:
-                usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;
-                break;
-            case BufferDesc::Usage::IndirectBuffer:
-                usageFlags |= VK_BUFFER_USAGE_INDIRECT_BUFFER_BIT;
-                break;
-            case BufferDesc::Usage::StagingBuffer:
-                usageFlags |= VK_BUFFER_USAGE_TRANSFER_SRC_BIT | VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-                break;
-            case BufferDesc::Usage::ReadbackBuffer:
-                usageFlags |= VK_BUFFER_USAGE_TRANSFER_DST_BIT;
-                break;
-            case BufferDesc::Usage::Generic:
-                // Nothing extra, flags from below may add
-                break;
-        }
+        usageFlags = UtilitiesVulkan::BufferUsageToVkFormat(desc.p_Usage);
 
         if (desc.p_AllowUAV)
             usageFlags |= VK_BUFFER_USAGE_STORAGE_BUFFER_BIT;

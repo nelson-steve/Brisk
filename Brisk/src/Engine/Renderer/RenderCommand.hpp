@@ -28,6 +28,10 @@ namespace Brisk
 			s_RendererAPI->DrawMeshTasks(cmd, groupCountX, groupCountY, groupCountZ);
 		}
 
+		inline static void DrawMeshTasksIndirect(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Buffer> buffer, uint32_t offset, uint32_t drawsSize, uint32_t stride) {
+			s_RendererAPI->DrawMeshTasksIndirect(cmd, buffer, offset, drawsSize, stride);
+		}
+
 		inline static void DrawIndexed(std::shared_ptr<CommandBuffer> cmd, uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance){
 			s_RendererAPI->DrawIndexed(cmd, indexCount, instanceCount, firstIndex, vertexOffset, firstInstance);
 		}

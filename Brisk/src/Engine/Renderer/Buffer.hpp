@@ -28,17 +28,7 @@ namespace Brisk
 
         void* p_Data;
 
-        enum class Usage : uint32_t
-        {
-            VertexBuffer,
-            IndexBuffer,
-            UniformBuffer,
-            StorageBuffer,               // Structured/UAV buffer
-            IndirectBuffer,              // Indirect command arguments
-            StagingBuffer,
-            ReadbackBuffer,              // GPU -> CPU
-            Generic
-        } p_Usage = Usage::Generic;
+        Core::BufferUsage p_Usage;
 
         enum class MemoryUsage : uint32_t
         {

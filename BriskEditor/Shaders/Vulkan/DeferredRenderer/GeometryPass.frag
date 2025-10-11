@@ -1,5 +1,10 @@
 #version 460
 #extension GL_EXT_nonuniform_qualifier : enable
+#extension GL_EXT_shader_16bit_storage : require
+#extension GL_EXT_shader_8bit_storage  : require
+#extension GL_GOOGLE_include_directive: require
+
+#include "Mesh.hpp"
 
 layout(location = 0) in vec3 fragPosition;
 layout(location = 1) in vec3 fragNormal;

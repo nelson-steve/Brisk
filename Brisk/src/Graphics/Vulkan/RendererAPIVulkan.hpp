@@ -44,6 +44,11 @@ namespace Brisk
 			vkCmdDrawMeshTasksEXT(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), groupCountX, groupCountY, groupCountZ);
 		}
 
+		virtual void DrawMeshTasksIndirect(std::shared_ptr<CommandBuffer> cmd,std::shared_ptr<Buffer> buffer, uint32_t offset, uint32_t drawsSize, uint32_t stride) override {
+			BRISK_CORE_ASSERT(drawsSize > 0);
+			vkCmdDrawMeshTasksIndirectEXT(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), std::static_pointer_cast<BufferVulkan>(buffer)->Get(), offset, drawsSize, stride);
+		}
+
 		virtual void BindIndexBuffer(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Buffer> buffer, uint32_t firstBinding) override {
 			vkCmdBindIndexBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), std::static_pointer_cast<BufferVulkan>(buffer)->Get(), 0, VK_INDEX_TYPE_UINT32);
 		}

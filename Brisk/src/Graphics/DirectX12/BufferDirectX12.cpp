@@ -39,12 +39,12 @@ namespace Brisk
             // Determine resource flags
             D3D12_RESOURCE_FLAGS flags = D3D12_RESOURCE_FLAG_NONE;
             if (desc.p_AllowUAV)      flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
-            if (desc.p_Usage == BufferDesc::Usage::StorageBuffer)
+            if (desc.p_Usage == Core::BufferUsage::StorageBuffer)
                 flags |= D3D12_RESOURCE_FLAG_ALLOW_UNORDERED_ACCESS;
 
             // Size must be aligned to 256 bytes for constant buffers
             UINT64 bufferSize = desc.p_Size;
-            if (desc.p_Usage == BufferDesc::Usage::UniformBuffer)
+            if (desc.p_Usage == Core::BufferUsage::UniformBuffer)
                 bufferSize = (bufferSize + 255) & ~255ULL;
 
             // Describe the buffer

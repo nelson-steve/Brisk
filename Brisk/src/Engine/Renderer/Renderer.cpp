@@ -130,7 +130,7 @@ namespace Brisk
         m_ProbesBuffer = Buffer::Create();
         BufferDesc probesBufferDesc{};
         probesBufferDesc.p_Size = sizeof(Probe) * probeCount;
-        probesBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+        probesBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
         probesBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
         probesBufferDesc.p_Persistant = true;
         m_ProbesBuffer->Init(probesBufferDesc);
@@ -567,7 +567,7 @@ namespace Brisk
         m_MVPBuffer = Buffer::Create();
         BufferDesc mvpBufferDesc{};
         mvpBufferDesc.p_Size = sizeof(MVP);
-        mvpBufferDesc.p_Usage = BufferDesc::Usage::UniformBuffer;
+        mvpBufferDesc.p_Usage = Core::BufferUsage::UniformBuffer;
         mvpBufferDesc.p_Memory = BufferDesc::MemoryUsage::CPU_To_GPU;
         mvpBufferDesc.p_Persistant = true;
         m_MVPBuffer->Init(mvpBufferDesc);
@@ -575,7 +575,7 @@ namespace Brisk
         m_ShadowDataBuffer = Buffer::Create();
         BufferDesc shadowBufferDesc{};
         shadowBufferDesc.p_Size = sizeof(ShadowData);
-        shadowBufferDesc.p_Usage = BufferDesc::Usage::UniformBuffer;
+        shadowBufferDesc.p_Usage = Core::BufferUsage::UniformBuffer;
         shadowBufferDesc.p_Memory = BufferDesc::MemoryUsage::CPU_To_GPU;
         shadowBufferDesc.p_Persistant = true;
         m_ShadowDataBuffer->Init(shadowBufferDesc);
@@ -584,7 +584,7 @@ namespace Brisk
             m_ClusterTilesSSBO = Buffer::Create();
             BufferDesc clusterTilesBufferDesc{};
             clusterTilesBufferDesc.p_Size = sizeof(TileAABB) * NUM_CLUSTERS;
-            clusterTilesBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+            clusterTilesBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
             clusterTilesBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
             m_ClusterTilesSSBO->Init(clusterTilesBufferDesc);
 
@@ -605,7 +605,7 @@ namespace Brisk
             m_ClusterInfoUBO = Buffer::Create();
             BufferDesc clusterInfoBufferDesc{};
             clusterInfoBufferDesc.p_Size = sizeof(ClusterInfo);
-            clusterInfoBufferDesc.p_Usage = BufferDesc::Usage::UniformBuffer;
+            clusterInfoBufferDesc.p_Usage = Core::BufferUsage::UniformBuffer;
             clusterInfoBufferDesc.p_Memory = BufferDesc::MemoryUsage::CPU_To_GPU;
             clusterInfoBufferDesc.p_Persistant = true;
             m_ClusterInfoUBO->Init(clusterInfoBufferDesc);
@@ -633,7 +633,7 @@ namespace Brisk
             BufferDesc lightsBufferDesc{};
             lightsBufferDesc.p_Size = sizeof(lights) * lights.size();
             lightsBufferDesc.p_Data = lights.data();
-            lightsBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+            lightsBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
             lightsBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
             lightsBufferDesc.p_AllowSRV = true;
             m_LightsList->Init(lightsBufferDesc);
@@ -641,7 +641,7 @@ namespace Brisk
             m_ClusterLightIndexList = Buffer::Create();
             BufferDesc clusterLightsIndexBufferDesc{};
             clusterLightsIndexBufferDesc.p_Size = sizeof(uint32_t) * NUM_CLUSTERS * MAX_LIGHTS_PER_CLUSTER;
-            clusterLightsIndexBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+            clusterLightsIndexBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
             clusterLightsIndexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
             clusterLightsIndexBufferDesc.p_AllowUAV = true;
             m_ClusterLightIndexList->Init(clusterLightsIndexBufferDesc);
@@ -649,7 +649,7 @@ namespace Brisk
             m_ClusterLightOffsetList = Buffer::Create();
             BufferDesc clusterLightsOffsetsBufferDesc{};
             clusterLightsOffsetsBufferDesc.p_Size = sizeof(LightOffset) * NUM_CLUSTERS;
-            clusterLightsOffsetsBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+            clusterLightsOffsetsBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
             clusterLightsOffsetsBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
             clusterLightsOffsetsBufferDesc.p_AllowUAV = true;
             m_ClusterLightOffsetList->Init(clusterLightsOffsetsBufferDesc);
@@ -657,7 +657,7 @@ namespace Brisk
             m_AtomicCounters = Buffer::Create();
             BufferDesc atomicCountersBufferDesc{};
             atomicCountersBufferDesc.p_Size = sizeof(uint32_t) * NUM_CLUSTERS;
-            atomicCountersBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+            atomicCountersBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
             atomicCountersBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
             atomicCountersBufferDesc.p_AllowUAV = true;
             m_AtomicCounters->Init(atomicCountersBufferDesc);
@@ -667,7 +667,7 @@ namespace Brisk
             BufferDesc globalIndexBufferDesc{};
             globalIndexBufferDesc.p_Size = sizeof(uint32_t);
             globalIndexBufferDesc.p_Data = &globalIndex;
-            globalIndexBufferDesc.p_Usage = BufferDesc::Usage::StorageBuffer;
+            globalIndexBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
             globalIndexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
             globalIndexBufferDesc.p_AllowUAV = true;
             m_GlobalIndexCountSSBO->Init(globalIndexBufferDesc);
@@ -964,10 +964,10 @@ namespace Brisk
 
             glm::mat4 matrix = transform.GetTransform();
 
-            for (auto& draw : meshComp.p_Mesh->m_Geometry.draws) {
-                m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-                RenderCommand::DrawMeshTasks(m_CmdBuffer, draw.meshletCount);
-            }
+            m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
+            RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer,
+                meshComp.p_Mesh->m_DrawsBuffer,
+                offsetof(MeshAsset::MeshDraw, MeshAsset::MeshDraw::groupCountX), meshComp.p_Mesh->m_Geometry.draws.size(), sizeof(MeshAsset::MeshDraw));
         }
 
         m_GeometryBufferPass->End(m_CmdBuffer);

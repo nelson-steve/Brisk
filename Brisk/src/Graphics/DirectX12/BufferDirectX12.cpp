@@ -235,7 +235,7 @@ namespace Brisk
             srvDesc.Format = DXGI_FORMAT_UNKNOWN; // Structured buffer has no fixed format
             srvDesc.Buffer.FirstElement = 0;
             //srvDesc.Buffer.NumElements = elementCount;
-            srvDesc.Buffer.StructureByteStride = sizeof(MeshAsset::MaterialData);
+            srvDesc.Buffer.StructureByteStride = sizeof(MaterialData);
             srvDesc.Buffer.Flags = D3D12_BUFFER_SRV_FLAG_NONE;
 
             Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateShaderResourceView(m_Buffer.Get(), &srvDesc, m_CpuHandle);
@@ -360,7 +360,7 @@ namespace Brisk
             uavDesc.Format = DXGI_FORMAT_UNKNOWN; // Structured buffer has no fixed format
             uavDesc.Buffer.FirstElement = 0;
             //srvDesc.Buffer.NumElements = elementCount;
-            uavDesc.Buffer.StructureByteStride = sizeof(MeshAsset::MaterialData);
+            uavDesc.Buffer.StructureByteStride = sizeof(MaterialData);
             uavDesc.Buffer.Flags = D3D12_BUFFER_UAV_FLAG_NONE;
 
             Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateUnorderedAccessView(m_Buffer.Get(), nullptr, &uavDesc, m_CpuHandle);

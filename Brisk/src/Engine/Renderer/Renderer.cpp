@@ -401,7 +401,7 @@ namespace Brisk
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
                 Pipeline::VertexDataLayout vertexLayout;
                 vertexLayout.pBinding = 0;
-                vertexLayout.pStride = sizeof(MeshAsset::Vertex);
+                //vertexLayout.pStride = sizeof(MeshAsset::Vertex);
                 vertexLayout.pAttributes = {
                 };
                 pipelineSpecs.pLayout = vertexLayout;
@@ -437,7 +437,7 @@ namespace Brisk
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
                 Pipeline::VertexDataLayout vertexLayout;
                 vertexLayout.pBinding = 0;
-                vertexLayout.pStride = sizeof(MeshAsset::Vertex);
+                //vertexLayout.pStride = sizeof(MeshAsset::Vertex);
                 vertexLayout.pAttributes = {
                 };
                 pipelineSpecs.pLayout = vertexLayout;
@@ -473,7 +473,7 @@ namespace Brisk
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
                 Pipeline::VertexDataLayout vertexLayout;
                 vertexLayout.pBinding = 0;
-                vertexLayout.pStride = sizeof(MeshAsset::Vertex);
+                //vertexLayout.pStride = sizeof(MeshAsset::Vertex);
                 vertexLayout.pAttributes = {
                 };
                 pipelineSpecs.pLayout = vertexLayout;
@@ -744,12 +744,12 @@ namespace Brisk
         if (!SceneManager::pActiveScene) return;
 
         if (once) {
-            m_GBufferPipeline->UpdateResources("Vertices", {}, MeshAsset::m_VertexBuffer);
-            m_GBufferPipeline->UpdateResources("MeshDraws", {}, MeshAsset::m_DrawsBuffer);
-            m_GBufferPipeline->UpdateResources("Meshlets", {}, MeshAsset::m_MeshletsBuffer);
-            m_GBufferPipeline->UpdateResources("MeshletData", {}, MeshAsset::m_MeshletDataBuffer);
+            m_GBufferPipeline->UpdateResources("Vertices", {}, Scene::m_VertexBuffer);
+            m_GBufferPipeline->UpdateResources("MeshDraws", {}, Scene::m_DrawsBuffer);
+            m_GBufferPipeline->UpdateResources("Meshlets", {}, Scene::m_MeshletsBuffer);
+            m_GBufferPipeline->UpdateResources("MeshletData", {}, Scene::m_MeshletDataBuffer);
             m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer);
-            m_GBufferPipeline->UpdateResources("Materials", {}, MeshAsset::m_MaterialStorageBuffer);
+            m_GBufferPipeline->UpdateResources("Materials", {}, Scene::m_MaterialStorageBuffer);
 
             once = false;
         }
@@ -906,7 +906,7 @@ namespace Brisk
 
                 glm::mat4 matrix = transform.GetTransform();
 
-                RenderCommand::DrawMeshTasks(m_CmdBuffer, meshComp.p_Mesh->m_Geometry.meshlets.size());
+                RenderCommand::DrawMeshTasks(m_CmdBuffer, Scene::m_Geometry.meshlets.size());
             }
 
             m_CSMShadowMapPass->End(m_CmdBuffer);
@@ -942,7 +942,7 @@ namespace Brisk
             glm::mat4 matrix = transform.GetTransform();
 
             m_DepthPrePassPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-            RenderCommand::DrawMeshTasks(m_CmdBuffer, meshComp.p_Mesh->m_Geometry.meshlets.size());
+            RenderCommand::DrawMeshTasks(m_CmdBuffer, Scene::m_Geometry.meshlets.size());
         }
 
         m_DepthPrePass->End(m_CmdBuffer);
@@ -966,8 +966,8 @@ namespace Brisk
 
             m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
             RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer,
-                meshComp.p_Mesh->m_DrawsBuffer,
-                offsetof(MeshAsset::MeshDraw, MeshAsset::MeshDraw::groupCountX), meshComp.p_Mesh->m_Geometry.draws.size(), sizeof(MeshAsset::MeshDraw));
+               Scene::m_DrawsBuffer,
+                offsetof(MeshDraw, MeshDraw::groupCountX), Scene::m_Geometry.draws.size(), sizeof(MeshDraw));
         }
 
         m_GeometryBufferPass->End(m_CmdBuffer);

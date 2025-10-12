@@ -124,7 +124,7 @@ namespace Brisk
 			ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2{ 4, 4 });
 			float lineHeight = GImGui->Font->LegacySize + GImGui->Style.FramePadding.y * 2.0f;
 			ImGui::Separator();
-			bool open = ImGui::TreeNodeEx((void*)typeid(WorldTransformComponent).hash_code(), treeNodeFlags, "Transform");
+			bool open = ImGui::TreeNodeEx((void*)typeid(TransformComponent).hash_code(), treeNodeFlags, "Transform");
 			ImGui::PopStyleVar(
 			);
 			ImGui::SameLine(contentRegionAvailable.x - lineHeight * 0.5f);
@@ -144,9 +144,9 @@ namespace Brisk
 
 			if (open)
 			{
-				DrawVec3Control("Position", SceneManager::pActiveScene->Reg().get<WorldTransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Position);
+				DrawVec3Control("Position", SceneManager::pActiveScene->Reg().get<TransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Position);
 
-				glm::quat quat = SceneManager::pActiveScene->Reg().get<WorldTransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Rotation;
+				glm::quat quat = SceneManager::pActiveScene->Reg().get<TransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Rotation;
 				glm::vec3 eulerAngles = glm::eulerAngles(quat);
 				glm::vec3 rotation = glm::degrees(eulerAngles);
 				DrawVec3Control("Rotation", rotation);
@@ -154,7 +154,7 @@ namespace Brisk
 				glm::quat q = glm::quat(euler);
 				//SceneManager::pActiveScene->Reg().get<WorldTransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Rotation = q;
 
-				DrawVec3Control("Scale", SceneManager::pActiveScene->Reg().get<WorldTransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Scale);
+				DrawVec3Control("Scale", SceneManager::pActiveScene->Reg().get<TransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Scale);
 				ImGui::TreePop();
 			}
 

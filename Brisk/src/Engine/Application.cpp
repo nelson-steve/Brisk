@@ -85,9 +85,7 @@ namespace Brisk
 
 			m_SceneManager->pActiveScene->LoadGltfScene(paths[6]);
 
-			//std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[6], false);
 			MeshComponent& mc = entity1.AddComponent<MeshComponent>();
-			//mc.p_Mesh = asset1;
 		}
 		//{
 		//	std::shared_ptr<MeshAsset> asset1 = m_AssetManager->LoadAsset<MeshAsset>(paths[3], false);

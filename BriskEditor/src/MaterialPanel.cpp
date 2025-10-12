@@ -10,7 +10,7 @@ namespace Brisk
     void MaterialPanel::OnUpdate() {
         ImGui::Begin("Material");
 
-        SceneManager::pActiveScene->Reg().get<WorldTransformComponent>(SceneManager::pActiveScene->GetSelectedEntity());
+        SceneManager::pActiveScene->Reg().get<TransformComponent>(SceneManager::pActiveScene->GetSelectedEntity());
 
         Entity entity = { SceneManager::pActiveScene->GetSelectedEntity(), SceneManager::pActiveScene.get() };
         if (entity.HasComponent<MeshComponent>()) {

@@ -687,7 +687,7 @@ namespace Brisk
 	Entity Scene::CreateCubeEntity(const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
-		entity.AddComponent<LocalTransformComponent>();
+		entity.AddComponent<TransformComponent>();
 
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
@@ -697,7 +697,7 @@ namespace Brisk
 	Entity Scene::CreatePlaneEntity(const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
-		entity.AddComponent<LocalTransformComponent>();
+		entity.AddComponent<TransformComponent>();
 
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
@@ -707,7 +707,7 @@ namespace Brisk
 	Entity Scene::CreateLightEntity(const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
-		entity.AddComponent<LocalTransformComponent>();
+		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<PointLightComponent>();
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
@@ -717,8 +717,7 @@ namespace Brisk
 	Entity Scene::CreateEntity(const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
-		entity.AddComponent<LocalTransformComponent>();
-		entity.AddComponent<WorldTransformComponent>();
+		entity.AddComponent<TransformComponent>();
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
 		return entity;
@@ -727,7 +726,7 @@ namespace Brisk
 	Entity Scene::CreateCameraEntity(const std::string& name)
 	{
 		Entity entity = { m_Registry.create(), this };
-		entity.AddComponent<LocalTransformComponent>();
+		entity.AddComponent<TransformComponent>();
 		entity.AddComponent<CameraComponent>();
 		auto& tag = entity.AddComponent<TagComponent>();
 		tag.Tag = name.empty() ? "Entity" : name;
@@ -788,12 +787,7 @@ namespace Brisk
 	}
 
 	template<>
-	void Scene::OnComponentAdded<LocalTransformComponent>(Entity entity, LocalTransformComponent& component)
-	{
-	}
-
-	template<>
-	void Scene::OnComponentAdded<WorldTransformComponent>(Entity entity, WorldTransformComponent& component)
+	void Scene::OnComponentAdded<TransformComponent>(Entity entity, TransformComponent& component)
 	{
 	}
 

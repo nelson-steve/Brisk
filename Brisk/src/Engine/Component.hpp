@@ -29,64 +29,12 @@ namespace Brisk
 			: Tag(tag) {}
 	};
 
-	struct LocalTransformComponent
+	struct TransformComponent
 	{
-		std::string name = "Local Transform Component";
+		std::string name = "Transform Component";
 
 		Entity parent;
 		std::vector<Entity> children;
-
-		const glm::vec3& GetPosition() const { return Position; }
-		const glm::quat& GetRotation() const { return Rotation; }
-		const glm::vec3& GetScale() const { return Scale; }
-
-		void AddTranform(const glm::vec3& pos)
-		{
-			Position = pos;
-		}
-
-		void AddTranform(const glm::quat& rot)
-		{
-			Rotation = rot;
-		}
-
-		void AddTranform(const glm::vec3& pos, const glm::quat& rot)
-		{
-			Position = pos;
-			Rotation = rot;
-		}
-
-		void AddTranform(const glm::vec3& pos, const glm::quat& rot, const glm::vec3& scale)
-		{
-			glm::mat4 rotation = glm::toMat4(glm::quat(rot));
-			Position = pos;
-			Rotation = rot;
-			Scale = scale;
-		}
-
-		glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
-		glm::quat Rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-		glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
-
-		LocalTransformComponent() = default;
-		LocalTransformComponent(const LocalTransformComponent&) = default;
-
-		LocalTransformComponent(const glm::vec3& position)
-			: Position(position) {
-		}
-
-		// void SetPosition(const glm::mat4& pos) { Position = pos; }
-
-		glm::mat4 GetTransform() const
-		{
-			glm::mat4 rotation = glm::toMat4(glm::quat(Rotation));
-			return glm::translate(glm::mat4(1.0f), Position) * rotation * glm::scale(glm::mat4(1.0f), Scale);
-		}
-	};
-
-	struct WorldTransformComponent
-	{
-		std::string name = "World Transform Component";
 
 		const glm::vec3 &GetPosition() const { return Position; }
 		const glm::quat &GetRotation() const { return Rotation; }
@@ -120,10 +68,10 @@ namespace Brisk
 		glm::quat Rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
 		glm::vec3 Scale = {1.0f, 1.0f, 1.0f};
 
-		WorldTransformComponent() = default;
-		WorldTransformComponent(const WorldTransformComponent&) = default;
+		TransformComponent() = default;
+		TransformComponent(const TransformComponent&) = default;
 
-		WorldTransformComponent(const glm::vec3 &position)
+		TransformComponent(const glm::vec3 &position)
 			: Position(position) {}
 
 		glm::mat4 GetTransform() const
@@ -136,7 +84,7 @@ namespace Brisk
 	{
 		std::string name = "Mesh Component";
 
-		uint32_t p_SubMeshIndex;
+		std::vector<uint32_t> p_SubMeshIndices;
 		std::string p_Name;
 
 		MeshComponent() = default;
@@ -314,8 +262,7 @@ namespace Brisk
 
 	using AllComponents =
 		ComponentGroup<MeshComponent,
-					   LocalTransformComponent,
-					   WorldTransformComponent,
+					   TransformComponent,
 					   DirectionalLightComponent,
 					   PointLightComponent,
 					   SpotLightComponent,

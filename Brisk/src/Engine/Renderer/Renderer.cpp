@@ -876,13 +876,6 @@ namespace Brisk
         m_CmdBuffer->Reset();
         m_CmdBuffer->Bind();
 
-
-        /*
-        for each cluster
-            render indexed for cube but change vertex buffer
-        
-        */
-
         // --- SHADOW MAP PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
         uint32_t framebuffer = 0;
@@ -896,18 +889,9 @@ namespace Brisk
             glm::mat4 matrix = lightMatrix;
             m_ShadowMapPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
 
-            auto meshes = SceneManager::pActiveScene->Reg().view<MeshComponent, WorldTransformComponent>();
-            for (auto e : meshes) {
-                Entity entity = { e, SceneManager::pActiveScene.get() };
-                auto& meshComp = entity.GetComponent<MeshComponent>();
-                auto& transform = entity.GetComponent<WorldTransformComponent>();
+            m_ShadowMapPipeline->Bind(m_CmdBuffer);
 
-                m_ShadowMapPipeline->Bind(m_CmdBuffer);
-
-                glm::mat4 matrix = transform.GetTransform();
-
-                RenderCommand::DrawMeshTasks(m_CmdBuffer, Scene::m_Geometry.meshlets.size());
-            }
+            RenderCommand::DrawMeshTasks(m_CmdBuffer, Scene::m_Geometry.meshlets.size());
 
             m_CSMShadowMapPass->End(m_CmdBuffer);
         }
@@ -931,19 +915,11 @@ namespace Brisk
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_DepthPre->GetWidth(), m_DepthPre->GetHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_DepthPre->GetWidth(), m_DepthPre->GetHeight());
 
-        auto meshes = SceneManager::pActiveScene->Reg().view<MeshComponent, WorldTransformComponent>();
-        for (auto e : meshes) {
-            Entity entity = { e, SceneManager::pActiveScene.get() };
-            auto& meshComp = entity.GetComponent<MeshComponent>();
-            auto& transform = entity.GetComponent<WorldTransformComponent>();
+        m_DepthPrePassPipeline->Bind(m_CmdBuffer);
 
-            m_DepthPrePassPipeline->Bind(m_CmdBuffer);
-
-            glm::mat4 matrix = transform.GetTransform();
-
-            m_DepthPrePassPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-            RenderCommand::DrawMeshTasks(m_CmdBuffer, Scene::m_Geometry.meshlets.size());
-        }
+        glm::mat4 matrix{ 1.0f };
+        m_DepthPrePassPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
+        RenderCommand::DrawMeshTasks(m_CmdBuffer, Scene::m_Geometry.meshlets.size());
 
         m_DepthPrePass->End(m_CmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------
@@ -954,21 +930,12 @@ namespace Brisk
         RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
 
-        meshes = SceneManager::pActiveScene->Reg().view<MeshComponent, WorldTransformComponent>();
-        for (auto e : meshes) {
-            Entity entity = { e, SceneManager::pActiveScene.get() };
-            auto& meshComp = entity.GetComponent<MeshComponent>();
-            auto& transform = entity.GetComponent<WorldTransformComponent>();
+        m_GBufferPipeline->Bind(m_CmdBuffer);
 
-            m_GBufferPipeline->Bind(m_CmdBuffer);
-
-            glm::mat4 matrix = transform.GetTransform();
-
-            m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-            RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer,
-               Scene::m_DrawsBuffer,
-                offsetof(MeshDraw, MeshDraw::groupCountX), Scene::m_Geometry.draws.size(), sizeof(MeshDraw));
-        }
+        m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
+        RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer,
+            Scene::m_DrawsBuffer,
+            offsetof(MeshDraw, MeshDraw::groupCountX), Scene::m_Geometry.draws.size(), sizeof(MeshDraw));
 
         m_GeometryBufferPass->End(m_CmdBuffer);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1067,7 +1034,7 @@ namespace Brisk
     }
 
     glm::mat4 GetWorldTransform(Entity entity) {
-        glm::mat4 local = entity.GetComponent<WorldTransformComponent>().GetTransform();
+        glm::mat4 local = entity.GetComponent<TransformComponent>().GetTransform();
 
         //if (entity.HasComponent<ParentComponent>()) {
         //    Entity parent = entity.GetComponent<ParentComponent>().parent;

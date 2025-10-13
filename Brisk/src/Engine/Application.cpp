@@ -66,6 +66,8 @@ namespace Brisk
 			/* 6 */"../Data/glTFModels/2.0/ToyCar/glTF/ToyCar.gltf",
 			/* 7 */"../Data/Models/gltf_models/FlightHelmet/glTF/FlightHelmet.gltf",
 			/* 8 */"../Data/Models/cerberus/cerberus.gltf",
+			/* 9 */"../Data/Models/UFO/scene.gltf",
+			/* 10 */"../Data/Models/lamborghini_temerario_gt3_2026/scene.gltf",
 		};
 
 		Entity lightEntity = m_SceneManager->pActiveScene->CreateEntity("Sun Light");
@@ -80,7 +82,7 @@ namespace Brisk
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);
 
-		m_SceneManager->pActiveScene->LoadGltfScene(paths[6]);
+		m_SceneManager->pActiveScene->LoadGltfScene(paths[9]);
 	}
 
 	void Application::OnEvent(Event &event) {

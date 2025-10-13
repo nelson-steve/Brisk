@@ -42,6 +42,7 @@ namespace Brisk
         uint32_t vertexOffset;
         uint32_t vertexCount;
         uint32_t meshletCount;
+        uint32_t materialIndex;
         uint32_t meshletOffset;
     };
 

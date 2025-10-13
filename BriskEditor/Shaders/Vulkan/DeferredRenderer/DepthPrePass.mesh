@@ -3,6 +3,7 @@
 #extension GL_EXT_shader_8bit_storage  : require
 #extension GL_EXT_mesh_shader          : require
 #extension GL_GOOGLE_include_directive: require
+#extension GL_ARB_shader_draw_parameters: require
 
 #include "Mesh.hpp"
 #include "../config.hpp"
@@ -40,13 +41,21 @@ layout(set = 0, binding = 8) readonly buffer MeshletDataBuffer8 {
 	uint8_t meshletData8[];
 } MeshletData8;
 
+layout(set = 0, binding = 9) readonly buffer MeshDrawsBuffer {
+	MeshDraw meshDraws[];
+} MeshDraws;
+
 layout(location = 0) out vec4 color[];
 
 void main()
 {
+    MeshDraw draw = MeshDraws.meshDraws[gl_DrawIDARB];
+    uint meshletCount = draw.meshletCount;
+    uint meshletOffset = draw.meshletOffset;
+
 	uint ti = gl_LocalInvocationIndex;
 
-    uint mi     = gl_WorkGroupID.x;
+    uint mi =  meshletOffset + gl_WorkGroupID.x;
     uint vertexCount = uint(Meshlets.meshlets[mi].vertexCount);
     uint triangleCount = uint(Meshlets.meshlets[mi].triangleCount);
 
@@ -65,7 +74,13 @@ void main()
         vec3 pos    = vec3(Vertices.vertices[vi].vx, Vertices.vertices[vi].vy, Vertices.vertices[vi].vz);
         vec3 normal = vec3(Vertices.vertices[vi].nx, Vertices.vertices[vi].ny, Vertices.vertices[vi].nz);
 
-        vec4 worldPos = ObjectData.model * vec4(pos, 1.0);
+        vec4 worldPos = vec4(pos, 1.0);
+        vec3 worldPosxyz = worldPos.xyz;
+        
+        worldPosxyz = rotateQuat(worldPosxyz, draw.orientation) * draw.scale + draw.position;
+        
+        worldPos = vec4(worldPosxyz, 1.0);
+
         gl_MeshVerticesEXT[i].gl_Position = MVP.ProjView * worldPos;
 
         // (Optional) Normal transform to visualize color:

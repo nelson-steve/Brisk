@@ -919,7 +919,9 @@ namespace Brisk
 
         glm::mat4 matrix{ 1.0f };
         m_DepthPrePassPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-        RenderCommand::DrawMeshTasks(m_CmdBuffer, Scene::m_Geometry.meshlets.size());
+        RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer,
+            Scene::m_DrawsBuffer,
+            offsetof(MeshDraw, MeshDraw::groupCountX), Scene::m_Geometry.draws.size(), sizeof(MeshDraw));
 
         m_DepthPrePass->End(m_CmdBuffer);
         //------------------------------------------------------------------------------------------------------------------------------------------------

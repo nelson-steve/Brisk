@@ -100,7 +100,5 @@ void main()
 		uint a = uint(MeshletData8.meshletData8[offset]), b = uint(MeshletData8.meshletData8[offset + 1]), c = uint(MeshletData8.meshletData8[offset + 2]);
 
 		gl_PrimitiveTriangleIndicesEXT[i] = uvec3(a, b, c);
-
-        //outMaterialIndex[t] = uint(Meshlets.meshlets[mi].materialIndex);                
     }
 }

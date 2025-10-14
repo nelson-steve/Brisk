@@ -541,13 +541,12 @@ namespace Brisk
 
 				glm::decompose(mat, scale, rotation, translation, skew, perspective);
 
-				glm::quat orient = glm::normalize(rotation);
+				glm::quat orient = rotation;
 
 				MeshDraw draw = {};
 				draw.position = translation;
 				draw.scale = std::max(scale[0], std::max(scale[1], scale[2]));
 				draw.orientation = glm::vec4(orient.x, orient.y, orient.z, orient.w);
-				//draw.orientation = glm::vec4(0, 0, 0, 1);
 
 				draw.meshIndex = range.first + i;
 				draw.materialIndex = m_Geometry.meshes[draw.meshIndex].materialIndex;

@@ -65,7 +65,7 @@ namespace Brisk
     {
         glm::vec3 position;
         float scale;
-        glm::quat orientation;
+        glm::vec4 orientation;
 
         uint32_t meshIndex;
         uint32_t materialIndex;
@@ -76,6 +76,7 @@ namespace Brisk
         uint32_t groupCountX;
         uint32_t groupCountY;
         uint32_t groupCountZ;
+        uint32_t padding;
     };
 
     struct Geometry

@@ -76,16 +76,18 @@ namespace Brisk
 		if (std::holds_alternative<fastgltf::TRS>(node.transform)) {
 			const auto& trs = std::get<fastgltf::TRS>(node.transform);
 
-			glm::vec3 translation(trs.translation[0], trs.translation[1], trs.translation[2]);
-			glm::quat rotation(trs.rotation[3], trs.rotation[0], trs.rotation[1], trs.rotation[2]); // (w, x, y, z)
-			glm::vec3 scale(trs.scale[0], trs.scale[1], trs.scale[2]);
+			glm::mat4 translation = glm::translate(glm::mat4(1.0f), glm::make_vec3(trs.translation.data()));
+			glm::mat4 rotation = glm::mat4_cast(glm::make_quat(trs.rotation.value_ptr()));
+			glm::mat4 scale = glm::scale(glm::mat4(1.0f), glm::make_vec3(trs.scale.data()));
 
-			return glm::translate(glm::mat4(1.0f), translation) * glm::mat4_cast(rotation) * glm::scale(glm::mat4(1.0f), scale);
+			return translation * rotation * scale;
 		}
-		else {
-			const auto& mat = std::get<fastgltf::math::fmat4x4>(node.transform);
-			return glm::make_mat4x4(mat.data());
+		else if (std::holds_alternative<fastgltf::math::fmat4x4>(node.transform)) {
+			const auto& matrix = std::get<fastgltf::math::fmat4x4>(node.transform);
+			return glm::make_mat4x4(matrix.data());
 		}
+
+		return glm::mat4(1.0f);
 	}
 
 	std::vector<int> BuildParentTable(const fastgltf::Asset& asset) {
@@ -100,7 +102,7 @@ namespace Brisk
 	}
 
 	glm::mat4 GetNodeWorldTransform(const fastgltf::Asset& asset, size_t nodeIndex) {
-		static std::vector<int> parentOf; // cached parent relationships
+		std::vector<int> parentOf; // cached parent relationships
 		if (parentOf.size() != asset.nodes.size()) {
 			parentOf = BuildParentTable(asset);
 		}
@@ -523,16 +525,12 @@ namespace Brisk
 			primitives.push_back(std::make_pair(meshOffset, m_Geometry.meshes.size() - meshOffset));
 		}
 
-		int i = 0;
-		for (const auto& node : asset.nodes) {
-			if (!node.meshIndex.has_value()) continue;
-			i++;
-			std::pair<uint32_t, uint32_t> range = primitives[node.meshIndex.value()];
+		for (int nodeIndex = 0; nodeIndex < asset.nodes.size(); nodeIndex++) {
+			if (!asset.nodes[nodeIndex].meshIndex.has_value()) continue;
+			std::pair<uint32_t, uint32_t> range = primitives[asset.nodes[nodeIndex].meshIndex.value()];
 			for (int i = 0; i < range.second; i++) {
-				const auto& trs = std::get<fastgltf::TRS>(node.transform);
-				//primitiveMaterials[range.first + i];
+				const auto& trs = std::get<fastgltf::TRS>(asset.nodes[nodeIndex].transform);
 
-				size_t nodeIndex = static_cast<size_t>(&node - &asset.nodes[0]);
 				glm::mat4 mat = GetNodeWorldTransform(asset, nodeIndex);
 
 				glm::vec3 scale;
@@ -543,14 +541,14 @@ namespace Brisk
 
 				glm::decompose(mat, scale, rotation, translation, skew, perspective);
 
+				glm::quat orient = glm::normalize(rotation);
+
 				MeshDraw draw = {};
 				draw.position = translation;
 				draw.scale = std::max(scale[0], std::max(scale[1], scale[2]));
-				draw.orientation = glm::quat(rotation[0], rotation[1], rotation[2], rotation[3]);
+				draw.orientation = glm::vec4(orient.x, orient.y, orient.z, orient.w);
+				//draw.orientation = glm::vec4(0, 0, 0, 1);
 
-				//draw.position = glm::vec3(trs.translation[0], trs.translation[1], trs.translation[2]);
-				//draw.scale = std::max(trs.scale[0], std::max(trs.scale[1], trs.scale[2]));
-				//draw.orientation = glm::quat(trs.rotation[0], trs.rotation[1], trs.rotation[2], trs.rotation[3]);
 				draw.meshIndex = range.first + i;
 				draw.materialIndex = m_Geometry.meshes[draw.meshIndex].materialIndex;
 				draw.meshletCount = m_Geometry.meshes[draw.meshIndex].meshletCount;
@@ -561,6 +559,13 @@ namespace Brisk
 				draw.groupCountZ = 1;
 
 				m_Geometry.draws.push_back(draw);
+
+				std::cout << "MeshDraw " << (m_Geometry.draws.size() - 1) << ":\n"
+					<< "  Mesh Index: " << draw.meshIndex << "\n"
+					<< "  Translation: (" << draw.position.x << ", " << draw.position.y << ", " << draw.position.z << ")\n"
+					<< "  Scale: (" << scale.x << ", " << scale.y << ", " << scale.z << ") | Max: " << draw.scale << "\n"
+					<< "  Rotation (quat): (" << orient.x << ", " << orient.y << ", " << orient.z << ", " << orient.w << ")\n"
+					<< "----------------------------------------\n";
 			}
 		}
 

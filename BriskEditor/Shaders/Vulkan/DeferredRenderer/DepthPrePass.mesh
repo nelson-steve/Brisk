@@ -74,12 +74,13 @@ void main()
         vec3 pos    = vec3(Vertices.vertices[vi].vx, Vertices.vertices[vi].vy, Vertices.vertices[vi].vz);
         vec3 normal = vec3(Vertices.vertices[vi].nx, Vertices.vertices[vi].ny, Vertices.vertices[vi].nz);
 
-        vec4 worldPos = vec4(pos, 1.0);
-        vec3 worldPosxyz = worldPos.xyz;
+        vec3 worldPosxyz = rotateQuat(pos, draw.orientation) * draw.scale + draw.position;
+
+        //vec3 scaled = pos * draw.scale;
+        //vec3 rotated = rotateQuat(scaled, draw.orientation);
+        //vec3 worldPosxyz = rotated + draw.position;
         
-        worldPosxyz = rotateQuat(worldPosxyz, draw.orientation) * draw.scale + draw.position;
-        
-        worldPos = vec4(worldPosxyz, 1.0);
+        vec4 worldPos = vec4(worldPosxyz, 1.0);
 
         gl_MeshVerticesEXT[i].gl_Position = MVP.ProjView * worldPos;
 

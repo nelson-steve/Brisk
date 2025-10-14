@@ -30,6 +30,7 @@ struct MeshDraw
     uint meshletOffset;
 
     uint groupcount[3];
+    uint padding;
 };
 
 vec3 rotateQuat(vec3 v, vec4 q)

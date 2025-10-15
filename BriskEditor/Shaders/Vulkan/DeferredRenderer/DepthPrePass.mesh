@@ -74,11 +74,8 @@ void main()
         vec3 pos    = vec3(Vertices.vertices[vi].vx, Vertices.vertices[vi].vy, Vertices.vertices[vi].vz);
         vec3 normal = vec3(Vertices.vertices[vi].nx, Vertices.vertices[vi].ny, Vertices.vertices[vi].nz);
 
-        vec3 worldPosxyz = rotateQuat(pos, draw.orientation) * draw.scale + draw.position;
-
-        //vec3 scaled = pos * draw.scale;
-        //vec3 rotated = rotateQuat(scaled, draw.orientation);
-        //vec3 worldPosxyz = rotated + draw.position;
+        vec3 worldPosxyz = vec4(ObjectData.model * vec4(pos, 1.0)).xyz;
+        worldPosxyz = rotateQuat(worldPosxyz, draw.orientation) + draw.position;
         
         vec4 worldPos = vec4(worldPosxyz, 1.0);
 

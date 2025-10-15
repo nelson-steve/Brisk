@@ -539,7 +539,11 @@ namespace Brisk
 				glm::vec3 skew;
 				glm::vec4 perspective;
 
-				glm::decompose(mat, scale, rotation, translation, skew, perspective);
+				scale = glm::vec3(trs.scale[0], trs.scale[1], trs.scale[2]);
+				rotation = glm::quat(trs.rotation[0], trs.rotation[1], trs.rotation[2], trs.rotation[3]);
+				translation = glm::vec3(trs.translation[0], trs.translation[1], trs.translation[2]);
+
+				//glm::decompose(mat, scale, rotation, translation, skew, perspective);
 
 				glm::quat orient = rotation;
 

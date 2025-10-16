@@ -87,42 +87,35 @@ namespace Brisk
 			return glm::make_mat4x4(matrix.data());
 		}
 
+		BRISK_CORE_ERROR("Node does not have any transform");
 		return glm::mat4(1.0f);
 	}
 
-	std::vector<int> BuildParentTable(const fastgltf::Asset& asset) {
-		std::vector<int> parent(asset.nodes.size(), -1);
-		for (size_t parentIndex = 0; parentIndex < asset.nodes.size(); ++parentIndex) {
-			const auto& parentNode = asset.nodes[parentIndex];
-			for (auto childIndex : parentNode.children) {
-				parent[childIndex] = static_cast<int>(parentIndex);
+	std::optional<size_t> GetParentIndex(const fastgltf::Asset& asset, size_t child) {
+		int parentIndex = 0;
+		for (const fastgltf::Node& node : asset.nodes) {
+			for (size_t index : node.children) {
+				if (index == child)
+					return std::make_optional<size_t>(parentIndex);
 			}
+			parentIndex++;
 		}
-		return parent;
+		return std::nullopt;
 	}
 
-	glm::mat4 GetNodeWorldTransform(const fastgltf::Asset& asset, size_t nodeIndex) {
-		std::vector<int> parentOf; // cached parent relationships
-		if (parentOf.size() != asset.nodes.size()) {
-			parentOf = BuildParentTable(asset);
+	glm::mat4 GetWorldTransform(const fastgltf::Asset& asset, size_t nodeIndex) {
+		if (!GetParentIndex(asset, nodeIndex).has_value())
+			return GetNodeLocalMatrix(asset.nodes[nodeIndex]);
+
+		glm::mat4 child = GetNodeLocalMatrix(asset.nodes[nodeIndex]);
+		while (GetParentIndex(asset, nodeIndex).has_value()) {
+			glm::mat4 parent = GetNodeLocalMatrix(asset.nodes[GetParentIndex(asset, nodeIndex).value()]);
+			child = parent * child;
+
+			nodeIndex = GetParentIndex(asset, nodeIndex).value();
 		}
 
-		glm::mat4 world = glm::mat4(1.0f);
-		size_t current = nodeIndex;
-
-		// Traverse upward through the hierarchy
-		while (true) {
-			const auto& node = asset.nodes[current];
-			glm::mat4 local = GetNodeLocalMatrix(node);
-			world = local * world; // multiply in reverse order (local first)
-
-			int parent = parentOf[current];
-			if (parent == -1)
-				break; // reached root
-			current = static_cast<size_t>(parent);
-		}
-
-		return world;
+		return child;
 	}
 
 	void Scene::LoadGltfScene(const std::filesystem::path& gltfPath) {
@@ -528,29 +521,25 @@ namespace Brisk
 		for (int nodeIndex = 0; nodeIndex < asset.nodes.size(); nodeIndex++) {
 			if (!asset.nodes[nodeIndex].meshIndex.has_value()) continue;
 			std::pair<uint32_t, uint32_t> range = primitives[asset.nodes[nodeIndex].meshIndex.value()];
+
+			std::cout << "Node " << asset.nodes[nodeIndex].name << ":\n";
 			for (int i = 0; i < range.second; i++) {
 				const auto& trs = std::get<fastgltf::TRS>(asset.nodes[nodeIndex].transform);
 
-				glm::mat4 mat = GetNodeWorldTransform(asset, nodeIndex);
+				glm::mat4 mat = GetWorldTransform(asset, nodeIndex);
 
-				glm::vec3 scale;
-				glm::quat rotation;
-				glm::vec3 translation;
-				glm::vec3 skew;
-				glm::vec4 perspective;
-
-				scale = glm::vec3(trs.scale[0], trs.scale[1], trs.scale[2]);
-				rotation = glm::quat(trs.rotation[0], trs.rotation[1], trs.rotation[2], trs.rotation[3]);
-				translation = glm::vec3(trs.translation[0], trs.translation[1], trs.translation[2]);
+				float scale[3];
+				float rotation[4];
+				float translation[3];
 
 				//glm::decompose(mat, scale, rotation, translation, skew, perspective);
 
-				glm::quat orient = rotation;
+				decomposeTransform(translation, rotation, scale, glm::value_ptr(mat));
 
 				MeshDraw draw = {};
-				draw.position = translation;
+				draw.position = glm::vec3(translation[0], translation[1], translation[2]);
 				draw.scale = std::max(scale[0], std::max(scale[1], scale[2]));
-				draw.orientation = glm::vec4(orient.x, orient.y, orient.z, orient.w);
+				draw.orientation = glm::vec4(rotation[0], rotation[1], rotation[2], rotation[3]);
 
 				draw.meshIndex = range.first + i;
 				draw.materialIndex = m_Geometry.meshes[draw.meshIndex].materialIndex;
@@ -566,8 +555,8 @@ namespace Brisk
 				std::cout << "MeshDraw " << (m_Geometry.draws.size() - 1) << ":\n"
 					<< "  Mesh Index: " << draw.meshIndex << "\n"
 					<< "  Translation: (" << draw.position.x << ", " << draw.position.y << ", " << draw.position.z << ")\n"
-					<< "  Scale: (" << scale.x << ", " << scale.y << ", " << scale.z << ") | Max: " << draw.scale << "\n"
-					<< "  Rotation (quat): (" << orient.x << ", " << orient.y << ", " << orient.z << ", " << orient.w << ")\n"
+					<< "  Scale: (" << draw.scale << ")\n"
+					<< "  Rotation (quat): (" << draw.orientation.x << ", " << draw.orientation.y << ", " << draw.orientation.z << ", " << draw.orientation.w << ")\n"
 					<< "----------------------------------------\n";
 			}
 		}

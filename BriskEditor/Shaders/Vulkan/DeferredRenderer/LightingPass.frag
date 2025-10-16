@@ -1,5 +1,7 @@
 #version 450
 
+#define PI 3.14159265359
+
 #include "../config.hpp"
 
 layout(location = 0) in vec2 uv;
@@ -77,7 +79,6 @@ vec3 applyDirectionalLight(vec3 fragPos, vec3 normal) {
     return dirLightColor * dirLightIntensity * NdotL;
 }
 
-
 uint computeClusterIndex(vec3 fragPosView) {
     vec2 fragCoord = gl_FragCoord.xy;
     uvec2 screenSize = uvec2(textureSize(sampler_Position, 0));
@@ -140,15 +141,102 @@ float computeShadow(vec3 worldPos, mat4 viewMatrix) {
     return sampleShadow(cascadeIndex, shadowCoord);
 }
 
-// --- Main ---
+// Trowbridge-Reitz / GGX
+float DGGX(float NdotH, float roughness) {
+    float a2 = roughness * roughness;
+    float a2_ = a2 * a2;
+    float denom = (NdotH * NdotH) * (a2_ - 1.0) + 1.0;
+    return a2_ / (PI * denom * denom);
+}
+
+// Schlick-GGX (Smith)
+float GSchlickGGX(float NdotV, float k) {
+    return NdotV / (NdotV * (1.0 - k) + k);
+}
+
+float GSmith(float NdotV, float NdotL, float roughness) {
+    float r = roughness + 1.0;
+    float k = (r * r) / 8.0;
+    return GSchlickGGX(NdotV, k) * GSchlickGGX(NdotL, k);
+}
+
+// Schlick approximation
+vec3 FSchlick(vec3 F0, float cosTheta) {
+    return F0 + (1.0 - F0) * pow(1.0 - cosTheta, 5.0);
+}
+
+vec3 CookTorranceSpecular(vec3 N, vec3 V, vec3 L, float roughness, vec3 F0) {
+    vec3 H = normalize(V + L);
+    float NdotL = max(dot(N, L), 0.0);
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotH = max(dot(N, H), 0.0);
+    float VdotH = max(dot(V, H), 0.0);
+
+    float D = DGGX(NdotH, roughness);
+    float G = GSmith(NdotV, NdotL, roughness);
+    vec3 F = FSchlick(F0, VdotH);
+
+    vec3 numerator = D * G * F;
+    float denom = 4.0 * NdotV * NdotL + 1e-5;
+    return numerator / denom;
+}
+
+vec3 DiffuseLambert(vec3 albedo) {
+    return albedo / PI;
+}
+
+vec3 evaluateLight(
+    vec3 albedo,
+    float metallic,
+    float roughness,
+    vec3 N,
+    vec3 V,
+    vec3 L,
+    vec3 radiance,
+    float ao
+) {
+    vec3 H = normalize(V + L);
+    float NdotL = max(dot(N, L), 0.0);
+    float NdotV = max(dot(N, V), 0.0);
+    float NdotH = max(dot(N, H), 0.0);
+    float VdotH = max(dot(V, H), 0.0);
+
+    // Fresnel F0
+    vec3 F0 = mix(vec3(0.04), albedo, metallic);
+
+    // Cook-Torrance
+    float D = DGGX(NdotH, roughness);
+    float G = GSmith(NdotV, NdotL, roughness);
+    vec3 F = FSchlick(F0, VdotH);
+
+    vec3 specNumer = D * G * F;
+    float denom = max(4.0 * NdotV * NdotL, 1e-6);
+    vec3 spec = specNumer / denom;
+
+    // Energy-conserving diffuse
+    vec3 kS = F;
+    vec3 kD = (vec3(1.0) - kS) * (1.0 - metallic);
+    vec3 diffuse = kD * (albedo / PI);
+
+    // final contribution from this light
+    return (diffuse + spec) * radiance * NdotL;
+}
+
 void main() {
-    vec3 fragPos = texture(sampler_Position, uv).rgb;
-    vec3 normal = normalize(texture(sampler_Normal, uv).rgb);
     vec3 albedo = texture(sampler_Albedo, uv).rgb;
     float alpha = texture(sampler_Albedo, uv).a;
+    vec4 mat = texture(sampler_Material, uv); // Occlusion Roughness Metallic
+    float ao = mat.r;
+    float roughness = mat.g;
+    float metallic = mat.b;
+    vec3 N = normalize(texture(sampler_Normal, uv).xyz);
     vec3 emissive = texture(sampler_Emissive, uv).rgb;
+    vec3 fragPos = texture(sampler_Position, uv).rgb;
 
     vec3 fragPosView = vec3(MVP.View * vec4(fragPos, 1.0));
+    vec3 V = normalize(MVP.CamPos - fragPos);
+    vec3 accum = vec3(0.0);
+
     uint clusterIdx = computeClusterIndex(fragPosView);
 
     // Fetch light indices
@@ -156,29 +244,30 @@ void main() {
     uint offset = offsetCount.x;
     uint count = offsetCount.y;
 
-    vec3 litColor = vec3(0.0);
     for (uint i = 0; i < count; ++i) {
         uint lightIdx = LightIndices.lightIndexList[offset + i];
-        litColor += applyLight(fragPos, normal, lightIdx);
+        vec3 lightPos = LightsList.lights[lightIdx].position.xyz;
+        float radius = LightsList.lights[lightIdx].position.w;
+        vec3 lightColor = LightsList.lights[lightIdx].color.rgb;
+        float intensity = LightsList.lights[lightIdx].color.w;
+
+        vec3 toLight = lightPos - fragPos;
+        float dist = length(toLight);
+        vec3 L = normalize(toLight);
+
+        float att = clamp(1.0 - dist/radius, 0.0, 1.0);
+        vec3 radiance = lightColor * intensity * att;
+
+        accum += evaluateLight(albedo, metallic, roughness, N, V, L, radiance, ao);
     }
 
     float shadow = computeShadow(fragPos, MVP.View);
-    litColor *= shadow;
 
-    vec3 ambient = 0.3 * albedo;
-    vec3 finalColor = ambient + litColor * albedo + emissive;
+    vec3 ambient = vec3(0.03);
+    ambient = ambient * albedo * ao;
+    vec3 finalColor = ambient + accum + emissive;
 
-    outColor = vec4(albedo, 1.0);
-
-    // Visualize number of lights in this tile
-    // float brightness = float(count) / float(MAX_LIGHTS_PER_CLUSTER);
-    // outColor = vec4(vec3(brightness), 1.0);
-
-    // Debug: visualize tile index as color
-    //vec3 debugColor = vec3(
-    //    float(xSlice) / float(NUM_CLUSTERS_X),
-    //    float(ySlice) / float(NUM_CLUSTERS_Y),
-    //    float(zSlice) / float(NUM_CLUSTERS_Z)
-    //);
-    //outColor = vec4(debugColor, 1.0);
+    finalColor = finalColor / (finalColor + vec3(1.0));
+    //finalColor = pow(finalColor, vec3(1.0/2.2)); // gamma
+    outColor = vec4(finalColor, 1.0);
 }

@@ -14,7 +14,7 @@ layout(location = 3) flat in uint drawId;
 layout(location = 0) out vec4 outPosition;
 layout(location = 1) out vec4 outNormal;
 layout(location = 2) out vec4 outAlbedo;
-layout(location = 3) out vec4 outMaterial;
+layout(location = 3) out vec4 outMaterial; // Occlusion Roughness Metallic
 layout(location = 4) out vec4 outEmissive;
 
 layout(set = 1, binding = 0) uniform sampler2D GlobalTextures[];
@@ -94,5 +94,5 @@ void main() {
 
     outNormal = vec4(normalize(normal), 1.0);
     outAlbedo = baseColor;
-    outMaterial = vec4(metallic, roughness, occlusion, 1.0);
+    outMaterial = vec4(occlusion, roughness, metallic, 1.0);
 }

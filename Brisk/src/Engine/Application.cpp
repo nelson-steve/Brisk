@@ -16,14 +16,14 @@ namespace Brisk
 	std::shared_ptr<Renderer> Application::m_Renderer;
 	std::shared_ptr<Camera> Application::m_EditorCamera;
 
-	void Application::GenerateRandomLights(uint32_t count, float range) {
+	void Application::GenerateRandomLights(uint32_t count, float range, float radiusMin, float radiusMax, float colorMin, float colorMax, float intensityMin, float intensityMax) {
 		std::random_device rd;
 		std::mt19937 rng(rd());
 
 		std::uniform_real_distribution<float> posDist(-range, range);
-		std::uniform_real_distribution<float> radiusDist(50.0f, 100.0f); // light radius
-		std::uniform_real_distribution<float> colorDist(0.5f, 1.0f);  // bright colors
-		std::uniform_real_distribution<float> intensityDist(1.0f, 5.0f); // intensity
+		std::uniform_real_distribution<float> radiusDist(radiusMin, radiusMax); // light radius
+		std::uniform_real_distribution<float> colorDist(colorMin, colorMax);  // bright colors
+		std::uniform_real_distribution<float> intensityDist(intensityMin, intensityMax); // intensity
 
 		for (uint32_t i = 0; i < count; ++i) {
 			glm::vec3 pos = glm::vec3(posDist(rng), posDist(rng), posDist(rng));
@@ -74,7 +74,14 @@ namespace Brisk
 		DirectionalLightComponent& lc = lightEntity.AddComponent<DirectionalLightComponent>();
 		lc.Direction = glm::vec3(0.0f, -1.0f, 0.0f);
 
-		GenerateRandomLights(MAX_LIGHTS, 800);
+		uint32_t range = 10;
+		float radiusMin = 0.8f;
+		float radiusMax = 3.0f;
+		float colorMin = 0.5f;
+		float colorMax = 1.0f;
+		float intensityMin = 3.0f;
+		float intensityMax = 5.0f;
+		GenerateRandomLights(MAX_LIGHTS, range, radiusMin, radiusMax, colorMin, colorMax, intensityMin, intensityMax);
 
 		m_Renderer = Renderer::Create();
 		m_Renderer->Init();
@@ -82,7 +89,7 @@ namespace Brisk
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);
 
-		m_SceneManager->pActiveScene->LoadGltfScene(paths[10]);
+		m_SceneManager->pActiveScene->LoadGltfScene(paths[2]);
 	}
 
 	void Application::OnEvent(Event &event) {

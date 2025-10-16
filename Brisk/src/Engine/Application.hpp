@@ -35,7 +35,7 @@ namespace Brisk
 			return std::static_pointer_cast<WindowsWindow>(m_Window);
 		}
 
-		void GenerateRandomLights(uint32_t count, float range = 10.0f);
+		void GenerateRandomLights(uint32_t count, float range, float radiusMin, float radiusMax, float colorMin, float colorMax, float intensityMin, float intensityMax);
 
 		static ImGuiLayer* GetGuiLayer() { return m_ImGuiLayer; }
 		static const std::shared_ptr<GpuAdapter> GetGpuAdapter() { return m_Adapter; }

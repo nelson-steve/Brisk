@@ -66,7 +66,7 @@ void main()
 	bool shortRefs = uint(Meshlets.meshlets[mi].shortRefs) == 1;
 	uint vertexOffset = dataOffset;
 	uint indexOffset = dataOffset + (shortRefs ? (vertexCount + 1) / 2 : vertexCount);    
-
+ 
     for (uint i = ti; i < vertexCount; i += MESH_WGSIZE)
     {
 		uint vi = shortRefs ? uint(MeshletData16.meshletData16[vertexOffset * 2 + i]) + baseVertex : MeshletData.meshletData[vertexOffset + i] + baseVertex;

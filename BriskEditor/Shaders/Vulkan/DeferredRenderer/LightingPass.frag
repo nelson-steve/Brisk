@@ -70,13 +70,10 @@ vec3 applyLight(vec3 fragPos, vec3 normal, uint lightIdx) {
     return color * intensity * attenuation * NdotL;
 }
 
-vec3 applyDirectionalLight(vec3 fragPos, vec3 normal) {
-    float dirLightIntensity = 1.0;
-    vec3 dirLightColor = vec3(1.0);
-    // vec3 dirLightDir = normalize(dirLightPos - fragPos);
-    vec3 L = normalize(-sunLightDir); // light shines along -dirLightDir
+vec3 applyDirectionalLight(vec3 normal, vec3 sunLightDir, vec3 color, float intensity) {
+    vec3 L = normalize(sunLightDir);
     float NdotL = max(dot(normal, L), 0.0);
-    return dirLightColor * dirLightIntensity * NdotL;
+    return color * intensity * NdotL;
 }
 
 uint computeClusterIndex(vec3 fragPosView) {
@@ -262,6 +259,13 @@ void main() {
     }
 
     float shadow = computeShadow(fragPos, MVP.View);
+    
+    // Sun light
+    vec3 sunColor = vec3(1.0, 0.95, 0.9);
+    float sunIntensity = 3.0;
+    vec3 LightDir = normalize(sunLightDir);
+    vec3 radiance = sunColor * sunIntensity;
+    accum += evaluateLight(albedo, metallic, roughness, N, V, LightDir, radiance, ao) * shadow;
 
     vec3 ambient = vec3(0.03);
     ambient = ambient * albedo * ao;

@@ -88,7 +88,9 @@ namespace Brisk
         for (auto& c : frustumCorners) center += glm::vec3(c);
         center /= frustumCorners.size();
 
-        glm::mat4 lightView = glm::lookAt(center - lightDir * 100.0f, center, glm::vec3(0, 1, 0));
+        float cascadeDepth = glm::length(frustumCorners[0] - frustumCorners[6]);
+        glm::mat4 lightView = glm::lookAt(center - lightDir * cascadeDepth, center, glm::vec3(0, 1, 0));
+
 
         // --- Transform corners to light space ---
         glm::vec3 min(FLT_MAX), max(-FLT_MAX);
@@ -772,6 +774,11 @@ namespace Brisk
 
         float nearClip = Application::GetCamera()->GetNearClip();
         float farClip = Application::GetCamera()->GetFarClip();
+
+        float shadowFar = 1000.0f;
+        glm::mat4 finiteProj = glm::perspectiveZO(glm::radians(45.0f), 1.778f, 1.0f, shadowFar);
+        finiteProj[1][1] *= -1.0f;
+
         glm::mat4 cameraProj = Application::GetCamera()->GetProjection();
         glm::mat4 cameraView = Application::GetCamera()->GetViewMatrix();
         lightDir = glm::normalize(glm::vec3(-0.3f, -1.0f, -0.5f));
@@ -888,10 +895,10 @@ namespace Brisk
 
             glm::mat4 matrix = lightMatrix;
             m_ShadowMapPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-
             m_ShadowMapPipeline->Bind(m_CmdBuffer);
-
-            RenderCommand::DrawMeshTasks(m_CmdBuffer, Scene::m_Geometry.meshlets.size());
+            RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer,
+                Scene::m_DrawsBuffer,
+                offsetof(MeshDraw, MeshDraw::groupCountX), Scene::m_Geometry.draws.size(), sizeof(MeshDraw));
 
             m_CSMShadowMapPass->End(m_CmdBuffer);
         }

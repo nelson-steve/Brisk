@@ -38,7 +38,6 @@ namespace Brisk
 		/// Stores basic information about the engine
 		/// </summary>
 		static EngineSettings s_EngineSettings;
-
 		static uint32_t s_TexturesOffset;
 	};
 }

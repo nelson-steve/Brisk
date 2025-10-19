@@ -12,98 +12,211 @@
 
 namespace Brisk
 {
+    float farPlane = 1000.0f;
+    std::vector<float> shadowCascadeLevels{ farPlane / 50.0f, farPlane / 25.0f, farPlane / 10.0f, farPlane / 2.0f };
+
     std::shared_ptr<Swapchain> Renderer::m_Swapchain;
 
-    std::vector<glm::vec4> GetFrustumCornersWorld(
-        const glm::mat4& proj,
-        const glm::mat4& view,
-        float splitNear,
-        float splitFar)
+    //std::vector<glm::vec4> GetFrustumCornersWorld(
+    //    const glm::mat4& proj,
+    //    const glm::mat4& view,
+    //    float splitNear,
+    //    float splitFar)
+    //{
+    //    std::vector<glm::vec4> corners;
+    //    corners.reserve(8);
+
+    //    // We'll override the near/far planes of the projection
+    //    glm::mat4 projCopy = proj;
+
+    //    // This assumes a perspective matrix created with glm::perspective
+    //    float fovy = 2.0f * atan(1.0f / proj[1][1]);
+    //    float aspect = proj[1][1] / proj[0][0];
+
+    //    projCopy = glm::perspectiveZO(fovy, aspect, splitNear, splitFar);
+    //    projCopy[1][1] *= -1.0f;
+
+    //    // Inverse of (proj * view) gives NDC -> world
+    //    glm::mat4 inv = glm::inverse(projCopy * view);
+
+    //    // 8 corners of the clip space cube
+    //    std::vector<glm::vec4> ndcCorners = {
+    //        {-1, -1, -1, 1},
+    //        { 1, -1, -1, 1},
+    //        { 1,  1, -1, 1},
+    //        {-1,  1, -1, 1},
+    //        {-1, -1,  1, 1},
+    //        { 1, -1,  1, 1},
+    //        { 1,  1,  1, 1},
+    //        {-1,  1,  1, 1}
+    //    };
+
+    //    for (auto& c : ndcCorners) {
+    //        glm::vec4 world = inv * c;
+    //        world /= world.w;
+    //        corners.push_back(world);
+    //    }
+
+    //    return corners;
+    //}
+
+    //glm::mat4 CalculateCascadeMatrix(
+    //    int cascadeIndex, int cascadeCount,
+    //    float nearPlane, float farPlane,
+    //    float lambda,
+    //    const glm::mat4& cameraProj, const glm::mat4& cameraView,
+    //    const glm::vec3& lightDir)
+    //{
+    //    // --- Split depth (cascade range) ---
+    //    float n = nearPlane;
+    //    float f = farPlane;
+
+    //    float si = (float)cascadeIndex / cascadeCount;
+    //    float si1 = (float)(cascadeIndex + 1) / cascadeCount;
+
+    //    float logSplitNear = n * pow(f / n, si);
+    //    float logSplitFar = n * pow(f / n, si1);
+
+    //    float uniSplitNear = n + (f - n) * si;
+    //    float uniSplitFar = n + (f - n) * si1;
+
+    //    float splitNear = lambda * logSplitNear + (1.0f - lambda) * uniSplitNear;
+    //    float splitFar = lambda * logSplitFar + (1.0f - lambda) * uniSplitFar;
+
+    //    // --- Get frustum corners in world space ---
+    //    std::vector<glm::vec4> frustumCorners = GetFrustumCornersWorld(cameraProj, cameraView, splitNear, splitFar);
+
+    //    // --- Light view ---
+    //    glm::vec3 center(0.0f);
+    //    for (auto& c : frustumCorners) center += glm::vec3(c);
+    //    center /= frustumCorners.size();
+
+    //    float cascadeDepth = glm::length(frustumCorners[0] - frustumCorners[6]);
+    //    glm::mat4 lightView = glm::lookAt(center - lightDir * cascadeDepth, center, glm::vec3(0, 1, 0));
+
+
+    //    // --- Transform corners to light space ---
+    //    glm::vec3 min(FLT_MAX), max(-FLT_MAX);
+    //    for (auto& c : frustumCorners) {
+    //        glm::vec4 tr = lightView * c;
+    //        min = glm::min(min, glm::vec3(tr));
+    //        max = glm::max(max, glm::vec3(tr));
+    //    }
+
+    //    glm::mat4 lightProj = glm::orthoZO(min.x, max.x, min.y, max.y, min.z, max.z);
+    //    lightProj[1][1] *= -1.0f;
+
+    //    return lightProj * lightView;
+    //}
+
+    std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& projview)
     {
-        std::vector<glm::vec4> corners;
-        corners.reserve(8);
+        const auto inv = glm::inverse(projview);
 
-        // We'll override the near/far planes of the projection
-        glm::mat4 projCopy = proj;
-
-        // This assumes a perspective matrix created with glm::perspective
-        float fovy = 2.0f * atan(1.0f / proj[1][1]);
-        float aspect = proj[1][1] / proj[0][0];
-
-        projCopy = glm::perspectiveZO(fovy, aspect, splitNear, splitFar);
-        projCopy[1][1] *= -1.0f;
-
-        // Inverse of (proj * view) gives NDC -> world
-        glm::mat4 inv = glm::inverse(projCopy * view);
-
-        // 8 corners of the clip space cube
-        std::vector<glm::vec4> ndcCorners = {
-            {-1, -1, -1, 1},
-            { 1, -1, -1, 1},
-            { 1,  1, -1, 1},
-            {-1,  1, -1, 1},
-            {-1, -1,  1, 1},
-            { 1, -1,  1, 1},
-            { 1,  1,  1, 1},
-            {-1,  1,  1, 1}
-        };
-
-        for (auto& c : ndcCorners) {
-            glm::vec4 world = inv * c;
-            world /= world.w;
-            corners.push_back(world);
+        std::vector<glm::vec4> frustumCorners;
+        for (unsigned int x = 0; x < 2; ++x)
+        {
+            for (unsigned int y = 0; y < 2; ++y)
+            {
+                for (unsigned int z = 0; z < 2; ++z)
+                {
+                    const glm::vec4 pt = inv * glm::vec4(2.0f * x - 1.0f, 2.0f * y - 1.0f, z, 1.0f);
+                    frustumCorners.push_back(pt / pt.w);
+                }
+            }
         }
 
-        return corners;
+        return frustumCorners;
     }
 
-    glm::mat4 CalculateCascadeMatrix(
-        int cascadeIndex, int cascadeCount,
-        float nearPlane, float farPlane,
-        float lambda,
-        const glm::mat4& cameraProj, const glm::mat4& cameraView,
-        const glm::vec3& lightDir)
+    std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view)
     {
-        // --- Split depth (cascade range) ---
-        float n = nearPlane;
-        float f = farPlane;
+        return getFrustumCornersWorldSpace(proj * view);
+    }
 
-        float si = (float)cascadeIndex / cascadeCount;
-        float si1 = (float)(cascadeIndex + 1) / cascadeCount;
+    bool onlyOnce = true;
+    glm::mat4 proj;
+    glm::mat4 view;
+    glm::mat4 getLightSpaceMatrix(const float nearPlane, const float farPlane, glm::vec3 lightDir)
+    {
+        auto proj = glm::perspectiveZO(
+            glm::radians(45.0f), (float)1920 / (float)1080, nearPlane,
+            farPlane);
+        proj[1][1] *= -1.0f;
+        view = Application::GetCamera()->GetViewMatrix();
+        onlyOnce = false;
 
-        float logSplitNear = n * pow(f / n, si);
-        float logSplitFar = n * pow(f / n, si1);
+        const auto corners = getFrustumCornersWorldSpace(proj, view);
 
-        float uniSplitNear = n + (f - n) * si;
-        float uniSplitFar = n + (f - n) * si1;
+        glm::vec3 center = glm::vec3(0, 0, 0);
+        for (const auto& v : corners)
+        {
+            center += glm::vec3(v);
+        }
+        center /= corners.size();
 
-        float splitNear = lambda * logSplitNear + (1.0f - lambda) * uniSplitNear;
-        float splitFar = lambda * logSplitFar + (1.0f - lambda) * uniSplitFar;
+        const auto lightView = glm::lookAt(center + lightDir, center, glm::vec3(0.0f, 1.0f, 0.0f));
 
-        // --- Get frustum corners in world space ---
-        std::vector<glm::vec4> frustumCorners = GetFrustumCornersWorld(cameraProj, cameraView, splitNear, splitFar);
-
-        // --- Light view ---
-        glm::vec3 center(0.0f);
-        for (auto& c : frustumCorners) center += glm::vec3(c);
-        center /= frustumCorners.size();
-
-        float cascadeDepth = glm::length(frustumCorners[0] - frustumCorners[6]);
-        glm::mat4 lightView = glm::lookAt(center - lightDir * cascadeDepth, center, glm::vec3(0, 1, 0));
-
-
-        // --- Transform corners to light space ---
-        glm::vec3 min(FLT_MAX), max(-FLT_MAX);
-        for (auto& c : frustumCorners) {
-            glm::vec4 tr = lightView * c;
-            min = glm::min(min, glm::vec3(tr));
-            max = glm::max(max, glm::vec3(tr));
+        float minX = std::numeric_limits<float>::max();
+        float maxX = std::numeric_limits<float>::lowest();
+        float minY = std::numeric_limits<float>::max();
+        float maxY = std::numeric_limits<float>::lowest();
+        float minZ = std::numeric_limits<float>::max();
+        float maxZ = std::numeric_limits<float>::lowest();
+        for (const auto& v : corners)
+        {
+            const auto trf = lightView * v;
+            minX = std::min(minX, trf.x);
+            maxX = std::max(maxX, trf.x);
+            minY = std::min(minY, trf.y);
+            maxY = std::max(maxY, trf.y);
+            minZ = std::min(minZ, trf.z);
+            maxZ = std::max(maxZ, trf.z);
         }
 
-        glm::mat4 lightProj = glm::orthoZO(min.x, max.x, min.y, max.y, min.z, max.z);
-        lightProj[1][1] *= -1.0f;
+        // Tune this parameter according to the scene
+        constexpr float zMult = 30.0f;
+        if (minZ < 0)
+        {
+            minZ *= zMult;
+        }
+        else
+        {
+            minZ /= zMult;
+        }
+        if (maxZ < 0)
+        {
+            maxZ /= zMult;
+        }
+        else
+        {
+            maxZ *= zMult;
+        }
 
-        return lightProj * lightView;
+        glm::mat4 lightProjection = glm::orthoZO(minX, maxX, minY, maxY, minZ, maxZ);
+        lightProjection[1][1] *= -1.0f;
+        return lightProjection * lightView;
+    }
+
+    std::vector<glm::mat4> getLightSpaceMatrices(glm::vec3 lightDir)
+    {
+        std::vector<glm::mat4> ret;
+        for (size_t i = 0; i < shadowCascadeLevels.size(); ++i)
+        {
+            if (i == 0)
+            {
+                ret.push_back(getLightSpaceMatrix(1.0f, shadowCascadeLevels[i], lightDir));
+            }
+            else if (i < shadowCascadeLevels.size() - 1)
+            {
+                ret.push_back(getLightSpaceMatrix(shadowCascadeLevels[i - 1], shadowCascadeLevels[i], lightDir));
+            }
+            else
+            {
+                ret.push_back(getLightSpaceMatrix(shadowCascadeLevels[i - 1], farPlane, lightDir));
+            }
+        }
+        return ret;
     }
 
     void Renderer::Init()
@@ -791,24 +904,26 @@ namespace Brisk
             lightDir = lc.Direction;
         }
 
-        for (int i = 0; i < NUM_CASCADES; i++) {
-            glm::mat4 lightMatrix = CalculateCascadeMatrix(
-                i, NUM_CASCADES,
-                nearClip, farClip,
-                lambda,
-                cameraProj, cameraView,
-                lightDir
-            );
+        //for (int i = 0; i < NUM_CASCADES; i++) {
+        //    glm::mat4 lightMatrix = CalculateCascadeMatrix(
+        //        i, NUM_CASCADES,
+        //        nearClip, farClip,
+        //        lambda,
+        //        cameraProj, cameraView,
+        //        lightDir
+        //    );
 
-            m_SunMatrices[i] = lightMatrix;
-        }
+        //    m_SunMatrices[i] = lightMatrix;
+        //}
+
+        m_SunMatrices = getLightSpaceMatrices(glm::normalize(lightDir));
 
         ShadowData shadowData{};
         shadowData.lightSpaceMatrices[0] = m_SunMatrices[0];
         shadowData.lightSpaceMatrices[1] = m_SunMatrices[1];
         shadowData.lightSpaceMatrices[2] = m_SunMatrices[2];
         shadowData.lightSpaceMatrices[3] = m_SunMatrices[3];
-        shadowData.cascadeSplits = glm::vec4(76, 172, 349, 1000);
+        shadowData.cascadeSplits = glm::vec4(shadowCascadeLevels[0], shadowCascadeLevels[1], shadowCascadeLevels[2], shadowCascadeLevels[3]);
         m_ShadowDataBuffer->UpdatePersistantData(sizeof(ShadowData), &shadowData);
 
         m_ClusterFence->Wait();

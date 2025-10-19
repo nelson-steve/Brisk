@@ -203,6 +203,8 @@ namespace Brisk
 		std::vector<std::pair<uint32_t, uint32_t>> primitives;
 		std::vector<uint32_t> primitiveMaterials;
 
+		size_t firstMeshOffset = m_Geometry.meshes.size();
+
 		for (const auto& gltfMesh : asset.meshes) {
 
 			size_t meshOffset = m_Geometry.meshes.size();
@@ -508,7 +510,7 @@ namespace Brisk
 
 					m_Geometry.meshlets.push_back(m);
 				}
-				mesh.materialIndex = it->materialIndex.value();
+				mesh.materialIndex = it->materialIndex.value() + m_Materials.size();
 				mesh.meshletCount = uint32_t(meshlets.size());
 				mesh.meshletOffset = uint32_t(m_Geometry.meshlets.size() - meshlets.size());
 
@@ -622,7 +624,7 @@ namespace Brisk
 		meshletBufferDesc.p_AllowSRV = true;
 		m_MeshletsBuffer->Init(meshletBufferDesc);
 
-		uint32_t texturesOffset = Engine::s_TexturesOffset + 1;
+		uint32_t texturesOffset = Engine::s_TexturesOffset;
 
 		m_Materials.reserve(asset.materials.size());
 		for (const auto& material : asset.materials) {
@@ -765,14 +767,6 @@ namespace Brisk
 		m_MaterialStorageBuffer->Init(materialsBufferDesc);
 
 		for (const auto& tex : asset.textures) {
-			if (m_Textures.size() == 0) {
-				const fastgltf::Image& image = asset.images[0];
-
-				std::shared_ptr<Texture> texture = Texture::Create();
-				texture->Init(image, asset);
-				m_Textures.push_back(texture);
-			}
-
 			const fastgltf::Image& image = asset.images[tex.imageIndex.value()];
 
 			std::shared_ptr<Texture> texture = Texture::Create();

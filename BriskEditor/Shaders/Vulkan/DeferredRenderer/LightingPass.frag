@@ -108,10 +108,11 @@ int chooseCascade(vec3 worldPos, mat4 viewMatrix) {
 
 vec3 projectToShadowMap(vec3 worldPos, int cascadeIndex) {
     vec4 lightSpacePos = u_Shadow.lightSpaceMatrices[cascadeIndex] * vec4(worldPos, 1.0);
-    // Perspective divide
     lightSpacePos.xyz /= lightSpacePos.w;
-    // Convert from [-1,1] NDC to [0,1] UV
-    return lightSpacePos.xyz * 0.5 + 0.5;
+    // Vulkan NDC Y is flipped
+    vec3 ndc = lightSpacePos.xyz * 0.5 + 0.5;
+    ndc.y = 1.0 - ndc.y;
+    return ndc;
 }
 
 float sampleShadow(int cascadeIndex, vec3 shadowCoord) {
@@ -133,7 +134,16 @@ float sampleShadow(int cascadeIndex, vec3 shadowCoord) {
 }
 
 float computeShadow(vec3 worldPos, mat4 viewMatrix) {
-    int cascadeIndex = chooseCascade(worldPos, viewMatrix);
+    int cascadeIndex = NUM_CASCADES - 1; // farthest cascade
+    vec4 viewPos = viewMatrix * vec4(worldPos, 1.0);
+    float depth = -viewPos.z; // camera looks along -Z
+    for (int i = 0; i < NUM_CASCADES; i++) {
+        if (depth < u_Shadow.cascadeSplits[i]) {
+            cascadeIndex =  i;
+            break;
+        }
+    }
+
     vec3 shadowCoord = projectToShadowMap(worldPos, cascadeIndex);
     return sampleShadow(cascadeIndex, shadowCoord);
 }
@@ -273,5 +283,23 @@ void main() {
 
     finalColor = finalColor / (finalColor + vec3(1.0));
     //finalColor = pow(finalColor, vec3(1.0/2.2)); // gamma
+
+    float depth = -fragPosView.z;
+
+    // Determine which cascade this pixel belongs to
+    int cascadeIndex = 0;
+    for (int i = 0; i < 3; i++) {
+        if (depth > u_Shadow.cascadeSplits[i])
+            cascadeIndex++;
+    }
+
+    vec3 cascadeColors[4] = vec3[4](
+        vec3(1.0, 0.0, 0.0), // red
+        vec3(0.0, 1.0, 0.0), // green
+        vec3(0.0, 0.0, 1.0), // blue
+        vec3(1.0, 1.0, 0.0)  // yellow
+    );
+
+    //outColor = vec4(cascadeColors[cascadeIndex] * finalColor, 1.0);
     outColor = vec4(finalColor, 1.0);
 }

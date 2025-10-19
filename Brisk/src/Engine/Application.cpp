@@ -68,6 +68,10 @@ namespace Brisk
 			/* 8 */"../Data/Models/cerberus/cerberus.gltf",
 			/* 9 */"../Data/Models/lamborghini_temerario_gt3_2026/scene.gltf",
 			/* 10 */"../Data/Models/Sketchfab_Scene/Sketchfab_Scene.gltf",
+			/* 11 */"../Data/Models/beautiful_city/scene.gltf",
+			/* 12 */"../Data/Models/futuristic_muscle_car_launch_control_ready/scene.gltf",
+			/* 13 */"../Data/Models/mecha_ramen_high_poly/scene.gltf",
+			/* 14 */"../Data/Models/modural_robot_mecha_chimera_dyan_high-poly_mesh/scene.gltf",
 		};
 
 		Entity lightEntity = m_SceneManager->pActiveScene->CreateEntity("Sun Light");
@@ -90,6 +94,7 @@ namespace Brisk
 		PushOverlay(m_ImGuiLayer);
 
 		m_SceneManager->pActiveScene->LoadGltfScene(paths[2]);
+		m_SceneManager->pActiveScene->LoadGltfScene(paths[3]);
 	}
 
 	void Application::OnEvent(Event &event) {
@@ -99,8 +104,6 @@ namespace Brisk
 		dispatcher.Dispatch<WindowResizeEvent>(BIND_EVENT_FN(Application::OnWindowResize));
 		dispatcher.Dispatch<MouseMovedEvent>(BIND_EVENT_FN(Application::OnMouseMoved));
 		dispatcher.Dispatch<MouseScrolledEvent>(BIND_EVENT_FN(Application::OnMouseScrolled));
-
-
 	}
 
 	void Application::Run() {

@@ -71,7 +71,6 @@ namespace Brisk
 		void RenderScene(float deltaTime);
 
 		void AddGlobalTexture(std::vector<std::shared_ptr<Texture>> textures) {
-			m_GlobalTextures.insert(m_GlobalTextures.end(), textures.begin(), textures.end());
 			m_GBufferPipeline->UpdateResources("GlobalTextures", textures, nullptr);
 		}
 
@@ -167,7 +166,5 @@ namespace Brisk
 		std::shared_ptr<CommandBuffer> m_ClusteredCmdBuffer;
 		RenderCommand m_RenderCommand;
 		uint32_t m_ImageIndex;
-
-		std::vector<std::shared_ptr<Texture>> m_GlobalTextures;
 	};
 }

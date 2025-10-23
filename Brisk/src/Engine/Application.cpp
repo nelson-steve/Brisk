@@ -95,6 +95,9 @@ namespace Brisk
 
 		m_SceneManager->pActiveScene->LoadGltfScene(paths[2]);
 		m_SceneManager->pActiveScene->LoadGltfScene(paths[3]);
+		//m_SceneManager->pActiveScene->LoadGltfScene(paths[12]);
+		//m_SceneManager->pActiveScene->LoadGltfScene(paths[13]);
+		//m_SceneManager->pActiveScene->LoadGltfScene(paths[14]);
 	}
 
 	void Application::OnEvent(Event &event) {

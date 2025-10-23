@@ -10,22 +10,24 @@ namespace Brisk
     void MaterialPanel::OnUpdate() {
         ImGui::Begin("Material");
 
-        SceneManager::pActiveScene->Reg().get<TransformComponent>(SceneManager::pActiveScene->GetSelectedEntity());
+        //SceneManager::pActiveScene->Reg().get<TransformComponent>(SceneManager::pActiveScene->GetSelectedEntity());
 
         Entity entity = { SceneManager::pActiveScene->GetSelectedEntity(), SceneManager::pActiveScene.get() };
         if (entity.HasComponent<MeshComponent>()) {
-            //for (auto& primitive : entity.GetComponent<MeshComponent>().p_Mesh->m_Meshes[entity.GetComponent<MeshComponent>().p_SubMeshIndex].primitives) {
-            //    ImGui::SliderFloat("AlphaCutOff", &entity.GetComponent<MeshComponent>().p_Mesh->m_Materials[primitive.materialIndex].alphaCutoff, 0.0f, 1.0f);
-            //    ImGui::SliderFloat("MetallicFactor", &entity.GetComponent<MeshComponent>().p_Mesh->m_Materials[primitive.materialIndex].metallicFactor, 0.0f, 1.0f);
-            //    ImGui::SliderFloat("RoughnessFactor", &entity.GetComponent<MeshComponent>().p_Mesh->m_Materials[primitive.materialIndex].roughnessFactor, 0.0f, 1.0f);
+            for (int i = 0; i < entity.GetComponent<MeshComponent>().p_SubMeshIndices.size(); i++) {
+                ImGui::PushID(i);
+                uint32_t matIndex = SceneManager::pActiveScene->m_Geometry.meshes[i].materialIndex;
 
-            //    ImGui::SliderFloat("IOR", &entity.GetComponent<MeshComponent>().p_Mesh->m_Materials[primitive.materialIndex].ior, 0.0f, 1.0f);
-            //    ImGui::SliderFloat("Dispersion", &entity.GetComponent<MeshComponent>().p_Mesh->m_Materials[primitive.materialIndex].dispersion, 0.0f, 1.0f);
-            //    ImGui::SliderInt("DoubleSided", &entity.GetComponent<MeshComponent>().p_Mesh->m_Materials[primitive.materialIndex].doubleSided, 0.0f, 1.0f);
-            //    ImGui::SliderInt("Unlit", &entity.GetComponent<MeshComponent>().p_Mesh->m_Materials[primitive.materialIndex].unlit, 0.0f, 1.0f);
+                if (ImGui::CollapsingHeader(("Material " + std::to_string(matIndex)).c_str())) {
+                    ImGui::SliderFloat("AlphaCutOff", &SceneManager::pActiveScene->m_Materials[matIndex].alphaCutoff, 0.0f, 1.0f);
+                    ImGui::SliderFloat("MetallicFactor", &SceneManager::pActiveScene->m_Materials[matIndex].metallicFactor, 0.0f, 1.0f);
+                    ImGui::SliderFloat("RoughnessFactor", &SceneManager::pActiveScene->m_Materials[matIndex].roughnessFactor, 0.0f, 1.0f);
+                    ImGui::SliderFloat("EmissiveStrength", &SceneManager::pActiveScene->m_Materials[matIndex].emissiveStrength, 0.0f, 1.0f);
+                }
 
-            //    ImGui::SliderFloat("EmissiveStrength", &entity.GetComponent<MeshComponent>().p_Mesh->m_Materials[primitive.materialIndex].emissiveStrength, 0.0f, 1.0f);
-            //}
+                ImGui::PopID();
+            }
+
         }
         ImGui::End();
     }

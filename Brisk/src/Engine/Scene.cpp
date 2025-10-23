@@ -17,14 +17,6 @@
 
 namespace Brisk 
 {
-	Geometry Scene::m_Geometry;
-	std::shared_ptr<Buffer> Scene::m_VertexBuffer;
-	std::shared_ptr<Buffer> Scene::m_IndexBuffer;
-	std::shared_ptr<Buffer> Scene::m_DrawsBuffer;
-	std::shared_ptr<Buffer> Scene::m_MeshletsBuffer;
-	std::shared_ptr<Buffer> Scene::m_MeshletDataBuffer;
-	std::shared_ptr<Buffer> Scene::m_MaterialStorageBuffer;
-
 	static void decomposeTransform(float translation[3], float rotation[4], float scale[3], const float* transform)
 	{
 		float m[4][4] = {};
@@ -775,8 +767,8 @@ namespace Brisk
 
 		}
 
-		Application::GetRenderer()->AddGlobalTexture(m_Textures);
 		Engine::s_TexturesOffset += m_Textures.size();
+		Application::GetRenderer()->AddGlobalTexture(m_Textures);
 	}
 
 	// Copy Component functions

@@ -573,7 +573,7 @@ namespace Brisk
                         write.descriptorType = VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER;
                         write.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_BindlessSet;
                         write.dstBinding = 0;
-                        write.dstArrayElement = Engine::s_TexturesOffset + i;
+                        write.dstArrayElement = i;
                         write.descriptorCount = 1;
                         write.pImageInfo = std::static_pointer_cast<TextureVulkan>(textures[i])->GetDescriptor();
                         writes.push_back(write);

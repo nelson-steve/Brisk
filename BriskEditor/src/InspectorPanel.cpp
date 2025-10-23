@@ -164,41 +164,41 @@ namespace Brisk
 			DrawComponent<DirectionalLightComponent>("Transform", SceneManager::pActiveScene->GetSelectedEntity(), [](DirectionalLightComponent& component)
 				{
 					DrawVec3Control("Direction", component.Direction, 0, 70);
+
+					ImVec2 avail = ImGui::GetContentRegionAvail();
+					ImVec2 cellSize = { avail.x * 0.5f, avail.y * 0.5f }; // 2x2 grid
+
+					auto ShowShadowMap = [&](ImTextureID texId, const char* label)
+						{
+							float aspect = (float)2048 / (float)2048;
+
+							ImVec2 imageSize = cellSize;
+							if (imageSize.x / imageSize.y > aspect) {
+								imageSize.x = imageSize.y * aspect;
+							}
+							else {
+								imageSize.y = imageSize.x / aspect;
+							}
+
+							ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+							ImGui::Image(texId, imageSize);
+							ImGui::PopStyleVar();
+						};
+
+					ImGui::BeginChild("ShadowMapDebug");
+					{
+						// Row 0
+						ShowShadowMap((ImTextureID)Application::GetRenderer()->m_ImGuiIdShadowMap0, "Cascade0");
+						ImGui::SameLine();
+						ShowShadowMap((ImTextureID)Application::GetRenderer()->m_ImGuiIdShadowMap1, "Cascade1");
+
+						// Row 1
+						ShowShadowMap((ImTextureID)Application::GetRenderer()->m_ImGuiIdShadowMap2, "Cascade2");
+						ImGui::SameLine();
+						ShowShadowMap((ImTextureID)Application::GetRenderer()->m_ImGuiIdShadowMap3, "Cascade3");
+					}
+					ImGui::EndChild();
 				});
-
-			ImVec2 avail = ImGui::GetContentRegionAvail();
-			ImVec2 cellSize = { avail.x * 0.5f, avail.y * 0.5f }; // 2x2 grid
-
-			auto ShowShadowMap = [&](ImTextureID texId, const char* label)
-				{
-					float aspect = (float)2048 / (float)2048;
-
-					ImVec2 imageSize = cellSize;
-					if (imageSize.x / imageSize.y > aspect) {
-						imageSize.x = imageSize.y * aspect;
-					}
-					else {
-						imageSize.y = imageSize.x / aspect;
-					}
-
-					ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
-					ImGui::Image(texId, imageSize);
-					ImGui::PopStyleVar();
-				};
-
-			ImGui::BeginChild("ShadowMapDebug");
-			{
-				// Row 0
-				ShowShadowMap((ImTextureID)Application::GetRenderer()->m_ImGuiIdShadowMap0, "Cascade0");
-				ImGui::SameLine();
-				ShowShadowMap((ImTextureID)Application::GetRenderer()->m_ImGuiIdShadowMap1, "Cascade1");
-
-				// Row 1
-				ShowShadowMap((ImTextureID)Application::GetRenderer()->m_ImGuiIdShadowMap2, "Cascade2");
-				ImGui::SameLine();
-				ShowShadowMap((ImTextureID)Application::GetRenderer()->m_ImGuiIdShadowMap3, "Cascade3");
-			}
-			ImGui::EndChild();
 		}
         ImGui::End();
     }

@@ -136,16 +136,16 @@ namespace Brisk
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
     public:
-        static Geometry m_Geometry;
+        inline static Geometry m_Geometry;
         uint32_t m_MeshletCount;
         std::vector<std::shared_ptr<Texture>> m_Textures;
         std::vector<MaterialData> m_Materials;
-        static std::shared_ptr<Buffer> m_VertexBuffer;
-        static std::shared_ptr<Buffer> m_IndexBuffer;
-        static std::shared_ptr<Buffer> m_DrawsBuffer;
-        static std::shared_ptr<Buffer> m_MeshletsBuffer;
-        static std::shared_ptr<Buffer> m_MeshletDataBuffer;
-        static std::shared_ptr<Buffer> m_MaterialStorageBuffer;
+        inline static std::shared_ptr<Buffer> m_VertexBuffer;
+        inline static std::shared_ptr<Buffer> m_IndexBuffer;
+        inline static std::shared_ptr<Buffer> m_DrawsBuffer;
+        inline static std::shared_ptr<Buffer> m_MeshletsBuffer;
+        inline static std::shared_ptr<Buffer> m_MeshletDataBuffer;
+        inline static std::shared_ptr<Buffer> m_MaterialStorageBuffer;
 	private:
 		entt::registry m_Registry;
 		entt::entity m_SelectedEntity;

@@ -1,6 +1,6 @@
 workspace "Brisk"
     architecture "x64"
-    startproject "Brisk"
+    startproject "BriskEditor"
 
     configurations 
     { 

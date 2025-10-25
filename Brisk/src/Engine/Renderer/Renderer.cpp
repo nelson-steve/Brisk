@@ -808,27 +808,107 @@ namespace Brisk
         m_LightingPipeline->UpdateResources("MVP",            {}, m_MVPBuffer);
         m_LightingPipeline->UpdateResources("ShadowMaps",       { m_ShadowMapLOD0, m_ShadowMapLOD1, m_ShadowMapLOD2, m_ShadowMapLOD3 }, nullptr);
 
-        // Creating Fences
-        m_ClusterFence = Fence::Create();
-        m_ClusterFence->Init();
+        for (int i = 0; i < MAX_FRAMES_IN_FLIGHT; i++) {
+            // Creating Fences
+            m_ClusterFence[i] = Fence::Create();
+            m_ClusterFence[i]->Init();
 
-        m_GraphicsFence = Fence::Create();
-        m_GraphicsFence->Init();
-        //
+            m_GraphicsFence[i] = Fence::Create();
+            m_GraphicsFence[i]->Init();
+            //
 
-        // Creating Semaphores
-        ImageAvailableSemaphore = Semaphore::Create();
-        ImageAvailableSemaphore->Init();
+            // Creating Semaphores
+            ImageAvailableSemaphore[i] = Semaphore::Create();
+            ImageAvailableSemaphore[i]->Init();
 
-        AABBGenerateSemaphore = Semaphore::Create();
-        AABBGenerateSemaphore->Init();
+            AABBGenerateSemaphore[i] = Semaphore::Create();
+            AABBGenerateSemaphore[i]->Init();
 
-        AssignLightsSemaphore = Semaphore::Create();
-        AssignLightsSemaphore->Init();
+            AssignLightsSemaphore[i] = Semaphore::Create();
+            AssignLightsSemaphore[i]->Init();
 
-        RenderFinishedSemaphore = Semaphore::Create();
-        RenderFinishedSemaphore->Init();
-        //
+            RenderFinishedSemaphore[i] = Semaphore::Create();
+            RenderFinishedSemaphore[i]->Init();
+
+            BufferTransferTaskSemaphore[i] = Semaphore::Create();
+            BufferTransferTaskSemaphore[i]->Init();
+            //
+
+            // Creating Command Buffers
+            m_CmdBuffer[i] = CommandBuffer::Create();
+            m_CmdBuffer[i]->Allocate(CommandBuffer::PoolType::Graphics);
+
+            m_ClusteredCmdBuffer[i] = CommandBuffer::Create();
+            m_ClusteredCmdBuffer[i]->Allocate(CommandBuffer::PoolType::Compute);
+            //
+        }
+
+        Application::GetRenderer()->m_DrawsBuffer = Buffer::Create();
+        BufferDesc drawBufferDesc{};
+        drawBufferDesc.p_Name = "Draws buffer";
+        drawBufferDesc.p_Size = SIZE_1MB;
+        drawBufferDesc.p_Usage = Core::BufferUsage::IndirectBuffer | Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
+        drawBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        drawBufferDesc.p_AllowSRV = true;
+        Application::GetRenderer()->m_DrawsBuffer->Init(drawBufferDesc);
+
+        Application::GetRenderer()->m_IndexBuffer = Buffer::Create();
+        BufferDesc indexBufferDesc{};
+        indexBufferDesc.p_Name = "Index buffer";
+        indexBufferDesc.p_Size = SIZE_100MB;
+        indexBufferDesc.p_Usage = Core::BufferUsage::IndexBuffer | Core::BufferUsage::TransferDst;
+        indexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        indexBufferDesc.p_AllowSRV = true;
+        Application::GetRenderer()->m_IndexBuffer->Init(indexBufferDesc);
+
+        Application::GetRenderer()->m_VertexBuffer = Buffer::Create();
+        BufferDesc vertexBufferDesc{};
+        vertexBufferDesc.p_Name = "Vertices Storage buffer";
+        vertexBufferDesc.p_Size = SIZE_100MB;
+        vertexBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
+        vertexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        vertexBufferDesc.p_AllowSRV = true;
+        Application::GetRenderer()->m_VertexBuffer->Init(vertexBufferDesc);
+
+        Application::GetRenderer()->m_MeshletDataBuffer = Buffer::Create();
+        BufferDesc meshletDataBufferDesc{};
+        meshletDataBufferDesc.p_Name = "Meshes Storage buffer";
+        meshletDataBufferDesc.p_Size = SIZE_100MB;
+        meshletDataBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
+        meshletDataBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        meshletDataBufferDesc.p_AllowSRV = true;
+        Application::GetRenderer()->m_MeshletDataBuffer->Init(meshletDataBufferDesc);
+
+        Application::GetRenderer()->m_MeshletsBuffer = Buffer::Create();
+        BufferDesc meshletBufferDesc{};
+        meshletBufferDesc.p_Name = "Meshlets Storage buffer";
+        meshletBufferDesc.p_Size = SIZE_100MB;
+        meshletBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
+        meshletBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        meshletBufferDesc.p_AllowSRV = true;
+        Application::GetRenderer()->m_MeshletsBuffer->Init(meshletBufferDesc);
+
+        Application::GetRenderer()->m_MaterialStorageBuffer = Buffer::Create();
+        BufferDesc materialsBufferDesc{};
+        materialsBufferDesc.p_Size = SIZE_10MB;
+        materialsBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
+        materialsBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        materialsBufferDesc.p_AllowUAV = true;
+        Application::GetRenderer()->m_MaterialStorageBuffer->Init(materialsBufferDesc);
+
+        m_ScratchBuffer = Buffer::Create();
+        BufferDesc scratchBufferDesc{};
+        scratchBufferDesc.p_Size = SIZE_100MB * 10;
+        scratchBufferDesc.p_Usage = Core::BufferUsage::TransferSrc;
+        scratchBufferDesc.p_Memory = BufferDesc::MemoryUsage::CPU_To_GPU;
+        m_ScratchBuffer->Init(scratchBufferDesc);
+
+        m_GBufferPipeline->UpdateResources("Vertices", {}, m_VertexBuffer);
+        m_GBufferPipeline->UpdateResources("MeshDraws", {}, m_DrawsBuffer);
+        m_GBufferPipeline->UpdateResources("Meshlets", {}, m_MeshletsBuffer);
+        m_GBufferPipeline->UpdateResources("MeshletData", {}, m_MeshletDataBuffer);
+        m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer);
+        m_GBufferPipeline->UpdateResources("Materials", {}, m_MaterialStorageBuffer);
 
         // Creating Queue
         m_GraphicsQueue0 = Queue::Create();
@@ -843,31 +923,15 @@ namespace Brisk
         m_ComputeQueue1 = Queue::Create();
         m_ComputeQueue1->Init(Queue::QueueType::Compute);
         //
-
-        // Creating Command Buffers
-        m_CmdBuffer = CommandBuffer::Create();
-        m_CmdBuffer->Allocate(CommandBuffer::PoolType::Graphics);
-
-        m_ClusteredCmdBuffer = CommandBuffer::Create();
-        m_ClusteredCmdBuffer->Allocate(CommandBuffer::PoolType::Compute);
-        //
     }
 
-    bool once = true;
+    void Renderer::QueueBufferUpdate(BufferUpdate update) {
+        m_BufferUpdatesQueued.push_back(update);
+    }
+
     void Renderer::RenderScene(float deltaTime)
     {
         if (!SceneManager::pActiveScene) return;
-
-        if (once) {
-            m_GBufferPipeline->UpdateResources("Vertices", {}, Scene::m_VertexBuffer);
-            m_GBufferPipeline->UpdateResources("MeshDraws", {}, Scene::m_DrawsBuffer);
-            m_GBufferPipeline->UpdateResources("Meshlets", {}, Scene::m_MeshletsBuffer);
-            m_GBufferPipeline->UpdateResources("MeshletData", {}, Scene::m_MeshletDataBuffer);
-            m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer);
-            m_GBufferPipeline->UpdateResources("Materials", {}, Scene::m_MaterialStorageBuffer);
-
-            once = false;
-        }
 
         glm::vec3 lightDir; 
         MVP mvp{};
@@ -926,16 +990,16 @@ namespace Brisk
         shadowData.cascadeSplits = glm::vec4(shadowCascadeLevels[0], shadowCascadeLevels[1], shadowCascadeLevels[2], shadowCascadeLevels[3]);
         m_ShadowDataBuffer->UpdatePersistantData(sizeof(ShadowData), &shadowData);
 
-        m_ClusterFence->Wait();
-        m_ClusterFence->Reset();
+        m_ClusterFence[m_CurrentFrame]->Wait();
+        m_ClusterFence[m_CurrentFrame]->Reset();
 
-        m_ClusteredCmdBuffer->Reset();
-        m_ClusteredCmdBuffer->Bind();
+        m_ClusteredCmdBuffer[m_CurrentFrame]->Reset();
+        m_ClusteredCmdBuffer[m_CurrentFrame]->Bind();
         //// --- CLUSTERS AABB GENERATOR COMPUTE TASK ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        m_AABBGeneratorPipeline->Bind(m_ClusteredCmdBuffer);
-        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 16, 9, 24);
-        m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
+        m_AABBGeneratorPipeline->Bind(m_ClusteredCmdBuffer[m_CurrentFrame]);
+        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer[m_CurrentFrame], 16, 9, 24);
+        m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer[m_CurrentFrame],
             {
                 Core::AccessType::ShaderWrite,
                 Core::AccessType::ShaderWrite,
@@ -943,37 +1007,37 @@ namespace Brisk
                 Core::PipelineStage::ComputeShader,
             });
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        m_ClusteredCmdBuffer->UnBind();
+        m_ClusteredCmdBuffer[m_CurrentFrame]->UnBind();
 
         Queue::SubmitInfo clusteredSubmitInfo{};
-        clusteredSubmitInfo.pCmdBuffers.push_back(m_ClusteredCmdBuffer);
-        clusteredSubmitInfo.pSignalSemaphores.push_back(AABBGenerateSemaphore);
-        m_ComputeQueue0->Submit(clusteredSubmitInfo, m_ClusterFence);
+        clusteredSubmitInfo.pCmdBuffers.push_back(m_ClusteredCmdBuffer[m_CurrentFrame]);
+        clusteredSubmitInfo.pSignalSemaphores.push_back(AABBGenerateSemaphore[m_CurrentFrame]);
+        m_ComputeQueue0->Submit(clusteredSubmitInfo, m_ClusterFence[m_CurrentFrame]);
 
-        m_ClusterFence->Wait();
-        m_ClusterFence->Reset();
+        m_ClusterFence[m_CurrentFrame]->Wait();
+        m_ClusterFence[m_CurrentFrame]->Reset();
 
-        m_ClusteredCmdBuffer->Reset();
-        m_ClusteredCmdBuffer->Bind();
+        m_ClusteredCmdBuffer[m_CurrentFrame]->Reset();
+        m_ClusteredCmdBuffer[m_CurrentFrame]->Bind();
         //// --- ASSIGN LIGHTS TO CLUSTERS COMPUTE TASK ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        m_AssignLightsToClustersPipeline->Bind(m_ClusteredCmdBuffer);
-        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer, 16, 9, 24);
-        m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
+        m_AssignLightsToClustersPipeline->Bind(m_ClusteredCmdBuffer[m_CurrentFrame]);
+        ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer[m_CurrentFrame], 16, 9, 24);
+        m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer[m_CurrentFrame],
             {
                 Core::AccessType::ShaderWrite,
                 Core::AccessType::ShaderRead,
                 Core::PipelineStage::ComputeShader,
                 Core::PipelineStage::ComputeShader,
             });
-        m_ClusterLightOffsetList->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
+        m_ClusterLightOffsetList->MemoryPipelineBarrier(m_ClusteredCmdBuffer[m_CurrentFrame],
             {
                 Core::AccessType::ShaderWrite,
                 Core::AccessType::ShaderRead,
                 Core::PipelineStage::ComputeShader,
                 Core::PipelineStage::ComputeShader,
             });
-        m_ClusterLightIndexList->MemoryPipelineBarrier(m_ClusteredCmdBuffer,
+        m_ClusterLightIndexList->MemoryPipelineBarrier(m_ClusteredCmdBuffer[m_CurrentFrame],
             {
                 Core::AccessType::ShaderWrite,
                 Core::AccessType::ShaderRead,
@@ -981,41 +1045,68 @@ namespace Brisk
                 Core::PipelineStage::ComputeShader,
             });
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        m_ClusteredCmdBuffer->UnBind();
+        m_ClusteredCmdBuffer[m_CurrentFrame]->UnBind();
 
         Queue::SubmitInfo clusteredSubmitInfo2{};
-        clusteredSubmitInfo2.pCmdBuffers.push_back(m_ClusteredCmdBuffer);
-        clusteredSubmitInfo2.pWaitSemaphores.push_back(AABBGenerateSemaphore);
-        clusteredSubmitInfo2.pSignalSemaphores.push_back(AssignLightsSemaphore);
+        clusteredSubmitInfo2.pCmdBuffers.push_back(m_ClusteredCmdBuffer[m_CurrentFrame]);
+        clusteredSubmitInfo2.pWaitSemaphores.push_back(AABBGenerateSemaphore[m_CurrentFrame]);
+        clusteredSubmitInfo2.pSignalSemaphores.push_back(AssignLightsSemaphore[m_CurrentFrame]);
         clusteredSubmitInfo2.pWaitStages.push_back(Core::PipelineStage::ComputeShader);
-        m_ComputeQueue0->Submit(clusteredSubmitInfo2, m_ClusterFence);
+        m_ComputeQueue0->Submit(clusteredSubmitInfo2, m_ClusterFence[m_CurrentFrame]);
 
-        m_GraphicsFence->Wait();
-        m_GraphicsFence->Reset();
+        m_GraphicsFence[m_CurrentFrame]->Wait();
+        m_GraphicsFence[m_CurrentFrame]->Reset();
 
-        m_Swapchain->AcquireNextImage(UINT64_MAX, ImageAvailableSemaphore, nullptr, &m_ImageIndex);
+        //
 
-        m_CmdBuffer->Reset();
-        m_CmdBuffer->Bind();
+        m_CmdBuffer[m_CurrentFrame]->Reset();
+        m_CmdBuffer[m_CurrentFrame]->Bind();
+
+        for (const BufferUpdate& update : m_BufferUpdatesQueued) {
+            size_t sizeOffset = m_ScratchAllocator.Allocate(update.Size);
+            m_ScratchBuffer->UpdatePersistantData(update.Size, update.Ptr);
+            
+            update.UpdateBuffer->Update(m_CmdBuffer[m_CurrentFrame], update.Size, update.Ptr, sizeOffset, m_ScratchBuffer);
+        }
+        m_BufferUpdatesQueued.clear();
+
+        m_CmdBuffer[m_CurrentFrame]->UnBind();
+
+        Queue::SubmitInfo bufferTransferSubmitInfo{};
+        bufferTransferSubmitInfo.pCmdBuffers.push_back(m_CmdBuffer[m_CurrentFrame]);
+        bufferTransferSubmitInfo.pSignalSemaphores.push_back(BufferTransferTaskSemaphore[m_CurrentFrame]);
+        m_GraphicsQueue0->Submit(bufferTransferSubmitInfo, m_GraphicsFence[m_CurrentFrame]);
+
+        //
+
+        m_GraphicsFence[m_CurrentFrame]->Wait();
+        m_GraphicsFence[m_CurrentFrame]->Reset();
+
+        m_Swapchain->AcquireNextImage(UINT64_MAX, ImageAvailableSemaphore[m_CurrentFrame], nullptr, &m_ImageIndex);
+
+        m_CmdBuffer[m_CurrentFrame]->Reset();
+        m_CmdBuffer[m_CurrentFrame]->Bind();
 
         // --- SHADOW MAP PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
         uint32_t framebuffer = 0;
-        m_ShadowMapPipeline->Bind(m_CmdBuffer);
+        m_ShadowMapPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
         for (const glm::mat4& lightMatrix : m_SunMatrices) {
-            m_CSMShadowMapPass->Begin(m_CmdBuffer, framebuffer++);
+            if (Scene::m_Geometry.draws.size() == 0)
+                break;
+            m_CSMShadowMapPass->Begin(m_CmdBuffer[m_CurrentFrame], framebuffer++);
 
-            RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_ShadowMapLOD0->GetWidth(), m_ShadowMapLOD0->GetHeight(), 0, 1);
-            RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_ShadowMapLOD0->GetWidth(), m_ShadowMapLOD0->GetHeight());
+            RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_ShadowMapLOD0->GetWidth(), m_ShadowMapLOD0->GetHeight(), 0, 1);
+            RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_ShadowMapLOD0->GetWidth(), m_ShadowMapLOD0->GetHeight());
 
             glm::mat4 matrix = lightMatrix;
-            m_ShadowMapPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-            m_ShadowMapPipeline->Bind(m_CmdBuffer);
-            RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer,
-                Scene::m_DrawsBuffer,
+            m_ShadowMapPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
+            m_ShadowMapPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
+            RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer[m_CurrentFrame],
+                m_DrawsBuffer,
                 offsetof(MeshDraw, MeshDraw::groupCountX), Scene::m_Geometry.draws.size(), sizeof(MeshDraw));
 
-            m_CSMShadowMapPass->End(m_CmdBuffer);
+            m_CSMShadowMapPass->End(m_CmdBuffer[m_CurrentFrame]);
         }
         //------------------------------------------------------------------------------------------------------------------------------------------------
 
@@ -1032,36 +1123,41 @@ namespace Brisk
 
         // --- DEPTH PRE PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
-        m_DepthPrePass->Begin(m_CmdBuffer);
+        m_DepthPrePass->Begin(m_CmdBuffer[m_CurrentFrame]);
 
-        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_DepthPre->GetWidth(), m_DepthPre->GetHeight(), 0, 1);
-        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_DepthPre->GetWidth(), m_DepthPre->GetHeight());
+        RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_DepthPre->GetWidth(), m_DepthPre->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_DepthPre->GetWidth(), m_DepthPre->GetHeight());
 
-        m_DepthPrePassPipeline->Bind(m_CmdBuffer);
+        m_DepthPrePassPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
 
-        glm::mat4 matrix{ 1.0f };
-        m_DepthPrePassPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-        RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer,
-            Scene::m_DrawsBuffer,
-            offsetof(MeshDraw, MeshDraw::groupCountX), Scene::m_Geometry.draws.size(), sizeof(MeshDraw));
+        if (Scene::m_Geometry.draws.size() > 0) {
+            glm::mat4 matrix{ 1.0f };
+            m_DepthPrePassPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
+            RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer[m_CurrentFrame],
+                m_DrawsBuffer,
+                offsetof(MeshDraw, MeshDraw::groupCountX), Scene::m_Geometry.draws.size(), sizeof(MeshDraw));
+        }
 
-        m_DepthPrePass->End(m_CmdBuffer);
+        m_DepthPrePass->End(m_CmdBuffer[m_CurrentFrame]);
         //------------------------------------------------------------------------------------------------------------------------------------------------
 
         // --- GBUFFER PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        m_GeometryBufferPass->Begin(m_CmdBuffer);
-        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight(), 0, 1);
-        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
+        m_GeometryBufferPass->Begin(m_CmdBuffer[m_CurrentFrame]);
+        RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
 
-        m_GBufferPipeline->Bind(m_CmdBuffer);
+        m_GBufferPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
 
-        m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-        RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer,
-            Scene::m_DrawsBuffer,
-            offsetof(MeshDraw, MeshDraw::groupCountX), Scene::m_Geometry.draws.size(), sizeof(MeshDraw));
+        if (Scene::m_Geometry.draws.size() > 0) {
+            glm::mat4 matrix{ 1.0f };
+            m_GBufferPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
+            RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer[m_CurrentFrame],
+                m_DrawsBuffer,
+                offsetof(MeshDraw, MeshDraw::groupCountX), Scene::m_Geometry.draws.size(), sizeof(MeshDraw));
+        }
 
-        m_GeometryBufferPass->End(m_CmdBuffer);
+        m_GeometryBufferPass->End(m_CmdBuffer[m_CurrentFrame]);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
         Texture::ImageBarrierParams params{};
@@ -1072,7 +1168,7 @@ namespace Brisk
         params.srcStage = Core::PipelineStage::LateFragmentTest;
         params.dstStage = Core::PipelineStage::FragmentShader;
 
-        m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
+        m_DepthPre->TransitionImageLayout(m_CmdBuffer[m_CurrentFrame], { params });
 
         {
             Texture::ImageBarrierParams params{};
@@ -1082,24 +1178,24 @@ namespace Brisk
             params.dstAccess = Core::AccessType::ShaderRead;
             params.srcStage = Core::PipelineStage::LateFragmentTest;
             params.dstStage = Core::PipelineStage::FragmentShader;
-            m_ShadowMapLOD0->TransitionImageLayout(m_CmdBuffer, { params });
-            m_ShadowMapLOD1->TransitionImageLayout(m_CmdBuffer, { params });
-            m_ShadowMapLOD2->TransitionImageLayout(m_CmdBuffer, { params });
-            m_ShadowMapLOD3->TransitionImageLayout(m_CmdBuffer, { params });
+            m_ShadowMapLOD0->TransitionImageLayout(m_CmdBuffer[m_CurrentFrame], { params });
+            m_ShadowMapLOD1->TransitionImageLayout(m_CmdBuffer[m_CurrentFrame], { params });
+            m_ShadowMapLOD2->TransitionImageLayout(m_CmdBuffer[m_CurrentFrame], { params });
+            m_ShadowMapLOD3->TransitionImageLayout(m_CmdBuffer[m_CurrentFrame], { params });
         }
 
         //// --- LIGHTING PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        m_LightingPass->Begin(m_CmdBuffer);
-        m_LightingPipeline->Bind(m_CmdBuffer);
+        m_LightingPass->Begin(m_CmdBuffer[m_CurrentFrame]);
+        m_LightingPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
 
-        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight(), 0, 1);
-        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight());
+        RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight());
 
-        m_LightingPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::vec3), &lightDir, 0, Core::ShaderStageFlags::Fragment);
-        RenderCommand::Draw(m_CmdBuffer, 3, 0);
+        m_LightingPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(glm::vec3), &lightDir, 0, Core::ShaderStageFlags::Fragment);
+        RenderCommand::Draw(m_CmdBuffer[m_CurrentFrame], 3, 0);
 
-        m_LightingPass->End(m_CmdBuffer);
+        m_LightingPass->End(m_CmdBuffer[m_CurrentFrame]);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
         {
@@ -1115,14 +1211,14 @@ namespace Brisk
 
         //// --- UI PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        m_UIPass->Begin(m_CmdBuffer, m_ImageIndex);
+        m_UIPass->Begin(m_CmdBuffer[m_CurrentFrame], m_ImageIndex);
 
-        RenderCommand::SetViewport(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
-        RenderCommand::SetScissor(m_CmdBuffer, 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+        RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
 
-        Application::GetGuiLayer()->Render(m_CmdBuffer);
+        Application::GetGuiLayer()->Render(m_CmdBuffer[m_CurrentFrame]);
 
-        m_UIPass->End(m_CmdBuffer);
+        m_UIPass->End(m_CmdBuffer[m_CurrentFrame]);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
         {
@@ -1136,25 +1232,29 @@ namespace Brisk
             //m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
         }
 
-        m_CmdBuffer->UnBind();
+        m_CmdBuffer[m_CurrentFrame]->UnBind();
 
-        Queue::SubmitInfo lightingSubmitInfo{};
-        lightingSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore);
-        lightingSubmitInfo.pWaitSemaphores.push_back(AssignLightsSemaphore);
-        lightingSubmitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore);
-        lightingSubmitInfo.pWaitStages.push_back(Core::PipelineStage::ColorAttachment);
-        lightingSubmitInfo.pWaitStages.push_back(Core::PipelineStage::EarlyFragmentTest);
-        lightingSubmitInfo.pCmdBuffers.push_back(m_CmdBuffer);
+        Queue::SubmitInfo renderingSubmitInfo{};
+        renderingSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore[m_CurrentFrame]);
+        renderingSubmitInfo.pWaitSemaphores.push_back(AssignLightsSemaphore[m_CurrentFrame]);
+        renderingSubmitInfo.pWaitSemaphores.push_back(BufferTransferTaskSemaphore[m_CurrentFrame]);
+        renderingSubmitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore[m_CurrentFrame]);
+        renderingSubmitInfo.pWaitStages.push_back(Core::PipelineStage::ColorAttachment);
+        renderingSubmitInfo.pWaitStages.push_back(Core::PipelineStage::EarlyFragmentTest);
+        renderingSubmitInfo.pWaitStages.push_back(Core::PipelineStage::TransferStage);
+        renderingSubmitInfo.pCmdBuffers.push_back(m_CmdBuffer[m_CurrentFrame]);
 
-        m_GraphicsQueue0->Submit(lightingSubmitInfo, m_GraphicsFence);
+        m_GraphicsQueue0->Submit(renderingSubmitInfo, m_GraphicsFence[m_CurrentFrame]);
 
         Queue::PresentInfo presentInfo{};
-        presentInfo.pWaitSemaphores.push_back(RenderFinishedSemaphore);
+        presentInfo.pWaitSemaphores.push_back(RenderFinishedSemaphore[m_CurrentFrame]);
         presentInfo.pSwapchains.push_back(m_Swapchain);
         presentInfo.pImageIndex = m_ImageIndex;
 
         // Present
         m_GraphicsQueue0->Present(presentInfo);
+
+        m_CurrentFrame = (m_CurrentFrame + 1) % MAX_FRAMES_IN_FLIGHT;
     }
 
     glm::mat4 GetWorldTransform(Entity entity) {
@@ -1193,11 +1293,11 @@ namespace Brisk
 
         m_Swapchain->Release();
 
-        ImageAvailableSemaphore->Release();
-        RenderFinishedSemaphore->Release();
+        ImageAvailableSemaphore[m_CurrentFrame]->Release();
+        RenderFinishedSemaphore[m_CurrentFrame]->Release();
 
-        m_ClusterFence->Release();
-        m_GraphicsFence->Release();
+        m_ClusterFence[m_CurrentFrame]->Release();
+        m_GraphicsFence[m_CurrentFrame]->Release();
     }
 
     std::unique_ptr<Renderer> Renderer::Create()

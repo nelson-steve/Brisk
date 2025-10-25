@@ -94,10 +94,7 @@ namespace Brisk
 		PushOverlay(m_ImGuiLayer);
 
 		m_SceneManager->pActiveScene->LoadGltfScene(paths[2]);
-		m_SceneManager->pActiveScene->LoadGltfScene(paths[3]);
-		//m_SceneManager->pActiveScene->LoadGltfScene(paths[12]);
-		//m_SceneManager->pActiveScene->LoadGltfScene(paths[13]);
-		//m_SceneManager->pActiveScene->LoadGltfScene(paths[14]);
+		//m_SceneManager->pActiveScene->LoadGltfScene(paths[3]);
 	}
 
 	void Application::OnEvent(Event &event) {

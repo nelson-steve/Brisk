@@ -140,12 +140,6 @@ namespace Brisk
         uint32_t m_MeshletCount;
         std::vector<std::shared_ptr<Texture>> m_Textures;
         std::vector<MaterialData> m_Materials;
-        inline static std::shared_ptr<Buffer> m_VertexBuffer;
-        inline static std::shared_ptr<Buffer> m_IndexBuffer;
-        inline static std::shared_ptr<Buffer> m_DrawsBuffer;
-        inline static std::shared_ptr<Buffer> m_MeshletsBuffer;
-        inline static std::shared_ptr<Buffer> m_MeshletDataBuffer;
-        inline static std::shared_ptr<Buffer> m_MaterialStorageBuffer;
 	private:
 		entt::registry m_Registry;
 		entt::entity m_SelectedEntity;

@@ -24,10 +24,8 @@ namespace Brisk
                     ImGui::SliderFloat("RoughnessFactor", &SceneManager::pActiveScene->m_Materials[matIndex].roughnessFactor, 0.0f, 1.0f);
                     ImGui::SliderFloat("EmissiveStrength", &SceneManager::pActiveScene->m_Materials[matIndex].emissiveStrength, 0.0f, 1.0f);
                 }
-
                 ImGui::PopID();
             }
-
         }
         ImGui::End();
     }

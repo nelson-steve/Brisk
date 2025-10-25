@@ -49,9 +49,13 @@ namespace Brisk
 	public:
 		virtual void Init(const BufferDesc& desc) = 0;
 		virtual void Release() = 0;
-		virtual void UpdatePersistantData(uint32_t size, void* data) = 0;
+		virtual void UpdatePersistantData(uint32_t size, void* data, size_t ptrOffset = 0) = 0;
+        virtual void Update(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data, uint32_t dataOffset, std::shared_ptr<Buffer> scaratchBuffer) = 0;
 		
 		virtual void MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, MemoryBarrierParams barrier) = 0;
+
+        bool IsDirty() const { return m_IsDirty; }
+        void SetDirty(bool value) { m_IsDirty = value; }
 
 		static std::shared_ptr<Buffer> Create();
 	protected:
@@ -59,6 +63,7 @@ namespace Brisk
 			return m_Desc.p_Size; 
 		}
 	protected:
+        bool m_IsDirty = false;
         BufferDesc m_Desc;
 	};
 }

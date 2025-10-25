@@ -21,6 +21,15 @@
 #define MAX_LIGHTS_PER_CLUSTER 128
 #define NUM_CLUSTERS 16 * 9 * 24
 
+#define MAX_FRAMES_IN_FLIGHT 3
+
+#define SIZE_1KB 1024
+#define SIZE_10KB 10240
+#define SIZE_100KB 102400
+#define SIZE_1MB 1048576
+#define SIZE_10MB 10485760
+#define SIZE_100MB 104857600
+
 namespace Brisk 
 {
 	struct Probe {
@@ -64,11 +73,37 @@ namespace Brisk
 		alignas(16) glm::vec4 cascadeSplits;;
 	};
 
+	struct BufferUpdate {
+		size_t Size;
+		void* Ptr;
+		std::shared_ptr<Buffer> UpdateBuffer;
+	};
+
+	struct ScratchAllocator {
+		size_t offset = 0;
+		size_t size = SIZE_100MB * 10;
+		size_t alignment = 256;
+
+		size_t Allocate(size_t bytes) {
+			bytes = (bytes + alignment - 1) & ~(alignment - 1); // align
+			if (offset + bytes > size)
+				throw std::runtime_error("Scratch buffer overflow!");
+			size_t allocOffset = offset;
+			offset += bytes;
+			return allocOffset;
+		}
+
+		void Reset() { offset = 0; }
+	};
+
+
 	class Renderer {
 	public:
 		void Init();
 		void Release();
 		void RenderScene(float deltaTime);
+
+		void QueueBufferUpdate(BufferUpdate update);
 
 		void AddGlobalTexture(std::vector<std::shared_ptr<Texture>> textures) {
 			m_GBufferPipeline->UpdateResources("GlobalTextures", textures, nullptr);
@@ -81,14 +116,15 @@ namespace Brisk
 		static std::shared_ptr<Swapchain> m_Swapchain;
 
 		// Synchronization objects
-		std::shared_ptr<Semaphore> AABBGenerateSemaphore;
-		std::shared_ptr<Semaphore> AssignLightsSemaphore;
-		std::shared_ptr<Semaphore> ImageAvailableSemaphore;
-		std::shared_ptr<Semaphore> RenderFinishedSemaphore;
-		std::shared_ptr<Semaphore> VoxelizationFinishedSemaphore;
+		std::array<std::shared_ptr<Semaphore>, MAX_FRAMES_IN_FLIGHT> AABBGenerateSemaphore;
+		std::array<std::shared_ptr<Semaphore>, MAX_FRAMES_IN_FLIGHT> AssignLightsSemaphore;
+		std::array<std::shared_ptr<Semaphore>, MAX_FRAMES_IN_FLIGHT> ImageAvailableSemaphore;
+		std::array<std::shared_ptr<Semaphore>, MAX_FRAMES_IN_FLIGHT> RenderFinishedSemaphore;
+		std::array<std::shared_ptr<Semaphore>, MAX_FRAMES_IN_FLIGHT> VoxelizationFinishedSemaphore;
+		std::array<std::shared_ptr<Semaphore>, MAX_FRAMES_IN_FLIGHT> BufferTransferTaskSemaphore;
 
-		std::shared_ptr<Fence> m_ClusterFence;
-		std::shared_ptr<Fence> m_GraphicsFence;
+		std::array<std::shared_ptr<Fence>, MAX_FRAMES_IN_FLIGHT> m_ClusterFence;
+		std::array<std::shared_ptr<Fence>, MAX_FRAMES_IN_FLIGHT> m_GraphicsFence;
 
 		std::shared_ptr<Queue> m_GraphicsQueue0;
 		std::shared_ptr<Queue> m_GraphicsQueue1;
@@ -151,10 +187,23 @@ namespace Brisk
 		std::shared_ptr<Buffer> m_ProbesBuffer;
 
 		std::shared_ptr<Buffer> m_AtomicCounters;
+
+		std::shared_ptr<Buffer> m_VertexBuffer;
+		std::shared_ptr<Buffer> m_IndexBuffer;
+		std::shared_ptr<Buffer> m_DrawsBuffer;
+		std::shared_ptr<Buffer> m_MeshletsBuffer;
+		std::shared_ptr<Buffer> m_MeshletDataBuffer;
+		std::shared_ptr<Buffer> m_MaterialStorageBuffer;
+
+		std::shared_ptr<Buffer> m_ScratchBuffer;
 		// Buffer - End
+
+		ScratchAllocator m_ScratchAllocator;
 
 		std::vector<glm::mat4> m_SunMatrices;
 		std::vector<Probe> m_Probes;
+
+		std::vector<BufferUpdate> m_BufferUpdatesQueued;
 
 		uint64_t m_ImGuiIdScene;
 		uint64_t m_ImGuiIdShadowMap0;
@@ -162,9 +211,10 @@ namespace Brisk
 		uint64_t m_ImGuiIdShadowMap2;
 		uint64_t m_ImGuiIdShadowMap3;
 
-		std::shared_ptr<CommandBuffer> m_CmdBuffer;
-		std::shared_ptr<CommandBuffer> m_ClusteredCmdBuffer;
+		std::array<std::shared_ptr<CommandBuffer>, MAX_FRAMES_IN_FLIGHT> m_CmdBuffer;
+		std::array<std::shared_ptr<CommandBuffer>, MAX_FRAMES_IN_FLIGHT> m_ClusteredCmdBuffer;
 		RenderCommand m_RenderCommand;
-		uint32_t m_ImageIndex;
+		uint32_t m_ImageIndex = 0;
+		uint32_t m_CurrentFrame = 0;
 	};
 }

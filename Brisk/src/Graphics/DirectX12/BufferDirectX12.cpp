@@ -374,7 +374,7 @@ namespace Brisk
         }
     }
 
-    void BufferDirectX12::UpdatePersistantData(uint32_t size, void* data) {
+    void BufferDirectX12::UpdatePersistantData(uint32_t size, void* data, size_t ptrOffset) {
         if (m_MapPersistent && m_MappedPointer) {
             memcpy(m_MappedPointer, data, size);
         }

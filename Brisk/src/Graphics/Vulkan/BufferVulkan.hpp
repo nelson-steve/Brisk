@@ -15,7 +15,8 @@ namespace Brisk {
 	public:
 		virtual void Init(const BufferDesc& desc) override;
 		virtual void Release() override;
-		virtual void UpdatePersistantData(uint32_t size, void* data) override;
+		virtual void UpdatePersistantData(uint32_t size, void* data, size_t ptrOffset = 0) override;
+		virtual void Update(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data, uint32_t dataOffset, std::shared_ptr<Buffer> scaratchBuffer) override;
 
 		virtual void MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, MemoryBarrierParams barrier) override;
 

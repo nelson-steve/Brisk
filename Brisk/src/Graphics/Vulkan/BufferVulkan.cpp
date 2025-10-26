@@ -201,17 +201,9 @@ namespace Brisk
         }
 	}
 
-	void BufferVulkan::UpdatePersistantData(uint32_t size, void* data, size_t ptrOffset) {
-		memcpy((uint8_t*)mappedPtr + ptrOffset, data, size);
+	void BufferVulkan::UpdatePersistantData(uint32_t size, void* data) {
+		memcpy(mappedPtr, data, m_Desc.p_Size);
 	}
-
-    void BufferVulkan::Update(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data, uint32_t dataOffset, std::shared_ptr<Buffer> scaratchBuffer) {
-        VkBufferCopy region{};
-        region.srcOffset = dataOffset;
-        region.dstOffset = 0;
-        region.size = size;
-        vkCmdCopyBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), std::static_pointer_cast<BufferVulkan>(scaratchBuffer)->Get(), m_Handle, 1, &region);
-    }
 
     void BufferVulkan::MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, MemoryBarrierParams barrier) {
         VkBufferMemoryBarrier bufferBarrier{ VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER };

@@ -47,10 +47,6 @@ namespace Brisk
         ImGui::Begin("Assets");
         float windowVisibleX2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 
-        if (ImGui::Button(" Load ")) {
-            SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf");
-        }
-
         if (CurrentPath != "../Data") {
             if (ImGui::Button(" <-- ")) {
                 std::filesystem::path parentPath = std::filesystem::path(CurrentPath).parent_path();

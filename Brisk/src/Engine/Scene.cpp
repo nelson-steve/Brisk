@@ -566,6 +566,56 @@ namespace Brisk
 			}
 		}
 
+		m_DrawsBuffer = Buffer::Create();
+		BufferDesc drawBufferDesc{};
+		drawBufferDesc.p_Name = "Index buffer";
+		drawBufferDesc.p_Size = sizeof(m_Geometry.draws[0]) * m_Geometry.draws.size();
+		drawBufferDesc.p_Data = m_Geometry.draws.data();
+		drawBufferDesc.p_Usage = Core::BufferUsage::IndirectBuffer | Core::BufferUsage::StorageBuffer;
+		drawBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+		drawBufferDesc.p_AllowSRV = true;
+		m_DrawsBuffer->Init(drawBufferDesc);
+
+		m_IndexBuffer = Buffer::Create();
+		BufferDesc indexBufferDesc{};
+		indexBufferDesc.p_Name = "Index buffer";
+		indexBufferDesc.p_Size = sizeof(m_Geometry.indices[0]) * m_Geometry.indices.size();
+		indexBufferDesc.p_Data = m_Geometry.indices.data();
+		indexBufferDesc.p_Usage = Core::BufferUsage::IndexBuffer;
+		indexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+		indexBufferDesc.p_AllowSRV = true;
+		m_IndexBuffer->Init(indexBufferDesc);
+
+		m_VertexBuffer = Buffer::Create();
+		BufferDesc vertexBufferDesc{};
+		vertexBufferDesc.p_Name = "Vertices Storage buffer";
+		vertexBufferDesc.p_Size = sizeof(m_Geometry.vertices[0]) * m_Geometry.vertices.size();
+		vertexBufferDesc.p_Data = m_Geometry.vertices.data();
+		vertexBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
+		vertexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+		vertexBufferDesc.p_AllowSRV = true;
+		m_VertexBuffer->Init(vertexBufferDesc);
+
+		m_MeshletDataBuffer = Buffer::Create();
+		BufferDesc meshletDataBufferDesc{};
+		meshletDataBufferDesc.p_Name = "Meshes Storage buffer";
+		meshletDataBufferDesc.p_Size = sizeof(m_Geometry.meshletdata[0]) * m_Geometry.meshletdata.size();
+		meshletDataBufferDesc.p_Data = m_Geometry.meshletdata.data();
+		meshletDataBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
+		meshletDataBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+		meshletDataBufferDesc.p_AllowSRV = true;
+		m_MeshletDataBuffer->Init(meshletDataBufferDesc);
+
+		m_MeshletsBuffer = Buffer::Create();
+		BufferDesc meshletBufferDesc{};
+		meshletBufferDesc.p_Name = "Meshlets Storage buffer";
+		meshletBufferDesc.p_Size = sizeof(m_Geometry.meshlets[0]) * m_Geometry.meshlets.size();
+		meshletBufferDesc.p_Data = m_Geometry.meshlets.data();
+		meshletBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
+		meshletBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+		meshletBufferDesc.p_AllowSRV = true;
+		m_MeshletsBuffer->Init(meshletBufferDesc);
+
 		uint32_t texturesOffset = Engine::s_TexturesOffset;
 
 		m_Materials.reserve(asset.materials.size());
@@ -699,6 +749,15 @@ namespace Brisk
 
 		}
 
+		m_MaterialStorageBuffer = Buffer::Create();
+		BufferDesc materialsBufferDesc{};
+		materialsBufferDesc.p_Size = sizeof(m_Materials[0]) * m_Materials.size();
+		materialsBufferDesc.p_Data = m_Materials.data();
+		materialsBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
+		materialsBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+		materialsBufferDesc.p_AllowUAV = true;
+		m_MaterialStorageBuffer->Init(materialsBufferDesc);
+
 		for (const auto& tex : asset.textures) {
 			const fastgltf::Image& image = asset.images[tex.imageIndex.value()];
 
@@ -710,12 +769,6 @@ namespace Brisk
 
 		Engine::s_TexturesOffset += m_Textures.size();
 		Application::GetRenderer()->AddGlobalTexture(m_Textures);
-
-		Application::GetRenderer()->QueueBufferUpdate(BufferUpdate{ m_Geometry.draws.size(), m_Geometry.draws.data(), Application::GetRenderer()->m_DrawsBuffer });
-		Application::GetRenderer()->QueueBufferUpdate(BufferUpdate{ m_Geometry.vertices.size(), m_Geometry.vertices.data(), Application::GetRenderer()->m_VertexBuffer });
-		Application::GetRenderer()->QueueBufferUpdate(BufferUpdate{ m_Geometry.indices.size(), m_Geometry.indices.data(), Application::GetRenderer()->m_IndexBuffer });
-		Application::GetRenderer()->QueueBufferUpdate(BufferUpdate{ m_Geometry.meshlets.size(), m_Geometry.meshlets.data(), Application::GetRenderer()->m_MeshletsBuffer });
-		Application::GetRenderer()->QueueBufferUpdate(BufferUpdate{ m_Geometry.meshletdata.size(), m_Geometry.meshletdata.data(), Application::GetRenderer()->m_MeshletDataBuffer });
 	}
 
 	// Copy Component functions

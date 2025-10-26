@@ -6,6 +6,8 @@
 
 namespace Brisk
 {
+    std::shared_ptr<Scene> SceneManager::pActiveScene;
+
     SceneManager::SceneManager() {
 
     }

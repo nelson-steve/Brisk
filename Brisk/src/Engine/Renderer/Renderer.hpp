@@ -21,6 +21,13 @@
 #define MAX_LIGHTS_PER_CLUSTER 128
 #define NUM_CLUSTERS 16 * 9 * 24
 
+#define SIZE_1KB 1024 
+#define SIZE_10KB 10240 
+#define SIZE_100KB 102400 
+#define SIZE_1MB 1048576 
+#define SIZE_10MB 10485760 
+#define SIZE_100MB 104857600
+
 namespace Brisk 
 {
 	struct Probe {
@@ -143,6 +150,8 @@ namespace Brisk
 		std::shared_ptr<Buffer> m_GlobalIndexCountSSBO;
 		std::shared_ptr<Buffer> m_ClustersVertexBuffer;
 		std::shared_ptr<Buffer> m_ClustersIndexBuffer;
+
+		std::shared_ptr<Buffer> m_ScratchBuffer;
 
 		std::shared_ptr<Buffer> m_LightsList;
 		std::shared_ptr<Buffer> m_ClusterLightIndexList;

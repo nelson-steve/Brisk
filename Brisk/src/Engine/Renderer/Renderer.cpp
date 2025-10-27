@@ -221,6 +221,13 @@ namespace Brisk
 
     void Renderer::Init()
     {
+        m_ScratchBuffer = Buffer::Create();
+        BufferDesc scratchBufferDesc{};
+        scratchBufferDesc.p_Size = SIZE_10MB;
+        scratchBufferDesc.p_Usage = Core::BufferUsage::TransferSrc;
+        scratchBufferDesc.p_Memory = BufferDesc::MemoryUsage::CPU_To_GPU;
+        m_ScratchBuffer->Init(scratchBufferDesc);
+
         m_SunMatrices.resize(NUM_CASCADES);
 
         glm::vec3 probMinBounds = glm::vec3(-20, -10, -20);

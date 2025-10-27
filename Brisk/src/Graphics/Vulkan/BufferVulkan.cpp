@@ -55,26 +55,28 @@ namespace Brisk
 
         if (needsStaging) {
             // Create staging buffer
-            VkBufferCreateInfo stagingBufferInfo{};
-            stagingBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
-            stagingBufferInfo.size = desc.p_Size;
-            stagingBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
-            stagingBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
+            //VkBufferCreateInfo stagingBufferInfo{};
+            //stagingBufferInfo.sType = VK_STRUCTURE_TYPE_BUFFER_CREATE_INFO;
+            //stagingBufferInfo.size = desc.p_Size;
+            //stagingBufferInfo.usage = VK_BUFFER_USAGE_TRANSFER_SRC_BIT;
+            //stagingBufferInfo.sharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
-            VmaAllocationCreateInfo stagingAllocInfo{};
-            stagingAllocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
+            //VmaAllocationCreateInfo stagingAllocInfo{};
+            //stagingAllocInfo.usage = VMA_MEMORY_USAGE_CPU_ONLY;
 
-            VkBuffer stagingBuffer;
-            VmaAllocation stagingAllocation;
-            if (vmaCreateBuffer(cachedAllocator, &stagingBufferInfo, &stagingAllocInfo, &stagingBuffer, &stagingAllocation, nullptr) != VK_SUCCESS) {
-                throw std::runtime_error("Failed to create staging buffer");
-            }
+            //VkBuffer stagingBuffer;
+            //VmaAllocation stagingAllocation;
+            //if (vmaCreateBuffer(cachedAllocator, &stagingBufferInfo, &stagingAllocInfo, &stagingBuffer, &stagingAllocation, nullptr) != VK_SUCCESS) {
+            //    throw std::runtime_error("Failed to create staging buffer");
+            //}
 
             // Map staging buffer and copy data
-            void* mappedStaging = nullptr;
-            vmaMapMemory(cachedAllocator, stagingAllocation, &mappedStaging);
-            std::memcpy(mappedStaging, desc.p_Data, (size_t)desc.p_Size);
-            vmaUnmapMemory(cachedAllocator, stagingAllocation);
+            //void* mappedStaging = nullptr;
+            //vmaMapMemory(cachedAllocator, stagingAllocation, &mappedStaging);
+            //std::memcpy(mappedStaging, desc.p_Data, (size_t)desc.p_Size);
+            //vmaUnmapMemory(cachedAllocator, stagingAllocation);
+
+            Application::GetRenderer()->m_ScratchBuffer->UpdatePersistantData(desc.p_Size, desc.p_Data);
 
             // Create device local buffer
             VkBufferCreateInfo deviceBufferInfo{};
@@ -87,7 +89,7 @@ namespace Brisk
             deviceAllocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
             if (vmaCreateBuffer(cachedAllocator, &deviceBufferInfo, &deviceAllocInfo, &m_Handle, &m_Allocation, nullptr) != VK_SUCCESS) {
-                vmaDestroyBuffer(cachedAllocator, stagingBuffer, stagingAllocation);
+                //vmaDestroyBuffer(cachedAllocator, stagingBuffer, stagingAllocation);
                 throw std::runtime_error("Failed to create device local buffer");
             }
 
@@ -119,7 +121,7 @@ namespace Brisk
 
                 VkBufferCopy copyRegion{};
                 copyRegion.size = desc.p_Size;
-                vkCmdCopyBuffer(commandBuffer, stagingBuffer,  m_Handle, 1, &copyRegion);
+                vkCmdCopyBuffer(commandBuffer, std::static_pointer_cast<BufferVulkan>(Application::GetRenderer()->m_ScratchBuffer)->Get(), m_Handle, 1, &copyRegion);
 
                 vkEndCommandBuffer(commandBuffer);
 
@@ -136,7 +138,7 @@ namespace Brisk
                     std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetGraphicsCommandPool(), 1, &commandBuffer);
             }
 
-            vmaDestroyBuffer(cachedAllocator, stagingBuffer, stagingAllocation);
+            //vmaDestroyBuffer(cachedAllocator, stagingBuffer, stagingAllocation);
 
             isMapped = false;
             mappedPtr = nullptr;
@@ -202,7 +204,7 @@ namespace Brisk
 	}
 
 	void BufferVulkan::UpdatePersistantData(uint32_t size, void* data) {
-		memcpy(mappedPtr, data, m_Desc.p_Size);
+		memcpy(mappedPtr, data, size);
 	}
 
     void BufferVulkan::MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, MemoryBarrierParams barrier) {

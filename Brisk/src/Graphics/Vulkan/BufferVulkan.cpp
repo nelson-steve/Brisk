@@ -31,7 +31,7 @@ namespace Brisk
         bool hostCached = false;
         bool deviceLocal = false;
 
-        VmaAllocator cachedAllocator = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetVmaAllocator();
+        m_CachedAllocator = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetVmaAllocator();
 
         if (desc.p_Memory == BufferDesc::MemoryUsage::CPU_To_GPU) {
             vmaUsage = VMA_MEMORY_USAGE_CPU_TO_GPU;
@@ -76,7 +76,7 @@ namespace Brisk
             //std::memcpy(mappedStaging, desc.p_Data, (size_t)desc.p_Size);
             //vmaUnmapMemory(cachedAllocator, stagingAllocation);
 
-            Application::GetRenderer()->m_ScratchBuffer->UpdatePersistantData(desc.p_Size, desc.p_Data);
+            Application::GetRenderer()->m_ScratchAllocator.m_ScratchBuffer->UpdatePersistantData(desc.p_Size, desc.p_Data, 0);
 
             // Create device local buffer
             VkBufferCreateInfo deviceBufferInfo{};
@@ -88,7 +88,7 @@ namespace Brisk
             VmaAllocationCreateInfo deviceAllocInfo{};
             deviceAllocInfo.usage = VMA_MEMORY_USAGE_GPU_ONLY;
 
-            if (vmaCreateBuffer(cachedAllocator, &deviceBufferInfo, &deviceAllocInfo, &m_Handle, &m_Allocation, nullptr) != VK_SUCCESS) {
+            if (vmaCreateBuffer(m_CachedAllocator, &deviceBufferInfo, &deviceAllocInfo, &m_Handle, &m_Allocation, nullptr) != VK_SUCCESS) {
                 //vmaDestroyBuffer(cachedAllocator, stagingBuffer, stagingAllocation);
                 throw std::runtime_error("Failed to create device local buffer");
             }
@@ -97,10 +97,10 @@ namespace Brisk
             nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
             nameInfo.objectType = VK_OBJECT_TYPE_BUFFER;
             nameInfo.objectHandle = (uint64_t)m_Handle;
-            nameInfo.pObjectName = "storage buffer";
+            nameInfo.pObjectName = desc.p_Name.c_str();
 
 #if _DEBUG
-            //vkSetDebugUtilsObjectNameEXT(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
+            vkSetDebugUtilsObjectNameEXT(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
 #endif
 
             {
@@ -121,7 +121,7 @@ namespace Brisk
 
                 VkBufferCopy copyRegion{};
                 copyRegion.size = desc.p_Size;
-                vkCmdCopyBuffer(commandBuffer, std::static_pointer_cast<BufferVulkan>(Application::GetRenderer()->m_ScratchBuffer)->Get(), m_Handle, 1, &copyRegion);
+                vkCmdCopyBuffer(commandBuffer, std::static_pointer_cast<BufferVulkan>(Application::GetRenderer()->m_ScratchAllocator.m_ScratchBuffer)->Get(), m_Handle, 1, &copyRegion);
 
                 vkEndCommandBuffer(commandBuffer);
 
@@ -155,13 +155,23 @@ namespace Brisk
         allocInfo.usage = vmaUsage;
         if (hostCoherent) allocInfo.flags |= VMA_ALLOCATION_CREATE_MAPPED_BIT;
 
-        if (vmaCreateBuffer(cachedAllocator, &bufferInfo, &allocInfo, &m_Handle, &m_Allocation, nullptr) != VK_SUCCESS) {
+        if (vmaCreateBuffer(m_CachedAllocator, &bufferInfo, &allocInfo, &m_Handle, &m_Allocation, nullptr) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create buffer");
         }
 
+        VkDebugUtilsObjectNameInfoEXT nameInfo = {};
+        nameInfo.sType = VK_STRUCTURE_TYPE_DEBUG_UTILS_OBJECT_NAME_INFO_EXT;
+        nameInfo.objectType = VK_OBJECT_TYPE_BUFFER;
+        nameInfo.objectHandle = (uint64_t)m_Handle;
+        nameInfo.pObjectName = desc.p_Name.c_str();
+
+#if _DEBUG
+        vkSetDebugUtilsObjectNameEXT(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
+#endif
+
         if (allocInfo.flags & VMA_ALLOCATION_CREATE_MAPPED_BIT) {
             VmaAllocationInfo allocInfo;
-            vmaGetAllocationInfo(cachedAllocator, m_Allocation, &allocInfo);
+            vmaGetAllocationInfo(m_CachedAllocator, m_Allocation, &allocInfo);
             mappedPtr = allocInfo.pMappedData;
             isMapped = true;
         }
@@ -176,7 +186,7 @@ namespace Brisk
                 if (!hostCoherent) {
                     // Flush if not coherent
                     VmaAllocationInfo allocInfo;
-                    vmaGetAllocationInfo(cachedAllocator, m_Allocation, &allocInfo);
+                    vmaGetAllocationInfo(m_CachedAllocator, m_Allocation, &allocInfo);
                     //mappedPtr = allocInfo.pMappedData;
                     VkDeviceMemory mem = allocInfo.deviceMemory;;
                     VkMappedMemoryRange range{};
@@ -190,22 +200,38 @@ namespace Brisk
             else {
                 // Map/unmap for one-time upload
                 void* mapped = nullptr;
-                vmaMapMemory(cachedAllocator, m_Allocation, &mapped);
+                vmaMapMemory(m_CachedAllocator, m_Allocation, &mapped);
                 std::memcpy(mapped, desc.p_Data, (size_t)desc.p_Size);
-                vmaUnmapMemory(cachedAllocator, m_Allocation);
+                vmaUnmapMemory(m_CachedAllocator, m_Allocation);
             }
         }
 
         if (!desc.p_Persistant && isMapped && !hostCoherent) {
-            vmaUnmapMemory(cachedAllocator, m_Allocation);
+            vmaUnmapMemory(m_CachedAllocator, m_Allocation);
             mappedPtr = nullptr;
             isMapped = false;
         }
 	}
 
-	void BufferVulkan::UpdatePersistantData(uint32_t size, void* data) {
-		memcpy(mappedPtr, data, size);
+	void BufferVulkan::UpdatePersistantData(uint32_t size, void* data, uint64_t offset) {
+		memcpy(static_cast<uint8_t*>(mappedPtr) + offset, data, size);
 	}
+
+    void BufferVulkan::RecordUpload(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data) {
+        Application::GetRenderer()->m_PendingBufferUpload = true;
+        size_t allocationOffset = Application::GetRenderer()->m_ScratchAllocator.Allocate(size);
+        Application::GetRenderer()->m_ScratchAllocator.m_ScratchBuffer->UpdatePersistantData(size, data, allocationOffset);
+
+        //cmd->Bind();
+
+        VkBufferCopy copyRegion{};
+        copyRegion.srcOffset = allocationOffset;
+        copyRegion.dstOffset = 0;
+        copyRegion.size = size;
+        vkCmdCopyBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), std::static_pointer_cast<BufferVulkan>(Application::GetRenderer()->m_ScratchAllocator.m_ScratchBuffer)->Get(), m_Handle, 1, &copyRegion);
+
+        //cmd->UnBind();
+    }
 
     void BufferVulkan::MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, MemoryBarrierParams barrier) {
         VkBufferMemoryBarrier bufferBarrier{ VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER };

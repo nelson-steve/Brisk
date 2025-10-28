@@ -71,6 +71,26 @@ namespace Brisk
 		alignas(16) glm::vec4 cascadeSplits;;
 	};
 
+	struct ScratchAllocator {
+		uint64_t offset = 0;
+		uint64_t size = SIZE_100MB;
+		uint64_t alignment = 128;
+
+		uint64_t Allocate(uint64_t bytes) {
+			bytes = (bytes + alignment - 1) & ~(alignment - 1);
+			if (offset + bytes > size)
+				throw std::runtime_error("Scratch buffer overflow!");
+			uint64_t allocOffset = offset;
+			offset += bytes;
+			return allocOffset;
+		}
+
+		void Reset() { offset = 0; } // reset per frame
+
+		std::shared_ptr<Buffer> m_ScratchBuffer;
+	};
+
+
 	class Renderer {
 	public:
 		void Init();
@@ -151,8 +171,6 @@ namespace Brisk
 		std::shared_ptr<Buffer> m_ClustersVertexBuffer;
 		std::shared_ptr<Buffer> m_ClustersIndexBuffer;
 
-		std::shared_ptr<Buffer> m_ScratchBuffer;
-
 		std::shared_ptr<Buffer> m_LightsList;
 		std::shared_ptr<Buffer> m_ClusterLightIndexList;
 		std::shared_ptr<Buffer> m_ClusterLightOffsetList;
@@ -160,7 +178,18 @@ namespace Brisk
 		std::shared_ptr<Buffer> m_ProbesBuffer;
 
 		std::shared_ptr<Buffer> m_AtomicCounters;
+
+		std::shared_ptr<Buffer> m_VertexBuffer;
+		std::shared_ptr<Buffer> m_IndexBuffer;
+		std::shared_ptr<Buffer> m_DrawsBuffer;
+		std::shared_ptr<Buffer> m_MeshletsBuffer;
+		std::shared_ptr<Buffer> m_MeshletDataBuffer;
+		std::shared_ptr<Buffer> m_MaterialStorageBuffer;
+
+		bool m_PendingBufferUpload = false;
 		// Buffer - End
+
+		ScratchAllocator m_ScratchAllocator;
 
 		std::vector<glm::mat4> m_SunMatrices;
 		std::vector<Probe> m_Probes;
@@ -172,6 +201,7 @@ namespace Brisk
 		uint64_t m_ImGuiIdShadowMap3;
 
 		std::shared_ptr<CommandBuffer> m_CmdBuffer;
+		std::shared_ptr<CommandBuffer> m_TransferCmdBuffer;
 		std::shared_ptr<CommandBuffer> m_ClusteredCmdBuffer;
 		RenderCommand m_RenderCommand;
 		uint32_t m_ImageIndex;

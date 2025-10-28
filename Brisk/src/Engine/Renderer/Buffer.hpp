@@ -49,8 +49,9 @@ namespace Brisk
 	public:
 		virtual void Init(const BufferDesc& desc) = 0;
 		virtual void Release() = 0;
-		virtual void UpdatePersistantData(uint32_t size, void* data) = 0;
-		
+		virtual void UpdatePersistantData(uint32_t size, void* data, uint64_t offset = 0) = 0;
+        virtual void RecordUpload(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data) = 0;
+
 		virtual void MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, MemoryBarrierParams barrier) = 0;
 
 		static std::shared_ptr<Buffer> Create();

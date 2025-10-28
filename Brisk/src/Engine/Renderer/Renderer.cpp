@@ -221,12 +221,13 @@ namespace Brisk
 
     void Renderer::Init()
     {
-        m_ScratchBuffer = Buffer::Create();
+        m_ScratchAllocator.m_ScratchBuffer = Buffer::Create();
         BufferDesc scratchBufferDesc{};
-        scratchBufferDesc.p_Size = SIZE_10MB;
+        scratchBufferDesc.p_Name = "Scratch buffer";
+        scratchBufferDesc.p_Size = SIZE_100MB;
         scratchBufferDesc.p_Usage = Core::BufferUsage::TransferSrc;
         scratchBufferDesc.p_Memory = BufferDesc::MemoryUsage::CPU_To_GPU;
-        m_ScratchBuffer->Init(scratchBufferDesc);
+        m_ScratchAllocator.m_ScratchBuffer->Init(scratchBufferDesc);
 
         m_SunMatrices.resize(NUM_CASCADES);
 
@@ -855,9 +856,66 @@ namespace Brisk
         m_CmdBuffer = CommandBuffer::Create();
         m_CmdBuffer->Allocate(CommandBuffer::PoolType::Graphics);
 
+        m_TransferCmdBuffer = CommandBuffer::Create();
+        m_TransferCmdBuffer->Allocate(CommandBuffer::PoolType::Graphics);
+
         m_ClusteredCmdBuffer = CommandBuffer::Create();
         m_ClusteredCmdBuffer->Allocate(CommandBuffer::PoolType::Compute);
         //
+
+        m_DrawsBuffer = Buffer::Create();
+        BufferDesc drawBufferDesc{};
+        drawBufferDesc.p_Name = "Draws buffer";
+        drawBufferDesc.p_Size = SIZE_10MB;
+        drawBufferDesc.p_Usage = Core::BufferUsage::IndirectBuffer | Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
+        drawBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        drawBufferDesc.p_AllowCopyDst = true;
+        m_DrawsBuffer->Init(drawBufferDesc);
+
+        m_IndexBuffer = Buffer::Create();
+        BufferDesc indexBufferDesc{};
+        indexBufferDesc.p_Name = "Index buffer";
+        indexBufferDesc.p_Size = SIZE_10MB;
+        indexBufferDesc.p_Usage = Core::BufferUsage::IndexBuffer | Core::BufferUsage::TransferDst;
+        indexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        indexBufferDesc.p_AllowCopyDst = true;
+        m_IndexBuffer->Init(indexBufferDesc);
+
+        m_VertexBuffer = Buffer::Create();
+        BufferDesc vertexBufferDesc{};
+        vertexBufferDesc.p_Name = "Vertices buffer";
+        vertexBufferDesc.p_Size = SIZE_10MB;
+        vertexBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
+        vertexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        vertexBufferDesc.p_AllowCopyDst = true;
+        m_VertexBuffer->Init(vertexBufferDesc);
+
+        m_MeshletDataBuffer = Buffer::Create();
+        BufferDesc meshletDataBufferDesc{};
+        meshletDataBufferDesc.p_Name = "Meshlets buffer";
+        meshletDataBufferDesc.p_Size = SIZE_10MB;
+        meshletDataBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
+        meshletDataBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        meshletDataBufferDesc.p_AllowCopyDst = true;
+        m_MeshletDataBuffer->Init(meshletDataBufferDesc);
+
+        m_MeshletsBuffer = Buffer::Create();
+        BufferDesc meshletBufferDesc{};
+        meshletBufferDesc.p_Name = "Meshlets buffer";
+        meshletBufferDesc.p_Size = SIZE_10MB;
+        meshletBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
+        meshletBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        meshletBufferDesc.p_AllowCopyDst = true;
+        m_MeshletsBuffer->Init(meshletBufferDesc);
+
+        m_MaterialStorageBuffer = Buffer::Create();
+        BufferDesc materialsBufferDesc{};
+        materialsBufferDesc.p_Name = "Materials buffer";
+        materialsBufferDesc.p_Size = SIZE_10MB;
+        materialsBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
+        materialsBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        materialsBufferDesc.p_AllowCopyDst = true;
+        m_MaterialStorageBuffer->Init(materialsBufferDesc);
     }
 
     bool once = true;
@@ -866,12 +924,12 @@ namespace Brisk
         if (!SceneManager::pActiveScene) return;
 
         if (once) {
-            m_GBufferPipeline->UpdateResources("Vertices", {}, Scene::m_VertexBuffer);
-            m_GBufferPipeline->UpdateResources("MeshDraws", {}, Scene::m_DrawsBuffer);
-            m_GBufferPipeline->UpdateResources("Meshlets", {}, Scene::m_MeshletsBuffer);
-            m_GBufferPipeline->UpdateResources("MeshletData", {}, Scene::m_MeshletDataBuffer);
+            m_GBufferPipeline->UpdateResources("Vertices", {}, m_VertexBuffer);
+            m_GBufferPipeline->UpdateResources("MeshDraws", {}, m_DrawsBuffer);
+            m_GBufferPipeline->UpdateResources("Meshlets", {}, m_MeshletsBuffer);
+            m_GBufferPipeline->UpdateResources("MeshletData", {}, m_MeshletDataBuffer);
             m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer);
-            m_GBufferPipeline->UpdateResources("Materials", {}, Scene::m_MaterialStorageBuffer);
+            m_GBufferPipeline->UpdateResources("Materials", {}, m_MaterialStorageBuffer);
 
             once = false;
         }
@@ -997,6 +1055,16 @@ namespace Brisk
         clusteredSubmitInfo2.pWaitStages.push_back(Core::PipelineStage::ComputeShader);
         m_ComputeQueue0->Submit(clusteredSubmitInfo2, m_ClusterFence);
 
+        if (m_PendingBufferUpload) {
+            Queue::SubmitInfo transferSubmitInfo{};
+            transferSubmitInfo.pCmdBuffers.push_back(m_TransferCmdBuffer);
+
+            m_GraphicsQueue0->Submit(transferSubmitInfo, nullptr);
+
+            Application::GetGpuAdapter()->WaitIdle();
+            m_PendingBufferUpload = false;
+        }
+
         m_GraphicsFence->Wait();
         m_GraphicsFence->Reset();
 
@@ -1019,7 +1087,7 @@ namespace Brisk
             m_ShadowMapPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
             m_ShadowMapPipeline->Bind(m_CmdBuffer);
             RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer,
-                Scene::m_DrawsBuffer,
+                m_DrawsBuffer,
                 offsetof(MeshDraw, MeshDraw::groupCountX), Scene::m_Geometry.draws.size(), sizeof(MeshDraw));
 
             m_CSMShadowMapPass->End(m_CmdBuffer);
@@ -1049,7 +1117,7 @@ namespace Brisk
         glm::mat4 matrix{ 1.0f };
         m_DepthPrePassPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
         RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer,
-            Scene::m_DrawsBuffer,
+            m_DrawsBuffer,
             offsetof(MeshDraw, MeshDraw::groupCountX), Scene::m_Geometry.draws.size(), sizeof(MeshDraw));
 
         m_DepthPrePass->End(m_CmdBuffer);
@@ -1065,7 +1133,7 @@ namespace Brisk
 
         m_GBufferPipeline->BindPushConstant(m_CmdBuffer, sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
         RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer,
-            Scene::m_DrawsBuffer,
+            m_DrawsBuffer,
             offsetof(MeshDraw, MeshDraw::groupCountX), Scene::m_Geometry.draws.size(), sizeof(MeshDraw));
 
         m_GeometryBufferPass->End(m_CmdBuffer);

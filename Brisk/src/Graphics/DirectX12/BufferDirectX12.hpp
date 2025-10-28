@@ -17,7 +17,7 @@ namespace Brisk
 	public:
 		virtual void Init(const BufferDesc& desc) override;
 		virtual void Release() override;
-		virtual void UpdatePersistantData(uint32_t size, void* data) override;
+		virtual void UpdatePersistantData(uint32_t size, void* data, uint64_t offset) override;
 		virtual void MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, MemoryBarrierParams barrier) override { BRISK_CORE_ASSERT(false); }
 
 		D3D12_CPU_DESCRIPTOR_HANDLE GetCpuHandle() const { return m_CpuHandle; }

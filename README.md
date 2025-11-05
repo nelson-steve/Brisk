@@ -6,7 +6,7 @@ An open-source, C++20 game engine focused on modern rendering and GPU optimizati
 - **Clustered Lighting**
 - **Deferred Rendering**
 - **Meshlet Rendering (Indirect Draw)**
-- **Mesh Processing**: Using `meshoptimizer`.
+- **Mesh Processing**: Using `meshoptimizer`
 - **Cascaded Shadow Maps**
 
 ## Graphics APIs

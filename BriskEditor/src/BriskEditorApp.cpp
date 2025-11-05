@@ -13,6 +13,6 @@ namespace Brisk
 	};
 }
 
-Brisk::Application* CreateApplication() {
-	return new Brisk::BriskEditorApp();
+std::unique_ptr<Brisk::Application> CreateApplication() {
+	return std::make_unique<Brisk::BriskEditorApp>();
 }

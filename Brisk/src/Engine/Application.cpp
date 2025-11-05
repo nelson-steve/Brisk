@@ -92,12 +92,6 @@ namespace Brisk
 
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);
-
-		m_SceneManager->pActiveScene->LoadGltfScene(paths[2]);
-		//m_SceneManager->pActiveScene->LoadGltfScene(paths[3]);
-		//m_SceneManager->pActiveScene->LoadGltfScene(paths[12]);
-		//m_SceneManager->pActiveScene->LoadGltfScene(paths[13]);
-		//m_SceneManager->pActiveScene->LoadGltfScene(paths[14]);
 	}
 
 	void Application::OnEvent(Event &event) {
@@ -111,9 +105,11 @@ namespace Brisk
 
 	void Application::Run() {
 		auto currentTime = std::chrono::high_resolution_clock::now();
+		float frameTime = 0.0f;
+
 		while (!ShouldClose()) {
 			auto newTime = std::chrono::high_resolution_clock::now();
-			float frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
+			frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
 			currentTime = newTime;
 
 			for (Layer* layer : m_LayerStack)
@@ -125,8 +121,8 @@ namespace Brisk
 
 			m_ImGuiLayer->End();
 
-			m_Renderer->RenderScene(frameTime);
 			m_EditorCamera->OnUpdate(frameTime);
+			m_Renderer->RenderScene(frameTime);
 			m_Window->ProcessEvents();
 		}
 	}
@@ -136,6 +132,7 @@ namespace Brisk
 	}
 
 	bool Application::OnWindowResize(WindowResizeEvent &e) {
+		m_Renderer->m_WindowResized = true;
 		return false;
 	}
 

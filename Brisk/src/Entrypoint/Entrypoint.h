@@ -3,12 +3,13 @@
 #include "../Engine/Application.hpp"
 #include "../Core/Log.hpp"
 
-extern Brisk::Application* CreateApplication();
+extern std::unique_ptr<Brisk::Application> CreateApplication();
 
 int main(int args, char** argv) {
 	Brisk::Log::Init();
 
-	auto app = CreateApplication();
-	app->Run();
-	delete app;
+	{
+		std::unique_ptr<Brisk::Application> app = CreateApplication();
+		app->Run();
+	}
 }

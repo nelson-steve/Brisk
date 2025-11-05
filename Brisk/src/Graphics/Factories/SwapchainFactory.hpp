@@ -13,13 +13,13 @@
 namespace Brisk {
 	class SwapchainFactory {
 	public:
-		[[nodiscard]] static std::shared_ptr<Swapchain> CreateSwapchain(std::shared_ptr<Window> window) {
+		[[nodiscard]] static std::shared_ptr<Swapchain> CreateSwapchain() {
 			if (Engine::s_EngineSettings.API == Engine::EngineSettings::GraphicsAPI::Vulkan) {
-				return std::make_shared<SwapchainVulkan>(window);
+				return std::make_shared<SwapchainVulkan>();
 			}
 #ifdef BRISK_ENABLE_DIRECTX12
 			else if (Engine::s_EngineSettings.API == Engine::EngineSettings::GraphicsAPI::DirectX12) {
-				return std::make_shared<SwapchainDirectX12>(window);
+				return std::make_shared<SwapchainDirectX12>();
 			}
 #endif
 		}

@@ -20,19 +20,11 @@ namespace Brisk
 			TRIPLE_BUFFERING = 3U,
 		};
 	public:
-		Swapchain(std::shared_ptr<Window> window, uint32_t width, uint32_t height);
-
 		virtual void Create(Mode mode = Mode::DOUBLE_BUFFERING) = 0;
 		virtual void Release() = 0;
-		//void Resize();
+		virtual void Resize() = 0;
 
-		Swapchain() = delete;
-		Swapchain(const Swapchain&) = delete;
-		Swapchain(Swapchain&&) = delete;
-		Swapchain& operator=(const Swapchain&) = delete;
-		Swapchain& operator=(const Swapchain&&) = delete;
-
-		virtual void AcquireNextImage(uint64_t timeout, std::shared_ptr<Semaphore> semaphore, std::shared_ptr<Fence> fence, uint32_t* pImageIndex) = 0;
+		virtual bool AcquireNextImage(uint64_t timeout, std::shared_ptr<Semaphore> semaphore, std::shared_ptr<Fence> fence, uint32_t* pImageIndex) = 0;
 		virtual void TransitionCurrentImage(std::shared_ptr<CommandBuffer> cmd, Texture::ImageBarrierParams params, int imageIndex) = 0;
 		virtual void Blit(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> image, int imageIndex) = 0;
 		uint32_t GetImageCount() const { return m_ImageCount; }
@@ -44,6 +36,5 @@ namespace Brisk
 		uint32_t m_ImageCount;
 	private:
 		Mode m_SwapchainMode;
-		SwapchainExtent2D m_Extent;
 	};
 }

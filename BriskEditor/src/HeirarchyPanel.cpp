@@ -43,16 +43,24 @@ namespace Brisk
         }
     }
 
-
+    bool canDraw = false;
     void HeirarchyPanel::OnUpdate(){
         ImGui::Begin("Hierarchy");
 
-        SceneManager::pActiveScene->Reg().view<TagComponent>().each([&](entt::entity entity, TagComponent& name) {
-            //if (!SceneManager::pActiveScene->Reg().any_of<ParentComponent>(entity)) {
+        {
+            std::lock_guard<std::mutex> lock(Application::m_GltfFileMutex);
+            if (Application::m_AssetLoaded) {
+                canDraw = true;
+            }
+        }
+        if (canDraw) {
+            SceneManager::pActiveScene->Reg().view<TagComponent>().each([&](entt::entity entity, TagComponent& name) {
+                //if (!SceneManager::pActiveScene->Reg().any_of<ParentComponent>(entity)) {
                 Entity outEntity = { entity, SceneManager::pActiveScene.get() };
                 DrawEntityNode(outEntity);
-            //}
-        });
+                //}
+                });
+        }
 
 
         // Check if right-click is inside the window and not on any item

@@ -6,9 +6,6 @@
 
 namespace Brisk
 {
-    SwapchainDirectX12::SwapchainDirectX12(std::shared_ptr<Window> window)
-        : Swapchain(window, window->GetWidth(), window->GetHeight()) {}
-
 	void SwapchainDirectX12::Create(Mode mode) {
         DXGI_FORMAT backBufferFormat = DXGI_FORMAT_R8G8B8A8_UNORM;
         DXGI_SWAP_CHAIN_DESC1 swapChainDesc = {};

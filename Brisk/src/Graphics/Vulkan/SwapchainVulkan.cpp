@@ -10,9 +10,6 @@
 
 namespace Brisk 
 {
-	SwapchainVulkan::SwapchainVulkan(std::shared_ptr<Window> window)
-		: Swapchain(window, window->GetWidth(), window->GetHeight()) {}
-
 	void SwapchainVulkan::Release() {
 		for (auto imageView : m_SwapchainImageViews) {
 			vkDestroyImageView(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), imageView, nullptr);
@@ -117,7 +114,7 @@ namespace Brisk
 		}
 	}
 
-	void SwapchainVulkan::AcquireNextImage(uint64_t timeout, std::shared_ptr<Semaphore> semaphore, std::shared_ptr<Fence> fence, uint32_t* pImageIndex) {
+	bool SwapchainVulkan::AcquireNextImage(uint64_t timeout, std::shared_ptr<Semaphore> semaphore, std::shared_ptr<Fence> fence, uint32_t* pImageIndex) {
 		VkResult result = vkAcquireNextImageKHR(
 			Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(),
 			m_Swapchain,
@@ -127,35 +124,27 @@ namespace Brisk
 			pImageIndex);
 		switch (result) {
 		case VK_SUCCESS:
-			// Acquired successfully.
-			break;
-
+			return true;
 		case VK_SUBOPTIMAL_KHR:
+			return false;
 			BRISK_CORE_ERROR("resized");
-			break;
-
 		case VK_ERROR_OUT_OF_DATE_KHR:
+			return false;
 			BRISK_CORE_ERROR("swapchain out of date");
-			return;
-
 		case VK_TIMEOUT:
 			BRISK_CORE_ERROR("swapchain timeout");
-			return;
-
+			break;
 		case VK_NOT_READY:
 			BRISK_CORE_ERROR("not ready");
-			return;
-
+			break;
 		case VK_ERROR_DEVICE_LOST:
 			BRISK_CORE_ERROR("swapchain device lost");
-			return;
-
+			break;
 		default:
 			// Unexpected error
 			throw std::runtime_error("Failed to acquire next image: " + std::to_string(result));
 		}
-
-		//return result;
+		return false;
 	}
 
 	void SwapchainVulkan::TransitionCurrentImage(std::shared_ptr<CommandBuffer> cmd, Texture::ImageBarrierParams params, int imageIndex) {

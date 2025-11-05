@@ -10,6 +10,8 @@ namespace Brisk
 		virtual void Create(Mode mode) override;
 		virtual void Release() override;
 
+		virtual void Resize() override {};
+
 		virtual uint32_t GetExtentWidth() const override {
 			DXGI_SWAP_CHAIN_DESC desc;
 			m_SwapChain->GetDesc(&desc);
@@ -26,9 +28,10 @@ namespace Brisk
 			return height;
 		}
 
-		virtual void AcquireNextImage(uint64_t timeout, std::shared_ptr<Semaphore> semaphore, std::shared_ptr<Fence> fence, uint32_t* pImageIndex) override {
+		virtual bool AcquireNextImage(uint64_t timeout, std::shared_ptr<Semaphore> semaphore, std::shared_ptr<Fence> fence, uint32_t* pImageIndex) override {
 			UINT backBufferIndex = m_SwapChain->GetCurrentBackBufferIndex();
 			*pImageIndex = backBufferIndex;
+			return false;
 		}
 
 		virtual void TransitionCurrentImage(std::shared_ptr<CommandBuffer> cmd, Texture::ImageBarrierParams params, int imageIndex) override;
@@ -36,7 +39,6 @@ namespace Brisk
 
 		void Present();
 
-		SwapchainDirectX12(std::shared_ptr<Window> window);
 		std::vector<D3D12_CPU_DESCRIPTOR_HANDLE> m_RtvHandles;
 	private:
 		ComPtr<IDXGISwapChain4> m_SwapChain;

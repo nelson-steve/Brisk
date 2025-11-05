@@ -13,6 +13,8 @@
 #include "AssetManager.hpp"
 #include <Layers/LayerStack.hpp>
 #include "ImGuiLayer.hpp"
+
+#include <mutex>
 //-------------------------------------------
 
 namespace Brisk 
@@ -42,6 +44,9 @@ namespace Brisk
 		static const std::shared_ptr<Renderer> GetRenderer() { return m_Renderer; }
 		static const std::shared_ptr<Camera> GetCamera() { return m_EditorCamera; }
 
+		inline static std::mutex m_GltfFileMutex;
+		inline static std::thread m_BackgroundThread;
+		inline static bool m_AssetLoaded = false;
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);

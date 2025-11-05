@@ -28,6 +28,8 @@
 #define SIZE_10MB 10485760 
 #define SIZE_100MB 104857600
 
+#define FRAMES_IN_FLIGHT 2
+
 namespace Brisk 
 {
 	struct Probe {
@@ -73,7 +75,7 @@ namespace Brisk
 
 	struct ScratchAllocator {
 		uint64_t offset = 0;
-		uint64_t size = SIZE_100MB;
+		uint64_t size = SIZE_100MB * 10;
 		uint64_t alignment = 128;
 
 		uint64_t Allocate(uint64_t bytes) {
@@ -103,19 +105,21 @@ namespace Brisk
 
 		static std::shared_ptr<Swapchain> GetSwapchain() { return m_Swapchain; }
 
+		void RecreateSwapchain();
+
 		static std::unique_ptr<Renderer> Create();
 	public:
 		static std::shared_ptr<Swapchain> m_Swapchain;
 
 		// Synchronization objects
-		std::shared_ptr<Semaphore> AABBGenerateSemaphore;
-		std::shared_ptr<Semaphore> AssignLightsSemaphore;
-		std::shared_ptr<Semaphore> ImageAvailableSemaphore;
-		std::shared_ptr<Semaphore> RenderFinishedSemaphore;
-		std::shared_ptr<Semaphore> VoxelizationFinishedSemaphore;
+		std::array<std::shared_ptr<Semaphore>, FRAMES_IN_FLIGHT> AABBGenerateSemaphore;
+		std::array<std::shared_ptr<Semaphore>, FRAMES_IN_FLIGHT> AssignLightsSemaphore;
+		std::array<std::shared_ptr<Semaphore>, FRAMES_IN_FLIGHT> ImageAvailableSemaphore;
+		std::array<std::shared_ptr<Semaphore>, FRAMES_IN_FLIGHT> RenderFinishedSemaphore;
+		std::array<std::shared_ptr<Semaphore>, FRAMES_IN_FLIGHT> TransferFinishedSemaphore;
 
-		std::shared_ptr<Fence> m_ClusterFence;
-		std::shared_ptr<Fence> m_GraphicsFence;
+		std::array<std::shared_ptr<Fence>, FRAMES_IN_FLIGHT> m_ClusterFence;
+		std::array<std::shared_ptr<Fence>, FRAMES_IN_FLIGHT> m_GraphicsFence;
 
 		std::shared_ptr<Queue> m_GraphicsQueue0;
 		std::shared_ptr<Queue> m_GraphicsQueue1;
@@ -185,8 +189,6 @@ namespace Brisk
 		std::shared_ptr<Buffer> m_MeshletsBuffer;
 		std::shared_ptr<Buffer> m_MeshletDataBuffer;
 		std::shared_ptr<Buffer> m_MaterialStorageBuffer;
-
-		bool m_PendingBufferUpload = false;
 		// Buffer - End
 
 		ScratchAllocator m_ScratchAllocator;
@@ -200,10 +202,13 @@ namespace Brisk
 		uint64_t m_ImGuiIdShadowMap2;
 		uint64_t m_ImGuiIdShadowMap3;
 
-		std::shared_ptr<CommandBuffer> m_CmdBuffer;
+		std::array<std::shared_ptr<CommandBuffer>, FRAMES_IN_FLIGHT> m_CmdBuffer;
 		std::shared_ptr<CommandBuffer> m_TransferCmdBuffer;
-		std::shared_ptr<CommandBuffer> m_ClusteredCmdBuffer;
+		std::array<std::shared_ptr<CommandBuffer>, FRAMES_IN_FLIGHT> m_ClusteredCmdBuffer;
 		RenderCommand m_RenderCommand;
 		uint32_t m_ImageIndex;
+		uint32_t m_CurrentFrame = 0;
+
+		std::atomic<bool> m_WindowResized = false;
 	};
 }

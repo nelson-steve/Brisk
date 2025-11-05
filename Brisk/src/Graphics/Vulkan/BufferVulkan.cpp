@@ -218,19 +218,14 @@ namespace Brisk
 	}
 
     void BufferVulkan::RecordUpload(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data) {
-        Application::GetRenderer()->m_PendingBufferUpload = true;
         size_t allocationOffset = Application::GetRenderer()->m_ScratchAllocator.Allocate(size);
         Application::GetRenderer()->m_ScratchAllocator.m_ScratchBuffer->UpdatePersistantData(size, data, allocationOffset);
-
-        //cmd->Bind();
 
         VkBufferCopy copyRegion{};
         copyRegion.srcOffset = allocationOffset;
         copyRegion.dstOffset = 0;
         copyRegion.size = size;
         vkCmdCopyBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), std::static_pointer_cast<BufferVulkan>(Application::GetRenderer()->m_ScratchAllocator.m_ScratchBuffer)->Get(), m_Handle, 1, &copyRegion);
-
-        //cmd->UnBind();
     }
 
     void BufferVulkan::MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, MemoryBarrierParams barrier) {

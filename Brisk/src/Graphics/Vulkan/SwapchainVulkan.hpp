@@ -10,7 +10,13 @@ namespace Brisk
 		virtual void Create(Mode mode) override;
 		virtual void Release() override;
 
-		virtual void AcquireNextImage(uint64_t timeout, std::shared_ptr<Semaphore> semaphore, std::shared_ptr<Fence> fence, uint32_t* pImageIndex) override;
+		virtual void Resize() override {
+			std::cout << "swapchain resized";
+			Release();
+			Create(Mode::DOUBLE_BUFFERING);
+		};
+
+		virtual bool AcquireNextImage(uint64_t timeout, std::shared_ptr<Semaphore> semaphore, std::shared_ptr<Fence> fence, uint32_t* pImageIndex) override;
 		virtual void TransitionCurrentImage(std::shared_ptr<CommandBuffer> cmd, Texture::ImageBarrierParams params, int imageIndex) override;
 		virtual void Blit(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Texture> image, int imageIndex) override;
 
@@ -23,8 +29,6 @@ namespace Brisk
 		VkFormat GetDepthFormat() const { return m_DepthFormat; }
 		VkExtent2D GetExtent() const { return m_extent; }
 		VkPresentModeKHR GetPresentMode() const { return m_present_mode; }
-
-		SwapchainVulkan(std::shared_ptr<Window> window);
 	private:
 		VkSwapchainKHR m_Swapchain = VK_NULL_HANDLE;
 		std::vector<VkSemaphore> m_render_complete_semaphores;

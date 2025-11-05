@@ -209,6 +209,9 @@ namespace Brisk
 		if (vkCreateCommandPool(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &poolInfo, nullptr, &m_GraphicsCommandPool) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create command pool!");
 		}
+		if (vkCreateCommandPool(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &poolInfo, nullptr, &m_BGGraphicsCommandPool) != VK_SUCCESS) {
+			throw std::runtime_error("Failed to create command pool!");
+		}
 
 		// Creating Compute command pool
 		poolInfo.queueFamilyIndex = m_ComputeQueueFamily;

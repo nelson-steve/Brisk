@@ -47,6 +47,18 @@ namespace Brisk
         ImGui::Begin("Assets");
         float windowVisibleX2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 
+        if (ImGui::Button(" Load Model")) {
+            SceneManager::pActiveScene->LoadGltfScene("../Data/Models/damaged_helmet/DamagedHelmet.gltf");
+        }
+
+        if (ImGui::Button(" Load Model1")) {
+            SceneManager::pActiveScene->LoadGltfScene("../Data/Models/mecha_ramen_high_poly/scene.gltf");
+        }
+
+        if (ImGui::Button(" Load Model2")) {
+            SceneManager::pActiveScene->LoadGltfScene("../Data/Models/modural_robot_mecha_chimera_dyan_high-poly_mesh/scene.gltf");
+        }
+
         if (CurrentPath != "../Data") {
             if (ImGui::Button(" <-- ")) {
                 std::filesystem::path parentPath = std::filesystem::path(CurrentPath).parent_path();

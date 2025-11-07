@@ -16,8 +16,127 @@ namespace Brisk
 
     std::shared_ptr<Swapchain> Renderer::m_Swapchain;
 
+    float cascadeSplitLambda = 0.95f;
+    std::vector<float> cascadeSplits;
+    std::vector<glm::mat4> cascadeMatrices;
+    float farPlane = 400;
+    std::vector<float> shadowCascadeLevels{ farPlane / 50.0f, farPlane / 25.0f, farPlane / 10.0f, farPlane / 2.0f };
+
+    std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& projview)
+    {
+        const auto inv = glm::inverse(projview);
+
+        std::vector<glm::vec4> frustumCorners;
+        for (unsigned int x = 0; x < 2; ++x)
+        {
+            for (unsigned int y = 0; y < 2; ++y)
+            {
+                for (unsigned int z = 0; z < 2; ++z)
+                {
+                    const glm::vec4 pt = inv * glm::vec4(2.0f * x - 1.0f, 2.0f * y - 1.0f, z, 1.0f);
+                    frustumCorners.push_back(pt / pt.w);
+                }
+            }
+        }
+
+        return frustumCorners;
+    }
+
+    std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view)
+    {
+        return getFrustumCornersWorldSpace(proj * view);
+    }
+
+    bool onlyOnce = true;
+    glm::mat4 proj;
+    glm::mat4 view;
+    glm::mat4 getLightSpaceMatrix(const float nearPlane, const float farPlane, glm::vec3 lightDir)
+    {
+        auto proj = glm::perspectiveZO(
+            glm::radians(45.0f), (float)1920 / (float)1080, nearPlane,
+            farPlane);
+        proj[1][1] *= -1.0f;
+        view = Application::GetCamera()->GetViewMatrix();
+        onlyOnce = false;
+
+        const auto corners = getFrustumCornersWorldSpace(proj, view);
+
+        glm::vec3 center = glm::vec3(0, 0, 0);
+        for (const auto& v : corners)
+        {
+            center += glm::vec3(v);
+        }
+        center /= corners.size();
+
+        const auto lightView = glm::lookAt(center + lightDir, center, glm::vec3(0.0f, 1.0f, 0.0f));
+
+        float minX = std::numeric_limits<float>::max();
+        float maxX = std::numeric_limits<float>::lowest();
+        float minY = std::numeric_limits<float>::max();
+        float maxY = std::numeric_limits<float>::lowest();
+        float minZ = std::numeric_limits<float>::max();
+        float maxZ = std::numeric_limits<float>::lowest();
+        for (const auto& v : corners)
+        {
+            const auto trf = lightView * v;
+            minX = std::min(minX, trf.x);
+            maxX = std::max(maxX, trf.x);
+            minY = std::min(minY, trf.y);
+            maxY = std::max(maxY, trf.y);
+            minZ = std::min(minZ, trf.z);
+            maxZ = std::max(maxZ, trf.z);
+        }
+
+        // Tune this parameter according to the scene
+        constexpr float zMult = 30.0f;
+        if (minZ < 0)
+        {
+            minZ *= zMult;
+        }
+        else
+        {
+            minZ /= zMult;
+        }
+        if (maxZ < 0)
+        {
+            maxZ /= zMult;
+        }
+        else
+        {
+            maxZ *= zMult;
+        }
+
+        glm::mat4 lightProjection = glm::orthoZO(minX, maxX, minY, maxY, minZ, maxZ);
+        lightProjection[1][1] *= -1.0f;
+        return lightProjection * lightView;
+    }
+
+    std::vector<glm::mat4> getLightSpaceMatrices(glm::vec3 lightDir)
+    {
+        std::vector<glm::mat4> ret;
+        for (size_t i = 0; i < shadowCascadeLevels.size(); ++i)
+        {
+            if (i == 0)
+            {
+                ret.push_back(getLightSpaceMatrix(1.0f, shadowCascadeLevels[i], lightDir));
+            }
+            else if (i < shadowCascadeLevels.size() - 1)
+            {
+                ret.push_back(getLightSpaceMatrix(shadowCascadeLevels[i - 1], shadowCascadeLevels[i], lightDir));
+            }
+            else
+            {
+                ret.push_back(getLightSpaceMatrix(shadowCascadeLevels[i - 1], farPlane, lightDir));
+            }
+        }
+        return ret;
+    }
+
     void Renderer::Init()
     {
+        cascadeSplits.resize(NUM_CASCADES);
+        cascadeMatrices.resize(NUM_CASCADES);
+
         m_ScratchAllocator.m_ScratchBuffer = Buffer::Create();
         BufferDesc scratchBufferDesc{};
         scratchBufferDesc.p_Name = "Scratch buffer";
@@ -759,31 +878,45 @@ namespace Brisk
             lightDir = lc.Direction;
         }
 
-        glm::mat4 lightProjectionMatrix, lightViewMatrix;
-        glm::mat4 lightSpaceMatrix;
-        float near_plane = 1.0f, far_plane = 50.0f;
-        float lightSize = 10;
-        lightProjectionMatrix = glm::orthoZO(-lightSize, lightSize, -lightSize, lightSize, near_plane, far_plane);
-        lightProjectionMatrix[1][1] *= -1.0f;
+        bool cascadedShadows = true;
 
-        glm::vec3 lightDirection = normalize(-lightDir);
-        glm::vec3 target = glm::vec3(0.0f);
-        glm::vec3 lightPos = target - lightDirection * 20.0f;
+        if (!cascadedShadows) { // No cascades
+            glm::mat4 lightProjectionMatrix, lightViewMatrix;
+            glm::mat4 lightSpaceMatrix;
+            float near_plane = 1.0f, far_plane = 50.0f;
+            float lightSize = 10;
+            lightProjectionMatrix = glm::orthoZO(-lightSize, lightSize, -lightSize, lightSize, near_plane, far_plane);
+            lightProjectionMatrix[1][1] *= -1.0f;
 
-        lightViewMatrix = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
-        lightSpaceMatrix = lightProjectionMatrix * lightViewMatrix;
+            glm::vec3 lightDirection = normalize(-lightDir);
+            glm::vec3 target = glm::vec3(0.0f);
+            glm::vec3 lightPos = target - lightDirection * 20.0f;
 
-        m_SunMatrices[0] = lightSpaceMatrix;
-        m_SunMatrices[1] = lightSpaceMatrix;
-        m_SunMatrices[2] = lightSpaceMatrix;
-        m_SunMatrices[3] = lightSpaceMatrix;
+            lightViewMatrix = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
+            lightSpaceMatrix = lightProjectionMatrix * lightViewMatrix;
+
+            m_SunMatrices[0] = lightSpaceMatrix;
+            m_SunMatrices[1] = lightSpaceMatrix;
+            m_SunMatrices[2] = lightSpaceMatrix;
+            m_SunMatrices[3] = lightSpaceMatrix;
+        }
+        else { // CSM
+            m_SunMatrices = getLightSpaceMatrices(glm::normalize(-lightDir));
+
+            //updateCascades(lightDir);
+
+            //m_SunMatrices[0] = cascadeMatrices[0];
+            //m_SunMatrices[1] = cascadeMatrices[1];
+            //m_SunMatrices[2] = cascadeMatrices[2];
+            //m_SunMatrices[3] = cascadeMatrices[3];
+        }
 
         ShadowData shadowData{};
-        shadowData.lightSpaceMatrices[0] = lightSpaceMatrix;
-        shadowData.lightSpaceMatrices[1] = lightSpaceMatrix;
-        shadowData.lightSpaceMatrices[2] = lightSpaceMatrix;
-        shadowData.lightSpaceMatrices[3] = lightSpaceMatrix;
-        shadowData.cascadeSplits = glm::vec4(0.0f, 0.0f, 0.0f, 0.0f);
+        shadowData.lightSpaceMatrices[0] = m_SunMatrices[0];
+        shadowData.lightSpaceMatrices[1] = m_SunMatrices[1];
+        shadowData.lightSpaceMatrices[2] = m_SunMatrices[2];
+        shadowData.lightSpaceMatrices[3] = m_SunMatrices[3];
+        shadowData.cascadeSplits = glm::vec4(shadowCascadeLevels[0], shadowCascadeLevels[1], shadowCascadeLevels[2], shadowCascadeLevels[3]);
         m_ShadowDataBuffer->UpdatePersistantData(sizeof(ShadowData), &shadowData);
 
         m_ClusterFence[m_CurrentFrame]->Wait();

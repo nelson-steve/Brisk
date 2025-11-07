@@ -201,6 +201,57 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir, vec3
     return shadow;
 }
 
+int chooseCascade(vec3 worldPos, mat4 viewMatrix) {
+    vec4 viewPos = viewMatrix * vec4(worldPos, 1.0);
+    float depth = -viewPos.z; // camera looks along -Z
+    for (int i = 0; i < NUM_CASCADES; i++) {
+        if (depth < u_Shadow.cascadeSplits[i]) {
+            return i;
+        }
+    }
+    return NUM_CASCADES - 1; // farthest cascade
+}
+
+vec3 projectToShadowMap(vec3 worldPos, int cascadeIndex) {
+    vec4 lightSpacePos = u_Shadow.lightSpaceMatrices[cascadeIndex] * vec4(worldPos, 1.0);
+    lightSpacePos.xyz /= lightSpacePos.w;
+    vec3 ndc = vec3(lightSpacePos.xy * 0.5 + 0.5, lightSpacePos.z);
+    return ndc;
+}
+
+float sampleShadow(int cascadeIndex, vec3 shadowCoord) {
+    if (shadowCoord.z > 1.0) return 1.0; // behind light frustum, lit
+    
+    float shadow = 0.0;
+    float bias = 0.001; // depth bias to reduce acne
+    int samples = 3; // 3x3 kernel
+    float texelSize = 1.0 / textureSize(ShadowMaps[cascadeIndex], 0).x;
+    
+    for (int x = -1; x <= 1; ++x) {
+        for (int y = -1; y <= 1; ++y) {
+            float pcfDepth = texture(ShadowMaps[cascadeIndex], shadowCoord.xy + vec2(x, y) * texelSize).r;
+            shadow += (shadowCoord.z - bias <= pcfDepth) ? 1.0 : 0.0;
+        }
+    }
+    shadow /= (samples * samples);
+    return shadow;
+}
+
+float computeShadow(vec3 worldPos, mat4 viewMatrix) {
+    int cascadeIndex = NUM_CASCADES - 1; // farthest cascade
+    vec4 viewPos = viewMatrix * vec4(worldPos, 1.0);
+    float depth = -viewPos.z; // camera looks along -Z
+    for (int i = 0; i < NUM_CASCADES; i++) {
+        if (depth < u_Shadow.cascadeSplits[i]) {
+            cascadeIndex =  i;
+            break;
+        }
+    }
+
+    vec3 shadowCoord = projectToShadowMap(worldPos, cascadeIndex);
+    return sampleShadow(cascadeIndex, shadowCoord);
+}
+
 void main() {
     vec3 albedo = texture(sampler_Albedo, uv).rgb;
     float alpha = texture(sampler_Albedo, uv).a;
@@ -223,7 +274,7 @@ void main() {
     uint offset = offsetCount.x;
     uint count = offsetCount.y;
 
-    vec3 LightDir = normalize(-sunLightDir);
+    vec3 LightDir = normalize(sunLightDir);
     for (uint i = 0; i < count; ++i) {
         uint lightIdx = LightIndices.lightIndexList[offset + i];
         vec3 lightPos = LightsList.lights[lightIdx].position.xyz;
@@ -238,12 +289,19 @@ void main() {
         float att = clamp(1.0 - dist/radius, 0.0, 1.0);
         vec3 radiance = lightColor * intensity * att;
 
-        accum += evaluateLight(albedo, metallic, roughness, N, V, L, radiance, ao);
+        //accum += evaluateLight(albedo, metallic, roughness, N, V, L, radiance, ao);
     }
 
-    vec4 fragPosLightSpace = u_Shadow.lightSpaceMatrices[0] * mat4(1.0) * vec4(fragPos, 1.0);
+    bool cascadedShadows = true;
 
-    float shadow = (1 - ShadowCalculation(fragPosLightSpace, N, LightDir, fragPos));
+    float shadow = 0.0f;
+    if(cascadedShadows){
+        shadow = computeShadow(fragPos, MVP.View);
+    }
+    else {
+        vec4 fragPosLightSpace = u_Shadow.lightSpaceMatrices[0] * mat4(1.0) * vec4(fragPos, 1.0);
+        shadow = (1 - ShadowCalculation(fragPosLightSpace, N, LightDir, fragPos));
+    }
     
     // Sun light
     vec3 sunColor = vec3(1.0, 0.95, 0.9);

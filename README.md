@@ -1,8 +1,17 @@
-Brisk Game Engine
+# Brisk Engine
+An open-source, C++20 game engine focused on modern rendering and GPU optimization.
 
-Features:
-Graphics APIs supported: DirectX/Vulkan
-Platforms: Windows/Linux
+## Features
+- **Infinite Perspective Matrix**
+- **Clustered Lighting**
+- **Deferred Rendering**
+- **Meshlet Rendering (Indirect Draw)**
+- **Mesh Processing**: Using `meshoptimizer`
+- **Cascaded Shadow Maps**
 
-Build:
-Visual Studio 2022
+## Graphics APIs
+- **Vulkan** (Primary)
+- **DirectX12** (Partial)
+
+## Platforms
+- **Windows**

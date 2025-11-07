@@ -47,15 +47,27 @@ namespace Brisk
         ImGui::Begin("Assets");
         float windowVisibleX2 = ImGui::GetWindowPos().x + ImGui::GetWindowContentRegionMax().x;
 
-        if (ImGui::Button(" Load Model")) {
+        if (ImGui::Button(" Damaged Helmet ")) {
             SceneManager::pActiveScene->LoadGltfScene("../Data/Models/damaged_helmet/DamagedHelmet.gltf");
         }
 
-        if (ImGui::Button(" Load Model1")) {
+        if (ImGui::Button(" Pillar ")) {
+            SceneManager::pActiveScene->LoadGltfScene("../Data/Models/indian_temple_pillar/scene.gltf");
+        }
+
+        if (ImGui::Button(" Pillars ")) {
+            SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gazebo_with_pillars/scene.gltf");
+        }
+
+        if (ImGui::Button(" Sponza ")) {
+            SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf");
+        }
+
+        if (ImGui::Button(" Load Model1 ")) {
             SceneManager::pActiveScene->LoadGltfScene("../Data/Models/mecha_ramen_high_poly/scene.gltf");
         }
 
-        if (ImGui::Button(" Load Model2")) {
+        if (ImGui::Button(" Load Model2 ")) {
             SceneManager::pActiveScene->LoadGltfScene("../Data/Models/modural_robot_mecha_chimera_dyan_high-poly_mesh/scene.gltf");
         }
 

@@ -95,59 +95,6 @@ uint computeClusterIndex(vec3 fragPosView) {
     return tileX + tileY * NUM_CLUSTERS_X + tileZ * NUM_CLUSTERS_X * NUM_CLUSTERS_Y;
 }
 
-int chooseCascade(vec3 worldPos, mat4 viewMatrix) {
-    vec4 viewPos = viewMatrix * vec4(worldPos, 1.0);
-    float depth = -viewPos.z; // camera looks along -Z
-    for (int i = 0; i < NUM_CASCADES; i++) {
-        if (depth < u_Shadow.cascadeSplits[i]) {
-            return i;
-        }
-    }
-    return NUM_CASCADES - 1; // farthest cascade
-}
-
-vec3 projectToShadowMap(vec3 worldPos, int cascadeIndex) {
-    vec4 lightSpacePos = u_Shadow.lightSpaceMatrices[cascadeIndex] * vec4(worldPos, 1.0);
-    lightSpacePos.xyz /= lightSpacePos.w;
-    // Vulkan NDC Y is flipped
-    vec3 ndc = lightSpacePos.xyz * 0.5 + 0.5;
-    ndc.y = 1.0 - ndc.y;
-    return ndc;
-}
-
-float sampleShadow(int cascadeIndex, vec3 shadowCoord) {
-    if (shadowCoord.z > 1.0) return 1.0; // behind light frustum, lit
-    
-    float shadow = 0.0;
-    float bias = 0.001; // depth bias to reduce acne
-    int samples = 3; // 3x3 kernel
-    float texelSize = 1.0 / textureSize(ShadowMaps[cascadeIndex], 0).x;
-    
-    for (int x = -1; x <= 1; ++x) {
-        for (int y = -1; y <= 1; ++y) {
-            float pcfDepth = texture(ShadowMaps[cascadeIndex], shadowCoord.xy + vec2(x, y) * texelSize).r;
-            shadow += (shadowCoord.z - bias <= pcfDepth) ? 1.0 : 0.0;
-        }
-    }
-    shadow /= (samples * samples);
-    return shadow;
-}
-
-float computeShadow(vec3 worldPos, mat4 viewMatrix) {
-    int cascadeIndex = NUM_CASCADES - 1; // farthest cascade
-    vec4 viewPos = viewMatrix * vec4(worldPos, 1.0);
-    float depth = -viewPos.z; // camera looks along -Z
-    for (int i = 0; i < NUM_CASCADES; i++) {
-        if (depth < u_Shadow.cascadeSplits[i]) {
-            cascadeIndex =  i;
-            break;
-        }
-    }
-
-    vec3 shadowCoord = projectToShadowMap(worldPos, cascadeIndex);
-    return sampleShadow(cascadeIndex, shadowCoord);
-}
-
 // Trowbridge-Reitz / GGX
 float DGGX(float NdotH, float roughness) {
     float a2 = roughness * roughness;
@@ -229,6 +176,31 @@ vec3 evaluateLight(
     return (diffuse + spec) * radiance * NdotL;
 }
 
+float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir, vec3 worldPos)
+{
+    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
+    vec2 coordsXY = projCoords.xy * 0.5 + 0.5;
+    float closestDepth = texture(ShadowMaps[0], coordsXY.xy).r; 
+    float currentDepth = projCoords.z;
+    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+    float shadow = 0.0;
+    vec2 texelSize = 1.0 / textureSize(ShadowMaps[0], 0);
+    for(int x = -1; x <= 1; ++x)
+    {
+        for(int y = -1; y <= 1; ++y)
+        {
+            float pcfDepth = texture(ShadowMaps[0], coordsXY.xy + vec2(x, y) * texelSize).r; 
+            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;        
+        }    
+    }
+    shadow /= 9.0;
+    
+    if (projCoords.z > 1.0 || projCoords.z < 0.0)
+        shadow = 0.0;
+        
+    return shadow;
+}
+
 void main() {
     vec3 albedo = texture(sampler_Albedo, uv).rgb;
     float alpha = texture(sampler_Albedo, uv).a;
@@ -251,6 +223,7 @@ void main() {
     uint offset = offsetCount.x;
     uint count = offsetCount.y;
 
+    vec3 LightDir = normalize(-sunLightDir);
     for (uint i = 0; i < count; ++i) {
         uint lightIdx = LightIndices.lightIndexList[offset + i];
         vec3 lightPos = LightsList.lights[lightIdx].position.xyz;
@@ -268,14 +241,15 @@ void main() {
         accum += evaluateLight(albedo, metallic, roughness, N, V, L, radiance, ao);
     }
 
-    float shadow = computeShadow(fragPos, MVP.View);
+    vec4 fragPosLightSpace = u_Shadow.lightSpaceMatrices[0] * mat4(1.0) * vec4(fragPos, 1.0);
+
+    float shadow = (1 - ShadowCalculation(fragPosLightSpace, N, LightDir, fragPos));
     
     // Sun light
     vec3 sunColor = vec3(1.0, 0.95, 0.9);
-    float sunIntensity = 3.0;
-    vec3 LightDir = normalize(sunLightDir);
+    float sunIntensity = 6.0;
     vec3 radiance = sunColor * sunIntensity;
-    accum += evaluateLight(albedo, metallic, roughness, N, V, LightDir, radiance, ao) * shadow;
+    accum +=  shadow * evaluateLight(albedo, metallic, roughness, N, V, LightDir, radiance, ao);
 
     vec3 ambient = vec3(0.03);
     ambient = ambient * albedo * ao;
@@ -284,22 +258,5 @@ void main() {
     finalColor = finalColor / (finalColor + vec3(1.0));
     //finalColor = pow(finalColor, vec3(1.0/2.2)); // gamma
 
-    float depth = -fragPosView.z;
-
-    // Determine which cascade this pixel belongs to
-    int cascadeIndex = 0;
-    for (int i = 0; i < 3; i++) {
-        if (depth > u_Shadow.cascadeSplits[i])
-            cascadeIndex++;
-    }
-
-    vec3 cascadeColors[4] = vec3[4](
-        vec3(1.0, 0.0, 0.0), // red
-        vec3(0.0, 1.0, 0.0), // green
-        vec3(0.0, 0.0, 1.0), // blue
-        vec3(1.0, 1.0, 0.0)  // yellow
-    );
-
-    //outColor = vec4(cascadeColors[cascadeIndex] * finalColor, 1.0);
     outColor = vec4(finalColor, 1.0);
 }

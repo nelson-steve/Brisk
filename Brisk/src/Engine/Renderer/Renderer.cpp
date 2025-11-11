@@ -16,10 +16,10 @@ namespace Brisk
 
     std::shared_ptr<Swapchain> Renderer::m_Swapchain;
 
-    float cascadeSplitLambda = 0.95f;
+    float cascadeSplitLambda = 0.55f;
     std::vector<float> cascadeSplits;
     std::vector<glm::mat4> cascadeMatrices;
-    float farPlane = 400;
+    float farPlane = 200;
     std::vector<float> shadowCascadeLevels{ farPlane / 50.0f, farPlane / 25.0f, farPlane / 10.0f, farPlane / 2.0f };
 
     std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& projview)
@@ -837,6 +837,15 @@ namespace Brisk
         materialsBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
         materialsBufferDesc.p_AllowCopyDst = true;
         m_MaterialStorageBuffer->Init(materialsBufferDesc);
+
+        m_TransformsBuffer = Buffer::Create();
+        BufferDesc transformsBufferDesc{};
+        transformsBufferDesc.p_Name = "Transforms buffer";
+        transformsBufferDesc.p_Size = SIZE_100KB; // 10 KB;
+        transformsBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
+        transformsBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        transformsBufferDesc.p_AllowCopyDst = true;
+        m_TransformsBuffer->Init(transformsBufferDesc);
     }
 
     bool once = true;
@@ -851,6 +860,7 @@ namespace Brisk
             m_GBufferPipeline->UpdateResources("MeshletData", {}, m_MeshletDataBuffer);
             m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer);
             m_GBufferPipeline->UpdateResources("Materials", {}, m_MaterialStorageBuffer);
+            m_GBufferPipeline->UpdateResources("Transforms", {}, m_TransformsBuffer);
 
             once = false;
         }

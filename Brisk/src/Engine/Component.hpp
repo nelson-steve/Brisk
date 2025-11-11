@@ -12,6 +12,7 @@
 #include <glm/gtc/matrix_transform.hpp>
 #define GLM_ENABLE_EXPERIMENTAL
 #include <glm/gtx/quaternion.hpp>
+#include <glm/gtx/euler_angles.hpp>
 //-------------------------------
 #include <string>
 //---------------
@@ -40,23 +41,7 @@ namespace Brisk
 		const glm::quat &GetRotation() const { return Rotation; }
 		const glm::vec3 &GetScale() const { return Scale; }
 
-		void AddTranform(const glm::vec3 &pos)
-		{
-			Position = pos;
-		}
-
-		void AddTranform(const glm::quat &rot)
-		{
-			Rotation = rot;
-		}
-
-		void AddTranform(const glm::vec3 &pos, const glm::quat &rot)
-		{
-			Position = pos;
-			Rotation = rot;
-		}
-
-		void AddTranform(const glm::vec3 &pos, const glm::quat &rot, const glm::vec3 &scale)
+		void AddTranform(const glm::vec3 &pos, const glm::vec3 &rot, const glm::vec3 &scale)
 		{
 			glm::mat4 rotation = glm::toMat4(glm::quat(rot));
 			Position = pos;
@@ -64,9 +49,9 @@ namespace Brisk
 			Scale = scale;
 		}
 
-		glm::vec3 Position = {0.0f, 0.0f, 0.0f};
-		glm::quat Rotation = glm::quat(1.0f, 0.0f, 0.0f, 0.0f);
-		glm::vec3 Scale = {1.0f, 1.0f, 1.0f};
+		glm::vec3 Position = { 0.0f, 0.0f, 0.0f };
+		glm::vec3 Rotation = { 0.0f, 0.0f, 0.0f };
+		glm::vec3 Scale = { 1.0f, 1.0f, 1.0f };
 
 		TransformComponent() = default;
 		TransformComponent(const TransformComponent&) = default;
@@ -76,7 +61,11 @@ namespace Brisk
 
 		glm::mat4 GetTransform() const
 		{
-			return glm::translate(glm::mat4(1.0f), Position) * glm::toMat4(Rotation) * glm::scale(glm::mat4(1.0f), Scale);
+			glm::mat4 rotation = glm::eulerAngleYXZ(glm::radians(Rotation.y), glm::radians(Rotation.x), glm::radians(Rotation.z));
+			glm::mat4 translation = glm::translate(glm::mat4(1.0f), Position);
+			glm::mat4 scaling = glm::scale(glm::mat4(1.0f), Scale);
+
+			return translation * rotation * scaling;
 		}
 	};
 

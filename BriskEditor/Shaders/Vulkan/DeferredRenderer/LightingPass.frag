@@ -70,12 +70,6 @@ vec3 applyLight(vec3 fragPos, vec3 normal, uint lightIdx) {
     return color * intensity * attenuation * NdotL;
 }
 
-vec3 applyDirectionalLight(vec3 normal, vec3 sunLightDir, vec3 color, float intensity) {
-    vec3 L = normalize(sunLightDir);
-    float NdotL = max(dot(normal, L), 0.0);
-    return color * intensity * NdotL;
-}
-
 uint computeClusterIndex(vec3 fragPosView) {
     vec2 fragCoord = gl_FragCoord.xy;
     uvec2 screenSize = uvec2(textureSize(sampler_Position, 0));
@@ -182,7 +176,7 @@ float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir, vec3
     vec2 coordsXY = projCoords.xy * 0.5 + 0.5;
     float closestDepth = texture(ShadowMaps[0], coordsXY.xy).r; 
     float currentDepth = projCoords.z;
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
+    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.015);
     float shadow = 0.0;
     vec2 texelSize = 1.0 / textureSize(ShadowMaps[0], 0);
     for(int x = -1; x <= 1; ++x)
@@ -274,7 +268,7 @@ void main() {
     uint offset = offsetCount.x;
     uint count = offsetCount.y;
 
-    vec3 LightDir = normalize(sunLightDir);
+    vec3 LightDir = normalize(-sunLightDir);
     for (uint i = 0; i < count; ++i) {
         uint lightIdx = LightIndices.lightIndexList[offset + i];
         vec3 lightPos = LightsList.lights[lightIdx].position.xyz;

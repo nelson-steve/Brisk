@@ -520,25 +520,28 @@ namespace Brisk
 				if (!asset.nodes[nodeIndex].meshIndex.has_value()) continue;
 				std::pair<uint32_t, uint32_t> range = primitives[asset.nodes[nodeIndex].meshIndex.value()];
 
+				glm::mat4 mat = GetWorldTransform(asset, nodeIndex);
+
+				float scale[3];
+				float rotation[4];
+				float translation[3];
+
+				//glm::decompose(mat, scale, rotation, translation, skew, perspective);
+
+				decomposeTransform(translation, rotation, scale, glm::value_ptr(mat));
+
+				MeshTransform transform = {};
+				transform.position = glm::vec3(translation[0], translation[1], translation[2]);
+				transform.scale = std::max(scale[0], std::max(scale[1], scale[2]));
+				transform.orientation = glm::vec4(rotation[0], rotation[1], rotation[2], rotation[3]);
+				m_Geometry.transforms.push_back(transform);
+
 				std::cout << "Node " << asset.nodes[nodeIndex].name << ":\n";
 				for (int i = 0; i < range.second; i++) {
 					const auto& trs = std::get<fastgltf::TRS>(asset.nodes[nodeIndex].transform);
 
-					glm::mat4 mat = GetWorldTransform(asset, nodeIndex);
-
-					float scale[3];
-					float rotation[4];
-					float translation[3];
-
-					//glm::decompose(mat, scale, rotation, translation, skew, perspective);
-
-					decomposeTransform(translation, rotation, scale, glm::value_ptr(mat));
-
 					MeshDraw draw = {};
-					draw.position = glm::vec3(translation[0], translation[1], translation[2]);
-					draw.scale = std::max(scale[0], std::max(scale[1], scale[2]));
-					draw.orientation = glm::vec4(rotation[0], rotation[1], rotation[2], rotation[3]);
-
+					draw.transformIndex = m_Geometry.transforms.size() - 1;
 					draw.meshIndex = range.first + i;
 					draw.materialIndex = m_Geometry.meshes[draw.meshIndex].materialIndex;
 					draw.meshletCount = m_Geometry.meshes[draw.meshIndex].meshletCount;
@@ -549,13 +552,6 @@ namespace Brisk
 					draw.groupCountZ = 1;
 
 					m_Geometry.draws.push_back(draw);
-
-					std::cout << "MeshDraw " << (m_Geometry.draws.size() - 1) << ":\n"
-						<< "  Mesh Index: " << draw.meshIndex << "\n"
-						<< "  Translation: (" << draw.position.x << ", " << draw.position.y << ", " << draw.position.z << ")\n"
-						<< "  Scale: (" << draw.scale << ")\n"
-						<< "  Rotation (quat): (" << draw.orientation.x << ", " << draw.orientation.y << ", " << draw.orientation.z << ", " << draw.orientation.w << ")\n"
-						<< "----------------------------------------\n";
 				}
 			}
 
@@ -581,6 +577,8 @@ namespace Brisk
 			Application::GetRenderer()->m_MeshletDataBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(m_Geometry.meshletdata[0]) * m_Geometry.meshletdata.size(), m_Geometry.meshletdata.data());
 
 			Application::GetRenderer()->m_MeshletsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(m_Geometry.meshlets[0]) * m_Geometry.meshlets.size(), m_Geometry.meshlets.data());
+
+			Application::GetRenderer()->m_TransformsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(m_Geometry.transforms[0]) * m_Geometry.transforms.size(), m_Geometry.transforms.data());
 
 			uint32_t texturesOffset = Engine::s_TexturesOffset;
 

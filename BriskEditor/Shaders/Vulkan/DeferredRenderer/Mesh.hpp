@@ -18,19 +18,21 @@ struct Meshlet
 	uint8_t shortRefs;
 };
 
-struct MeshDraw
-{
+struct Transform {
     vec3 position;
     float scale;
     vec4 orientation;
+};
 
+struct MeshDraw
+{
+    uint transformIndex;
     uint meshIndex;
     uint materialIndex;
     uint meshletCount;
     uint meshletOffset;
 
     uint groupcount[3];
-    uint padding;
 };
 
 vec3 rotateQuat(vec3 v, vec4 q)

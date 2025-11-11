@@ -145,15 +145,7 @@ namespace Brisk
 			if (open)
 			{
 				DrawVec3Control("Position", SceneManager::pActiveScene->Reg().get<TransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Position);
-
-				glm::quat quat = SceneManager::pActiveScene->Reg().get<TransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Rotation;
-				glm::vec3 eulerAngles = glm::eulerAngles(quat);
-				glm::vec3 rotation = glm::degrees(eulerAngles);
-				DrawVec3Control("Rotation", rotation);
-				glm::vec3 euler = glm::vec3(rotation.x, rotation.y, rotation.z);
-				glm::quat q = glm::quat(euler);
-				//SceneManager::pActiveScene->Reg().get<WorldTransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Rotation = q;
-
+				DrawVec3Control("Rotation", SceneManager::pActiveScene->Reg().get<TransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Rotation);
 				DrawVec3Control("Scale", SceneManager::pActiveScene->Reg().get<TransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Scale);
 				ImGui::TreePop();
 			}

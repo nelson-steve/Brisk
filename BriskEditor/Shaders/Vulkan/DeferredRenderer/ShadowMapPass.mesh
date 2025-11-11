@@ -45,11 +45,16 @@ layout(set = 0, binding = 9) readonly buffer MeshDrawsBuffer {
 	MeshDraw meshDraws[];
 } MeshDraws;
 
+layout(set = 0, binding = 10) readonly buffer TransformsBuffer {
+	Transform transforms[];
+} Transforms;
+
 void main()
 {
     MeshDraw draw = MeshDraws.meshDraws[gl_DrawIDARB];
     uint meshletCount = draw.meshletCount;
     uint meshletOffset = draw.meshletOffset;
+    Transform transform = Transforms.transforms[draw.transformIndex];
 
 	uint ti = gl_LocalInvocationIndex;
 
@@ -72,7 +77,7 @@ void main()
         vec3 pos    = vec3(Vertices.vertices[vi].vx, Vertices.vertices[vi].vy, Vertices.vertices[vi].vz);
         vec3 normal = vec3(Vertices.vertices[vi].nx, Vertices.vertices[vi].ny, Vertices.vertices[vi].nz);
 
-        vec4 worldPos = vec4(rotateQuat(pos, draw.orientation) * draw.scale + draw.position, 1.0); 
+        vec4 worldPos = vec4(rotateQuat(pos, transform.orientation) * transform.scale + transform.position, 1.0); 
         gl_MeshVerticesEXT[i].gl_Position = MeshData.matrix * worldPos;
     }
 

@@ -21,8 +21,7 @@ namespace Brisk
 {
 	class Entity;
 
-	struct SceneSetting
-	{
+	struct SceneSetting {
 		bool ShowCollider = true;
 		bool enableGravity = true;
 		float backgroundLight = 1.0;
@@ -34,8 +33,7 @@ namespace Brisk
         float tx, ty;     // 4 + 4 = 8
     };
 
-    struct alignas(16) Mesh
-    {
+    struct alignas(16) Mesh {
         glm::vec3 center;
         float radius;
 
@@ -46,8 +44,7 @@ namespace Brisk
         uint32_t meshletOffset;
     };
 
-    struct alignas(16) Meshlet
-    {
+    struct alignas(16) Meshlet {
         glm::vec3 center;
         float radius;
         int8_t cone_axis[3];
@@ -61,12 +58,14 @@ namespace Brisk
         uint8_t padding;
     };
 
-    struct alignas(16) MeshDraw
-    {
+    struct alignas(16) MeshTransform {
         glm::vec3 position;
         float scale;
         glm::vec4 orientation;
+    };
 
+    struct alignas(16) MeshDraw {
+        uint32_t transformIndex;
         uint32_t meshIndex;
         uint32_t materialIndex;
         uint32_t meshletCount;
@@ -76,16 +75,15 @@ namespace Brisk
         uint32_t groupCountX;
         uint32_t groupCountY;
         uint32_t groupCountZ;
-        uint32_t padding;
     };
 
-    struct Geometry
-    {
+    struct Geometry {
         std::vector<Vertex> vertices;
         std::vector<uint32_t> indices;
         std::vector<Meshlet> meshlets;
         std::vector<uint32_t> meshletdata;
         std::vector<Mesh> meshes;
+        std::vector<MeshTransform> transforms;
         std::vector<MeshDraw> draws;
     };
 

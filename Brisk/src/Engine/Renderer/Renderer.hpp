@@ -189,6 +189,7 @@ namespace Brisk
 		std::shared_ptr<Buffer> m_MeshletsBuffer;
 		std::shared_ptr<Buffer> m_MeshletDataBuffer;
 		std::shared_ptr<Buffer> m_MaterialStorageBuffer;
+		std::shared_ptr<Buffer> m_TransformsBuffer;
 		// Buffer - End
 
 		ScratchAllocator m_ScratchAllocator;

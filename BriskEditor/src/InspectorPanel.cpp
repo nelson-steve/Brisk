@@ -153,6 +153,8 @@ namespace Brisk
 					DrawVec3Control("Rotation", SceneManager::pActiveScene->Reg().get<TransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Rotation) ||
 					DrawVec3Control("Scale", SceneManager::pActiveScene->Reg().get<TransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).Scale);
 				ImGui::TreePop();
+				if (valueUpdated)
+					Application::GetRenderer()->TransformUpdated = true;
 				SceneManager::pActiveScene->Reg().get<TransformComponent>(SceneManager::pActiveScene->GetSelectedEntity()).dirtyTransform = valueUpdated;
 			}
 

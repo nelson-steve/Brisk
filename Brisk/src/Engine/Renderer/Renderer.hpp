@@ -141,8 +141,6 @@ namespace Brisk
 		std::shared_ptr<Texture> m_ShadowMapLOD2;
 		std::shared_ptr<Texture> m_ShadowMapLOD3;
 		std::shared_ptr<Texture> m_LightingOutput;
-
-		std::shared_ptr<Texture> m_IrradiannceImage;
 		// Attachments - End
 
 		// RenderPasses
@@ -179,8 +177,6 @@ namespace Brisk
 		std::shared_ptr<Buffer> m_LightsList;
 		std::shared_ptr<Buffer> m_ClusterLightIndexList;
 		std::shared_ptr<Buffer> m_ClusterLightOffsetList;
-		
-		std::shared_ptr<Buffer> m_ProbesBuffer;
 
 		std::shared_ptr<Buffer> m_AtomicCounters;
 
@@ -196,7 +192,6 @@ namespace Brisk
 		ScratchAllocator m_ScratchAllocator;
 
 		std::vector<glm::mat4> m_SunMatrices;
-		std::vector<Probe> m_Probes;
 
 		uint64_t m_ImGuiIdScene;
 		uint64_t m_ImGuiIdShadowMap0;
@@ -211,6 +206,7 @@ namespace Brisk
 		uint32_t m_ImageIndex;
 		uint32_t m_CurrentFrame = 0;
 
+		bool TransformUpdated = false;
 		std::atomic<bool> m_WindowResized = false;
 	};
 }

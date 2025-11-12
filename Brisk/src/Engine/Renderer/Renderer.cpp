@@ -148,44 +148,6 @@ namespace Brisk
 
         m_SunMatrices.resize(NUM_CASCADES);
 
-        glm::vec3 probMinBounds = glm::vec3(-20, -10, -20);
-        glm::vec3 probMaxBounds = glm::vec3(-20, -10, -20);
-        glm::ivec3 probeResolution = glm::vec3(16, 8, 16);
-        uint32_t probeCount = probeResolution.x * probeResolution.y * probeResolution.z;
-
-        glm::vec3 probeSpacing = (probMaxBounds - probMinBounds) / glm::vec3(probeResolution);
-        glm::vec3 probeOrigin = probMinBounds;
-
-        for (int z = 0; z < probeResolution.z; ++z) {
-            for (int y = 0; y < probeResolution.z; ++y) {
-                for (int x = 0; x < probeResolution.z; ++x) {
-                    glm::vec3 pos = probeOrigin + glm::vec3(x + 0.5f, y + 0.5f, z + 0.5f) * probeSpacing;
-                    Probe p;
-                    p.Position = pos;
-                    m_Probes.push_back(p);
-                }
-            }
-        }
-
-        m_ProbesBuffer = Buffer::Create();
-        BufferDesc probesBufferDesc{};
-        probesBufferDesc.p_Size = sizeof(Probe) * probeCount;
-        probesBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
-        probesBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
-        probesBufferDesc.p_Persistant = true;
-        m_ProbesBuffer->Init(probesBufferDesc);
-
-        m_IrradiannceImage = Texture::Create();
-        Texture::TextureSpecification specs{};
-        specs.p_Width = probeResolution.x;
-        specs.p_Height = probeResolution.y;
-        specs.p_Depth = probeResolution.z;
-        specs.p_Type = Texture::TextureType::TEXTURE3D;
-        specs.p_DebugName = "Irradiance";
-        specs.p_Usage = Core::TextureUsage::ImageUsageStorage | Core::TextureUsage::ImageUsageSampled | Core::TextureUsage::ImageUsageTransferDst;
-        specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
-        m_IrradiannceImage->Init(specs);
-
         RenderCommand::s_RendererAPI = RendererAPI::Create();
         ComputeCommand::s_ComputeAPI = ComputeAPI::Create();
 
@@ -864,6 +826,7 @@ namespace Brisk
             }
         }
     }
+
     void Renderer::RenderScene(float deltaTime)
     {
         if (!SceneManager::pActiveScene) return;
@@ -1027,7 +990,10 @@ namespace Brisk
 
         m_GraphicsFence[m_CurrentFrame]->Reset();
 
-        UpdateTransforms();
+        if (TransformUpdated) {
+            UpdateTransforms();
+            TransformUpdated = false;
+        }
 
         if (shouldUpload) {
             Queue::SubmitInfo transferSubmitInfo{};

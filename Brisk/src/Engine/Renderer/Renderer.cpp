@@ -12,8 +12,9 @@ namespace Brisk
 {
 #define NUM_CASCADES 4
 
+    bool shouldUpload;
+    bool once = true;
     Swapchain::Mode swapchainMode = Swapchain::Mode::DOUBLE_BUFFERING;
-
     std::shared_ptr<Swapchain> Renderer::m_Swapchain;
 
     float cascadeSplitLambda = 0.55f;
@@ -848,7 +849,21 @@ namespace Brisk
         m_TransformsBuffer->Init(transformsBufferDesc);
     }
 
-    bool once = true;
+    void Renderer::UpdateTransforms() {
+        auto view = SceneManager::pActiveScene->Reg().view<TransformComponent>();
+        for (auto e : view) {
+            Entity entity = { e, SceneManager::pActiveScene.get() };
+            auto& tc = entity.GetComponent<TransformComponent>();
+            if (tc.dirtyTransform) {
+                SceneManager::pActiveScene->m_Geometry.transforms[tc.p_TransformIndex].position = tc.GetPosition();
+                tc.dirtyTransform = false;
+                m_TransferCmdBuffer->Bind();
+                m_TransformsBuffer->RecordUpload(m_TransferCmdBuffer, sizeof(SceneManager::pActiveScene->m_Geometry.transforms[0]) * SceneManager::pActiveScene->m_Geometry.transforms.size(), SceneManager::pActiveScene->m_Geometry.transforms.data());
+                m_TransferCmdBuffer->UnBind();
+                shouldUpload = true;
+            }
+        }
+    }
     void Renderer::RenderScene(float deltaTime)
     {
         if (!SceneManager::pActiveScene) return;
@@ -995,7 +1010,7 @@ namespace Brisk
 
         m_GraphicsFence[m_CurrentFrame]->Wait();
 
-        bool shouldUpload = false;
+        shouldUpload = false;
 
         {
             std::lock_guard<std::mutex> lock(Application::m_GltfFileMutex);
@@ -1011,6 +1026,8 @@ namespace Brisk
         }
 
         m_GraphicsFence[m_CurrentFrame]->Reset();
+
+        UpdateTransforms();
 
         if (shouldUpload) {
             Queue::SubmitInfo transferSubmitInfo{};

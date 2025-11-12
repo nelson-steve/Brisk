@@ -553,14 +553,12 @@ namespace Brisk
 
 					m_Geometry.draws.push_back(draw);
 				}
-			}
 
-			for (const auto& node : asset.nodes) {
-				if (!node.meshIndex.has_value()) continue;
-
-				Entity e = CreateEntity(node.name.c_str());
+				Entity e = CreateEntity(asset.nodes[nodeIndex].name.c_str());
+				TransformComponent& tc = e.GetComponent<TransformComponent>();
 				MeshComponent& mc = e.AddComponent<MeshComponent>();
-				std::pair<uint32_t, uint32_t> range = primitives[node.meshIndex.value()];
+				tc.p_TransformIndex = m_Geometry.transforms.size() - 1;
+				range = primitives[asset.nodes[nodeIndex].meshIndex.value()];
 				for (int i = 0; i < range.second; i++) {
 					mc.p_SubMeshIndices.push_back(range.first + i);
 				}

@@ -3,6 +3,7 @@
 // INCLUDES
 #include "Scene.hpp"
 #include "Core/Core.hpp"
+#include "Core/Log.hpp"
 //-----------------
 #include "entt.hpp"
 //----------------
@@ -36,7 +37,7 @@ namespace Brisk
 		template<typename T>
 		T& GetComponent()
 		{
-			//Brisk_CORE_ASSERT(HasComponent<T>(), "Entity does not have component!");
+			BRISK_CORE_ASSERT(HasComponent<T>(), "Entity does not have component!");
 			return m_Scene->m_Registry.get<T>(m_EntityHandle);
 		}
 

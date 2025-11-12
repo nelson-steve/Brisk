@@ -34,6 +34,9 @@ namespace Brisk
 	{
 		std::string name = "Transform Component";
 
+		bool dirtyTransform = false;
+		uint32_t p_TransformIndex;
+
 		Entity parent;
 		std::vector<Entity> children;
 

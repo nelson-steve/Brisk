@@ -98,6 +98,7 @@ namespace Brisk
 		void Init();
 		void Release();
 		void RenderScene(float deltaTime);
+		void UpdateTransforms();
 
 		void AddGlobalTexture(std::vector<std::shared_ptr<Texture>> textures) {
 			m_GBufferPipeline->UpdateResources("GlobalTextures", textures, nullptr);

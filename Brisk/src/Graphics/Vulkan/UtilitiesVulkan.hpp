@@ -239,6 +239,8 @@ namespace Brisk
 			if (HasFlag(usageFlags, Core::BufferUsage::TransformFeedbackBufferEXT)) flags |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_BUFFER_BIT_EXT;
 			if (HasFlag(usageFlags, Core::BufferUsage::TransformFeedbackCounterBufferEXT)) flags |= VK_BUFFER_USAGE_TRANSFORM_FEEDBACK_COUNTER_BUFFER_BIT_EXT;
 			if (HasFlag(usageFlags, Core::BufferUsage::ConditionalRenderingEXT))    flags |= VK_BUFFER_USAGE_CONDITIONAL_RENDERING_BIT_EXT;
+			if (HasFlag(usageFlags, Core::BufferUsage::AccelerationStructureStorage))    flags |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_STORAGE_BIT_KHR;
+			if (HasFlag(usageFlags, Core::BufferUsage::AccelerationStructureBuildInputReadOnly))    flags |= VK_BUFFER_USAGE_ACCELERATION_STRUCTURE_BUILD_INPUT_READ_ONLY_BIT_KHR;
 
 			return flags;
 		}

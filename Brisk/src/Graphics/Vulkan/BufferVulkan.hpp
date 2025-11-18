@@ -22,6 +22,7 @@ namespace Brisk {
 
 		inline const VkBuffer Get() const { return m_Handle; }
 
+		VkDeviceAddress GetDeviceAddress();
 		VkDescriptorBufferInfo* GetDescriptor() {
 			bufferInfo.buffer = m_Handle;
 			bufferInfo.offset = 0;

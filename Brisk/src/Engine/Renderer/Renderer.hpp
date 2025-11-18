@@ -15,6 +15,8 @@
 #include "CSMRenderPass.hpp"
 //------------------------
 #include <memory>
+#include "BLAS.hpp"
+#include "TLAS.hpp"
 //---------------
 
 #define MAX_LIGHTS 2048
@@ -66,6 +68,12 @@ namespace Brisk
 		alignas(16) glm::mat4 ProjView;
 		alignas(16) glm::mat4 View;
 		alignas(16) glm::vec3 CamPos;
+	};
+
+	struct RayTracingProps {
+		alignas(16) glm::mat4 ProjInv;
+		alignas(16) glm::mat4 ViewInv;
+		alignas(16) glm::vec3 LightPos;
 	};
 
 	struct ShadowData {
@@ -162,10 +170,16 @@ namespace Brisk
 
 		std::shared_ptr<Pipeline> m_AABBGeneratorPipeline;
 		std::shared_ptr<Pipeline> m_AssignLightsToClustersPipeline;
+
+		std::shared_ptr<Pipeline> m_RayTracing;
 		// Pipelines - End
+
+		std::shared_ptr<BLAS> m_BLAS;
+		std::shared_ptr<TLAS> m_TLAS;
 
 		// Buffer
 		std::shared_ptr<Buffer> m_MVPBuffer;
+		std::shared_ptr<Buffer> m_RayTracingPropsBuffer;
 		std::shared_ptr<Buffer> m_ShadowDataBuffer;
 
 		std::shared_ptr<Buffer> m_ClusterInfoUBO;

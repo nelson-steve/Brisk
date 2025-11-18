@@ -100,7 +100,7 @@ namespace Brisk
             nameInfo.pObjectName = desc.p_Name.c_str();
 
 #if _DEBUG
-            vkSetDebugUtilsObjectNameEXT(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
+            vkSetDebugUtilsObjectNameEXT(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &nameInfo);
 #endif
 
             {
@@ -228,6 +228,14 @@ namespace Brisk
         vkCmdCopyBuffer(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), std::static_pointer_cast<BufferVulkan>(Application::GetRenderer()->m_ScratchAllocator.m_ScratchBuffer)->Get(), m_Handle, 1, &copyRegion);
     }
 
+    VkDeviceAddress BufferVulkan::GetDeviceAddress() {
+        VkBufferDeviceAddressInfoKHR bufferDeviceAddresInfo{
+        .sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,
+        .buffer = m_Handle
+        };
+        return vkGetBufferDeviceAddressKHR(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &bufferDeviceAddresInfo);
+    }
+
     void BufferVulkan::MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, MemoryBarrierParams barrier) {
         VkBufferMemoryBarrier bufferBarrier{ VK_STRUCTURE_TYPE_BUFFER_MEMORY_BARRIER };
         bufferBarrier.srcAccessMask = UtilitiesVulkan::AccessTypeToVkAccessFlags(barrier.srcAccess);
@@ -246,7 +254,7 @@ namespace Brisk
     }
 
 	void BufferVulkan::Release() {
-        BRISK_CORE_INFO("Destroying vma buffer");
+        //BRISK_CORE_INFO("Destroying vma buffer");
 		vmaDestroyBuffer(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetVmaAllocator(), m_Handle, m_Allocation);
 	}
 }

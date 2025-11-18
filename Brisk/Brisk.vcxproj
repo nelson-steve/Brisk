@@ -118,6 +118,7 @@
     <ClInclude Include="src\Engine\ImGuiLayer.hpp" />
     <ClInclude Include="src\Engine\MeshAsset.hpp" />
     <ClInclude Include="src\Engine\OrthographicCamera.hpp" />
+    <ClInclude Include="src\Engine\Renderer\BLAS.hpp" />
     <ClInclude Include="src\Engine\Renderer\Buffer.hpp" />
     <ClInclude Include="src\Engine\Renderer\CSMRenderPass.hpp" />
     <ClInclude Include="src\Engine\Renderer\CommandBuffer.hpp" />
@@ -140,6 +141,7 @@
     <ClInclude Include="src\Engine\Renderer\Semaphore.hpp" />
     <ClInclude Include="src\Engine\Renderer\Swapchain.hpp" />
     <ClInclude Include="src\Engine\Renderer\Texture.hpp" />
+    <ClInclude Include="src\Engine\Renderer\TLAS.hpp" />
     <ClInclude Include="src\Engine\Scene.hpp" />
     <ClInclude Include="src\Engine\SceneManager.hpp" />
     <ClInclude Include="src\Engine\SceneSerializer.hpp" />
@@ -160,6 +162,7 @@
     <ClInclude Include="src\Graphics\DirectX12\TextureDirectX12.hpp" />
     <ClInclude Include="src\Graphics\DirectX12\UtilitiesDirectX12.hpp" />
     <ClInclude Include="src\Graphics\Factories\SwapchainFactory.hpp" />
+    <ClInclude Include="src\Graphics\Vulkan\BLASVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\BufferVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\CSMRenderpassVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\CommandBufferAllocatorVulkan.hpp" />
@@ -177,6 +180,7 @@
     <ClInclude Include="src\Graphics\Vulkan\SurfaceFactoryVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\SwapchainVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\TextureVulkan.hpp" />
+    <ClInclude Include="src\Graphics\Vulkan\TLASVulkan.hpp" />
     <ClInclude Include="src\Graphics\Vulkan\UtilitiesVulkan.hpp" />
     <ClInclude Include="src\Layers\Layer.hpp" />
     <ClInclude Include="src\Layers\LayerStack.hpp" />
@@ -192,6 +196,7 @@
     <ClCompile Include="src\Engine\ImGuiLayer.cpp" />
     <ClCompile Include="src\Engine\MeshAsset.cpp" />
     <ClCompile Include="src\Engine\OrthographicCamera.cpp" />
+    <ClCompile Include="src\Engine\Renderer\BLAS.cpp" />
     <ClCompile Include="src\Engine\Renderer\Buffer.cpp" />
     <ClCompile Include="src\Engine\Renderer\CSMRenderPass.cpp" />
     <ClCompile Include="src\Engine\Renderer\CommanBuffer.cpp" />
@@ -210,6 +215,7 @@
     <ClCompile Include="src\Engine\Renderer\Semaphore.cpp" />
     <ClCompile Include="src\Engine\Renderer\Swapchain.cpp" />
     <ClCompile Include="src\Engine\Renderer\Texture.cpp" />
+    <ClCompile Include="src\Engine\Renderer\TLAS.cpp" />
     <ClCompile Include="src\Engine\Scene.cpp" />
     <ClCompile Include="src\Engine\SceneManager.cpp" />
     <ClCompile Include="src\Engine\SceneSerializer.cpp" />
@@ -227,6 +233,7 @@
     <ClCompile Include="src\Graphics\DirectX12\SwapchainDirectX12.cpp" />
     <ClCompile Include="src\Graphics\DirectX12\TextureDirectX12.cpp" />
     <ClCompile Include="src\Graphics\DirectX12\UtilitiesDirectX12.cpp" />
+    <ClCompile Include="src\Graphics\Vulkan\BLASVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\BufferVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\CSMRenderPassVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\CommandBufferAllocatorVulkan.cpp" />
@@ -240,6 +247,7 @@
     <ClCompile Include="src\Graphics\Vulkan\SemaphoreVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\SwapchainVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\TextureVulkan.cpp" />
+    <ClCompile Include="src\Graphics\Vulkan\TLASVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\UtilitiesVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\volk.cpp" />
     <ClCompile Include="src\Layers\Layer.cpp" />

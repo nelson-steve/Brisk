@@ -21,6 +21,7 @@ namespace Brisk
 	public:
 		virtual void Init(const GraphicsPipelineSpecs& specs) override;
 		virtual void Init(const ComputePipelineSpecs& specs) override;
+		virtual void Init(const RayTracingPipelineSpecs& specs) override;
 		virtual void Release() override;
 
 		void HotReload();
@@ -35,7 +36,6 @@ namespace Brisk
 		void BindInternal(std::shared_ptr<CommandBuffer> cmd, VkDescriptorSet set, uint32_t setIndex);
 	private:
 		bool m_IsCompute = false;
-		std::vector<VkShaderModule> m_Modules;
 		VkPipelineLayout m_PipelineLayout;
 		VkPipeline m_Pipeline;
 

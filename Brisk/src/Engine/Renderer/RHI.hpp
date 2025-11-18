@@ -216,6 +216,8 @@ namespace Brisk {
             TransformFeedbackBufferEXT = 1 << 12,
             TransformFeedbackCounterBufferEXT = 1 << 13,
             ConditionalRenderingEXT = 1 << 14,
+            AccelerationStructureStorage = 1 << 15,
+            AccelerationStructureBuildInputReadOnly = 1 << 16,
         };
 
         inline BufferUsage operator|(BufferUsage a, BufferUsage b) {

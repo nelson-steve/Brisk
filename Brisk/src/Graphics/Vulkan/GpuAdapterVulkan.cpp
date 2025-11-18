@@ -41,6 +41,7 @@ namespace Brisk
 		appInfo.apiVersion = VK_API_VERSION_1_4;
 
 		m_InstanceExtensions = UtilitiesVulkan::GetRequiredExtensions();
+		m_InstanceExtensions.push_back(VK_KHR_GET_PHYSICAL_DEVICE_PROPERTIES_2_EXTENSION_NAME);
 		m_ValidationLayersFound = false;
 #if _DEBUG
 		m_ValidationLayersFound = UtilitiesVulkan::CheckValidationLayerSupport(m_ValidationLayers);
@@ -80,9 +81,12 @@ namespace Brisk
 		m_DeviceExtensions =
 		{ 
 			VK_KHR_SWAPCHAIN_EXTENSION_NAME,
+			VK_EXT_MESH_SHADER_EXTENSION_NAME,
+			VK_KHR_RAY_TRACING_PIPELINE_EXTENSION_NAME,
+			VK_KHR_BUFFER_DEVICE_ADDRESS_EXTENSION_NAME,
+			VK_KHR_ACCELERATION_STRUCTURE_EXTENSION_NAME,
+			VK_KHR_DEFERRED_HOST_OPERATIONS_EXTENSION_NAME,
 		};
-
-		m_DeviceExtensions.push_back(VK_EXT_MESH_SHADER_EXTENSION_NAME);
 
 		std::vector<VkPhysicalDevice> availableDevices = RetrieveAvailableDevice(m_Instance);
 		bool deviceFound = false;
@@ -115,7 +119,8 @@ namespace Brisk
 		allocatorInfo.physicalDevice = m_PhysicalDevice;
 		allocatorInfo.device = m_Device;
 		allocatorInfo.instance = m_Instance;
-		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_2;
+		allocatorInfo.vulkanApiVersion = VK_API_VERSION_1_4;
+		allocatorInfo.flags = VMA_ALLOCATOR_CREATE_BUFFER_DEVICE_ADDRESS_BIT;
 		VmaVulkanFunctions vulkanFunctions = {};
 		VkResult res = vmaImportVulkanFunctionsFromVolk(&allocatorInfo, &vulkanFunctions);
 		if (res != VK_SUCCESS) {
@@ -153,6 +158,9 @@ namespace Brisk
 			layout->AddBinding(8, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT });
 			layout->AddBinding(9, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT, GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->AddBinding(10, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT });
+			layout->AddBinding(11, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,  { GPUResource::ShaderStageAccess::SHADER_STAGE_RAYGEN_BIT_KHR });
+			layout->AddBinding(12, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_IMAGE,  { GPUResource::ShaderStageAccess::SHADER_STAGE_RAYGEN_BIT_KHR });
+			layout->AddBinding(13, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_RAYGEN_BIT_KHR });
 			layout->Init();
 			m_FrameGlobalDescriptorLayout = std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout();
 		}
@@ -231,17 +239,18 @@ namespace Brisk
 
 	void GpuAdapterVulkan::AllocatePools() {
 		std::vector<VkDescriptorPoolSize> poolSizes{
-			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER, 1024 },
-			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,		 1024 },
-			{ VK_DESCRIPTOR_TYPE_SAMPLER,				 1024 },
-			{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,		 1024 },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,		 1024 },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,			 1024 },
-			{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,			 1024 },
-			{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,   1024 },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,   1024 },
-			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC, 1024 },
-			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC, 1024 },
+			{ VK_DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,     1024 },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER,		     1024 },
+			{ VK_DESCRIPTOR_TYPE_SAMPLER,				     1024 },
+			{ VK_DESCRIPTOR_TYPE_INPUT_ATTACHMENT,		     1024 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER,		     1024 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_IMAGE,			     1024 },
+			{ VK_DESCRIPTOR_TYPE_SAMPLED_IMAGE,			     1024 },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_TEXEL_BUFFER,       1024 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_TEXEL_BUFFER,       1024 },
+			{ VK_DESCRIPTOR_TYPE_UNIFORM_BUFFER_DYNAMIC,     1024 },
+			{ VK_DESCRIPTOR_TYPE_STORAGE_BUFFER_DYNAMIC,     1024 },
+			{ VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR, 1024 },
 		};
 
 		VkDescriptorPoolCreateInfo poolInfo{};
@@ -424,9 +433,7 @@ namespace Brisk
 		features12.shaderInt8 = VK_TRUE;
 		features12.samplerFilterMinmax = VK_TRUE;
 		features12.scalarBlockLayout = VK_TRUE;
-
-		// for raytracing
-		//features12.bufferDeviceAddress = VK_TRUE;
+		features12.bufferDeviceAddress = VK_TRUE;
 
 		// Bindless features
 		features12.shaderSampledImageArrayNonUniformIndexing = VK_TRUE;
@@ -458,12 +465,20 @@ namespace Brisk
 		//VkPhysicalDeviceAccelerationStructureFeaturesKHR featuresAccelerationStructure = { VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR };
 		//featuresAccelerationStructure.accelerationStructure = true;
 
+		VkPhysicalDeviceRayTracingPipelineFeaturesKHR featuresRayTracing{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_RAY_TRACING_PIPELINE_FEATURES_KHR };
+		featuresRayTracing.rayTracingPipeline = true;
+
+		VkPhysicalDeviceAccelerationStructureFeaturesKHR accelerationFeatures{ VK_STRUCTURE_TYPE_PHYSICAL_DEVICE_ACCELERATION_STRUCTURE_FEATURES_KHR };
+		accelerationFeatures.accelerationStructure = true;
+
 		deviceCreateInfo.pNext = &features;
 		features.pNext = &features11;
 		features11.pNext = &features12;
 		features12.pNext = &features13;
 		features13.pNext = &features14;
 		features14.pNext = &featuresMesh;
+		featuresMesh.pNext = &featuresRayTracing;
+		featuresRayTracing.pNext = &accelerationFeatures;
 #if _DEBUG
 		const std::vector<const char*> validationLayers = {
 			"VK_LAYER_KHRONOS_validation"

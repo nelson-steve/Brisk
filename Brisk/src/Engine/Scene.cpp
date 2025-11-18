@@ -564,7 +564,6 @@ namespace Brisk
 				}
 			}
 
-
 			Application::GetRenderer()->m_TransferCmdBuffer->Bind();
 			Application::GetRenderer()->m_DrawsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(m_Geometry.draws[0]) * m_Geometry.draws.size(), m_Geometry.draws.data());
 

@@ -26,7 +26,6 @@ namespace Brisk
         descriptorLayout->Init();
 
         Pipeline::ComputePipelineSpecs pipelineSpecs{};
-        pipelineSpecs.pDescriptorLayouts.push_back(descriptorLayout);
         //pipelineSpecs.pShaderModule = computeShaderModule;
 
         m_ComputePipeline = Pipeline::Create();

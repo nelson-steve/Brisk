@@ -7,6 +7,8 @@
 #include "Graphics/Factories/SwapchainFactory.hpp"
 //------------------------------------------------
 #include <fastgltf/types.hpp>
+#include <Graphics/Vulkan/BLASVulkan.hpp>
+#include <Graphics/Vulkan/TLASVulkan.hpp>
 
 namespace Brisk
 {
@@ -564,7 +566,23 @@ namespace Brisk
                 m_AssignLightsToClustersPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
+
+            // -- Ray Tracing --
+            // Ray tracing pipeline
+            {
+                Pipeline::RayTracingPipelineSpecs pipelineSpecs{};
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/RayGeneration.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/ClosestHit.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/Miss.spv");
+                //pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/Shadow.spv");
+
+                m_RayTracing = Pipeline::Create();
+                m_RayTracing->Init(pipelineSpecs);
+            }
         }
+
+        m_BLAS = std::make_shared<BLASVulkan>();
+        m_TLAS = std::make_shared<TLASVulkan>();
 
         m_MVPBuffer = Buffer::Create();
         BufferDesc mvpBufferDesc{};
@@ -573,6 +591,14 @@ namespace Brisk
         mvpBufferDesc.p_Memory = BufferDesc::MemoryUsage::CPU_To_GPU;
         mvpBufferDesc.p_Persistant = true;
         m_MVPBuffer->Init(mvpBufferDesc);
+
+        m_RayTracingPropsBuffer = Buffer::Create();
+        BufferDesc rayTracingBufferDesc{};
+        rayTracingBufferDesc.p_Size = sizeof(MVP);
+        rayTracingBufferDesc.p_Usage = Core::BufferUsage::UniformBuffer;
+        rayTracingBufferDesc.p_Memory = BufferDesc::MemoryUsage::CPU_To_GPU;
+        rayTracingBufferDesc.p_Persistant = true;
+        m_RayTracingPropsBuffer->Init(rayTracingBufferDesc);
 
         m_ShadowDataBuffer = Buffer::Create();
         BufferDesc shadowBufferDesc{};
@@ -760,7 +786,7 @@ namespace Brisk
         BufferDesc indexBufferDesc{};
         indexBufferDesc.p_Name = "Index buffer";
         indexBufferDesc.p_Size = SIZE_1MB * 256; // 256 MB
-        indexBufferDesc.p_Usage = Core::BufferUsage::IndexBuffer | Core::BufferUsage::TransferDst;
+        indexBufferDesc.p_Usage = Core::BufferUsage::IndexBuffer | Core::BufferUsage::TransferDst | Core::BufferUsage::ShaderDeviceAddress | Core::BufferUsage::AccelerationStructureBuildInputReadOnly;
         indexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
         indexBufferDesc.p_AllowCopyDst = true;
         m_IndexBuffer->Init(indexBufferDesc);
@@ -769,7 +795,7 @@ namespace Brisk
         BufferDesc vertexBufferDesc{};
         vertexBufferDesc.p_Name = "Vertices buffer";
         vertexBufferDesc.p_Size = SIZE_1MB * 256; // 256 MB
-        vertexBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
+        vertexBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst | Core::BufferUsage::ShaderDeviceAddress | Core::BufferUsage::AccelerationStructureBuildInputReadOnly;
         vertexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
         vertexBufferDesc.p_AllowCopyDst = true;
         m_VertexBuffer->Init(vertexBufferDesc);
@@ -804,7 +830,7 @@ namespace Brisk
         m_TransformsBuffer = Buffer::Create();
         BufferDesc transformsBufferDesc{};
         transformsBufferDesc.p_Name = "Transforms buffer";
-        transformsBufferDesc.p_Size = SIZE_100KB; // 10 KB;
+        transformsBufferDesc.p_Size = SIZE_100KB; // 100 KB;
         transformsBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
         transformsBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
         transformsBufferDesc.p_AllowCopyDst = true;
@@ -843,7 +869,7 @@ namespace Brisk
             once = false;
         }
 
-        glm::vec3 lightDir; 
+        glm::vec3 lightDir{ 0.0f };
         MVP mvp{};
         mvp.ProjView = Application::GetCamera()->GetViewProjection();
         mvp.View = Application::GetCamera()->GetViewMatrix();
@@ -865,6 +891,12 @@ namespace Brisk
             auto& lc = entity.GetComponent<DirectionalLightComponent>();
             lightDir = lc.Direction;
         }
+
+        RayTracingProps rayProps{};
+        rayProps.ProjInv = glm::inverse(Application::GetCamera()->GetProjection());
+        rayProps.ViewInv = glm::inverse(Application::GetCamera()->GetViewMatrix());
+        rayProps.LightPos = lightDir;
+        m_RayTracingPropsBuffer->UpdatePersistantData(sizeof(RayTracingProps), &rayProps);
 
         bool cascadedShadows = true;
 
@@ -890,13 +922,6 @@ namespace Brisk
         }
         else { // CSM
             m_SunMatrices = getLightSpaceMatrices(glm::normalize(-lightDir));
-
-            //updateCascades(lightDir);
-
-            //m_SunMatrices[0] = cascadeMatrices[0];
-            //m_SunMatrices[1] = cascadeMatrices[1];
-            //m_SunMatrices[2] = cascadeMatrices[2];
-            //m_SunMatrices[3] = cascadeMatrices[3];
         }
 
         ShadowData shadowData{};
@@ -1009,6 +1034,17 @@ namespace Brisk
 
         m_CmdBuffer[m_CurrentFrame]->Reset();
         m_CmdBuffer[m_CurrentFrame]->Bind();
+
+        BLASSpecs blasSpecs{};
+        blasSpecs.vertexBuffer = m_VertexBuffer;
+        blasSpecs.indexBuffer = m_IndexBuffer;
+        blasSpecs.noOfTriangles = SceneManager::pActiveScene->m_Geometry.indices.size() / 3;
+        blasSpecs.noOfVertices = SceneManager::pActiveScene->m_Geometry.vertices.size();
+        blasSpecs.vertexStride = sizeof(Vertex);
+        m_BLAS->Init(blasSpecs, m_CmdBuffer[m_CurrentFrame]);
+        TLASSpecs tlasSpecs{};
+        tlasSpecs.primitiveCount = 1;
+        m_TLAS->Init(tlasSpecs, m_CmdBuffer[m_CurrentFrame], m_BLAS);
 
         // --- SHADOW MAP PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------

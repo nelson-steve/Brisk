@@ -17,6 +17,7 @@
 #include <memory>
 #include "BLAS.hpp"
 #include "TLAS.hpp"
+#include "SBT.hpp"
 //---------------
 
 #define MAX_LIGHTS 2048
@@ -109,7 +110,7 @@ namespace Brisk
 		void UpdateTransforms();
 
 		void AddGlobalTexture(std::vector<std::shared_ptr<Texture>> textures) {
-			m_GBufferPipeline->UpdateResources("GlobalTextures", textures, nullptr);
+			m_GBufferPipeline->UpdateResources("GlobalTextures", textures, nullptr, {});
 		}
 
 		static std::shared_ptr<Swapchain> GetSwapchain() { return m_Swapchain; }
@@ -202,6 +203,10 @@ namespace Brisk
 		std::shared_ptr<Buffer> m_MaterialStorageBuffer;
 		std::shared_ptr<Buffer> m_TransformsBuffer;
 		// Buffer - End
+
+		std::shared_ptr<SBT> m_RaygenSBT;
+		std::shared_ptr<SBT> m_MissSBT;
+		std::shared_ptr<SBT> m_HitSBT;
 
 		ScratchAllocator m_ScratchAllocator;
 

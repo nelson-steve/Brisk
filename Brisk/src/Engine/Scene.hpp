@@ -42,6 +42,8 @@ namespace Brisk
         uint32_t meshletCount;
         uint32_t materialIndex;
         uint32_t meshletOffset;
+        uint32_t indexCount;
+        uint32_t indexOffset;
     };
 
     struct alignas(16) Meshlet {
@@ -88,7 +90,7 @@ namespace Brisk
     };
 
     struct alignas(16) MaterialData {
-        uint32_t alphaMode; // use 4 bytes to avoid packing issues
+        uint32_t alphaMode;
         float alphaCutoff;
         float metallicFactor;
         float roughnessFactor;
@@ -113,28 +115,23 @@ namespace Brisk
 		Entity CreateLightEntity(const std::string& name = "Light");
 		Entity CreateEntity(const std::string& name);
 		void DestroyEntity(Entity entity);
-
+		Entity DuplicateEntity(Entity entity);
 		void SetSelectedEntity(entt::entity e) { m_SelectedEntity = e; }
 		entt::entity GetSelectedEntity() { return m_SelectedEntity; }
-
-		void OnViewportResize(uint32_t width, uint32_t height);
-
-		SceneSetting& GetSceneSetting() { return m_SceneSetting; }
 		Entity FindEntityByName(std::string_view name);
 
-		Entity DuplicateEntity(Entity entity);
-
+		void OnViewportResize(uint32_t width, uint32_t height);
+		SceneSetting& GetSceneSetting() { return m_SceneSetting; }
+		void LoadGltfScene(const std::filesystem::path& gltfPath);
 		void SetPaused(bool paused) { m_IsPaused = paused; }
 
 		entt::registry& Reg() { return m_Registry; }
 		glm::vec3 lightPos = glm::vec3(-2.0f, 4.0f, -1.0f);
-
-		void LoadGltfScene(const std::filesystem::path& gltfPath);
 	private:
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
     public:
-        inline static Geometry m_Geometry;
+        Geometry m_Geometry;
         uint32_t m_MeshletCount;
         std::vector<std::shared_ptr<Texture>> m_Textures;
         std::vector<MaterialData> m_Materials;

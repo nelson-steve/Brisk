@@ -6,6 +6,7 @@
 #include "Core/Core.hpp"
 #include "GpuAdapter.hpp"
 #include "CSMRenderPass.hpp"
+#include "TLAS.hpp"
 //--------------------------
 #include <cstdint>
 #include <vector>
@@ -86,23 +87,6 @@ namespace Brisk
             std::string pShaderPath;
         };
 
-        //typedef struct VkRayTracingPipelineCreateInfoKHR {
-        //    VkStructureType                                      sType;
-        //    const void* pNext;
-        //    VkPipelineCreateFlags                                flags;
-        //    uint32_t                                             stageCount;
-        //    const VkPipelineShaderStageCreateInfo* pStages;
-        //    uint32_t                                             groupCount;
-        //    const VkRayTracingShaderGroupCreateInfoKHR* pGroups;
-        //    uint32_t                                             maxPipelineRayRecursionDepth;
-        //    const VkPipelineLibraryCreateInfoKHR* pLibraryInfo;
-        //    const VkRayTracingPipelineInterfaceCreateInfoKHR* pLibraryInterface;
-        //    const VkPipelineDynamicStateCreateInfo* pDynamicState;
-        //    VkPipelineLayout                                     layout;
-        //    VkPipeline                                           basePipelineHandle;
-        //    int32_t                                              basePipelineIndex;
-        //} VkRayTracingPipelineCreateInfoKHR;
-
         struct RayTracingPipelineSpecs {
             std::vector<std::string> pShaderPathsVK;
             std::vector<std::string> pShaderPathsDX;
@@ -113,13 +97,12 @@ namespace Brisk
         virtual void Init(const RayTracingPipelineSpecs& specs) = 0;
         virtual void Release() = 0;
 
-        virtual void UpdateResources(const std::string& name, std::vector<std::shared_ptr<Texture>> textures, std::shared_ptr<Buffer> buffer) = 0;
+        virtual void UpdateResources(const std::string& name, std::vector<std::shared_ptr<Texture>> textures, std::shared_ptr<Buffer> buffer, std::shared_ptr<TLAS> tlas) = 0;
         virtual void Bind(std::shared_ptr<CommandBuffer> cmd) = 0;
         virtual void BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t size, void* data, uint32_t offset, Core::ShaderStageFlags stages) = 0;
 
         static std::shared_ptr<Pipeline> Create();
 
-        // TODO: Shouldn't be public
         GraphicsPipelineSpecs m_GraphicsSpecs;
         ComputePipelineSpecs m_ComputeSpecs;
     };

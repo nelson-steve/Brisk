@@ -218,6 +218,7 @@ namespace Brisk {
             ConditionalRenderingEXT = 1 << 14,
             AccelerationStructureStorage = 1 << 15,
             AccelerationStructureBuildInputReadOnly = 1 << 16,
+            ShaderBindingTable = 1 << 17,
         };
 
         inline BufferUsage operator|(BufferUsage a, BufferUsage b) {

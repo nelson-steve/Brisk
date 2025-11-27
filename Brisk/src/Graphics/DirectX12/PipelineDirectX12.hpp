@@ -28,7 +28,7 @@ namespace Brisk
 		virtual void Release() override { BRISK_CORE_ASSERT(false); }
 
 		virtual void Bind(std::shared_ptr<CommandBuffer> cmd) override;
-		virtual void UpdateResources(const std::string& name, std::vector<std::shared_ptr<Texture>> textures, std::shared_ptr<Buffer> buffer) override;
+		virtual void UpdateResources(const std::string& name, std::vector<std::shared_ptr<Texture>> textures, std::shared_ptr<Buffer> buffer, std::shared_ptr<TLAS> tlas) override;
 		virtual void BindPushConstant(std::shared_ptr<CommandBuffer> cmd, uint32_t, void* data, uint32_t offset, Core::ShaderStageFlags stages) override;
 	private:
 		std::vector<ShaderResource> m_ShaderResources;

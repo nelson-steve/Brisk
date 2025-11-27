@@ -10,7 +10,9 @@ namespace Brisk
 {
 	class TLASVulkan : public TLAS {
 	public:
-		virtual void Init(const TLASSpecs& specs, std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<BLAS> blas) override;
+		virtual void Build(std::shared_ptr<BLAS> blas, std::vector<MeshDraw> draws) override;
+
+		const VkAccelerationStructureKHR* GetHandle() { return &handle; }
 	private:
 		VmaAllocation m_Allocation;
 		VkAccelerationStructureKHR handle{ VK_NULL_HANDLE };

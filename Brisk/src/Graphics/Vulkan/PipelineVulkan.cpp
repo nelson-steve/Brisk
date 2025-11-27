@@ -11,6 +11,7 @@
 
 #include <spirv_reflect.h>
 #include "CSMRenderpassVulkan.hpp"
+#include "TLASVulkan.hpp"
 
 namespace Brisk
 {
@@ -881,7 +882,7 @@ namespace Brisk
         }
     }
 
-    void PipelineVulkan::UpdateResources(const std::string& name, std::vector<std::shared_ptr<Texture>> textures, std::shared_ptr<Buffer> buffer) {
+    void PipelineVulkan::UpdateResources(const std::string& name, std::vector<std::shared_ptr<Texture>> textures, std::shared_ptr<Buffer> buffer, std::shared_ptr<TLAS> tlas) {
         bool resourceExists = false;
         for (const ShaderResource& resource : m_ShaderResources) {
             if (resource.p_Name == name) {
@@ -898,6 +899,20 @@ namespace Brisk
                         write.descriptorCount = 1;
                         write.pBufferInfo = std::static_pointer_cast<BufferVulkan>(buffer)->GetDescriptor();
                         vkUpdateDescriptorSets(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &write, 0, nullptr);
+                    }
+                    else if (tlas) {
+                        VkWriteDescriptorSetAccelerationStructureKHR descriptorAccelerationStructureInfo{};
+                        descriptorAccelerationStructureInfo.sType = VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET_ACCELERATION_STRUCTURE_KHR;
+                        descriptorAccelerationStructureInfo.accelerationStructureCount = 1;
+                        descriptorAccelerationStructureInfo.pAccelerationStructures = std::static_pointer_cast<TLASVulkan>(tlas)->GetHandle();
+
+                        VkWriteDescriptorSet accelerationStructureWrite{ VK_STRUCTURE_TYPE_WRITE_DESCRIPTOR_SET };
+                        accelerationStructureWrite.pNext = &descriptorAccelerationStructureInfo;
+                        accelerationStructureWrite.dstSet = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_GlobalSet;
+                        accelerationStructureWrite.dstBinding = resource.p_Binding;
+                        accelerationStructureWrite.descriptorCount = 1;
+                        accelerationStructureWrite.descriptorType = VK_DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR;
+                        vkUpdateDescriptorSets(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), 1, &accelerationStructureWrite, 0, nullptr);
                     }
                     else {
                         std::vector<VkDescriptorImageInfo> imageInfos;

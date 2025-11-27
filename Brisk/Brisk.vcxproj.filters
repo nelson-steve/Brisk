@@ -93,6 +93,9 @@
     <ClInclude Include="src\Engine\OrthographicCamera.hpp">
       <Filter>Engine</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Renderer\BLAS.hpp">
+      <Filter>Engine\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Buffer.hpp">
       <Filter>Engine\Renderer</Filter>
     </ClInclude>
@@ -150,10 +153,16 @@
     <ClInclude Include="src\Engine\Renderer\RendererAPI.hpp">
       <Filter>Engine\Renderer</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\Renderer\SBT.hpp">
+      <Filter>Engine\Renderer</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Semaphore.hpp">
       <Filter>Engine\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Swapchain.hpp">
+      <Filter>Engine\Renderer</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Renderer\TLAS.hpp">
       <Filter>Engine\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Texture.hpp">
@@ -219,6 +228,9 @@
     <ClInclude Include="src\Graphics\Factories\SwapchainFactory.hpp">
       <Filter>Graphics\Factories</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\Vulkan\BLASVulkan.hpp">
+      <Filter>Graphics\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="src\Graphics\Vulkan\BufferVulkan.hpp">
       <Filter>Graphics\Vulkan</Filter>
     </ClInclude>
@@ -258,6 +270,9 @@
     <ClInclude Include="src\Graphics\Vulkan\RenderpassVulkan.hpp">
       <Filter>Graphics\Vulkan</Filter>
     </ClInclude>
+    <ClInclude Include="src\Graphics\Vulkan\SBTVulkan.hpp">
+      <Filter>Graphics\Vulkan</Filter>
+    </ClInclude>
     <ClInclude Include="src\Graphics\Vulkan\SemaphoreVulkan.hpp">
       <Filter>Graphics\Vulkan</Filter>
     </ClInclude>
@@ -265,6 +280,9 @@
       <Filter>Graphics\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Vulkan\SwapchainVulkan.hpp">
+      <Filter>Graphics\Vulkan</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Graphics\Vulkan\TLASVulkan.hpp">
       <Filter>Graphics\Vulkan</Filter>
     </ClInclude>
     <ClInclude Include="src\Graphics\Vulkan\TextureVulkan.hpp">
@@ -283,10 +301,6 @@
       <Filter>Platform\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\VmaUsage.h" />
-    <ClInclude Include="src\Engine\Renderer\BLAS.hpp" />
-    <ClInclude Include="src\Graphics\Vulkan\BLASVulkan.hpp" />
-    <ClInclude Include="src\Engine\Renderer\TLAS.hpp" />
-    <ClInclude Include="src\Graphics\Vulkan\TLASVulkan.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Log.cpp">
@@ -312,6 +326,9 @@
     </ClCompile>
     <ClCompile Include="src\Engine\OrthographicCamera.cpp">
       <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Renderer\BLAS.cpp">
+      <Filter>Engine\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Renderer\Buffer.cpp">
       <Filter>Engine\Renderer</Filter>
@@ -358,10 +375,16 @@
     <ClCompile Include="src\Engine\Renderer\RendererAPI.cpp">
       <Filter>Engine\Renderer</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\Renderer\SBT.cpp">
+      <Filter>Engine\Renderer</Filter>
+    </ClCompile>
     <ClCompile Include="src\Engine\Renderer\Semaphore.cpp">
       <Filter>Engine\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Renderer\Swapchain.cpp">
+      <Filter>Engine\Renderer</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Renderer\TLAS.cpp">
       <Filter>Engine\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Renderer\Texture.cpp">
@@ -418,6 +441,9 @@
     <ClCompile Include="src\Graphics\DirectX12\UtilitiesDirectX12.cpp">
       <Filter>Graphics\DirectX12</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\Vulkan\BLASVulkan.cpp">
+      <Filter>Graphics\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="src\Graphics\Vulkan\BufferVulkan.cpp">
       <Filter>Graphics\Vulkan</Filter>
     </ClCompile>
@@ -448,10 +474,16 @@
     <ClCompile Include="src\Graphics\Vulkan\RenderpassVulkan.cpp">
       <Filter>Graphics\Vulkan</Filter>
     </ClCompile>
+    <ClCompile Include="src\Graphics\Vulkan\SBTVulkan.cpp">
+      <Filter>Graphics\Vulkan</Filter>
+    </ClCompile>
     <ClCompile Include="src\Graphics\Vulkan\SemaphoreVulkan.cpp">
       <Filter>Graphics\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Vulkan\SwapchainVulkan.cpp">
+      <Filter>Graphics\Vulkan</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Graphics\Vulkan\TLASVulkan.cpp">
       <Filter>Graphics\Vulkan</Filter>
     </ClCompile>
     <ClCompile Include="src\Graphics\Vulkan\TextureVulkan.cpp">
@@ -476,9 +508,5 @@
     <ClCompile Include="src\VolkUsage.cpp" />
     <ClCompile Include="src\stbimage.cc" />
     <ClCompile Include="src\volk.c" />
-    <ClCompile Include="src\Engine\Renderer\BLAS.cpp" />
-    <ClCompile Include="src\Graphics\Vulkan\BLASVulkan.cpp" />
-    <ClCompile Include="src\Engine\Renderer\TLAS.cpp" />
-    <ClCompile Include="src\Graphics\Vulkan\TLASVulkan.cpp" />
   </ItemGroup>
 </Project>

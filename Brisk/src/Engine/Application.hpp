@@ -32,13 +32,7 @@ namespace Brisk
 		void PushOverlay(Layer* layer);
 
 		inline bool ShouldClose() const { return m_Window->WindowShouldClose(); }
-		static std::shared_ptr<WindowsWindow> GetWindow()
-		{ 
-			return std::static_pointer_cast<WindowsWindow>(m_Window);
-		}
-
-		void GenerateRandomLights(uint32_t count, float range, float radiusMin, float radiusMax, float colorMin, float colorMax, float intensityMin, float intensityMax);
-
+		static std::shared_ptr<WindowsWindow> GetWindow() { return std::static_pointer_cast<WindowsWindow>(m_Window); }
 		static ImGuiLayer* GetGuiLayer() { return m_ImGuiLayer; }
 		static const std::shared_ptr<GpuAdapter> GetGpuAdapter() { return m_Adapter; }
 		static const std::shared_ptr<Renderer> GetRenderer() { return m_Renderer; }
@@ -59,10 +53,8 @@ namespace Brisk
 		static std::shared_ptr<Renderer> m_Renderer;
 		static std::shared_ptr<Window> m_Window;
 		static std::shared_ptr<Camera> m_EditorCamera;
-		std::shared_ptr<Scene> m_ActiveScene;
 		std::shared_ptr<SceneManager> m_SceneManager;
 		std::shared_ptr<AssetManager> m_AssetManager;
-		std::vector<std::shared_ptr<Scene>> m_Scenes;
 		bool m_LoadingScene;
 	};
 }

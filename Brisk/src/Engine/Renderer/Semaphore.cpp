@@ -1,7 +1,7 @@
 // INCLUDES
 #include "Semaphore.hpp"
-#include "Graphics/Vulkan/SemaphoreVulkan.hpp"
 #include "Engine/Engine.hpp"
+#include "Graphics/Vulkan/SemaphoreVulkan.hpp"
 #ifdef BRISK_ENABLE_DIRECTX12
 #include "Graphics/DirectX12/SemaphoreDirectX12.hpp"
 #endif

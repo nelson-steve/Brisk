@@ -383,12 +383,12 @@ namespace Brisk
                         Core::PipelineStage::ColorAttachment // dst stage
                     },
                     RenderPassDependency {
-                        -1,
                         0,
+                        -1,
                         Core::AccessType::ColorAttachmentWrite,
-                        Core::AccessType::ShaderRead, 
+                        Core::AccessType::None, 
                         Core::PipelineStage::ColorAttachment,
-                        Core::PipelineStage::FragmentShader
+                        Core::PipelineStage::BottomOfPipe
                     },
                 },
                 {
@@ -638,8 +638,8 @@ namespace Brisk
             clusterInfoBufferDesc.p_Persistant = true;
             m_ClusterInfoUBO->Init(clusterInfoBufferDesc);
 
-            m_AABBGeneratorPipeline->UpdateResources("ClusterInfo", {}, m_ClusterInfoUBO);
-            m_AABBGeneratorPipeline->UpdateResources("ClusterAABB", {}, m_ClusterTilesSSBO);
+            m_AABBGeneratorPipeline->UpdateResources("ClusterInfo", {}, m_ClusterInfoUBO, {});
+            m_AABBGeneratorPipeline->UpdateResources("ClusterAABB", {}, m_ClusterTilesSSBO, {});
         }
 
         {
@@ -700,26 +700,26 @@ namespace Brisk
             globalIndexBufferDesc.p_AllowUAV = true;
             m_GlobalIndexCountSSBO->Init(globalIndexBufferDesc);
 
-            m_AssignLightsToClustersPipeline->UpdateResources("ClusterInfo", {}, m_ClusterInfoUBO);
-            m_AssignLightsToClustersPipeline->UpdateResources("LightsList", {}, m_LightsList);
-            m_AssignLightsToClustersPipeline->UpdateResources("ClusterAABB", {}, m_ClusterTilesSSBO);
-            m_AssignLightsToClustersPipeline->UpdateResources("ClusterLightIndexList", {}, m_ClusterLightIndexList);
-            m_AssignLightsToClustersPipeline->UpdateResources("ClusterLightOffsetList", {}, m_ClusterLightOffsetList);
-            m_AssignLightsToClustersPipeline->UpdateResources("AtomicCounters", {}, m_AtomicCounters);
-            m_AssignLightsToClustersPipeline->UpdateResources("GlobalIndex", {}, m_GlobalIndexCountSSBO);
+            m_AssignLightsToClustersPipeline->UpdateResources("ClusterInfo", {}, m_ClusterInfoUBO, {});
+            m_AssignLightsToClustersPipeline->UpdateResources("LightsList", {}, m_LightsList, {});
+            m_AssignLightsToClustersPipeline->UpdateResources("ClusterAABB", {}, m_ClusterTilesSSBO, {});
+            m_AssignLightsToClustersPipeline->UpdateResources("ClusterLightIndexList", {}, m_ClusterLightIndexList, {});
+            m_AssignLightsToClustersPipeline->UpdateResources("ClusterLightOffsetList", {}, m_ClusterLightOffsetList, {});
+            m_AssignLightsToClustersPipeline->UpdateResources("AtomicCounters", {}, m_AtomicCounters, {});
+            m_AssignLightsToClustersPipeline->UpdateResources("GlobalIndex", {}, m_GlobalIndexCountSSBO, {});
         }
 
-        m_DepthPrePassPipeline->UpdateResources("MVP", {}, m_MVPBuffer);
+        m_DepthPrePassPipeline->UpdateResources("MVP", {}, m_MVPBuffer, {});
 
-        m_LightingPipeline->UpdateResources("sampler_Position", { m_Pos      }, nullptr);
-        m_LightingPipeline->UpdateResources("sampler_Normal",   { m_Normal   }, nullptr);
-        m_LightingPipeline->UpdateResources("sampler_Albedo",   { m_Albedo   }, nullptr);
-        m_LightingPipeline->UpdateResources("sampler_Material", { m_Material }, nullptr);
-        m_LightingPipeline->UpdateResources("sampler_Emissive", { m_Emissive }, nullptr);
-        m_LightingPipeline->UpdateResources("sampler_Depth",    { m_DepthPre }, nullptr);
-        m_LightingPipeline->UpdateResources("ClusterAABB", {}, m_ClusterTilesSSBO);
-        m_LightingPipeline->UpdateResources("MVP",            {}, m_MVPBuffer);
-        m_LightingPipeline->UpdateResources("ShadowMaps",       { m_ShadowMapLOD0, m_ShadowMapLOD1, m_ShadowMapLOD2, m_ShadowMapLOD3 }, nullptr);
+        m_LightingPipeline->UpdateResources("sampler_Position", { m_Pos      }, nullptr, {});
+        m_LightingPipeline->UpdateResources("sampler_Normal",   { m_Normal   }, nullptr, {});
+        m_LightingPipeline->UpdateResources("sampler_Albedo",   { m_Albedo   }, nullptr, {});
+        m_LightingPipeline->UpdateResources("sampler_Material", { m_Material }, nullptr, {});
+        m_LightingPipeline->UpdateResources("sampler_Emissive", { m_Emissive }, nullptr, {});
+        m_LightingPipeline->UpdateResources("sampler_Depth",    { m_DepthPre }, nullptr, {});
+        m_LightingPipeline->UpdateResources("ClusterAABB", {}, m_ClusterTilesSSBO, {});
+        m_LightingPipeline->UpdateResources("MVP",            {}, m_MVPBuffer, {});
+        m_LightingPipeline->UpdateResources("ShadowMaps",       { m_ShadowMapLOD0, m_ShadowMapLOD1, m_ShadowMapLOD2, m_ShadowMapLOD3 }, nullptr, {});
 
         m_TransferCmdBuffer = CommandBuffer::Create();
         m_TransferCmdBuffer->Allocate(CommandBuffer::PoolType::Graphics);
@@ -835,6 +835,17 @@ namespace Brisk
         transformsBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
         transformsBufferDesc.p_AllowCopyDst = true;
         m_TransformsBuffer->Init(transformsBufferDesc);
+
+        m_RaygenSBT = SBT::Create();
+        m_RaygenSBT->Init(SBT::Type::Raygen, 1);
+
+        m_MissSBT = SBT::Create();
+        m_MissSBT->Init(SBT::Type::Miss, 1);
+
+        m_HitSBT = SBT::Create();
+        m_HitSBT->Init(SBT::Type::Hit, 1);
+
+        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf");
     }
 
     void Renderer::UpdateTransforms() {
@@ -858,15 +869,20 @@ namespace Brisk
         if (!SceneManager::pActiveScene) return;
 
         if (once) {
-            m_GBufferPipeline->UpdateResources("Vertices", {}, m_VertexBuffer);
-            m_GBufferPipeline->UpdateResources("MeshDraws", {}, m_DrawsBuffer);
-            m_GBufferPipeline->UpdateResources("Meshlets", {}, m_MeshletsBuffer);
-            m_GBufferPipeline->UpdateResources("MeshletData", {}, m_MeshletDataBuffer);
-            m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer);
-            m_GBufferPipeline->UpdateResources("Materials", {}, m_MaterialStorageBuffer);
-            m_GBufferPipeline->UpdateResources("Transforms", {}, m_TransformsBuffer);
+            m_GBufferPipeline->UpdateResources("Vertices", {}, m_VertexBuffer, {});
+            m_GBufferPipeline->UpdateResources("MeshDraws", {}, m_DrawsBuffer, {});
+            m_GBufferPipeline->UpdateResources("Meshlets", {}, m_MeshletsBuffer, {});
+            m_GBufferPipeline->UpdateResources("MeshletData", {}, m_MeshletDataBuffer, {});
+            m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer, {});
+            m_GBufferPipeline->UpdateResources("Materials", {}, m_MaterialStorageBuffer, {});
+            m_GBufferPipeline->UpdateResources("Transforms", {}, m_TransformsBuffer, {});
+            m_RayTracing->UpdateResources("topLevelAS", {}, {}, { m_TLAS });
+            m_RayTracing->UpdateResources("image", { m_LightingOutput }, {}, {});
+            m_RayTracing->UpdateResources("Props", {}, { m_RayTracingPropsBuffer }, {});
 
             once = false;
+
+            //m_BLAS->Build(SceneManager::pActiveScene->m_Geometry.meshes, m_VertexBuffer, m_IndexBuffer);
         }
 
         glm::vec3 lightDir{ 0.0f };
@@ -1035,17 +1051,6 @@ namespace Brisk
         m_CmdBuffer[m_CurrentFrame]->Reset();
         m_CmdBuffer[m_CurrentFrame]->Bind();
 
-        BLASSpecs blasSpecs{};
-        blasSpecs.vertexBuffer = m_VertexBuffer;
-        blasSpecs.indexBuffer = m_IndexBuffer;
-        blasSpecs.noOfTriangles = SceneManager::pActiveScene->m_Geometry.indices.size() / 3;
-        blasSpecs.noOfVertices = SceneManager::pActiveScene->m_Geometry.vertices.size();
-        blasSpecs.vertexStride = sizeof(Vertex);
-        m_BLAS->Init(blasSpecs, m_CmdBuffer[m_CurrentFrame]);
-        TLASSpecs tlasSpecs{};
-        tlasSpecs.primitiveCount = 1;
-        m_TLAS->Init(tlasSpecs, m_CmdBuffer[m_CurrentFrame], m_BLAS);
-
         // --- SHADOW MAP PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
         uint32_t framebuffer = 0;
@@ -1059,10 +1064,10 @@ namespace Brisk
             glm::mat4 matrix = lightMatrix;
             m_ShadowMapPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
             m_ShadowMapPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
-            if (Scene::m_Geometry.draws.size() != 0) {
+            if (SceneManager::pActiveScene->m_Geometry.draws.size() != 0) {
                 RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer[m_CurrentFrame],
                     m_DrawsBuffer,
-                    offsetof(MeshDraw, MeshDraw::groupCountX), Scene::m_Geometry.draws.size(), sizeof(MeshDraw));
+                    offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->m_Geometry.draws.size(), sizeof(MeshDraw));
             }
 
             m_CSMShadowMapPass->End(m_CmdBuffer[m_CurrentFrame]);
@@ -1091,10 +1096,10 @@ namespace Brisk
 
         glm::mat4 matrix{ 1.0f };
         m_DepthPrePassPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-        if (Scene::m_Geometry.draws.size() != 0) {
+        if (SceneManager::pActiveScene->m_Geometry.draws.size() != 0) {
             RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer[m_CurrentFrame],
                 m_DrawsBuffer,
-                offsetof(MeshDraw, MeshDraw::groupCountX), Scene::m_Geometry.draws.size(), sizeof(MeshDraw));
+                offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->m_Geometry.draws.size(), sizeof(MeshDraw));
         }
 
         m_DepthPrePass->End(m_CmdBuffer[m_CurrentFrame]);
@@ -1109,10 +1114,10 @@ namespace Brisk
         m_GBufferPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
 
         m_GBufferPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-        if (Scene::m_Geometry.draws.size() != 0) {
+        if (SceneManager::pActiveScene->m_Geometry.draws.size() != 0) {
             RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer[m_CurrentFrame],
                 m_DrawsBuffer,
-                offsetof(MeshDraw, MeshDraw::groupCountX), Scene::m_Geometry.draws.size(), sizeof(MeshDraw));
+                offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->m_Geometry.draws.size(), sizeof(MeshDraw));
         }
 
         m_GeometryBufferPass->End(m_CmdBuffer[m_CurrentFrame]);
@@ -1164,7 +1169,7 @@ namespace Brisk
             //params.dstAccess = Core::AccessType::ShaderRead;
             //params.srcStage = Core::PipelineStage::LateFragmentTest;
             //params.dstStage = Core::PipelineStage::FragmentShader;    
-            //m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
+            //m_Swapchain->TransitionCurrentImage(m_CmdBuffer[m_CurrentFrame], params, m_ImageIndex);
         }
 
         //// --- UI PASS ---------------------------
@@ -1193,12 +1198,12 @@ namespace Brisk
         m_CmdBuffer[m_CurrentFrame]->UnBind();
 
         Queue::SubmitInfo lightingSubmitInfo{};
-        lightingSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore[m_CurrentFrame]);
-        lightingSubmitInfo.pWaitSemaphores.push_back(AssignLightsSemaphore[m_CurrentFrame]);
         if (shouldUpload) {
             lightingSubmitInfo.pWaitSemaphores.push_back(TransferFinishedSemaphore[m_CurrentFrame]);
             lightingSubmitInfo.pWaitStages.push_back(Core::PipelineStage::TransferStage);
         }
+        lightingSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore[m_CurrentFrame]);
+        lightingSubmitInfo.pWaitSemaphores.push_back(AssignLightsSemaphore[m_CurrentFrame]);
         lightingSubmitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore[m_CurrentFrame]);
         lightingSubmitInfo.pWaitStages.push_back(Core::PipelineStage::ColorAttachment);
         lightingSubmitInfo.pWaitStages.push_back(Core::PipelineStage::EarlyFragmentTest);

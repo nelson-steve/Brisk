@@ -440,6 +440,9 @@ namespace Brisk
 					mesh.center = center;
 					mesh.radius = radius;
 
+					mesh.indexCount = indices.size();
+					mesh.indexOffset = m_Geometry.indices.size();
+
 					m_Geometry.indices.insert(m_Geometry.indices.end(), indices.begin(), indices.end());
 
 					//if (fast)
@@ -728,6 +731,7 @@ namespace Brisk
 			std::lock_guard<std::mutex> lock(Application::m_GltfFileMutex);
 			Application::m_AssetLoaded = true;
 			});
+			Application::m_BackgroundThread.join();
 	}
 
 	// Copy Component functions

@@ -1,21 +1,14 @@
 #pragma once
 
 #include "Buffer.hpp"
+#include "../Scene.hpp"
 
 #include <memory>
 
 namespace Brisk
 {
-	struct BLASSpecs {
-		std::shared_ptr<Buffer> vertexBuffer;
-		std::shared_ptr<Buffer> indexBuffer;
-		uint32_t noOfTriangles;
-		uint32_t noOfVertices;
-		uint32_t vertexStride;
-	};
 	class BLAS {
 	public:
-		virtual void Init(const BLASSpecs& specs, std::shared_ptr<CommandBuffer> cmd) = 0;
+		virtual void Build(const std::vector<Mesh> meshes, std::shared_ptr<Buffer> vb, std::shared_ptr<Buffer> ib) = 0;
 	};
-
 }

@@ -16,7 +16,7 @@ namespace Brisk
 	std::shared_ptr<Renderer> Application::m_Renderer;
 	std::shared_ptr<Camera> Application::m_EditorCamera;
 
-	void Application::GenerateRandomLights(uint32_t count, float range, float radiusMin, float radiusMax, float colorMin, float colorMax, float intensityMin, float intensityMax) {
+	void GenerateRandomLights(uint32_t count, float range, float radiusMin, float radiusMax, float colorMin, float colorMax, float intensityMin, float intensityMax) {
 		std::random_device rd;
 		std::mt19937 rng(rd());
 
@@ -32,7 +32,7 @@ namespace Brisk
 			glm::vec3 color = glm::vec3(colorDist(rng), colorDist(rng), colorDist(rng));
 			float intensity = intensityDist(rng);
 
-			Entity lightEntity = m_SceneManager->pActiveScene->CreateEntity("Light");
+			Entity lightEntity = SceneManager::pActiveScene->CreateEntity("Light");
 			PointLightComponent& lc = lightEntity.AddComponent<PointLightComponent>();
 
 			lc.Position = glm::vec3(pos);
@@ -73,6 +73,8 @@ namespace Brisk
 			/* 13 */"../Data/Models/mecha_ramen_high_poly/scene.gltf",
 			/* 14 */"../Data/Models/modural_robot_mecha_chimera_dyan_high-poly_mesh/scene.gltf",
 		};
+
+		//SceneManager::pActiveScene->LoadGltfScene(paths[2]);
 
 		Entity lightEntity = m_SceneManager->pActiveScene->CreateEntity("Sun Light");
 		DirectionalLightComponent& lc = lightEntity.AddComponent<DirectionalLightComponent>();

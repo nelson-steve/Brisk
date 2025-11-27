@@ -300,7 +300,7 @@ namespace Brisk
         std::static_pointer_cast<CommandBufferDirectX12>(cmd)->Get()->IASetPrimitiveTopology(D3D_PRIMITIVE_TOPOLOGY_TRIANGLELIST);
 	}
 
-    void PipelineDirectX12::UpdateResources(const std::string& name, std::vector<std::shared_ptr<Texture>> textures, std::shared_ptr<Buffer> buffer) {
+    void PipelineDirectX12::UpdateResources(const std::string& name, std::vector<std::shared_ptr<Texture>> textures, std::shared_ptr<Buffer> buffer, std::shared_ptr<TLAS> tlas) {
         BRISK_CORE_ASSERT(name != "");
         BRISK_CORE_ASSERT(textures.size() > 0 || buffer != nullptr);
         bool found = false;

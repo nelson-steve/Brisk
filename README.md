@@ -17,6 +17,6 @@ An open-source, C++20 game engine focused on modern rendering and GPU optimizati
 - **Windows**
 
 Helpful links:
-https://www.youtube.com/watch?v=BR2my8OE1Sc&list=PL0JVLUVCkk-l7CWCn3-cdftR0oajugYvd
-https://www.aortiz.me/2018/12/21/CG.html
-https://github.com/SaschaWillems/Vulkan
+- https://www.youtube.com/watch?v=BR2my8OE1Sc&list=PL0JVLUVCkk-l7CWCn3-cdftR0oajugYvd
+- https://www.aortiz.me/2018/12/21/CG.html
+- https://github.com/SaschaWillems/Vulkan

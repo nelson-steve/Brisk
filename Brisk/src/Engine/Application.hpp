@@ -11,7 +11,8 @@
 #include "Events/ApplicationEvent.hpp"
 #include "Platform/Windows/WindowsWindow.hpp"
 #include "AssetManager.hpp"
-#include <Layers/LayerStack.hpp>
+#include "Layers/LayerStack.hpp"
+#include "JobSystem.hpp"
 #include "ImGuiLayer.hpp"
 
 #include <mutex>
@@ -37,10 +38,7 @@ namespace Brisk
 		static const std::shared_ptr<GpuAdapter> GetGpuAdapter() { return m_Adapter; }
 		static const std::shared_ptr<Renderer> GetRenderer() { return m_Renderer; }
 		static const std::shared_ptr<Camera> GetCamera() { return m_EditorCamera; }
-
-		inline static std::mutex m_GltfFileMutex;
-		inline static std::thread m_BackgroundThread;
-		inline static bool m_AssetLoaded = false;
+		static JobSystem& GetJobSystem() { return m_JobSystem; }
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
@@ -48,6 +46,7 @@ namespace Brisk
 		bool OnMouseScrolled(MouseScrolledEvent& e);
 	private:
 		LayerStack m_LayerStack;
+		static JobSystem m_JobSystem;
 		static ImGuiLayer* m_ImGuiLayer;
 		static std::shared_ptr<GpuAdapter> m_Adapter;
 		static std::shared_ptr<Renderer> m_Renderer;
@@ -55,6 +54,5 @@ namespace Brisk
 		static std::shared_ptr<Camera> m_EditorCamera;
 		std::shared_ptr<SceneManager> m_SceneManager;
 		std::shared_ptr<AssetManager> m_AssetManager;
-		bool m_LoadingScene;
 	};
 }

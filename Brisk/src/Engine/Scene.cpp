@@ -4,6 +4,7 @@
 #include "Component.hpp"
 #include "Engine/Engine.hpp"
 #include "Core/Log.hpp"
+#include "Renderer/CommandBuffer.hpp"
 //--------------------------
 #include "imgui.h"
 #include <fastgltf/core.hpp>
@@ -13,6 +14,7 @@
 #include <glm/gtc/type_ptr.hpp>
 #include <glm/gtc/matrix_transform.hpp>
 #include <glm/gtx/matrix_decompose.hpp>
+#include "Mutexes.hpp"
 //-------------------------------------
 
 namespace Brisk 
@@ -110,628 +112,645 @@ namespace Brisk
 		return child;
 	}
 
-	void Scene::LoadGltfScene(const std::filesystem::path& gltfPath) {
-		if (Application::m_BackgroundThread.joinable())
-			Application::m_BackgroundThread.join();
+	// TODO: fix this
+	void Scene::UpdateTransforms() {
+		auto view = SceneManager::pActiveScene->Reg().view<TransformComponent>();
+		for (auto e : view) {
+			Entity entity = { e, SceneManager::pActiveScene.get() };
+			auto& tc = entity.GetComponent<TransformComponent>();
+			if (tc.dirtyTransform) {
+				m_Geometry.transforms[tc.p_TransformIndex].position = tc.GetPosition();
+				tc.dirtyTransform = false;
+				Application::GetRenderer()->m_TransferCmdBuffer->Bind();
+				Application::GetRenderer()->m_TransformsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(m_Geometry.transforms[0]) * m_Geometry.transforms.size(), m_Geometry.transforms.data());
+				Application::GetRenderer()->m_TransferCmdBuffer->UnBind();
+				//shouldUpload = true;
+			}
+		}
+	}
 
-		Application::m_BackgroundThread = std::thread([=]() {
-			// Validating path
-			if (!std::filesystem::exists(gltfPath)) {
-				std::cout << "Failed to find " << gltfPath << '\n';
+	void ProcesGltfMesh(Geometry& geometry, std::vector<std::shared_ptr<Texture>>& textures,  std::filesystem::path gltfPath) {
+		// Validating path
+		if (!std::filesystem::exists(gltfPath)) {
+			std::cout << "Failed to find " << gltfPath << '\n';
+		}
+
+		if constexpr (std::is_same_v<std::filesystem::path::value_type, wchar_t>) {
+			std::cout << "Loading " << gltfPath << '\n';
+		}
+		else {
+			std::cout << "Loading " << gltfPath << '\n';
+		}
+
+		fastgltf::Asset asset;
+
+		// Parse the glTF file and get the constructed asset
+		{
+			static constexpr auto supportedExtensions =
+				fastgltf::Extensions::KHR_mesh_quantization |
+				fastgltf::Extensions::KHR_texture_transform |
+				fastgltf::Extensions::KHR_materials_variants;
+
+			fastgltf::Parser parser(supportedExtensions);
+
+			constexpr auto gltfOptions =
+				fastgltf::Options::DontRequireValidAssetMember |
+				//fastgltf::Options::AllowDouble |
+				fastgltf::Options::LoadExternalBuffers |
+				fastgltf::Options::LoadExternalImages |
+				fastgltf::Options::DecomposeNodeMatrices |
+				fastgltf::Options::GenerateMeshIndices;
+
+			auto gltfFile = fastgltf::MappedGltfFile::FromPath(gltfPath);
+			if (!bool(gltfFile)) {
+				std::cerr << "Failed to open glTF file: " << fastgltf::getErrorMessage(gltfFile.error()) << '\n';
 			}
 
-			if constexpr (std::is_same_v<std::filesystem::path::value_type, wchar_t>) {
-				std::cout << "Loading " << gltfPath << '\n';
-			}
-			else {
-				std::cout << "Loading " << gltfPath << '\n';
+			auto a = parser.loadGltf(gltfFile.get(), gltfPath.parent_path(), gltfOptions);
+			if (a.error() != fastgltf::Error::None) {
+				std::cerr << "Failed to load glTF: " << fastgltf::getErrorMessage(a.error()) << '\n';
 			}
 
-			fastgltf::Asset asset;
+			asset = std::move(a.get());
+		}
+		if (asset.buffers.empty()) {
+			throw std::runtime_error("GLTF file has no buffers");
+		}
 
-			// Parse the glTF file and get the constructed asset
-			{
-				static constexpr auto supportedExtensions =
-					fastgltf::Extensions::KHR_mesh_quantization |
-					fastgltf::Extensions::KHR_texture_transform |
-					fastgltf::Extensions::KHR_materials_variants;
+		if (asset.scenes.empty()) return;
+		auto& scene = asset.scenes[asset.defaultScene.value_or(0)];
 
-				fastgltf::Parser parser(supportedExtensions);
+		uint32_t vertexCount = 0;
+		uint32_t indexCount = 0;
+		for (const auto& gltfMesh : asset.meshes) {
+			for (auto it = gltfMesh.primitives.begin(); it != gltfMesh.primitives.end(); ++it) {
+				const fastgltf::Attribute* positionIt = it->findAttribute("POSITION");
 
-				constexpr auto gltfOptions =
-					fastgltf::Options::DontRequireValidAssetMember |
-					//fastgltf::Options::AllowDouble |
-					fastgltf::Options::LoadExternalBuffers |
-					fastgltf::Options::LoadExternalImages |
-					fastgltf::Options::DecomposeNodeMatrices |
-					fastgltf::Options::GenerateMeshIndices;
+				BRISK_CORE_ASSERT(positionIt != it->attributes.end());
+				BRISK_CORE_ASSERT(it->indicesAccessor.has_value());
 
-				auto gltfFile = fastgltf::MappedGltfFile::FromPath(gltfPath);
-				if (!bool(gltfFile)) {
-					std::cerr << "Failed to open glTF file: " << fastgltf::getErrorMessage(gltfFile.error()) << '\n';
+				auto& positionAccessor = asset.accessors[positionIt->accessorIndex];
+				if (!positionAccessor.bufferViewIndex.has_value())
+					continue;
+
+				if (positionAccessor.componentType == fastgltf::ComponentType::Float &&
+					positionAccessor.type == fastgltf::AccessorType::Vec3) {
+					vertexCount += positionAccessor.count;
 				}
 
-				auto a = parser.loadGltf(gltfFile.get(), gltfPath.parent_path(), gltfOptions);
-				if (a.error() != fastgltf::Error::None) {
-					std::cerr << "Failed to load glTF: " << fastgltf::getErrorMessage(a.error()) << '\n';
-				}
-
-				asset = std::move(a.get());
-			}
-
-			if (asset.buffers.empty()) {
-				throw std::runtime_error("GLTF file has no buffers");
-			}
-
-			if (asset.scenes.empty()) return;
-			auto& scene = asset.scenes[asset.defaultScene.value_or(0)];
-
-			uint32_t vertexCount = 0;
-			uint32_t indexCount = 0;
-			for (const auto& gltfMesh : asset.meshes) {
-				for (auto it = gltfMesh.primitives.begin(); it != gltfMesh.primitives.end(); ++it) {
-					const fastgltf::Attribute* positionIt = it->findAttribute("POSITION");
-
-					BRISK_CORE_ASSERT(positionIt != it->attributes.end());
-					BRISK_CORE_ASSERT(it->indicesAccessor.has_value());
-
-					auto& positionAccessor = asset.accessors[positionIt->accessorIndex];
-					if (!positionAccessor.bufferViewIndex.has_value())
-						continue;
-
-					if (positionAccessor.componentType == fastgltf::ComponentType::Float &&
-						positionAccessor.type == fastgltf::AccessorType::Vec3) {
-						vertexCount += positionAccessor.count;
-					}
-
-					if (it->indicesAccessor.has_value()) {
-						const auto& indexAccessor = asset.accessors[it->indicesAccessor.value()];
-						indexCount += indexAccessor.count;
-					}
+				if (it->indicesAccessor.has_value()) {
+					const auto& indexAccessor = asset.accessors[it->indicesAccessor.value()];
+					indexCount += indexAccessor.count;
 				}
 			}
+		}
 
-			uint32_t maxVertexCount = 0;
+		uint32_t maxVertexCount = 0;
 
-			m_Geometry.vertices.reserve(m_Geometry.vertices.size() + vertexCount);
-			m_Geometry.indices.reserve(m_Geometry.indices.size() + indexCount);
+		geometry.vertices.reserve(geometry.vertices.size() + vertexCount);
+		geometry.indices.reserve(geometry.indices.size() + indexCount);
 
-			std::vector<std::pair<uint32_t, uint32_t>> primitives;
-			std::vector<uint32_t> primitiveMaterials;
+		std::vector<std::pair<uint32_t, uint32_t>> primitives;
+		std::vector<uint32_t> primitiveMaterials;
 
-			size_t firstMeshOffset = m_Geometry.meshes.size();
+		size_t firstMeshOffset = geometry.meshes.size();
 
-			for (const auto& gltfMesh : asset.meshes) {
+		for (const auto& gltfMesh : asset.meshes) {
 
-				size_t meshOffset = m_Geometry.meshes.size();
+			size_t meshOffset = geometry.meshes.size();
 
-				for (auto it = gltfMesh.primitives.begin(); it != gltfMesh.primitives.end(); ++it) {
-					primitiveMaterials.push_back(it->materialIndex.value());
+			for (auto it = gltfMesh.primitives.begin(); it != gltfMesh.primitives.end(); ++it) {
+				primitiveMaterials.push_back(it->materialIndex.value());
 
-					const fastgltf::Attribute* positionIt = it->findAttribute("POSITION");
-					const fastgltf::Attribute* normalIt = it->findAttribute("NORMAL");
-					const fastgltf::Attribute* texCoord0It = it->findAttribute("TEXCOORD_0");
-					const fastgltf::Attribute* texCoord1It = it->findAttribute("TEXCOORD_1");
-					const fastgltf::Attribute* colorIt = it->findAttribute("COLOR_0");
-					const fastgltf::Attribute* tangentIt = it->findAttribute("TANGENT"); // The W component of each TANGENT accessor element MUST be set to 1.0 or -1.0
-					const fastgltf::Attribute* jointsIt = it->findAttribute("JOINTS_0");
-					const fastgltf::Attribute* weightsIt = it->findAttribute("WEIGHTS_0");
+				const fastgltf::Attribute* positionIt = it->findAttribute("POSITION");
+				const fastgltf::Attribute* normalIt = it->findAttribute("NORMAL");
+				const fastgltf::Attribute* texCoord0It = it->findAttribute("TEXCOORD_0");
+				const fastgltf::Attribute* texCoord1It = it->findAttribute("TEXCOORD_1");
+				const fastgltf::Attribute* colorIt = it->findAttribute("COLOR_0");
+				const fastgltf::Attribute* tangentIt = it->findAttribute("TANGENT"); // The W component of each TANGENT accessor element MUST be set to 1.0 or -1.0
+				const fastgltf::Attribute* jointsIt = it->findAttribute("JOINTS_0");
+				const fastgltf::Attribute* weightsIt = it->findAttribute("WEIGHTS_0");
 
-					BRISK_CORE_ASSERT(positionIt != it->attributes.end());
-					BRISK_CORE_ASSERT(it->indicesAccessor.has_value());
+				BRISK_CORE_ASSERT(positionIt != it->attributes.end());
+				BRISK_CORE_ASSERT(it->indicesAccessor.has_value());
 
-					auto& positionAccessor = asset.accessors[positionIt->accessorIndex];
-					if (!positionAccessor.bufferViewIndex.has_value())
-						continue;
+				auto& positionAccessor = asset.accessors[positionIt->accessorIndex];
+				if (!positionAccessor.bufferViewIndex.has_value())
+					continue;
 
-					// Load positions
-					std::vector<fastgltf::math::fvec3> positions;
-					if (positionAccessor.componentType == fastgltf::ComponentType::Float &&
-						positionAccessor.type == fastgltf::AccessorType::Vec3) {
-						positions.resize(positionAccessor.count);
-						fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, positionAccessor, positions.data());
+				// Load positions
+				std::vector<fastgltf::math::fvec3> positions;
+				if (positionAccessor.componentType == fastgltf::ComponentType::Float &&
+					positionAccessor.type == fastgltf::AccessorType::Vec3) {
+					positions.resize(positionAccessor.count);
+					fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, positionAccessor, positions.data());
+				}
+
+				// Load normals
+				std::vector<fastgltf::math::fvec3> normals;
+				bool hasNormals = (normalIt != it->attributes.end());
+				if (hasNormals) {
+					auto& normalAccessor = asset.accessors[normalIt->accessorIndex];
+					if (normalAccessor.componentType == fastgltf::ComponentType::Float &&
+						normalAccessor.type == fastgltf::AccessorType::Vec3 &&
+						normalAccessor.bufferViewIndex.has_value()) {
+						normals.resize(normalAccessor.count);
+						fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, normalAccessor, normals.data());
+					}
+					else {
+						hasNormals = false;
+					}
+				}
+
+				// Load texcoords 0
+				std::vector<fastgltf::math::fvec2> texcoords0;
+				bool hasTexcoords0 = (texCoord0It != it->attributes.end());
+				if (hasTexcoords0) {
+					auto& texcoordAccessor = asset.accessors[texCoord0It->accessorIndex];
+					if (texcoordAccessor.componentType == fastgltf::ComponentType::Float &&
+						texcoordAccessor.type == fastgltf::AccessorType::Vec2 &&
+						texcoordAccessor.bufferViewIndex.has_value()) {
+						texcoords0.resize(texcoordAccessor.count);
+						fastgltf::copyFromAccessor<fastgltf::math::fvec2>(asset, texcoordAccessor, texcoords0.data());
+					}
+					else {
+						hasTexcoords0 = false;
+					}
+				}
+
+				// Load texcoords 1
+				std::vector<fastgltf::math::fvec2> texcoords1;
+				bool hasTexcoords1 = (texCoord1It != it->attributes.end());
+				if (hasTexcoords1) {
+					auto& texcoordAccessor = asset.accessors[texCoord1It->accessorIndex];
+					if (texcoordAccessor.componentType == fastgltf::ComponentType::Float &&
+						texcoordAccessor.type == fastgltf::AccessorType::Vec2 &&
+						texcoordAccessor.bufferViewIndex.has_value()) {
+						texcoords1.resize(texcoordAccessor.count);
+						fastgltf::copyFromAccessor<fastgltf::math::fvec2>(asset, texcoordAccessor, texcoords1.data());
+					}
+					else {
+						hasTexcoords1 = false;
+					}
+				}
+
+				// Load color
+				//std::vector<fastgltf::math::fvec3> color;
+				//bool hasColor = (colorIt != it->attributes.end());
+				//if (hasColor) {
+				//	auto& colorAccessor = asset.accessors[colorIt->accessorIndex];
+				//	if (colorAccessor.componentType == fastgltf::ComponentType::Float &&
+				//		colorAccessor.type == fastgltf::AccessorType::Vec3 &&
+				//		colorAccessor.bufferViewIndex.has_value()) {
+				//		color.resize(colorAccessor.count);
+				//		fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, colorAccessor, color.data());
+				//	}
+				//	else {
+				//		hasColor = false;
+				//	}
+				//}
+
+				// Load tangent
+				std::vector<fastgltf::math::fvec4> tangent;
+				bool hasTangent = (tangentIt != it->attributes.end());
+				if (hasTangent) {
+					auto& tangentAccessor = asset.accessors[tangentIt->accessorIndex];
+					if (tangentAccessor.componentType == fastgltf::ComponentType::Float &&
+						tangentAccessor.type == fastgltf::AccessorType::Vec4 &&
+						tangentAccessor.bufferViewIndex.has_value()) {
+						tangent.resize(tangentAccessor.count);
+						fastgltf::copyFromAccessor<fastgltf::math::fvec4>(asset, tangentAccessor, tangent.data());
+					}
+					else {
+						hasTangent = false;
+					}
+				}
+
+				// Load joint indices
+				//std::vector<fastgltf::math::uvec4> jointIndices;
+				//bool hasjointIndices = (jointsIt != it->attributes.end());
+				//if (hasjointIndices) {
+				//	auto& jointIndicesAccessor = asset.accessors[jointsIt->accessorIndex];
+				//	if (jointIndicesAccessor.componentType == fastgltf::ComponentType::UnsignedInt &&
+				//		jointIndicesAccessor.type == fastgltf::AccessorType::Vec4 &&
+				//		jointIndicesAccessor.bufferViewIndex.has_value()) {
+				//		jointIndices.resize(jointIndicesAccessor.count);
+				//		fastgltf::copyFromAccessor<fastgltf::math::uvec4>(asset, jointIndicesAccessor, jointIndices.data());
+				//	}
+				//	else {
+				//		hasjointIndices = false;
+				//	}
+				//}
+
+				// Load joint weights
+				//std::vector<fastgltf::math::uvec4> jointWeights;
+				//bool hasjointWeights = (weightsIt != it->attributes.end());
+				//if (hasjointWeights) {
+				//	auto& jointWeightsAccessor = asset.accessors[weightsIt->accessorIndex];
+				//	if (jointWeightsAccessor.componentType == fastgltf::ComponentType::UnsignedInt &&
+				//		jointWeightsAccessor.type == fastgltf::AccessorType::Vec4 &&
+				//		jointWeightsAccessor.bufferViewIndex.has_value()) {
+				//		jointWeights.resize(jointWeightsAccessor.count);
+				//		fastgltf::copyFromAccessor<fastgltf::math::uvec4>(asset, jointWeightsAccessor, jointWeights.data());
+				//	}
+				//	else {
+				//		hasjointWeights = false;
+				//	}
+				//}
+
+				std::vector<uint32_t> indices;
+				std::vector<Vertex> vertices;
+				std::vector<glm::vec3> localPositions;
+				for (size_t i = 0; i < positions.size(); ++i) {
+					Vertex vertex{};
+					// Positions
+					vertex.vx = positions[i].x();
+					vertex.vy = positions[i].y();
+					vertex.vz = positions[i].z();
+
+					// Normals
+					if (hasNormals && i < normals.size()) {
+						vertex.nx = normals[i].x();
+						vertex.ny = normals[i].y();
+						vertex.nz = normals[i].z();
 					}
 
-					// Load normals
-					std::vector<fastgltf::math::fvec3> normals;
-					bool hasNormals = (normalIt != it->attributes.end());
-					if (hasNormals) {
-						auto& normalAccessor = asset.accessors[normalIt->accessorIndex];
-						if (normalAccessor.componentType == fastgltf::ComponentType::Float &&
-							normalAccessor.type == fastgltf::AccessorType::Vec3 &&
-							normalAccessor.bufferViewIndex.has_value()) {
-							normals.resize(normalAccessor.count);
-							fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, normalAccessor, normals.data());
-						}
-						else {
-							hasNormals = false;
-						}
+					//  UV0
+					if (hasTexcoords0 && i < texcoords0.size()) {
+						vertex.tx = texcoords0[i].x();
+						vertex.ty = texcoords0[i].y();
 					}
 
-					// Load texcoords 0
-					std::vector<fastgltf::math::fvec2> texcoords0;
-					bool hasTexcoords0 = (texCoord0It != it->attributes.end());
-					if (hasTexcoords0) {
-						auto& texcoordAccessor = asset.accessors[texCoord0It->accessorIndex];
-						if (texcoordAccessor.componentType == fastgltf::ComponentType::Float &&
-							texcoordAccessor.type == fastgltf::AccessorType::Vec2 &&
-							texcoordAccessor.bufferViewIndex.has_value()) {
-							texcoords0.resize(texcoordAccessor.count);
-							fastgltf::copyFromAccessor<fastgltf::math::fvec2>(asset, texcoordAccessor, texcoords0.data());
+					vertices.push_back(vertex);
+				}
+
+				if (it->indicesAccessor.has_value()) {
+					const auto& indexAccessor = asset.accessors[it->indicesAccessor.value()];
+					indexCount = indexAccessor.count;
+
+					switch (indexAccessor.componentType) {
+					case fastgltf::ComponentType::UnsignedByte: {
+						std::vector<uint8_t> tempIndices(indexAccessor.count);
+						fastgltf::copyFromAccessor<uint8_t>(asset, indexAccessor, tempIndices.data());
+						for (uint8_t i : tempIndices) {
+							indices.push_back(static_cast<uint32_t>(i));
 						}
-						else {
-							hasTexcoords0 = false;
-						}
+						break;
 					}
-
-					// Load texcoords 1
-					std::vector<fastgltf::math::fvec2> texcoords1;
-					bool hasTexcoords1 = (texCoord1It != it->attributes.end());
-					if (hasTexcoords1) {
-						auto& texcoordAccessor = asset.accessors[texCoord1It->accessorIndex];
-						if (texcoordAccessor.componentType == fastgltf::ComponentType::Float &&
-							texcoordAccessor.type == fastgltf::AccessorType::Vec2 &&
-							texcoordAccessor.bufferViewIndex.has_value()) {
-							texcoords1.resize(texcoordAccessor.count);
-							fastgltf::copyFromAccessor<fastgltf::math::fvec2>(asset, texcoordAccessor, texcoords1.data());
+					case fastgltf::ComponentType::UnsignedShort: {
+						std::vector<uint16_t> tempIndices(indexAccessor.count);
+						fastgltf::copyFromAccessor<uint16_t>(asset, indexAccessor, tempIndices.data());
+						for (uint16_t i : tempIndices) {
+							indices.push_back(static_cast<uint32_t>(i));
 						}
-						else {
-							hasTexcoords1 = false;
-						}
+						break;
 					}
-
-					// Load color
-					//std::vector<fastgltf::math::fvec3> color;
-					//bool hasColor = (colorIt != it->attributes.end());
-					//if (hasColor) {
-					//	auto& colorAccessor = asset.accessors[colorIt->accessorIndex];
-					//	if (colorAccessor.componentType == fastgltf::ComponentType::Float &&
-					//		colorAccessor.type == fastgltf::AccessorType::Vec3 &&
-					//		colorAccessor.bufferViewIndex.has_value()) {
-					//		color.resize(colorAccessor.count);
-					//		fastgltf::copyFromAccessor<fastgltf::math::fvec3>(asset, colorAccessor, color.data());
-					//	}
-					//	else {
-					//		hasColor = false;
-					//	}
-					//}
-
-					// Load tangent
-					std::vector<fastgltf::math::fvec4> tangent;
-					bool hasTangent = (tangentIt != it->attributes.end());
-					if (hasTangent) {
-						auto& tangentAccessor = asset.accessors[tangentIt->accessorIndex];
-						if (tangentAccessor.componentType == fastgltf::ComponentType::Float &&
-							tangentAccessor.type == fastgltf::AccessorType::Vec4 &&
-							tangentAccessor.bufferViewIndex.has_value()) {
-							tangent.resize(tangentAccessor.count);
-							fastgltf::copyFromAccessor<fastgltf::math::fvec4>(asset, tangentAccessor, tangent.data());
+					case fastgltf::ComponentType::UnsignedInt: {
+						std::vector<uint32_t> tempIndices(indexAccessor.count);
+						fastgltf::copyFromAccessor<uint32_t>(asset, indexAccessor, tempIndices.data());
+						for (uint32_t i : tempIndices) {
+							indices.push_back(static_cast<uint32_t>(i));
 						}
-						else {
-							hasTangent = false;
-						}
+						break;
 					}
-
-					// Load joint indices
-					//std::vector<fastgltf::math::uvec4> jointIndices;
-					//bool hasjointIndices = (jointsIt != it->attributes.end());
-					//if (hasjointIndices) {
-					//	auto& jointIndicesAccessor = asset.accessors[jointsIt->accessorIndex];
-					//	if (jointIndicesAccessor.componentType == fastgltf::ComponentType::UnsignedInt &&
-					//		jointIndicesAccessor.type == fastgltf::AccessorType::Vec4 &&
-					//		jointIndicesAccessor.bufferViewIndex.has_value()) {
-					//		jointIndices.resize(jointIndicesAccessor.count);
-					//		fastgltf::copyFromAccessor<fastgltf::math::uvec4>(asset, jointIndicesAccessor, jointIndices.data());
-					//	}
-					//	else {
-					//		hasjointIndices = false;
-					//	}
-					//}
-
-					// Load joint weights
-					//std::vector<fastgltf::math::uvec4> jointWeights;
-					//bool hasjointWeights = (weightsIt != it->attributes.end());
-					//if (hasjointWeights) {
-					//	auto& jointWeightsAccessor = asset.accessors[weightsIt->accessorIndex];
-					//	if (jointWeightsAccessor.componentType == fastgltf::ComponentType::UnsignedInt &&
-					//		jointWeightsAccessor.type == fastgltf::AccessorType::Vec4 &&
-					//		jointWeightsAccessor.bufferViewIndex.has_value()) {
-					//		jointWeights.resize(jointWeightsAccessor.count);
-					//		fastgltf::copyFromAccessor<fastgltf::math::uvec4>(asset, jointWeightsAccessor, jointWeights.data());
-					//	}
-					//	else {
-					//		hasjointWeights = false;
-					//	}
-					//}
-
-					std::vector<uint32_t> indices;
-					std::vector<Vertex> vertices;
-					std::vector<glm::vec3> localPositions;
-					for (size_t i = 0; i < positions.size(); ++i) {
-						Vertex vertex{};
-						// Positions
-						vertex.vx = positions[i].x();
-						vertex.vy = positions[i].y();
-						vertex.vz = positions[i].z();
-
-						// Normals
-						if (hasNormals && i < normals.size()) {
-							vertex.nx = normals[i].x();
-							vertex.ny = normals[i].y();
-							vertex.nz = normals[i].z();
-						}
-
-						//  UV0
-						if (hasTexcoords0 && i < texcoords0.size()) {
-							vertex.tx = texcoords0[i].x();
-							vertex.ty = texcoords0[i].y();
-						}
-
-						vertices.push_back(vertex);
+					default:
+						throw std::runtime_error("Unsupported index component type.");
 					}
+				}
 
-					if (it->indicesAccessor.has_value()) {
-						const auto& indexAccessor = asset.accessors[it->indicesAccessor.value()];
-						indexCount = indexAccessor.count;
+				std::vector<uint32_t> remap(vertices.size());
+				size_t uniqueVertices = meshopt_generateVertexRemap(remap.data(), indices.data(), indices.size(), vertices.data(), vertices.size(), sizeof(Vertex));
 
-						switch (indexAccessor.componentType) {
-						case fastgltf::ComponentType::UnsignedByte: {
-							std::vector<uint8_t> tempIndices(indexAccessor.count);
-							fastgltf::copyFromAccessor<uint8_t>(asset, indexAccessor, tempIndices.data());
-							for (uint8_t i : tempIndices) {
-								indices.push_back(static_cast<uint32_t>(i));
-							}
-							break;
-						}
-						case fastgltf::ComponentType::UnsignedShort: {
-							std::vector<uint16_t> tempIndices(indexAccessor.count);
-							fastgltf::copyFromAccessor<uint16_t>(asset, indexAccessor, tempIndices.data());
-							for (uint16_t i : tempIndices) {
-								indices.push_back(static_cast<uint32_t>(i));
-							}
-							break;
-						}
-						case fastgltf::ComponentType::UnsignedInt: {
-							std::vector<uint32_t> tempIndices(indexAccessor.count);
-							fastgltf::copyFromAccessor<uint32_t>(asset, indexAccessor, tempIndices.data());
-							for (uint32_t i : tempIndices) {
-								indices.push_back(static_cast<uint32_t>(i));
-							}
-							break;
-						}
-						default:
-							throw std::runtime_error("Unsupported index component type.");
-						}
-					}
+				meshopt_remapVertexBuffer(vertices.data(), vertices.data(), vertices.size(), sizeof(Vertex), remap.data());
+				meshopt_remapIndexBuffer(indices.data(), indices.data(), indices.size(), remap.data());
 
-					std::vector<uint32_t> remap(vertices.size());
-					size_t uniqueVertices = meshopt_generateVertexRemap(remap.data(), indices.data(), indices.size(), vertices.data(), vertices.size(), sizeof(Vertex));
+				vertices.resize(uniqueVertices);
 
-					meshopt_remapVertexBuffer(vertices.data(), vertices.data(), vertices.size(), sizeof(Vertex), remap.data());
-					meshopt_remapIndexBuffer(indices.data(), indices.data(), indices.size(), remap.data());
+				//if (fast)
+				//	meshopt_optimizeVertexCacheFifo(indices.data(), indices.data(), indices.size(), vertices.size(), 16);
+				//else
+				meshopt_optimizeVertexCache(indices.data(), indices.data(), indices.size(), vertices.size());
 
-					vertices.resize(uniqueVertices);
+				meshopt_optimizeVertexFetch(vertices.data(), indices.data(), indices.size(), vertices.data(), vertices.size(), sizeof(Vertex));
 
-					//if (fast)
-					//	meshopt_optimizeVertexCacheFifo(indices.data(), indices.data(), indices.size(), vertices.size(), 16);
-					//else
-					meshopt_optimizeVertexCache(indices.data(), indices.data(), indices.size(), vertices.size());
+				Mesh mesh{};
+				mesh.vertexOffset = uint32_t(geometry.vertices.size());
+				mesh.vertexCount = uint32_t(vertices.size());
 
-					meshopt_optimizeVertexFetch(vertices.data(), indices.data(), indices.size(), vertices.data(), vertices.size(), sizeof(Vertex));
+				geometry.vertices.insert(geometry.vertices.end(), vertices.begin(), vertices.end());
 
-					Mesh mesh{};
-					mesh.vertexOffset = uint32_t(m_Geometry.vertices.size());
-					mesh.vertexCount = uint32_t(vertices.size());
+				glm::vec3 center{ 0.0f };
+				for (auto& v : vertices) {
+					center += glm::vec3(v.vx, v.vy, v.vz);
+					localPositions.push_back(glm::vec3(v.vx, v.vy, v.vz));
+				}
+				center = center / float(vertices.size());
 
-					m_Geometry.vertices.insert(m_Geometry.vertices.end(), vertices.begin(), vertices.end());
+				float radius = 0;
+				for (auto& v : vertices) {
+					radius = std::max(radius, glm::distance(center, glm::vec3(v.vx, v.vy, v.vz)));
+				}
 
-					glm::vec3 center{ 0.0f };
-					for (auto& v : vertices) {
-						center += glm::vec3(v.vx, v.vy, v.vz);
-						localPositions.push_back(glm::vec3(v.vx, v.vy, v.vz));
-					}
-					center = center / float(vertices.size());
+				mesh.center = center;
+				mesh.radius = radius;
 
-					float radius = 0;
-					for (auto& v : vertices) {
-						radius = std::max(radius, glm::distance(center, glm::vec3(v.vx, v.vy, v.vz)));
-					}
+				mesh.indexCount = indices.size();
+				mesh.indexOffset = geometry.indices.size();
 
-					mesh.center = center;
-					mesh.radius = radius;
+				geometry.indices.insert(geometry.indices.end(), indices.begin(), indices.end());
 
-					mesh.indexCount = indices.size();
-					mesh.indexOffset = m_Geometry.indices.size();
-
-					m_Geometry.indices.insert(m_Geometry.indices.end(), indices.begin(), indices.end());
-
-					//if (fast)
-					//	meshopt_optimizeVertexCacheFifo(lodIndices.data(), lodIndices.data(), lodIndices.size(), vertices.size(), 16);
-					//else
-					meshopt_optimizeVertexCache(indices.data(), indices.data(), indices.size(), vertices.size());
+				//if (fast)
+				//	meshopt_optimizeVertexCacheFifo(lodIndices.data(), lodIndices.data(), lodIndices.size(), vertices.size(), 16);
+				//else
+				meshopt_optimizeVertexCache(indices.data(), indices.data(), indices.size(), vertices.size());
 
 #define MESH_MAXVTX 64
 #define MESH_MAXTRI 96
 
-					const size_t max_vertices = MESH_MAXVTX;
-					const size_t min_triangles = MESH_MAXTRI / 4;
-					const size_t max_triangles = MESH_MAXTRI;
-					const float cone_weight = 0.25f;
-					const float fill_weight = 0.5f;
+				const size_t max_vertices = MESH_MAXVTX;
+				const size_t min_triangles = MESH_MAXTRI / 4;
+				const size_t max_triangles = MESH_MAXTRI;
+				const float cone_weight = 0.25f;
+				const float fill_weight = 0.5f;
 
-					std::vector<meshopt_Meshlet> meshlets(meshopt_buildMeshletsBound(indices.size(), max_vertices, min_triangles));
-					std::vector<unsigned int> meshlet_vertices(meshlets.size() * max_vertices);
-					std::vector<unsigned char> meshlet_triangles(meshlets.size() * max_triangles * 3);
+				std::vector<meshopt_Meshlet> meshlets(meshopt_buildMeshletsBound(indices.size(), max_vertices, min_triangles));
+				std::vector<unsigned int> meshlet_vertices(meshlets.size() * max_vertices);
+				std::vector<unsigned char> meshlet_triangles(meshlets.size() * max_triangles * 3);
 
-					//if (fast)
-					//	meshlets.resize(meshopt_buildMeshletsScan(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indices.data(), indices.size(), vertices.size(), max_vertices, max_triangles));
-					//else if (clrt && lod0) // only use spatial algo for lod0 as this is the only lod that is used for raytracing
-					//	meshlets.resize(meshopt_buildMeshletsSpatial(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indices.data(), indices.size(), &vertices[0].x, vertices.size(), sizeof(vec3), max_vertices, min_triangles, max_triangles, fill_weight));
-					//else
-					meshlets.resize(meshopt_buildMeshlets(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indices.data(), indices.size(), &localPositions[0].x, localPositions.size(), sizeof(glm::vec3), max_vertices, max_triangles, cone_weight));
+				//if (fast)
+				//	meshlets.resize(meshopt_buildMeshletsScan(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indices.data(), indices.size(), vertices.size(), max_vertices, max_triangles));
+				//else if (clrt && lod0) // only use spatial algo for lod0 as this is the only lod that is used for raytracing
+				//	meshlets.resize(meshopt_buildMeshletsSpatial(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indices.data(), indices.size(), &vertices[0].x, vertices.size(), sizeof(vec3), max_vertices, min_triangles, max_triangles, fill_weight));
+				//else
+				meshlets.resize(meshopt_buildMeshlets(meshlets.data(), meshlet_vertices.data(), meshlet_triangles.data(), indices.data(), indices.size(), &localPositions[0].x, localPositions.size(), sizeof(glm::vec3), max_vertices, max_triangles, cone_weight));
 
-					for (auto& meshlet : meshlets)
+				for (auto& meshlet : meshlets)
+				{
+					meshopt_optimizeMeshlet(&meshlet_vertices[meshlet.vertex_offset], &meshlet_triangles[meshlet.triangle_offset], meshlet.triangle_count, meshlet.vertex_count);
+
+					size_t dataOffset = geometry.meshletdata.size();
+
+					unsigned int minVertex = ~0u, maxVertex = 0;
+					for (unsigned int i = 0; i < meshlet.vertex_count; ++i)
 					{
-						meshopt_optimizeMeshlet(&meshlet_vertices[meshlet.vertex_offset], &meshlet_triangles[meshlet.triangle_offset], meshlet.triangle_count, meshlet.vertex_count);
-
-						size_t dataOffset = m_Geometry.meshletdata.size();
-
-						unsigned int minVertex = ~0u, maxVertex = 0;
-						for (unsigned int i = 0; i < meshlet.vertex_count; ++i)
-						{
-							minVertex = std::min(meshlet_vertices[meshlet.vertex_offset + i], minVertex);
-							maxVertex = std::max(meshlet_vertices[meshlet.vertex_offset + i], maxVertex);
-						}
-
-						bool shortRefs = maxVertex - minVertex < (1 << 16);
-
-						for (unsigned int i = 0; i < meshlet.vertex_count; ++i)
-						{
-							unsigned int ref = meshlet_vertices[meshlet.vertex_offset + i] - minVertex;
-							if (shortRefs && i % 2)
-								m_Geometry.meshletdata.back() |= ref << 16;
-							else
-								m_Geometry.meshletdata.push_back(ref);
-						}
-
-						const unsigned int* indexGroups = reinterpret_cast<const unsigned int*>(&meshlet_triangles[0] + meshlet.triangle_offset);
-						unsigned int indexGroupCount = (meshlet.triangle_count * 3 + 3) / 4;
-
-						for (unsigned int i = 0; i < indexGroupCount; ++i)
-							m_Geometry.meshletdata.push_back(indexGroups[i]);
-
-						Meshlet m = {};
-						m.dataOffset = uint32_t(dataOffset);
-						m.baseVertex = mesh.vertexOffset + minVertex;
-						m.triangleCount = meshlet.triangle_count;
-						m.vertexCount = meshlet.vertex_count;
-						m.shortRefs = shortRefs;
-
-						m_Geometry.meshlets.push_back(m);
+						minVertex = std::min(meshlet_vertices[meshlet.vertex_offset + i], minVertex);
+						maxVertex = std::max(meshlet_vertices[meshlet.vertex_offset + i], maxVertex);
 					}
-					mesh.materialIndex = it->materialIndex.value() + m_Materials.size();
-					mesh.meshletCount = uint32_t(meshlets.size());
-					mesh.meshletOffset = uint32_t(m_Geometry.meshlets.size() - meshlets.size());
 
-					m_Geometry.meshes.push_back(mesh);
+					bool shortRefs = maxVertex - minVertex < (1 << 16);
+
+					for (unsigned int i = 0; i < meshlet.vertex_count; ++i)
+					{
+						unsigned int ref = meshlet_vertices[meshlet.vertex_offset + i] - minVertex;
+						if (shortRefs && i % 2)
+							geometry.meshletdata.back() |= ref << 16;
+						else
+							geometry.meshletdata.push_back(ref);
+					}
+
+					const unsigned int* indexGroups = reinterpret_cast<const unsigned int*>(&meshlet_triangles[0] + meshlet.triangle_offset);
+					unsigned int indexGroupCount = (meshlet.triangle_count * 3 + 3) / 4;
+
+					for (unsigned int i = 0; i < indexGroupCount; ++i)
+						geometry.meshletdata.push_back(indexGroups[i]);
+
+					Meshlet m = {};
+					m.dataOffset = uint32_t(dataOffset);
+					m.baseVertex = mesh.vertexOffset + minVertex;
+					m.triangleCount = meshlet.triangle_count;
+					m.vertexCount = meshlet.vertex_count;
+					m.shortRefs = shortRefs;
+
+					geometry.meshlets.push_back(m);
 				}
+				mesh.materialIndex = it->materialIndex.value() + geometry.materials.size();
+				mesh.meshletCount = uint32_t(meshlets.size());
+				mesh.meshletOffset = uint32_t(geometry.meshlets.size() - meshlets.size());
 
-				primitives.push_back(std::make_pair(meshOffset, m_Geometry.meshes.size() - meshOffset));
+				geometry.meshes.push_back(mesh);
 			}
 
-			for (int nodeIndex = 0; nodeIndex < asset.nodes.size(); nodeIndex++) {
-				if (!asset.nodes[nodeIndex].meshIndex.has_value()) continue;
-				std::pair<uint32_t, uint32_t> range = primitives[asset.nodes[nodeIndex].meshIndex.value()];
+			primitives.push_back(std::make_pair(meshOffset, geometry.meshes.size() - meshOffset));
+		}
 
-				glm::mat4 mat = GetWorldTransform(asset, nodeIndex);
+		for (int nodeIndex = 0; nodeIndex < asset.nodes.size(); nodeIndex++) {
+			if (!asset.nodes[nodeIndex].meshIndex.has_value()) continue;
+			std::pair<uint32_t, uint32_t> range = primitives[asset.nodes[nodeIndex].meshIndex.value()];
 
-				float scale[3];
-				float rotation[4];
-				float translation[3];
+			glm::mat4 mat = GetWorldTransform(asset, nodeIndex);
 
-				//glm::decompose(mat, scale, rotation, translation, skew, perspective);
+			float scale[3];
+			float rotation[4];
+			float translation[3];
 
-				decomposeTransform(translation, rotation, scale, glm::value_ptr(mat));
+			//glm::decompose(mat, scale, rotation, translation, skew, perspective);
 
-				MeshTransform transform = {};
-				transform.position = glm::vec3(translation[0], translation[1], translation[2]);
-				transform.scale = std::max(scale[0], std::max(scale[1], scale[2]));
-				transform.orientation = glm::vec4(rotation[0], rotation[1], rotation[2], rotation[3]);
-				m_Geometry.transforms.push_back(transform);
+			decomposeTransform(translation, rotation, scale, glm::value_ptr(mat));
 
-				std::cout << "Node " << asset.nodes[nodeIndex].name << ":\n";
-				for (int i = 0; i < range.second; i++) {
-					const auto& trs = std::get<fastgltf::TRS>(asset.nodes[nodeIndex].transform);
+			MeshTransform transform = {};
+			transform.position = glm::vec3(translation[0], translation[1], translation[2]);
+			transform.scale = std::max(scale[0], std::max(scale[1], scale[2]));
+			transform.orientation = glm::vec4(rotation[0], rotation[1], rotation[2], rotation[3]);
+			geometry.transforms.push_back(transform);
 
-					MeshDraw draw = {};
-					draw.transformIndex = m_Geometry.transforms.size() - 1;
-					draw.meshIndex = range.first + i;
-					draw.materialIndex = m_Geometry.meshes[draw.meshIndex].materialIndex;
-					draw.meshletCount = m_Geometry.meshes[draw.meshIndex].meshletCount;
-					draw.meshletOffset = m_Geometry.meshes[draw.meshIndex].meshletOffset;
+			std::cout << "Node " << asset.nodes[nodeIndex].name << ":\n";
+			for (int i = 0; i < range.second; i++) {
+				const auto& trs = std::get<fastgltf::TRS>(asset.nodes[nodeIndex].transform);
 
-					draw.groupCountX = m_Geometry.meshes[draw.meshIndex].meshletCount;
-					draw.groupCountY = 1;
-					draw.groupCountZ = 1;
+				MeshDraw draw = {};
+				draw.transformIndex = geometry.transforms.size() - 1;
+				draw.meshIndex = range.first + i;
+				draw.materialIndex = geometry.meshes[draw.meshIndex].materialIndex;
+				draw.meshletCount = geometry.meshes[draw.meshIndex].meshletCount;
+				draw.meshletOffset = geometry.meshes[draw.meshIndex].meshletOffset;
 
-					m_Geometry.draws.push_back(draw);
-				}
+				draw.groupCountX = geometry.meshes[draw.meshIndex].meshletCount;
+				draw.groupCountY = 1;
+				draw.groupCountZ = 1;
 
-				Entity e = CreateEntity(asset.nodes[nodeIndex].name.c_str());
-				TransformComponent& tc = e.GetComponent<TransformComponent>();
-				MeshComponent& mc = e.AddComponent<MeshComponent>();
-				tc.p_TransformIndex = m_Geometry.transforms.size() - 1;
-				range = primitives[asset.nodes[nodeIndex].meshIndex.value()];
-				for (int i = 0; i < range.second; i++) {
-					mc.p_SubMeshIndices.push_back(range.first + i);
-				}
+				geometry.draws.push_back(draw);
 			}
 
+			//Entity e = CreateEntity(asset.nodes[nodeIndex].name.c_str());
+			//TransformComponent& tc = e.GetComponent<TransformComponent>();
+			//MeshComponent& mc = e.AddComponent<MeshComponent>();
+			//tc.p_TransformIndex = geometry.transforms.size() - 1;
+			//range = primitives[asset.nodes[nodeIndex].meshIndex.value()];
+			//for (int i = 0; i < range.second; i++) {
+			//	mc.p_SubMeshIndices.push_back(range.first + i);
+			//}
+		}
+
+		uint32_t texturesOffset = Engine::s_TexturesOffset;
+
+		geometry.materials.reserve(asset.materials.size());
+		for (const auto& material : asset.materials) {
+			MaterialData outMaterial{};
+			BRISK_CORE_INFO("Apha mode: {}", (int)material.alphaMode);
+			outMaterial.alphaMode = (int)material.alphaMode;
+			outMaterial.alphaCutoff = material.alphaCutoff;
+			outMaterial.metallicFactor = material.pbrData.metallicFactor;
+			outMaterial.roughnessFactor = material.pbrData.roughnessFactor;
+			//outMaterial.ior = material.ior;
+			//outMaterial.dispersion = material.dispersion;
+			//outMaterial.doubleSided = material.doubleSided;
+			//outMaterial.unlit = material.unlit;
+			outMaterial.emissiveStrength = material.emissiveStrength;
+
+			outMaterial.baseColorFactor = glm::make_vec4(material.pbrData.baseColorFactor.data());
+			outMaterial.emissiveFactor = glm::make_vec4(material.emissiveFactor.data());
+
+			if (material.pbrData.baseColorTexture.has_value()) {
+				outMaterial.baseColorTextureIndex = material.pbrData.baseColorTexture.value().textureIndex + texturesOffset;
+				//outMaterial.baseColorTextureUV = material.pbrData.baseColorTexture.value().texCoordIndex;
+			}
+
+			BRISK_CORE_INFO("Base texture index: {}", outMaterial.baseColorTextureIndex);
+
+			if (material.pbrData.metallicRoughnessTexture.has_value()) {
+				outMaterial.metallicRoughnessTextureIndex = material.pbrData.metallicRoughnessTexture.value().textureIndex + texturesOffset;
+				//outMaterial.metallicRoughnessTextureUV = material.pbrData.metallicRoughnessTexture.value().texCoordIndex;
+			}
+
+			if (material.normalTexture.has_value()) {
+				outMaterial.normalTextureIndex = material.normalTexture.value().textureIndex + texturesOffset;
+				//outMaterial.normalTextureUV = material.normalTexture.value().texCoordIndex;
+			}
+
+			if (material.occlusionTexture.has_value()) {
+				outMaterial.occlusionTextureIndex = material.occlusionTexture.value().textureIndex + texturesOffset;
+				//outMaterial.occlusionTextureUV = material.occlusionTexture.value().texCoordIndex;
+			}
+
+			if (material.emissiveTexture.has_value()) {
+				outMaterial.emissiveTextureIndex = material.emissiveTexture.value().textureIndex + texturesOffset;
+				//outMaterial.emissiveTextureUV = material.emissiveTexture.value().texCoordIndex;
+			}
+
+			//if (material.anisotropy) {
+			//	outMaterial.anisotropyStrength = material.anisotropy->anisotropyStrength;
+			//	outMaterial.anisotropyRotation = material.anisotropy->anisotropyRotation;
+			//	if (material.anisotropy->anisotropyTexture.has_value()) {
+			//		outMaterial.anisotropyTextureIndex = material.anisotropy->anisotropyTexture.value().textureIndex + texturesOffset;
+			//		outMaterial.anisotropyTextureUV = material.anisotropy->anisotropyTexture.value().texCoordIndex;
+			//	}
+			//}
+
+			//if (material.clearcoat) {
+			//	outMaterial.clearcoatFactor = material.clearcoat->clearcoatFactor;
+			//	if (material.clearcoat->clearcoatTexture.has_value()) {
+			//		outMaterial.clearcoatTextureIndex = material.clearcoat->clearcoatTexture.value().textureIndex + texturesOffset;
+			//		outMaterial.clearcoatTextureUV = material.clearcoat->clearcoatTexture.value().texCoordIndex;
+			//	}
+			//	outMaterial.clearcoatRoughnessFactor = material.clearcoat->clearcoatRoughnessFactor;
+			//	if (material.clearcoat->clearcoatRoughnessTexture.has_value()) {
+			//		outMaterial.clearcoatRoughnessTextureIndex = material.clearcoat->clearcoatRoughnessTexture.value().textureIndex + texturesOffset;
+			//		outMaterial.clearcoatRoughnessTextureUV = material.clearcoat->clearcoatRoughnessTexture.value().texCoordIndex;
+			//	}
+			//	if (material.clearcoat->clearcoatNormalTexture.has_value()) {
+			//		outMaterial.clearcoatNormalTextureIndex = material.clearcoat->clearcoatNormalTexture.value().textureIndex + texturesOffset;
+			//		outMaterial.clearcoatNormalTextureUV = material.clearcoat->clearcoatNormalTexture.value().texCoordIndex;
+			//	}
+			//}
+
+			//if (material.iridescence) {
+			//	outMaterial.iridescenceFactor = material.iridescence->iridescenceFactor;
+			//	if (material.iridescence->iridescenceTexture.has_value()) {
+			//		outMaterial.iridescenceTextureIndex = material.iridescence->iridescenceTexture.value().textureIndex + texturesOffset;
+			//		outMaterial.iridescenceTextureUV = material.iridescence->iridescenceTexture.value().texCoordIndex;
+			//	}
+			//	outMaterial.iridescenceIor = material.iridescence->iridescenceIor;
+			//	outMaterial.iridescenceThicknessMinimum = material.iridescence->iridescenceThicknessMinimum;
+			//	outMaterial.iridescenceThicknessMaximum = material.iridescence->iridescenceThicknessMaximum;
+			//	if (material.iridescence->iridescenceThicknessTexture.has_value()) {
+			//		outMaterial.iridescenceThicknessTextureIndex = material.iridescence->iridescenceThicknessTexture.value().textureIndex + texturesOffset;
+			//		outMaterial.iridescenceThicknessTextureUV = material.iridescence->iridescenceThicknessTexture.value().texCoordIndex;
+			//	}
+			//}
+
+			//if (material.sheen) {
+			//	outMaterial.sheenColorFactor = glm::make_vec3(material.sheen->sheenColorFactor.data());
+			//	if (material.sheen->sheenColorTexture.has_value()) {
+			//		outMaterial.sheenColorTextureIndex = material.sheen->sheenColorTexture.value().textureIndex + texturesOffset;
+			//		outMaterial.sheenColorTextureUV = material.sheen->sheenColorTexture.value().texCoordIndex;
+			//	}
+			//	outMaterial.sheenRoughnessFactor = material.sheen->sheenRoughnessFactor;
+			//	if (material.sheen->sheenRoughnessTexture.has_value()) {
+			//		outMaterial.sheenRoughnessTextureIndex = material.sheen->sheenRoughnessTexture.value().textureIndex + texturesOffset;
+			//		outMaterial.sheenRoughnessTextureUV = material.sheen->sheenRoughnessTexture.value().texCoordIndex;
+			//	}
+			//}
+
+			//if (material.specular) {
+			//	outMaterial.specularFactor = material.specular->specularFactor;
+			//	if (material.specular->specularTexture.has_value()) {
+			//		outMaterial.specularTextureIndex = material.specular->specularTexture.value().textureIndex + texturesOffset;
+			//		outMaterial.specularTextureUV = material.specular->specularTexture.value().texCoordIndex;
+			//	}
+			//	outMaterial.specularColorFactor = glm::make_vec3(material.specular->specularColorFactor.data());
+			//	if (material.specular->specularColorTexture.has_value()) {
+			//		outMaterial.specularColorTextureIndex = material.specular->specularColorTexture.value().textureIndex + texturesOffset;
+			//		outMaterial.specularColorTextureUV = material.specular->specularColorTexture.value().texCoordIndex;
+			//	}
+			//}
+
+			//if (material.transmission) {
+			//	outMaterial.transmissionFactor = material.transmission->transmissionFactor;
+			//	if (material.transmission->transmissionTexture.has_value()) {
+			//		outMaterial.transmissionTextureIndex = material.transmission->transmissionTexture.value().textureIndex + texturesOffset;
+			//		outMaterial.transmissionTextureUV = material.transmission->transmissionTexture.value().texCoordIndex;
+			//	}
+			//}
+
+			//if (material.volume) {
+			//	outMaterial.thicknessFactor = material.volume->thicknessFactor;
+			//	outMaterial.thicknessTextureIndex = material.volume->thicknessTexture.value().textureIndex + texturesOffset;
+			//	outMaterial.thicknessTextureUV = material.volume->thicknessTexture.value().texCoordIndex;
+			//	outMaterial.attenuationDistance = material.volume->attenuationDistance;
+			//	outMaterial.attenuationColor = glm::make_vec3(material.volume->attenuationColor.data());
+			//}
+
+			geometry.materials.push_back(outMaterial);
+
+		}
+
+		for (const auto& tex : asset.textures) {
+			const fastgltf::Image& image = asset.images[tex.imageIndex.value()];
+
+			std::shared_ptr<Texture> texture = Texture::Create();
+			texture->Init(image, asset);
+			textures.push_back(texture);
+
+		}
+
+		{
+			std::lock_guard<std::mutex> lock(g_TransferCommandBufferMutex);
 			Application::GetRenderer()->m_TransferCmdBuffer->Bind();
-			Application::GetRenderer()->m_DrawsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(m_Geometry.draws[0]) * m_Geometry.draws.size(), m_Geometry.draws.data());
-
-			Application::GetRenderer()->m_IndexBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(m_Geometry.indices[0]) * m_Geometry.indices.size(), m_Geometry.indices.data());
-
-			Application::GetRenderer()->m_VertexBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(m_Geometry.vertices[0]) * m_Geometry.vertices.size(), m_Geometry.vertices.data());
-
-			Application::GetRenderer()->m_MeshletDataBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(m_Geometry.meshletdata[0]) * m_Geometry.meshletdata.size(), m_Geometry.meshletdata.data());
-
-			Application::GetRenderer()->m_MeshletsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(m_Geometry.meshlets[0]) * m_Geometry.meshlets.size(), m_Geometry.meshlets.data());
-
-			Application::GetRenderer()->m_TransformsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(m_Geometry.transforms[0]) * m_Geometry.transforms.size(), m_Geometry.transforms.data());
-
-			uint32_t texturesOffset = Engine::s_TexturesOffset;
-
-			m_Materials.reserve(asset.materials.size());
-			for (const auto& material : asset.materials) {
-				MaterialData outMaterial{};
-				BRISK_CORE_INFO("Apha mode: {}", (int)material.alphaMode);
-				outMaterial.alphaMode = (int)material.alphaMode;
-				outMaterial.alphaCutoff = material.alphaCutoff;
-				outMaterial.metallicFactor = material.pbrData.metallicFactor;
-				outMaterial.roughnessFactor = material.pbrData.roughnessFactor;
-				//outMaterial.ior = material.ior;
-				//outMaterial.dispersion = material.dispersion;
-				//outMaterial.doubleSided = material.doubleSided;
-				//outMaterial.unlit = material.unlit;
-				outMaterial.emissiveStrength = material.emissiveStrength;
-
-				outMaterial.baseColorFactor = glm::make_vec4(material.pbrData.baseColorFactor.data());
-				outMaterial.emissiveFactor = glm::make_vec4(material.emissiveFactor.data());
-
-				if (material.pbrData.baseColorTexture.has_value()) {
-					outMaterial.baseColorTextureIndex = material.pbrData.baseColorTexture.value().textureIndex + texturesOffset;
-					//outMaterial.baseColorTextureUV = material.pbrData.baseColorTexture.value().texCoordIndex;
-				}
-
-				BRISK_CORE_INFO("Base texture index: {}", outMaterial.baseColorTextureIndex);
-
-				if (material.pbrData.metallicRoughnessTexture.has_value()) {
-					outMaterial.metallicRoughnessTextureIndex = material.pbrData.metallicRoughnessTexture.value().textureIndex + texturesOffset;
-					//outMaterial.metallicRoughnessTextureUV = material.pbrData.metallicRoughnessTexture.value().texCoordIndex;
-				}
-
-				if (material.normalTexture.has_value()) {
-					outMaterial.normalTextureIndex = material.normalTexture.value().textureIndex + texturesOffset;
-					//outMaterial.normalTextureUV = material.normalTexture.value().texCoordIndex;
-				}
-
-				if (material.occlusionTexture.has_value()) {
-					outMaterial.occlusionTextureIndex = material.occlusionTexture.value().textureIndex + texturesOffset;
-					//outMaterial.occlusionTextureUV = material.occlusionTexture.value().texCoordIndex;
-				}
-
-				if (material.emissiveTexture.has_value()) {
-					outMaterial.emissiveTextureIndex = material.emissiveTexture.value().textureIndex + texturesOffset;
-					//outMaterial.emissiveTextureUV = material.emissiveTexture.value().texCoordIndex;
-				}
-
-				//if (material.anisotropy) {
-				//	outMaterial.anisotropyStrength = material.anisotropy->anisotropyStrength;
-				//	outMaterial.anisotropyRotation = material.anisotropy->anisotropyRotation;
-				//	if (material.anisotropy->anisotropyTexture.has_value()) {
-				//		outMaterial.anisotropyTextureIndex = material.anisotropy->anisotropyTexture.value().textureIndex + texturesOffset;
-				//		outMaterial.anisotropyTextureUV = material.anisotropy->anisotropyTexture.value().texCoordIndex;
-				//	}
-				//}
-
-				//if (material.clearcoat) {
-				//	outMaterial.clearcoatFactor = material.clearcoat->clearcoatFactor;
-				//	if (material.clearcoat->clearcoatTexture.has_value()) {
-				//		outMaterial.clearcoatTextureIndex = material.clearcoat->clearcoatTexture.value().textureIndex + texturesOffset;
-				//		outMaterial.clearcoatTextureUV = material.clearcoat->clearcoatTexture.value().texCoordIndex;
-				//	}
-				//	outMaterial.clearcoatRoughnessFactor = material.clearcoat->clearcoatRoughnessFactor;
-				//	if (material.clearcoat->clearcoatRoughnessTexture.has_value()) {
-				//		outMaterial.clearcoatRoughnessTextureIndex = material.clearcoat->clearcoatRoughnessTexture.value().textureIndex + texturesOffset;
-				//		outMaterial.clearcoatRoughnessTextureUV = material.clearcoat->clearcoatRoughnessTexture.value().texCoordIndex;
-				//	}
-				//	if (material.clearcoat->clearcoatNormalTexture.has_value()) {
-				//		outMaterial.clearcoatNormalTextureIndex = material.clearcoat->clearcoatNormalTexture.value().textureIndex + texturesOffset;
-				//		outMaterial.clearcoatNormalTextureUV = material.clearcoat->clearcoatNormalTexture.value().texCoordIndex;
-				//	}
-				//}
-
-				//if (material.iridescence) {
-				//	outMaterial.iridescenceFactor = material.iridescence->iridescenceFactor;
-				//	if (material.iridescence->iridescenceTexture.has_value()) {
-				//		outMaterial.iridescenceTextureIndex = material.iridescence->iridescenceTexture.value().textureIndex + texturesOffset;
-				//		outMaterial.iridescenceTextureUV = material.iridescence->iridescenceTexture.value().texCoordIndex;
-				//	}
-				//	outMaterial.iridescenceIor = material.iridescence->iridescenceIor;
-				//	outMaterial.iridescenceThicknessMinimum = material.iridescence->iridescenceThicknessMinimum;
-				//	outMaterial.iridescenceThicknessMaximum = material.iridescence->iridescenceThicknessMaximum;
-				//	if (material.iridescence->iridescenceThicknessTexture.has_value()) {
-				//		outMaterial.iridescenceThicknessTextureIndex = material.iridescence->iridescenceThicknessTexture.value().textureIndex + texturesOffset;
-				//		outMaterial.iridescenceThicknessTextureUV = material.iridescence->iridescenceThicknessTexture.value().texCoordIndex;
-				//	}
-				//}
-
-				//if (material.sheen) {
-				//	outMaterial.sheenColorFactor = glm::make_vec3(material.sheen->sheenColorFactor.data());
-				//	if (material.sheen->sheenColorTexture.has_value()) {
-				//		outMaterial.sheenColorTextureIndex = material.sheen->sheenColorTexture.value().textureIndex + texturesOffset;
-				//		outMaterial.sheenColorTextureUV = material.sheen->sheenColorTexture.value().texCoordIndex;
-				//	}
-				//	outMaterial.sheenRoughnessFactor = material.sheen->sheenRoughnessFactor;
-				//	if (material.sheen->sheenRoughnessTexture.has_value()) {
-				//		outMaterial.sheenRoughnessTextureIndex = material.sheen->sheenRoughnessTexture.value().textureIndex + texturesOffset;
-				//		outMaterial.sheenRoughnessTextureUV = material.sheen->sheenRoughnessTexture.value().texCoordIndex;
-				//	}
-				//}
-
-				//if (material.specular) {
-				//	outMaterial.specularFactor = material.specular->specularFactor;
-				//	if (material.specular->specularTexture.has_value()) {
-				//		outMaterial.specularTextureIndex = material.specular->specularTexture.value().textureIndex + texturesOffset;
-				//		outMaterial.specularTextureUV = material.specular->specularTexture.value().texCoordIndex;
-				//	}
-				//	outMaterial.specularColorFactor = glm::make_vec3(material.specular->specularColorFactor.data());
-				//	if (material.specular->specularColorTexture.has_value()) {
-				//		outMaterial.specularColorTextureIndex = material.specular->specularColorTexture.value().textureIndex + texturesOffset;
-				//		outMaterial.specularColorTextureUV = material.specular->specularColorTexture.value().texCoordIndex;
-				//	}
-				//}
-
-				//if (material.transmission) {
-				//	outMaterial.transmissionFactor = material.transmission->transmissionFactor;
-				//	if (material.transmission->transmissionTexture.has_value()) {
-				//		outMaterial.transmissionTextureIndex = material.transmission->transmissionTexture.value().textureIndex + texturesOffset;
-				//		outMaterial.transmissionTextureUV = material.transmission->transmissionTexture.value().texCoordIndex;
-				//	}
-				//}
-
-				//if (material.volume) {
-				//	outMaterial.thicknessFactor = material.volume->thicknessFactor;
-				//	outMaterial.thicknessTextureIndex = material.volume->thicknessTexture.value().textureIndex + texturesOffset;
-				//	outMaterial.thicknessTextureUV = material.volume->thicknessTexture.value().texCoordIndex;
-				//	outMaterial.attenuationDistance = material.volume->attenuationDistance;
-				//	outMaterial.attenuationColor = glm::make_vec3(material.volume->attenuationColor.data());
-				//}
-
-				m_Materials.push_back(outMaterial);
-
-			}
-
-			Application::GetRenderer()->m_MaterialStorageBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(m_Materials[0]) * m_Materials.size(), m_Materials.data());
+			Application::GetRenderer()->m_DrawsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.draws[0])* geometry.draws.size(), geometry.draws.data());
+			Application::GetRenderer()->m_IndexBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.indices[0])* geometry.indices.size(), geometry.indices.data());
+			Application::GetRenderer()->m_VertexBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.vertices[0])* geometry.vertices.size(), geometry.vertices.data());
+			Application::GetRenderer()->m_MeshletDataBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.meshletdata[0])* geometry.meshletdata.size(), geometry.meshletdata.data());
+			Application::GetRenderer()->m_MeshletsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.meshlets[0])* geometry.meshlets.size(), geometry.meshlets.data());
+			Application::GetRenderer()->m_TransformsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.transforms[0])* geometry.transforms.size(), geometry.transforms.data());
+			Application::GetRenderer()->m_MaterialStorageBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.materials[0]) * geometry.materials.size(), geometry.materials.data());
 			Application::GetRenderer()->m_TransferCmdBuffer->UnBind();
+		}
 
-			for (const auto& tex : asset.textures) {
-				const fastgltf::Image& image = asset.images[tex.imageIndex.value()];
+		BRISK_CORE_INFO("TASK COMPLETE");
+		BRISK_CORE_INFO("TASK COMPLETE");
+		BRISK_CORE_INFO("TASK COMPLETE");
+		BRISK_CORE_INFO("TASK COMPLETE");
+		BRISK_CORE_INFO("TASK COMPLETE");
+	}
 
-				std::shared_ptr<Texture> texture = Texture::Create();
-				texture->Init(image, asset);
-				m_Textures.push_back(texture);
-
-			}
-
+	void Scene::LoadGltfScene(const std::filesystem::path& gltfPath) {
+		auto callback = [&]() {
 			Engine::s_TexturesOffset += m_Textures.size();
 			Application::GetRenderer()->AddGlobalTexture(m_Textures);
+			Application::GetRenderer()->SetSubmitTransferWork(true);
+			};
 
-			std::lock_guard<std::mutex> lock(Application::m_GltfFileMutex);
-			Application::m_AssetLoaded = true;
-			});
-			Application::m_BackgroundThread.join();
+		Application::GetJobSystem().AddJob(ProcesGltfMesh, callback, std::ref(m_Geometry), std::ref(m_Textures), gltfPath);
 	}
 
 	// Copy Component functions

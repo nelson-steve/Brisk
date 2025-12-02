@@ -79,16 +79,6 @@ namespace Brisk
         uint32_t groupCountZ;
     };
 
-    struct Geometry {
-        std::vector<Vertex> vertices;
-        std::vector<uint32_t> indices;
-        std::vector<Meshlet> meshlets;
-        std::vector<uint32_t> meshletdata;
-        std::vector<Mesh> meshes;
-        std::vector<MeshTransform> transforms;
-        std::vector<MeshDraw> draws;
-    };
-
     struct alignas(16) MaterialData {
         uint32_t alphaMode;
         float alphaCutoff;
@@ -105,6 +95,17 @@ namespace Brisk
         uint32_t normalTextureIndex;
         uint32_t occlusionTextureIndex;
         uint32_t emissiveTextureIndex;
+    };
+
+    struct Geometry {
+        std::vector<Vertex> vertices;
+        std::vector<uint32_t> indices;
+        std::vector<Meshlet> meshlets;
+        std::vector<uint32_t> meshletdata;
+        std::vector<Mesh> meshes;
+        std::vector<MeshTransform> transforms;
+        std::vector<MeshDraw> draws;
+        std::vector<MaterialData> materials;
     };
 
 	class Scene {
@@ -124,6 +125,9 @@ namespace Brisk
 		SceneSetting& GetSceneSetting() { return m_SceneSetting; }
 		void LoadGltfScene(const std::filesystem::path& gltfPath);
 		void SetPaused(bool paused) { m_IsPaused = paused; }
+        void UpdateTransforms();
+
+        uint32_t GetDrawsCount() { return m_Geometry.draws.size(); }
 
 		entt::registry& Reg() { return m_Registry; }
 		glm::vec3 lightPos = glm::vec3(-2.0f, 4.0f, -1.0f);
@@ -131,17 +135,17 @@ namespace Brisk
 		template<typename T>
 		void OnComponentAdded(Entity entity, T& component);
     public:
-        Geometry m_Geometry;
-        uint32_t m_MeshletCount;
         std::vector<std::shared_ptr<Texture>> m_Textures;
-        std::vector<MaterialData> m_Materials;
 	private:
+        uint32_t m_MeshletCount;
+        Geometry m_Geometry;
 		entt::registry m_Registry;
 		entt::entity m_SelectedEntity;
 		uint32_t m_ViewportWidth = 0, m_ViewportHeight = 0;
 		bool m_IsRunning = false;
 		bool m_IsPaused = false;
 		SceneSetting m_SceneSetting;
+        bool m_SceneUpdated = false;
 
 		friend class Entity;
 		friend class SceneSerializer;

@@ -108,7 +108,7 @@ namespace Brisk
 		void Release();
 		void RenderScene(float deltaTime);
 		void UpdateTransforms();
-
+		void SetSubmitTransferWork(bool value) { m_SubmitTransferWork = value; }
 		void AddGlobalTexture(std::vector<std::shared_ptr<Texture>> textures) {
 			m_GBufferPipeline->UpdateResources("GlobalTextures", textures, nullptr, {});
 		}
@@ -133,6 +133,9 @@ namespace Brisk
 
 		std::shared_ptr<Queue> m_GraphicsQueue0;
 		std::shared_ptr<Queue> m_GraphicsQueue1;
+
+		std::shared_ptr<Queue> m_TransferQueue0;
+		std::shared_ptr<Queue> m_TransferQueue1;
 
 		std::shared_ptr<Queue> m_ComputeQueue0;
 		std::shared_ptr<Queue> m_ComputeQueue1;
@@ -224,8 +227,8 @@ namespace Brisk
 		RenderCommand m_RenderCommand;
 		uint32_t m_ImageIndex;
 		uint32_t m_CurrentFrame = 0;
+		bool m_SubmitTransferWork = false;
 
-		bool TransformUpdated = false;
 		std::atomic<bool> m_WindowResized = false;
 	};
 }

@@ -3,6 +3,7 @@
 #include "GpuAdapterVulkan.hpp"
 #include "CommandBufferVulkan.hpp"
 #include "Engine/Renderer/Buffer.hpp"
+#include "Engine/Mutexes.hpp"
 
 #include <fastgltf/core.hpp>
 
@@ -365,11 +366,19 @@ namespace Brisk
                 std::cout << "Time taken: " << duration.count() << " ms\n";
                 int bufferSize = width * height * 4;
 
+                VkCommandPool commandPool;
+                VkCommandPoolCreateInfo poolInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
+                poolInfo.queueFamilyIndex = Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueueFamily();
+                poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
+                if (vkCreateCommandPool(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &poolInfo, nullptr, &commandPool) != VK_SUCCESS) {
+                    throw std::runtime_error("Failed to create command pool!");
+                }
+
                 VkCommandBuffer copyCmd;
                 VkCommandBuffer blitCmd;
                 VkCommandBufferAllocateInfo allocInfo = {};
                 allocInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_ALLOCATE_INFO;
-                allocInfo.commandPool = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetBGGraphicsCommandPool();
+                allocInfo.commandPool = commandPool;
                 allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
                 allocInfo.commandBufferCount = 1;
 
@@ -587,8 +596,12 @@ namespace Brisk
                         submitInfo.signalSemaphoreCount = 1;
                         submitInfo.pSignalSemaphores = &copyFinishedSemaphore;
 
-                        if (vkQueueSubmit(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue(), 1, &submitInfo, fence) != VK_SUCCESS) {
-                            throw std::runtime_error("Failed to submit copy command!");
+
+                        {
+                            std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
+                            if (vkQueueSubmit(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue(), 1, &submitInfo, fence) != VK_SUCCESS) {
+                                throw std::runtime_error("Failed to submit copy command!");
+                            }
                         }
 
                         vkWaitForFences(deviceCached, 1, &fence, VK_TRUE, UINT64_MAX);
@@ -605,8 +618,11 @@ namespace Brisk
                         submitInfo.pWaitSemaphores = &copyFinishedSemaphore;
                         submitInfo.pWaitDstStageMask = &waitStage;
 
-                        if (vkQueueSubmit(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue(), 1, &submitInfo, fence) != VK_SUCCESS) {
-                            throw std::runtime_error("Failed to submit blit command!");
+                        {
+                            std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
+                            if (vkQueueSubmit(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue(), 1, &submitInfo, fence) != VK_SUCCESS) {
+                                throw std::runtime_error("Failed to submit blit command!");
+                            }
                         }
 
                         vkWaitForFences(deviceCached, 1, &fence, VK_TRUE, UINT64_MAX);
@@ -618,7 +634,10 @@ namespace Brisk
                     vkResetCommandBuffer(blitCmd, 0);
                     vkDestroySemaphore(deviceCached, copyFinishedSemaphore, nullptr);
                     vkDestroyFence(deviceCached, fence, nullptr);
-                    vkQueueWaitIdle(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue());
+                    {
+                        std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
+                        vkQueueWaitIdle(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsQueue());
+                    }
 
                     VkImageViewCreateInfo viewInfo{};
                     viewInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;

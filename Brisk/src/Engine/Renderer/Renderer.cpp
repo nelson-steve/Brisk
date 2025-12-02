@@ -9,12 +9,12 @@
 #include <fastgltf/types.hpp>
 #include <Graphics/Vulkan/BLASVulkan.hpp>
 #include <Graphics/Vulkan/TLASVulkan.hpp>
+#include <Engine/Mutexes.hpp>
 
 namespace Brisk
 {
 #define NUM_CASCADES 4
 
-    bool shouldUpload;
     bool once = true;
     Swapchain::Mode swapchainMode = Swapchain::Mode::DOUBLE_BUFFERING;
     std::shared_ptr<Swapchain> Renderer::m_Swapchain;
@@ -616,20 +616,6 @@ namespace Brisk
             clusterTilesBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
             m_ClusterTilesSSBO->Init(clusterTilesBufferDesc);
 
-            //m_ClustersVertexBuffer = Buffer::Create();
-            //BufferDesc clusterVertexBufferDesc{};
-            //clusterVertexBufferDesc.p_Size = sizeof(glm::vec3) * NUM_CLUSTERS;
-            //clusterVertexBufferDesc.p_Usage = BufferDesc::Usage::VertexBuffer;
-            //clusterVertexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
-            //m_ClustersVertexBuffer->Init(clusterVertexBufferDesc);
-
-            //m_ClustersVertexBuffer = Buffer::Create();
-            //BufferDesc clusterIndexBufferDesc{};
-            //clusterIndexBufferDesc.p_Size = sizeof(uint32_t) * ;
-            //clusterIndexBufferDesc.p_Usage = BufferDesc::Usage::IndexBuffer;
-            //clusterIndexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
-            //m_ClustersVertexBuffer->Init(clusterIndexBufferDesc);
-
             m_ClusterInfoUBO = Buffer::Create();
             BufferDesc clusterInfoBufferDesc{};
             clusterInfoBufferDesc.p_Size = sizeof(ClusterInfo);
@@ -722,7 +708,7 @@ namespace Brisk
         m_LightingPipeline->UpdateResources("ShadowMaps",       { m_ShadowMapLOD0, m_ShadowMapLOD1, m_ShadowMapLOD2, m_ShadowMapLOD3 }, nullptr, {});
 
         m_TransferCmdBuffer = CommandBuffer::Create();
-        m_TransferCmdBuffer->Allocate(CommandBuffer::PoolType::Graphics);
+        m_TransferCmdBuffer->Allocate(CommandBuffer::PoolType::Transfer);
 
         for (int i = 0; i < FRAMES_IN_FLIGHT; i++) {
             // Creating Fences
@@ -765,6 +751,12 @@ namespace Brisk
 
         m_GraphicsQueue1 = Queue::Create();
         m_GraphicsQueue1->Init(Queue::QueueType::Graphics);
+
+        m_TransferQueue0 = Queue::Create();
+        m_TransferQueue0->Init(Queue::QueueType::Transfer);
+
+        m_TransferQueue1 = Queue::Create();
+        m_TransferQueue1->Init(Queue::QueueType::Transfer);
 
         m_ComputeQueue0 = Queue::Create();
         m_ComputeQueue0->Init(Queue::QueueType::Compute);
@@ -844,29 +836,13 @@ namespace Brisk
 
         m_HitSBT = SBT::Create();
         m_HitSBT->Init(SBT::Type::Hit, 1);
-
-        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf");
-    }
-
-    void Renderer::UpdateTransforms() {
-        auto view = SceneManager::pActiveScene->Reg().view<TransformComponent>();
-        for (auto e : view) {
-            Entity entity = { e, SceneManager::pActiveScene.get() };
-            auto& tc = entity.GetComponent<TransformComponent>();
-            if (tc.dirtyTransform) {
-                SceneManager::pActiveScene->m_Geometry.transforms[tc.p_TransformIndex].position = tc.GetPosition();
-                tc.dirtyTransform = false;
-                m_TransferCmdBuffer->Bind();
-                m_TransformsBuffer->RecordUpload(m_TransferCmdBuffer, sizeof(SceneManager::pActiveScene->m_Geometry.transforms[0]) * SceneManager::pActiveScene->m_Geometry.transforms.size(), SceneManager::pActiveScene->m_Geometry.transforms.data());
-                m_TransferCmdBuffer->UnBind();
-                shouldUpload = true;
-            }
-        }
     }
 
     void Renderer::RenderScene(float deltaTime)
     {
         if (!SceneManager::pActiveScene) return;
+
+        Application::GetJobSystem().ExecuteMainThreadCallbacks();
 
         if (once) {
             m_GBufferPipeline->UpdateResources("Vertices", {}, m_VertexBuffer, {});
@@ -876,9 +852,9 @@ namespace Brisk
             m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer, {});
             m_GBufferPipeline->UpdateResources("Materials", {}, m_MaterialStorageBuffer, {});
             m_GBufferPipeline->UpdateResources("Transforms", {}, m_TransformsBuffer, {});
-            m_RayTracing->UpdateResources("topLevelAS", {}, {}, { m_TLAS });
-            m_RayTracing->UpdateResources("image", { m_LightingOutput }, {}, {});
-            m_RayTracing->UpdateResources("Props", {}, { m_RayTracingPropsBuffer }, {});
+            //m_RayTracing->UpdateResources("topLevelAS", {}, {}, { m_TLAS });
+            //m_RayTracing->UpdateResources("image", { m_LightingOutput }, {}, {});
+            //m_RayTracing->UpdateResources("Props", {}, { m_RayTracingPropsBuffer }, {});
 
             once = false;
 
@@ -1014,16 +990,6 @@ namespace Brisk
 
         m_GraphicsFence[m_CurrentFrame]->Wait();
 
-        shouldUpload = false;
-
-        {
-            std::lock_guard<std::mutex> lock(Application::m_GltfFileMutex);
-            if (Application::m_AssetLoaded) {
-                shouldUpload = true;
-                Application::m_AssetLoaded = false;
-            }
-        }
-
         if (!m_Swapchain->AcquireNextImage(UINT64_MAX, ImageAvailableSemaphore[m_CurrentFrame], nullptr, &m_ImageIndex)) {
             RecreateSwapchain();
             return;
@@ -1031,19 +997,12 @@ namespace Brisk
 
         m_GraphicsFence[m_CurrentFrame]->Reset();
 
-        if (TransformUpdated) {
-            UpdateTransforms();
-            TransformUpdated = false;
-        }
-
-        if (shouldUpload) {
+        if (m_SubmitTransferWork) {
             Queue::SubmitInfo transferSubmitInfo{};
             transferSubmitInfo.pSignalSemaphores.push_back(TransferFinishedSemaphore[m_CurrentFrame]);
             transferSubmitInfo.pCmdBuffers.push_back(m_TransferCmdBuffer);
 
-            m_GraphicsQueue0->Submit(transferSubmitInfo, m_GraphicsFence[m_CurrentFrame]);
-            m_GraphicsFence[m_CurrentFrame]->Wait();
-            m_GraphicsFence[m_CurrentFrame]->Reset();
+            m_TransferQueue0->Submit(transferSubmitInfo, nullptr);
 
             m_ScratchAllocator.Reset();
         }
@@ -1064,10 +1023,10 @@ namespace Brisk
             glm::mat4 matrix = lightMatrix;
             m_ShadowMapPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
             m_ShadowMapPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
-            if (SceneManager::pActiveScene->m_Geometry.draws.size() != 0) {
+            if (SceneManager::pActiveScene->GetDrawsCount() != 0) {
                 RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer[m_CurrentFrame],
                     m_DrawsBuffer,
-                    offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->m_Geometry.draws.size(), sizeof(MeshDraw));
+                    offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->GetDrawsCount(), sizeof(MeshDraw));
             }
 
             m_CSMShadowMapPass->End(m_CmdBuffer[m_CurrentFrame]);
@@ -1096,10 +1055,10 @@ namespace Brisk
 
         glm::mat4 matrix{ 1.0f };
         m_DepthPrePassPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-        if (SceneManager::pActiveScene->m_Geometry.draws.size() != 0) {
+        if (SceneManager::pActiveScene->GetDrawsCount() != 0) {
             RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer[m_CurrentFrame],
                 m_DrawsBuffer,
-                offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->m_Geometry.draws.size(), sizeof(MeshDraw));
+                offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->GetDrawsCount(), sizeof(MeshDraw));
         }
 
         m_DepthPrePass->End(m_CmdBuffer[m_CurrentFrame]);
@@ -1114,10 +1073,10 @@ namespace Brisk
         m_GBufferPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
 
         m_GBufferPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-        if (SceneManager::pActiveScene->m_Geometry.draws.size() != 0) {
+        if (SceneManager::pActiveScene->GetDrawsCount() != 0) {
             RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer[m_CurrentFrame],
                 m_DrawsBuffer,
-                offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->m_Geometry.draws.size(), sizeof(MeshDraw));
+                offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->GetDrawsCount(), sizeof(MeshDraw));
         }
 
         m_GeometryBufferPass->End(m_CmdBuffer[m_CurrentFrame]);
@@ -1198,9 +1157,10 @@ namespace Brisk
         m_CmdBuffer[m_CurrentFrame]->UnBind();
 
         Queue::SubmitInfo lightingSubmitInfo{};
-        if (shouldUpload) {
+        if (m_SubmitTransferWork) {
             lightingSubmitInfo.pWaitSemaphores.push_back(TransferFinishedSemaphore[m_CurrentFrame]);
             lightingSubmitInfo.pWaitStages.push_back(Core::PipelineStage::TransferStage);
+            m_SubmitTransferWork = false;
         }
         lightingSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore[m_CurrentFrame]);
         lightingSubmitInfo.pWaitSemaphores.push_back(AssignLightsSemaphore[m_CurrentFrame]);
@@ -1209,7 +1169,10 @@ namespace Brisk
         lightingSubmitInfo.pWaitStages.push_back(Core::PipelineStage::EarlyFragmentTest);
         lightingSubmitInfo.pCmdBuffers.push_back(m_CmdBuffer[m_CurrentFrame]);
 
-        m_GraphicsQueue0->Submit(lightingSubmitInfo, m_GraphicsFence[m_CurrentFrame]);
+        {
+            std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
+            m_GraphicsQueue0->Submit(lightingSubmitInfo, m_GraphicsFence[m_CurrentFrame]);
+        }
 
         Queue::PresentInfo presentInfo{};
         presentInfo.pWaitSemaphores.push_back(RenderFinishedSemaphore[m_CurrentFrame]);
@@ -1217,7 +1180,10 @@ namespace Brisk
         presentInfo.pImageIndex = m_ImageIndex;
 
         // Present
-        m_GraphicsQueue0->Present(presentInfo);
+        {
+            std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
+            m_GraphicsQueue0->Present(presentInfo);
+        }
 
         if (m_WindowResized) {
             RecreateSwapchain();

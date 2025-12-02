@@ -15,6 +15,7 @@ namespace Brisk
 	std::shared_ptr<Window> Application::m_Window;
 	std::shared_ptr<Renderer> Application::m_Renderer;
 	std::shared_ptr<Camera> Application::m_EditorCamera;
+	JobSystem Application::m_JobSystem;
 
 	void GenerateRandomLights(uint32_t count, float range, float radiusMin, float radiusMax, float colorMin, float colorMax, float intensityMin, float intensityMax) {
 		std::random_device rd;
@@ -74,7 +75,7 @@ namespace Brisk
 			/* 14 */"../Data/Models/modural_robot_mecha_chimera_dyan_high-poly_mesh/scene.gltf",
 		};
 
-		//SceneManager::pActiveScene->LoadGltfScene(paths[2]);
+		//SceneManager::pActiveScene->LoadGltfScene(paths[9]);
 
 		Entity lightEntity = m_SceneManager->pActiveScene->CreateEntity("Sun Light");
 		DirectionalLightComponent& lc = lightEntity.AddComponent<DirectionalLightComponent>();

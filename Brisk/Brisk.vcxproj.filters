@@ -87,7 +87,13 @@
     <ClInclude Include="src\Engine\ImGuiLayer.hpp">
       <Filter>Engine</Filter>
     </ClInclude>
+    <ClInclude Include="src\Engine\JobSystem.hpp">
+      <Filter>Engine</Filter>
+    </ClInclude>
     <ClInclude Include="src\Engine\MeshAsset.hpp">
+      <Filter>Engine</Filter>
+    </ClInclude>
+    <ClInclude Include="src\Engine\Mutexes.hpp">
       <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\OrthographicCamera.hpp">
@@ -301,8 +307,7 @@
       <Filter>Platform\Windows</Filter>
     </ClInclude>
     <ClInclude Include="src\VmaUsage.h" />
-    <ClInclude Include="src\Engine\JobSystem.hpp" />
-    <ClInclude Include="src\Engine\Mutexes.hpp" />
+    <ClInclude Include="src\pch.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Log.cpp">
@@ -323,7 +328,13 @@
     <ClCompile Include="src\Engine\ImGuiLayer.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
+    <ClCompile Include="src\Engine\JobSystem.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
     <ClCompile Include="src\Engine\MeshAsset.cpp">
+      <Filter>Engine</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Engine\Mutexes.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\OrthographicCamera.cpp">
@@ -508,9 +519,8 @@
     </ClCompile>
     <ClCompile Include="src\VmaUsage.cpp" />
     <ClCompile Include="src\VolkUsage.cpp" />
+    <ClCompile Include="src\pch.cpp" />
     <ClCompile Include="src\stbimage.cc" />
     <ClCompile Include="src\volk.c" />
-    <ClCompile Include="src\Engine\JobSystem.cpp" />
-    <ClCompile Include="src\Engine\Mutexes.cpp" />
   </ItemGroup>
 </Project>

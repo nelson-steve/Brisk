@@ -1,9 +1,9 @@
 #pragma once
 
 // INCLUDES
+#include "Core/Core.hpp"
 #include "Engine/Renderer/Buffer.hpp"
 //----------------------------
-#include <cstdint>
 #include <memory>
 #include <vector>
 //---------------

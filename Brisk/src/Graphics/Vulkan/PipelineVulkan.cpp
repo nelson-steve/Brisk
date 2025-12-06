@@ -1,3 +1,4 @@
+#include "pch.hpp"
 #include "PipelineVulkan.hpp"
 #include "Core/Log.hpp"
 #include "Engine/Engine.hpp"
@@ -27,6 +28,8 @@ namespace Brisk
 
     void PipelineVulkan::Init(const GraphicsPipelineSpecs& specs) {
         m_GraphicsSpecs = specs;
+
+        bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
 
         std::vector<VkShaderModule> shaderModules;
         m_DescriptorSetLayouts.resize(4);
@@ -308,7 +311,8 @@ namespace Brisk
 
     void PipelineVulkan::Init(const ComputePipelineSpecs& specs) {
         m_ComputeSpecs = specs;
-        m_IsCompute = true;
+
+        bindPoint = VK_PIPELINE_BIND_POINT_COMPUTE;
 
         m_DescriptorSetLayouts.resize(6);
         m_DescriptorSetLayouts[0] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
@@ -439,6 +443,8 @@ namespace Brisk
         std::string rayGenerationPath;
         std::string missPath;
         std::string closestHitPath;
+
+        bindPoint = VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR;
 
         for (const std::string& path : specs.pShaderPathsVK) {
             std::filesystem::path fsPath(path);
@@ -814,7 +820,7 @@ namespace Brisk
     void PipelineVulkan::BindInternal(std::shared_ptr<CommandBuffer> cmd, VkDescriptorSet set, uint32_t setIndex) {
         vkCmdBindDescriptorSets(
             std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(),
-            m_IsCompute ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS,
+            bindPoint,
             m_PipelineLayout,
             setIndex,
             1,
@@ -827,7 +833,7 @@ namespace Brisk
     void PipelineVulkan::Bind(std::shared_ptr<CommandBuffer> cmd) {
         vkCmdBindPipeline(
             std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(),
-            m_IsCompute ? VK_PIPELINE_BIND_POINT_COMPUTE : VK_PIPELINE_BIND_POINT_GRAPHICS,
+            bindPoint,
             m_Pipeline);
 
         // Totally production code

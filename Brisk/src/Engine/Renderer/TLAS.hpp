@@ -12,7 +12,7 @@ namespace Brisk
 	};
 	class TLAS {
 	public:
-		virtual void Build(std::shared_ptr<BLAS> blas, std::vector<MeshDraw> draws) = 0;
+		virtual void Build(std::shared_ptr<BLAS> blas) = 0;
 	};
 
 }

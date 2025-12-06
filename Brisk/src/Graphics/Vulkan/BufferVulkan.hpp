@@ -21,6 +21,7 @@ namespace Brisk {
 		virtual void MemoryPipelineBarrier(std::shared_ptr<CommandBuffer> cmd, MemoryBarrierParams barrier) override;
 
 		inline const VkBuffer Get() const { return m_Handle; }
+		void* GetMapped() const { return mappedPtr; }
 
 		VkDeviceAddress GetDeviceAddress();
 		VkDescriptorBufferInfo* GetDescriptor() {

@@ -1,4 +1,5 @@
 // INCLUDES
+#include "pch.hpp"
 #include "Entity.hpp"
 #include "Component.hpp"
 //---------------------

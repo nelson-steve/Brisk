@@ -1,3 +1,4 @@
+#include "pch.hpp"
 #include "RenderPassDirectX12.hpp"
 #include "TextureDirectX12.hpp"
 #include "UtilitiesDirectX12.hpp"

@@ -1,3 +1,4 @@
+#include "pch.hpp"
 #include "TextureDirectX12.hpp"
 
 #include "Engine/Engine.hpp"

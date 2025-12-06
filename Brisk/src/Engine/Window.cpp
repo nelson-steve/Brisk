@@ -1,4 +1,5 @@
 // INCLUDES
+#include "pch.hpp"
 #include "Window.hpp"
 #include "Engine/Engine.hpp"
 #include "Core/Log.hpp"

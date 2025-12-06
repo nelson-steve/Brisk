@@ -11,7 +11,7 @@ namespace Brisk
 {
 	class BLASVulkan : public BLAS {
 	public:
-		virtual void Build(const std::vector<Mesh> meshes, std::shared_ptr<Buffer> vb, std::shared_ptr<Buffer> ib) override;
+		virtual void Build(std::shared_ptr<Buffer> vb, std::shared_ptr<Buffer> ib) override;
 		VkDeviceAddress GetDeviceAddress() {
 			VkBufferDeviceAddressInfoKHR bufferDeviceAddresInfo{
 				.sType = VK_STRUCTURE_TYPE_BUFFER_DEVICE_ADDRESS_INFO,

@@ -1,4 +1,5 @@
 // INCLUDES
+#include "pch.hpp"
 #include "Semaphore.hpp"
 #include "Engine/Engine.hpp"
 #include "Graphics/Vulkan/SemaphoreVulkan.hpp"

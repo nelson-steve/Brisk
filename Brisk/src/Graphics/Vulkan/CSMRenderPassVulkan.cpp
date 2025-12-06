@@ -1,3 +1,4 @@
+#include "pch.hpp"
 #include "CSMRenderPassVulkan.hpp"
 #include <Graphics/Vulkan/GpuAdapterVulkan.hpp>
 #include "TextureVulkan.hpp"

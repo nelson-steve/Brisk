@@ -1,10 +1,7 @@
+#include "pch.hpp"
 #include "GpuAdapterDirectX12.hpp"
 
 #include "Core/Log.hpp"
-
-#include <comdef.h>
-#include <cerrno>
-#include <iostream>
 
 namespace Brisk
 {

@@ -1,3 +1,4 @@
+#include "pch.hpp"
 #include "SemaphoreVulkan.hpp"
 
 #include "Engine/Engine.hpp"

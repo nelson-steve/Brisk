@@ -1,7 +1,6 @@
 #pragma once
 
 // INCLUDES
-#include "Core/Core.hpp"
 #include "RenderPass.hpp"
 //------------------------
 

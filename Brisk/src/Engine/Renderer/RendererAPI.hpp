@@ -3,6 +3,7 @@
 // INCLUDES
 #include "CommandBuffer.hpp"
 #include "Buffer.hpp"
+#include "SBT.hpp"
 //------------------
 #include <memory>
 #include <vector>
@@ -24,6 +25,7 @@ namespace Brisk
 		virtual void Draw(std::shared_ptr<CommandBuffer> cmd, uint32_t vertexCount, uint32_t firstVertex) = 0;
 		virtual void DrawMeshTasks(std::shared_ptr<CommandBuffer> cmd, uint32_t groupCountX, uint32_t groupCountY, uint32_t groupCountZ) = 0;
 		virtual void DrawMeshTasksIndirect(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Buffer> buffer, uint32_t offset, uint32_t drawsSize, uint32_t stride) = 0;
+		virtual void TraceRays(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<SBT> sbt, uint32_t width, uint32_t height) = 0;
 		virtual void DrawIndexed(std::shared_ptr<CommandBuffer> cmd, uint32_t indexCount, uint32_t instanceCount, uint32_t firstIndex, int32_t vertexOffset, uint32_t firstInstance) = 0;
 		virtual void BindIndexBuffer(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Buffer> buffer, uint32_t firstBinding) = 0;
 		virtual void BindVertexBuffer(std::shared_ptr<CommandBuffer> cmd, std::vector<std::shared_ptr<Buffer>> buffers, uint32_t firstBinding) = 0;

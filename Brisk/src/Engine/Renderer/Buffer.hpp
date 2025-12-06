@@ -7,7 +7,6 @@
 //----------------
 #include <cstdint>
 #include <vector>
-#include <memory>
 //---------------
 
 namespace Brisk
@@ -32,10 +31,10 @@ namespace Brisk
 
         enum class MemoryUsage : uint32_t
         {
-            CPU_Only,                    //
-            GPU_Only,                    // VRAM only
-            CPU_To_GPU,                  // Upload heap in DirectX12, Host-visible in Vulkan
-            GPU_To_CPU                   // Readback heap in DirectX12, Host-visible in Vulkan
+            CPU_Only,
+            GPU_Only,
+            CPU_To_GPU,
+            GPU_To_CPU
         } p_Memory = MemoryUsage::GPU_Only;
 
         bool p_AllowUAV = false;           // Allow unordered access (RW in shaders)
@@ -43,6 +42,8 @@ namespace Brisk
         bool p_AllowCopySrc = false;       // Can be copy source
         bool p_AllowCopyDst = false;       // Can be copy destination
         bool p_Persistant = false;         // Should stay mapped
+        bool p_Aligned = false;
+        bool p_GpuMapped = false;
     };
 
 	class Buffer {

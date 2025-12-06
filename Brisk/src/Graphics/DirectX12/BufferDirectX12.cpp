@@ -1,5 +1,5 @@
+#include "pch.hpp"
 #include "BufferDirectX12.hpp"
-#include <stdexcept>
 #include "GpuAdapterDirectX12.hpp"
 #include "Engine/Engine.hpp"
 #include "UtilitiesDirectX12.hpp"

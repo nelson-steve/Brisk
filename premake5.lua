@@ -57,6 +57,9 @@ project "Brisk"
     cppdialect "C++20"
     staticruntime "on"
 
+    pchheader "pch.hpp"
+    pchsource "Brisk/src/pch.cpp"
+
     targetdir ("bin/" .. outputdir .. "/%{prj.name}")
     objdir ("bin-int/" .. outputdir .. "/%{prj.name}")
 

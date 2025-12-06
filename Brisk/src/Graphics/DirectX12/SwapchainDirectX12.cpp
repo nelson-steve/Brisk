@@ -1,3 +1,4 @@
+#include "pch.hpp"
 #include "SwapchainDirectX12.hpp"
 #include "Graphics/DirectX12/GpuAdapterDirectX12.hpp"
 #include "Engine/Engine.hpp"

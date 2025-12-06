@@ -306,6 +306,7 @@ namespace Brisk {
             LateFragmentTest = 1 << 8,
             AllGraphics = 1 << 9,
             AllCommands = 1 << 10,
+            RayTracing = 1 << 11,
         };
 
         enum class ImageAspectFlags : uint32_t {

@@ -28,6 +28,10 @@ namespace Brisk
 			s_RendererAPI->DrawMeshTasks(cmd, groupCountX, groupCountY, groupCountZ);
 		}
 
+		inline static void TraceRays(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<SBT> sbt, uint32_t width, uint32_t height) {
+			s_RendererAPI->TraceRays(cmd, sbt, width, height);
+		}
+
 		inline static void DrawMeshTasksIndirect(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Buffer> buffer, uint32_t offset, uint32_t drawsSize, uint32_t stride) {
 			s_RendererAPI->DrawMeshTasksIndirect(cmd, buffer, offset, drawsSize, stride);
 		}

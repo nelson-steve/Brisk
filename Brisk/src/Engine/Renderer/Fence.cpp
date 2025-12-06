@@ -1,7 +1,8 @@
 // INCLUDES
+#include "pch.hpp"
 #include "Fence.hpp"
-#include "Graphics/Vulkan/FenceVulkan.hpp"
 #include "Engine/Engine.hpp"
+#include "Graphics/Vulkan/FenceVulkan.hpp"
 #ifdef BRISK_ENABLE_DIRECTX12
 #include "Graphics/DirectX12/FenceDirectX12.hpp"
 #endif

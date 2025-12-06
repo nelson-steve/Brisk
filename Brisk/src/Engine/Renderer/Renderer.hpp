@@ -14,7 +14,6 @@
 #include "Engine/Component.hpp"
 #include "CSMRenderPass.hpp"
 //------------------------
-#include <memory>
 #include "BLAS.hpp"
 #include "TLAS.hpp"
 #include "SBT.hpp"
@@ -72,9 +71,12 @@ namespace Brisk
 	};
 
 	struct RayTracingProps {
-		alignas(16) glm::mat4 ProjInv;
 		alignas(16) glm::mat4 ViewInv;
+		alignas(16) glm::mat4 ProjInv;
 		alignas(16) glm::vec3 LightPos;
+		alignas(16) glm::vec3 CamPos;
+		alignas(16) glm::uvec2 dimension; // width, height
+		glm::uvec2 _pad;
 	};
 
 	struct ShadowData {
@@ -112,6 +114,7 @@ namespace Brisk
 		void AddGlobalTexture(std::vector<std::shared_ptr<Texture>> textures) {
 			m_GBufferPipeline->UpdateResources("GlobalTextures", textures, nullptr, {});
 		}
+		void RebuildAccelerationStructures();
 
 		static std::shared_ptr<Swapchain> GetSwapchain() { return m_Swapchain; }
 
@@ -127,8 +130,10 @@ namespace Brisk
 		std::array<std::shared_ptr<Semaphore>, FRAMES_IN_FLIGHT> ImageAvailableSemaphore;
 		std::array<std::shared_ptr<Semaphore>, FRAMES_IN_FLIGHT> RenderFinishedSemaphore;
 		std::array<std::shared_ptr<Semaphore>, FRAMES_IN_FLIGHT> TransferFinishedSemaphore;
+		std::array<std::shared_ptr<Semaphore>, FRAMES_IN_FLIGHT> RayTracingFinishedSemaphore;
 
 		std::array<std::shared_ptr<Fence>, FRAMES_IN_FLIGHT> m_ClusterFence;
+		std::array<std::shared_ptr<Fence>, FRAMES_IN_FLIGHT> m_RayTracingFence;
 		std::array<std::shared_ptr<Fence>, FRAMES_IN_FLIGHT> m_GraphicsFence;
 
 		std::shared_ptr<Queue> m_GraphicsQueue0;
@@ -153,6 +158,7 @@ namespace Brisk
 		std::shared_ptr<Texture> m_ShadowMapLOD2;
 		std::shared_ptr<Texture> m_ShadowMapLOD3;
 		std::shared_ptr<Texture> m_LightingOutput;
+		std::shared_ptr<Texture> m_RayTracingOutput;
 		// Attachments - End
 
 		// RenderPasses
@@ -207,9 +213,7 @@ namespace Brisk
 		std::shared_ptr<Buffer> m_TransformsBuffer;
 		// Buffer - End
 
-		std::shared_ptr<SBT> m_RaygenSBT;
-		std::shared_ptr<SBT> m_MissSBT;
-		std::shared_ptr<SBT> m_HitSBT;
+		std::shared_ptr<SBT> m_SBT;
 
 		ScratchAllocator m_ScratchAllocator;
 
@@ -222,6 +226,7 @@ namespace Brisk
 		uint64_t m_ImGuiIdShadowMap3;
 
 		std::array<std::shared_ptr<CommandBuffer>, FRAMES_IN_FLIGHT> m_CmdBuffer;
+		std::array<std::shared_ptr<CommandBuffer>, FRAMES_IN_FLIGHT> m_RayTracingCmdBuffer;
 		std::shared_ptr<CommandBuffer> m_TransferCmdBuffer;
 		std::array<std::shared_ptr<CommandBuffer>, FRAMES_IN_FLIGHT> m_ClusteredCmdBuffer;
 		RenderCommand m_RenderCommand;

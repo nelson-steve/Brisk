@@ -128,6 +128,8 @@ namespace Brisk
         void UpdateTransforms();
 
         uint32_t GetDrawsCount() { return m_Geometry.draws.size(); }
+        const std::vector<Mesh>& GetMeshes() const { return m_Geometry.meshes; }
+        const std::vector<MeshDraw>& GetDraws() const { return m_Geometry.draws; }
 
 		entt::registry& Reg() { return m_Registry; }
 		glm::vec3 lightPos = glm::vec3(-2.0f, 4.0f, -1.0f);

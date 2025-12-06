@@ -1,11 +1,11 @@
 // INCLUDES
+#include "pch.hpp"
 #include "Application.hpp"
 #include "Scene.hpp"
 #include "Core/Core.hpp"
 #include "MeshAsset.hpp"
 #include "Events/Event.hpp"
 #include <Graphics/Vulkan/GpuAdapterVulkan.hpp>
-#include <random>
 #include "Component.hpp"
 //------------------------
 namespace Brisk
@@ -74,8 +74,6 @@ namespace Brisk
 			/* 13 */"../Data/Models/mecha_ramen_high_poly/scene.gltf",
 			/* 14 */"../Data/Models/modural_robot_mecha_chimera_dyan_high-poly_mesh/scene.gltf",
 		};
-
-		//SceneManager::pActiveScene->LoadGltfScene(paths[9]);
 
 		Entity lightEntity = m_SceneManager->pActiveScene->CreateEntity("Sun Light");
 		DirectionalLightComponent& lc = lightEntity.AddComponent<DirectionalLightComponent>();

@@ -2,17 +2,13 @@
 #include <cstdint>
 #include <memory>
 #include "Buffer.hpp"
+#include "Pipeline.hpp"
 
 namespace Brisk
 {
 	class SBT {
 	public:
-		enum Type {
-			Raygen,
-			Miss,
-			Hit
-		};
-		virtual void Init(Type type, uint32_t count) = 0;
+		virtual void Init(std::shared_ptr<Pipeline> pipeline) = 0;
 
 		static std::shared_ptr<SBT> Create();
 	protected:

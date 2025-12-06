@@ -1,3 +1,4 @@
+#include "pch.hpp"
 #include "Engine/Renderer/Texture.hpp"
 #include "Graphics/Vulkan/TextureVulkan.hpp"
 

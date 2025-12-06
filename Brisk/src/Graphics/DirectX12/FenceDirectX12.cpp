@@ -1,8 +1,7 @@
+#include "pch.hpp"
 #include "FenceDirectX12.hpp"
 #include "GpuAdapterDirectX12.hpp"
 #include "Engine/Engine.hpp"
-
-#include <stdexcept>
 
 namespace Brisk
 {

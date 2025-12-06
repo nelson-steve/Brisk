@@ -1,11 +1,11 @@
 // INCLUDES
+#include "pch.hpp"
 #include "BufferVulkan.hpp"
 #include "Engine/Engine.hpp"
 #include "UtilitiesVulkan.hpp"
 #include "GpuAdapterVulkan.hpp"
 #include "Engine/Application.hpp"
 //-------------------------------
-#include <memory>
 #include "CommandBufferVulkan.hpp"
 //---------------
 namespace Brisk 
@@ -48,6 +48,9 @@ namespace Brisk
         else if (desc.p_Memory == BufferDesc::MemoryUsage::CPU_Only) {
             vmaUsage = VMA_MEMORY_USAGE_CPU_ONLY;
         }
+
+        if (desc.p_GpuMapped)
+            vmaUsage = VMA_MEMORY_USAGE_AUTO_PREFER_DEVICE;
 
         // Check if the buffer stores data in gpu only, and if data is providied initialy means it needs to be copied right away
         // needing a staging buffer
@@ -154,6 +157,12 @@ namespace Brisk
         VmaAllocationCreateInfo allocInfo{};
         allocInfo.usage = vmaUsage;
         if (hostCoherent) allocInfo.flags |= VMA_ALLOCATION_CREATE_MAPPED_BIT;
+        if (desc.p_GpuMapped) {
+            allocInfo.flags = VMA_ALLOCATION_CREATE_MAPPED_BIT | VMA_ALLOCATION_CREATE_HOST_ACCESS_RANDOM_BIT;
+        }
+        if (desc.p_Aligned) {
+            allocInfo.flags = VMA_ALLOCATION_CREATE_DEDICATED_MEMORY_BIT;
+        }
 
         if (vmaCreateBuffer(m_CachedAllocator, &bufferInfo, &allocInfo, &m_Handle, &m_Allocation, nullptr) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create buffer");

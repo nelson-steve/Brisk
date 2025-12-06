@@ -1,3 +1,4 @@
+#include "pch.hpp"
 #include "PipelineDirectX12.hpp"
 #include "GpuAdapterDirectX12.hpp"
 #include "Engine/Engine.hpp"
@@ -8,7 +9,6 @@
 #include <directx/d3dx12.h>
 #include <Core/Log.hpp>
 #include "CommandBufferDirectX12.hpp"
-#include <filesystem>
 #include "BufferDirectX12.hpp"
 
 #include <directx/d3d12shader.h>

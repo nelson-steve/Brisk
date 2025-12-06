@@ -54,7 +54,8 @@
   </PropertyGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>VK_NO_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;VMA_VOLK_HEADER_PATH="volk.h";BRISK_PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>src;vendors\GLFW\include;vendors\Volk;vendors\spdlog\include;vendors\stb_image\include;vendors\json\include;vendors\entt\include;vendors\glm;vendors\VMA\include;vendors\SPIRV-Reflect;vendors\imgui;vendors\simdjson;vendors\DirectX12Headers\include;vendors\AgilitySDK\include;vendors\fastgltf\include;vendors\meshoptimizer\src;C:\VulkanSDK\1.4.328.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -76,7 +77,8 @@
   </ItemDefinitionGroup>
   <ItemDefinitionGroup Condition="'$(Configuration)|$(Platform)'=='Release|x64'">
     <ClCompile>
-      <PrecompiledHeader>NotUsing</PrecompiledHeader>
+      <PrecompiledHeader>Use</PrecompiledHeader>
+      <PrecompiledHeaderFile>pch.hpp</PrecompiledHeaderFile>
       <WarningLevel>Level3</WarningLevel>
       <PreprocessorDefinitions>VK_NO_PROTOTYPES;_CRT_SECURE_NO_WARNINGS;VMA_VOLK_HEADER_PATH="volk.h";BRISK_PLATFORM_WINDOWS;%(PreprocessorDefinitions)</PreprocessorDefinitions>
       <AdditionalIncludeDirectories>src;vendors\GLFW\include;vendors\Volk;vendors\spdlog\include;vendors\stb_image\include;vendors\json\include;vendors\entt\include;vendors\glm;vendors\VMA\include;vendors\SPIRV-Reflect;vendors\imgui;vendors\simdjson;vendors\DirectX12Headers\include;vendors\AgilitySDK\include;vendors\fastgltf\include;vendors\meshoptimizer\src;C:\VulkanSDK\1.4.328.1\Include;%(AdditionalIncludeDirectories)</AdditionalIncludeDirectories>
@@ -190,6 +192,7 @@
     <ClInclude Include="src\Layers\LayerStack.hpp" />
     <ClInclude Include="src\Platform\Windows\WindowsWindow.hpp" />
     <ClInclude Include="src\VmaUsage.h" />
+    <ClInclude Include="src\pch.hpp" />
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Core\Log.cpp" />
@@ -226,7 +229,10 @@
     <ClCompile Include="src\Engine\Scene.cpp" />
     <ClCompile Include="src\Engine\SceneManager.cpp" />
     <ClCompile Include="src\Engine\SceneSerializer.cpp" />
-    <ClCompile Include="src\Engine\ScriptEngine.cpp" />
+    <ClCompile Include="src\Engine\ScriptEngine.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="src\Engine\Window.cpp" />
     <ClCompile Include="src\Graphics\DirectX12\BufferDirectX12.cpp" />
     <ClCompile Include="src\Graphics\DirectX12\CommandBufferAllocatorDirectX12.cpp" />
@@ -257,15 +263,32 @@
     <ClCompile Include="src\Graphics\Vulkan\TLASVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\TextureVulkan.cpp" />
     <ClCompile Include="src\Graphics\Vulkan\UtilitiesVulkan.cpp" />
-    <ClCompile Include="src\Graphics\Vulkan\volk.cpp" />
+    <ClCompile Include="src\Graphics\Vulkan\volk.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="src\Layers\Layer.cpp" />
     <ClCompile Include="src\Layers\LayerStack.cpp" />
     <ClCompile Include="src\Platform\Windows\WindowsWindow.cpp" />
-    <ClCompile Include="src\VmaUsage.cpp" />
-    <ClCompile Include="src\VolkUsage.cpp" />
-    <ClCompile Include="src\stbimage.cc" />
+    <ClCompile Include="src\VmaUsage.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\VolkUsage.cpp">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\pch.cpp">
+      <PrecompiledHeader>Create</PrecompiledHeader>
+    </ClCompile>
+    <ClCompile Include="src\stbimage.cc">
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
+    </ClCompile>
     <ClCompile Include="src\volk.c">
       <ObjectFileName>$(IntDir)\volk1.obj</ObjectFileName>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
+      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

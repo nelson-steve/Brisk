@@ -8,11 +8,9 @@
 #include "CSMRenderPass.hpp"
 #include "TLAS.hpp"
 //--------------------------
-#include <cstdint>
 #include <vector>
 #include <string>
 #include <memory>
-#include <optional>
 //---------------
 
 namespace Brisk

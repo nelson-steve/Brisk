@@ -1,4 +1,5 @@
 // INCLUDES
+#include "pch.hpp"
 #include "GpuAdapter.hpp"
 #include "Graphics/Vulkan/GpuAdapterVulkan.hpp"
 #ifdef BRISK_ENABLE_DIRECTX12

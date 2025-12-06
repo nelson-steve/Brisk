@@ -1,3 +1,4 @@
+#include "pch.hpp"
 #include "SemaphoreDirectX12.hpp"
 #include "GpuAdapterDirectX12.hpp"
 #include "Engine/Engine.hpp"

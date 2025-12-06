@@ -1,3 +1,4 @@
+#include "pch.hpp"
 #include "UtilitiesVulkan.hpp"
 #include "GpuAdapterVulkan.hpp"
 #include "Engine/Window.hpp"
@@ -8,11 +9,6 @@
 #include <GLFW/glfw3.h>
 
 #include <spirv_reflect.h>
-
-#include <vector>
-#include <fstream>
-#include <string>
-#include <iostream>
 
 namespace Brisk 
 {

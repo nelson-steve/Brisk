@@ -35,7 +35,7 @@ namespace Brisk
 	private:
 		void BindInternal(std::shared_ptr<CommandBuffer> cmd, VkDescriptorSet set, uint32_t setIndex);
 	private:
-		bool m_IsCompute = false;
+		VkPipelineBindPoint bindPoint;
 		VkPipelineLayout m_PipelineLayout;
 		VkPipeline m_Pipeline;
 

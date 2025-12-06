@@ -1,4 +1,5 @@
 // INCLUDES
+#include "pch.hpp"
 #include "Renderer.hpp"
 #include "RenderPass.hpp"
 #include "RenderCommand.hpp"
@@ -15,7 +16,6 @@ namespace Brisk
 {
 #define NUM_CASCADES 4
 
-    bool once = true;
     Swapchain::Mode swapchainMode = Swapchain::Mode::DOUBLE_BUFFERING;
     std::shared_ptr<Swapchain> Renderer::m_Swapchain;
 
@@ -50,7 +50,6 @@ namespace Brisk
         return getFrustumCornersWorldSpace(proj * view);
     }
 
-    bool onlyOnce = true;
     glm::mat4 proj;
     glm::mat4 view;
     glm::mat4 getLightSpaceMatrix(const float nearPlane, const float farPlane, glm::vec3 lightDir)
@@ -60,7 +59,6 @@ namespace Brisk
             farPlane);
         proj[1][1] *= -1.0f;
         view = Application::GetCamera()->GetViewMatrix();
-        onlyOnce = false;
 
         const auto corners = getFrustumCornersWorldSpace(proj, view);
 
@@ -155,6 +153,18 @@ namespace Brisk
 
         m_Swapchain = SwapchainFactory::CreateSwapchain();
         m_Swapchain->Create(swapchainMode);
+
+        m_RayTracingOutput = Texture::Create();
+
+        {
+            Texture::TextureSpecification specs{};
+            specs.p_Width = 1920;
+            specs.p_Height = 1080;
+            specs.p_DebugName = "g_RayTracingOutput";
+            specs.p_Usage = Core::TextureUsage::ImageUsageStorage;
+            specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
+            m_RayTracingOutput->Init(specs);
+        }
 
         // Renderpasses
         {
@@ -574,7 +584,6 @@ namespace Brisk
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/RayGeneration.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/ClosestHit.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/Miss.spv");
-                //pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/Shadow.spv");
 
                 m_RayTracing = Pipeline::Create();
                 m_RayTracing->Init(pipelineSpecs);
@@ -594,7 +603,7 @@ namespace Brisk
 
         m_RayTracingPropsBuffer = Buffer::Create();
         BufferDesc rayTracingBufferDesc{};
-        rayTracingBufferDesc.p_Size = sizeof(MVP);
+        rayTracingBufferDesc.p_Size = sizeof(RayTracingProps);
         rayTracingBufferDesc.p_Usage = Core::BufferUsage::UniformBuffer;
         rayTracingBufferDesc.p_Memory = BufferDesc::MemoryUsage::CPU_To_GPU;
         rayTracingBufferDesc.p_Persistant = true;
@@ -718,6 +727,9 @@ namespace Brisk
             m_GraphicsFence[i] = Fence::Create();
             m_GraphicsFence[i]->Init();
 
+            m_RayTracingFence[i] = Fence::Create();
+            m_RayTracingFence[i]->Init();
+
             // Creating Semaphores
             ImageAvailableSemaphore[i] = Semaphore::Create();
             ImageAvailableSemaphore[i]->Init();
@@ -733,11 +745,17 @@ namespace Brisk
 
             TransferFinishedSemaphore[i] = Semaphore::Create();
             TransferFinishedSemaphore[i]->Init();
+
+            RayTracingFinishedSemaphore[i] = Semaphore::Create();
+            RayTracingFinishedSemaphore[i]->Init();
             //
 
             // Creating Command Buffers
             m_CmdBuffer[i] = CommandBuffer::Create();
             m_CmdBuffer[i]->Allocate(CommandBuffer::PoolType::Graphics);
+
+            m_RayTracingCmdBuffer[i] = CommandBuffer::Create();
+            m_RayTracingCmdBuffer[i]->Allocate(CommandBuffer::PoolType::Graphics);
 
             m_ClusteredCmdBuffer[i] = CommandBuffer::Create();
             m_ClusteredCmdBuffer[i]->Allocate(CommandBuffer::PoolType::Compute);
@@ -828,14 +846,31 @@ namespace Brisk
         transformsBufferDesc.p_AllowCopyDst = true;
         m_TransformsBuffer->Init(transformsBufferDesc);
 
-        m_RaygenSBT = SBT::Create();
-        m_RaygenSBT->Init(SBT::Type::Raygen, 1);
+        m_SBT = SBT::Create();
+        m_SBT->Init(m_RayTracing);
 
-        m_MissSBT = SBT::Create();
-        m_MissSBT->Init(SBT::Type::Miss, 1);
+        m_GBufferPipeline->UpdateResources("Vertices", {}, m_VertexBuffer, {});
+        m_GBufferPipeline->UpdateResources("MeshDraws", {}, m_DrawsBuffer, {});
+        m_GBufferPipeline->UpdateResources("Meshlets", {}, m_MeshletsBuffer, {});
+        m_GBufferPipeline->UpdateResources("MeshletData", {}, m_MeshletDataBuffer, {});
+        m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer, {});
+        m_GBufferPipeline->UpdateResources("Materials", {}, m_MaterialStorageBuffer, {});
+        m_GBufferPipeline->UpdateResources("Transforms", {}, m_TransformsBuffer, {});
 
-        m_HitSBT = SBT::Create();
-        m_HitSBT->Init(SBT::Type::Hit, 1);
+        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf");
+        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
+    }
+
+    bool renderRaytracing = false;
+    void Renderer::RebuildAccelerationStructures() {
+        m_BLAS->Build(m_VertexBuffer, m_IndexBuffer);
+        m_TLAS->Build(m_BLAS);
+
+        m_RayTracing->UpdateResources("topLevelAS", {}, {}, { m_TLAS });
+        m_RayTracing->UpdateResources("resultImage", { m_RayTracingOutput }, {}, {});
+        m_RayTracing->UpdateResources("camera", {}, { m_RayTracingPropsBuffer }, {});
+
+        renderRaytracing = true;
     }
 
     void Renderer::RenderScene(float deltaTime)
@@ -843,24 +878,6 @@ namespace Brisk
         if (!SceneManager::pActiveScene) return;
 
         Application::GetJobSystem().ExecuteMainThreadCallbacks();
-
-        if (once) {
-            m_GBufferPipeline->UpdateResources("Vertices", {}, m_VertexBuffer, {});
-            m_GBufferPipeline->UpdateResources("MeshDraws", {}, m_DrawsBuffer, {});
-            m_GBufferPipeline->UpdateResources("Meshlets", {}, m_MeshletsBuffer, {});
-            m_GBufferPipeline->UpdateResources("MeshletData", {}, m_MeshletDataBuffer, {});
-            m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer, {});
-            m_GBufferPipeline->UpdateResources("Materials", {}, m_MaterialStorageBuffer, {});
-            m_GBufferPipeline->UpdateResources("Transforms", {}, m_TransformsBuffer, {});
-            //m_RayTracing->UpdateResources("topLevelAS", {}, {}, { m_TLAS });
-            //m_RayTracing->UpdateResources("image", { m_LightingOutput }, {}, {});
-            //m_RayTracing->UpdateResources("Props", {}, { m_RayTracingPropsBuffer }, {});
-
-            once = false;
-
-            //m_BLAS->Build(SceneManager::pActiveScene->m_Geometry.meshes, m_VertexBuffer, m_IndexBuffer);
-        }
-
         glm::vec3 lightDir{ 0.0f };
         MVP mvp{};
         mvp.ProjView = Application::GetCamera()->GetViewProjection();
@@ -888,6 +905,8 @@ namespace Brisk
         rayProps.ProjInv = glm::inverse(Application::GetCamera()->GetProjection());
         rayProps.ViewInv = glm::inverse(Application::GetCamera()->GetViewMatrix());
         rayProps.LightPos = lightDir;
+        rayProps.CamPos = Application::GetCamera()->GetPosition();
+        rayProps.dimension = glm::vec2(1920, 1080);
         m_RayTracingPropsBuffer->UpdatePersistantData(sizeof(RayTracingProps), &rayProps);
 
         bool cascadedShadows = true;
@@ -1106,6 +1125,44 @@ namespace Brisk
             m_ShadowMapLOD3->TransitionImageLayout(m_CmdBuffer[m_CurrentFrame], { params });
         }
 
+        //// --- RAY TRACING PASS ---------------------------
+        ////------------------------------------------------------------------------------------------------------------------------------------------------
+        if (renderRaytracing) {
+
+            m_RayTracingFence[m_CurrentFrame]->Wait();
+            m_RayTracingFence[m_CurrentFrame]->Reset();
+
+            m_RayTracingCmdBuffer[m_CurrentFrame]->Bind();
+
+            {
+                Texture::ImageBarrierParams params{};
+                params.oldLayout = Core::ImageLayout::Undefined;
+                params.newLayout = Core::ImageLayout::General;
+                params.srcAccess = Core::AccessType::ShaderWrite;
+                params.dstAccess = Core::AccessType::ShaderWrite;
+                params.srcStage = Core::PipelineStage::RayTracing;
+                params.dstStage = Core::PipelineStage::RayTracing;
+
+                m_RayTracingOutput->TransitionImageLayout(m_RayTracingCmdBuffer[m_CurrentFrame], { params });
+            }
+
+            m_RayTracing->Bind(m_RayTracingCmdBuffer[m_CurrentFrame]);
+
+            RenderCommand::TraceRays(m_RayTracingCmdBuffer[m_CurrentFrame], m_SBT, 1920, 1080);
+            m_RayTracingCmdBuffer[m_CurrentFrame]->UnBind();
+            Queue::SubmitInfo rayTracingSubmitInfo{};
+            rayTracingSubmitInfo.pCmdBuffers.push_back(m_RayTracingCmdBuffer[m_CurrentFrame]);
+            rayTracingSubmitInfo.pSignalSemaphores.push_back(RayTracingFinishedSemaphore[m_CurrentFrame]);
+
+            {
+                std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
+                m_GraphicsQueue1->Submit(rayTracingSubmitInfo, m_RayTracingFence[m_CurrentFrame]);
+            }
+        }
+
+        ////------------------------------------------------------------------------------------------------------------------------------------------------
+
+
         //// --- LIGHTING PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
         m_LightingPass->Begin(m_CmdBuffer[m_CurrentFrame]);
@@ -1161,6 +1218,10 @@ namespace Brisk
             lightingSubmitInfo.pWaitSemaphores.push_back(TransferFinishedSemaphore[m_CurrentFrame]);
             lightingSubmitInfo.pWaitStages.push_back(Core::PipelineStage::TransferStage);
             m_SubmitTransferWork = false;
+        }
+        if (renderRaytracing) {
+            lightingSubmitInfo.pWaitSemaphores.push_back(RayTracingFinishedSemaphore[m_CurrentFrame]);
+            lightingSubmitInfo.pWaitStages.push_back(Core::PipelineStage::RayTracing);
         }
         lightingSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore[m_CurrentFrame]);
         lightingSubmitInfo.pWaitSemaphores.push_back(AssignLightsSemaphore[m_CurrentFrame]);

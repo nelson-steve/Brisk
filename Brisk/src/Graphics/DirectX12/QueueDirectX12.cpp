@@ -1,3 +1,4 @@
+#include "pch.hpp"
 #include "QueueDirectX12.hpp"
 #include <Core/Log.hpp>
 #include "GpuAdapterDirectX12.hpp"

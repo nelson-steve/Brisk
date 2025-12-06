@@ -1,4 +1,5 @@
 // INCLUDES
+#include "pch.hpp"
 #include "Scene.hpp"
 #include "Entity.hpp"
 #include "Component.hpp"
@@ -454,8 +455,8 @@ namespace Brisk
 				mesh.center = center;
 				mesh.radius = radius;
 
-				mesh.indexCount = indices.size();
-				mesh.indexOffset = geometry.indices.size();
+				mesh.indexCount = uint32_t(indices.size());
+				mesh.indexOffset = uint32_t(geometry.indices.size());
 
 				geometry.indices.insert(geometry.indices.end(), indices.begin(), indices.end());
 
@@ -726,14 +727,23 @@ namespace Brisk
 		{
 			std::lock_guard<std::mutex> lock(g_TransferCommandBufferMutex);
 			Application::GetRenderer()->m_TransferCmdBuffer->Bind();
-			Application::GetRenderer()->m_DrawsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.draws[0])* geometry.draws.size(), geometry.draws.data());
-			Application::GetRenderer()->m_IndexBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.indices[0])* geometry.indices.size(), geometry.indices.data());
-			Application::GetRenderer()->m_VertexBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.vertices[0])* geometry.vertices.size(), geometry.vertices.data());
+			Application::GetRenderer()->m_DrawsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.draws[0]) * geometry.draws.size(), geometry.draws.data());
+			Application::GetRenderer()->m_IndexBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.indices[0]) * geometry.indices.size(), geometry.indices.data());
+			Application::GetRenderer()->m_VertexBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.vertices[0]) * geometry.vertices.size(), geometry.vertices.data());
 			Application::GetRenderer()->m_MeshletDataBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.meshletdata[0])* geometry.meshletdata.size(), geometry.meshletdata.data());
-			Application::GetRenderer()->m_MeshletsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.meshlets[0])* geometry.meshlets.size(), geometry.meshlets.data());
-			Application::GetRenderer()->m_TransformsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.transforms[0])* geometry.transforms.size(), geometry.transforms.data());
+			Application::GetRenderer()->m_MeshletsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.meshlets[0]) * geometry.meshlets.size(), geometry.meshlets.data());
+			Application::GetRenderer()->m_TransformsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.transforms[0]) * geometry.transforms.size(), geometry.transforms.data());
 			Application::GetRenderer()->m_MaterialStorageBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.materials[0]) * geometry.materials.size(), geometry.materials.data());
 			Application::GetRenderer()->m_TransferCmdBuffer->UnBind();
+		}
+
+		Queue::SubmitInfo submitInfo{};
+		submitInfo.pCmdBuffers.push_back(Application::GetRenderer()->m_TransferCmdBuffer);
+		// Present
+		{
+			std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
+			Application::GetRenderer()->m_TransferQueue0->Submit(submitInfo, nullptr);
+			Application::GetGpuAdapter()->WaitIdle();
 		}
 
 		BRISK_CORE_INFO("TASK COMPLETE");
@@ -744,13 +754,20 @@ namespace Brisk
 	}
 
 	void Scene::LoadGltfScene(const std::filesystem::path& gltfPath) {
-		auto callback = [&]() {
-			Engine::s_TexturesOffset += m_Textures.size();
-			Application::GetRenderer()->AddGlobalTexture(m_Textures);
-			Application::GetRenderer()->SetSubmitTransferWork(true);
-			};
+		//auto callback = [&]() {
+		//	Engine::s_TexturesOffset += m_Textures.size();
+		//	Application::GetRenderer()->AddGlobalTexture(m_Textures);
+		//	//Application::GetRenderer()->SetSubmitTransferWork(true);
+		//	Application::GetRenderer()->RebuildAccelerationStructures();
+		//	};
 
-		Application::GetJobSystem().AddJob(ProcesGltfMesh, callback, std::ref(m_Geometry), std::ref(m_Textures), gltfPath);
+		//Application::GetJobSystem().AddJob(ProcesGltfMesh, callback, std::ref(m_Geometry), std::ref(m_Textures), gltfPath);
+
+		ProcesGltfMesh(m_Geometry, m_Textures, gltfPath);
+		Engine::s_TexturesOffset += m_Textures.size();
+		Application::GetRenderer()->AddGlobalTexture(m_Textures);
+		//Application::GetRenderer()->SetSubmitTransferWork(true);
+		Application::GetRenderer()->RebuildAccelerationStructures();
 	}
 
 	// Copy Component functions

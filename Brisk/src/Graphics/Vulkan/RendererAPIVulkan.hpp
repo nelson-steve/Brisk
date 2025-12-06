@@ -3,6 +3,7 @@
 #include "Engine/Renderer/RendererAPI.hpp"
 #include "CommandBufferVulkan.hpp"
 #include "BufferVulkan.hpp"
+#include "SBTVulkan.hpp"
 
 #include <volk.h>
 #include <vector>
@@ -47,6 +48,20 @@ namespace Brisk
 		virtual void DrawMeshTasksIndirect(std::shared_ptr<CommandBuffer> cmd,std::shared_ptr<Buffer> buffer, uint32_t offset, uint32_t drawsSize, uint32_t stride) override {
 			BRISK_CORE_ASSERT(drawsSize > 0);
 			vkCmdDrawMeshTasksIndirectEXT(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), std::static_pointer_cast<BufferVulkan>(buffer)->Get(), offset, drawsSize, stride);
+		}
+
+		virtual void TraceRays(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<SBT> sbt, uint32_t width, uint32_t height) override {
+			BRISK_CORE_ASSERT(width > 0 && height > 0);
+			VkStridedDeviceAddressRegionKHR emptySbtEntry = {};
+			vkCmdTraceRaysKHR(
+				std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(),
+				std::static_pointer_cast<SBTVulkan>(sbt)->GetRaygenRegion(),
+				std::static_pointer_cast<SBTVulkan>(sbt)->GetMissRegion(),
+				std::static_pointer_cast<SBTVulkan>(sbt)->GetHitRegion(),
+				std::static_pointer_cast<SBTVulkan>(sbt)->GetCallableRegion(),
+				width,
+				height,
+				1);
 		}
 
 		virtual void BindIndexBuffer(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Buffer> buffer, uint32_t firstBinding) override {

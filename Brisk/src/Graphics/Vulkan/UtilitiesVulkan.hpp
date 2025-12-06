@@ -503,6 +503,9 @@ namespace Brisk
 			if ((stage & Core::PipelineStage::AllCommands) == Core::PipelineStage::AllCommands)
 				flags |= VK_PIPELINE_STAGE_ALL_COMMANDS_BIT;
 
+			if ((stage & Core::PipelineStage::RayTracing) == Core::PipelineStage::RayTracing)
+				flags |= VK_PIPELINE_STAGE_RAY_TRACING_SHADER_BIT_KHR;
+
 			return flags;
 		}
 	};

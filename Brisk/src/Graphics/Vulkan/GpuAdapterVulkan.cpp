@@ -1,11 +1,10 @@
 // INCLUDES
+#include "pch.hpp"
 #include "GpuAdapterVulkan.hpp"
 #include "Core/Log.hpp"
 #include "Engine/Engine.hpp"
 #include "Graphics/Vulkan/UtilitiesVulkan.hpp"
 //--------------------------------------------
-#include <set>
-#include <iostream>
 #include "TextureVulkan.hpp"
 #include "DescriptorLayoutVulkan.hpp"
 
@@ -158,9 +157,9 @@ namespace Brisk
 			layout->AddBinding(8, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT });
 			layout->AddBinding(9, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT, GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->AddBinding(10, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT });
-			layout->AddBinding(11, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,  { GPUResource::ShaderStageAccess::SHADER_STAGE_RAYGEN_BIT_KHR });
+			layout->AddBinding(11, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,  { GPUResource::ShaderStageAccess::SHADER_STAGE_RAYGEN_BIT_KHR, GPUResource::ShaderStageAccess::SHADER_STAGE_CLOSEST_HIT_BIT_KHR });
 			layout->AddBinding(12, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_IMAGE,  { GPUResource::ShaderStageAccess::SHADER_STAGE_RAYGEN_BIT_KHR });
-			layout->AddBinding(13, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_RAYGEN_BIT_KHR });
+			layout->AddBinding(13, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_RAYGEN_BIT_KHR, GPUResource::ShaderStageAccess::SHADER_STAGE_CLOSEST_HIT_BIT_KHR });
 			layout->Init();
 			m_FrameGlobalDescriptorLayout = std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout();
 		}

@@ -1,33 +1,53 @@
 #version 460
 #extension GL_EXT_ray_tracing : require
-#extension GL_EXT_shader_image_load_formatted : enable
 
-layout(std140, set = 0, binding = 13) uniform PropsBuffer {
-    mat4 ProjInv;
-    mat4 ViewInv;
-    vec3 LightPos;
-} Props;
+struct Payload {
+    vec3 color;
+};
+
+layout(location = 0) rayPayloadEXT Payload payload;
 
 layout(set = 0, binding = 11) uniform accelerationStructureEXT topLevelAS;
-layout(set = 0, binding = 12) uniform image2D image;
-
-layout(location = 0) rayPayloadEXT vec3 hitValue;
+layout(set = 0, binding = 12) uniform writeonly image2D resultImage;
+layout(set = 0, binding = 13) uniform CameraUBO {
+    mat4 viewInv;
+    mat4 projInv;
+    vec3 lightPos;
+    vec3 camPos;
+    vec2 dimension; // width, height
+    vec2 _pad;
+} camera;
 
 void main() {
-	const vec2 pixelCenter = vec2(gl_LaunchIDEXT.xy) + vec2(0.5);
-	const vec2 inUV = pixelCenter/vec2(gl_LaunchSizeEXT.xy);
-	vec2 d = inUV * 2.0 - 1.0;
+    const uvec2 pixelCoord = gl_LaunchIDEXT.xy;
+    const uvec2 imageSize  = gl_LaunchSizeEXT.xy;
+    ivec2 pix = ivec2(pixelCoord);
 
-	vec4 origin = Props.ViewInv * vec4(0,0,0,1);
-	vec4 target = Props.ProjInv * vec4(d.x, d.y, 1, 1) ;
-	vec4 direction = Props.ViewInv *vec4(normalize(target.xyz / target.w), 0) ;
+    // Normalized device coords [-1,1]
+    float ndcX = ( (float(pix.x) + 0.5) / float(imageSize.x) ) * 2.0 - 1.0;
+    float ndcY = ( (float(pix.y) + 0.5) / float(imageSize.y) ) * 2.0 - 1.0;
 
-	uint rayFlags = gl_RayFlagsOpaqueEXT;
-	uint cullMask = 0xff;
-	float tmin = 0.001;
-	float tmax = 10000.0;
+    vec4 originVS = camera.viewInv * vec4(0.0, 0.0, 0.0, 1.0);
+    vec4 pNDC = vec4(ndcX, -ndcY, 1.0, 1.0); // z = 1 means forward
+    vec4 pVS = camera.projInv * pNDC;
+    pVS /= pVS.w;
+    vec4 dirWorld4 = camera.viewInv * vec4(pVS.xyz, 0.0);
+    vec3 rayOrigin = camera.camPos;
+    vec3 rayDir = normalize(dirWorld4.xyz);
 
-	traceRayEXT(topLevelAS, rayFlags, cullMask, 0, 0, 0, origin.xyz, tmin, direction.xyz, tmax, 0);
+    payload.color = vec3(1.0);
 
-	imageStore(image, ivec2(gl_LaunchIDEXT.xy), vec4(hitValue, 0.0));
+    traceRayEXT(
+        topLevelAS, 
+        gl_RayFlagsNoneEXT,
+        0xFF,          // cull mask
+        0, 0, 0,       // sbt record offsets
+        rayOrigin,
+        0.001,         // tmin
+        rayDir,
+        10000.0,       // tmax
+        0              // payload location
+    );
+
+    imageStore(resultImage, ivec2(pix), vec4(payload.color, 1.0));
 }

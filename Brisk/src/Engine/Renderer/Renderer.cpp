@@ -584,6 +584,7 @@ namespace Brisk
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/RayGeneration.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/ClosestHit.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/Miss.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/Shadow.spv");
 
                 m_RayTracing = Pipeline::Create();
                 m_RayTracing->Init(pipelineSpecs);

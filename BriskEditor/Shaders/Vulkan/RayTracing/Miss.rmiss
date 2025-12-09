@@ -1,12 +1,11 @@
 #version 460
 #extension GL_EXT_ray_tracing : require
+#extension GL_GOOGLE_include_directive: require
 
-struct Payload {
-    vec3 color;
-};
+#include "RTShared.glsl"
 
-layout(location = 0) rayPayloadInEXT Payload payload;
+layout(location = 0) rayPayloadInEXT RadiancePayload radiancePayload;
 
 void main() {
-    payload.color = vec3(0.5, 0.5, 0.5);
+    radiancePayload.color = vec3(0.5, 0.5, 0.5);
 }

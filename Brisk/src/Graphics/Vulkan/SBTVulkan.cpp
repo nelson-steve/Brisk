@@ -8,7 +8,7 @@ namespace Brisk
 	uint32_t shaderGroupHandleSize = 32;
 	uint32_t shaderGroupBaseAlignment = 64;
 	uint32_t shaderGroupHandleAlignment = 4;
-	uint32_t groupCount = 3;
+	uint32_t groupCount = 4;
 
 	void SBTVulkan::Init(std::shared_ptr<Pipeline> pipeline) {
 		size_t dataSize = shaderGroupHandleSize * groupCount;
@@ -19,9 +19,17 @@ namespace Brisk
 		}
 
 		auto alignUp = [](uint32_t size, uint32_t alignment) { return (size + alignment - 1) & ~(alignment - 1); };
-		uint32_t raygenSize = alignUp(shaderGroupHandleSize, shaderGroupHandleAlignment);
-		uint32_t missSize = alignUp(shaderGroupHandleSize, shaderGroupHandleAlignment);
-		uint32_t hitSize = alignUp(shaderGroupHandleSize, shaderGroupHandleAlignment);
+
+		uint32_t raygenStride = alignUp(shaderGroupHandleSize, shaderGroupHandleAlignment);
+		uint32_t missStride = alignUp(shaderGroupHandleSize, shaderGroupHandleAlignment);
+		uint32_t hitStride = alignUp(shaderGroupHandleSize, shaderGroupHandleAlignment);
+		uint32_t callableStride = 0;
+
+		uint32_t missCount = 2;
+
+		uint32_t raygenSize = raygenStride * 1;
+		uint32_t missSize = missStride * missCount;
+		uint32_t hitSize = hitStride * 1;
 		uint32_t callableSize = 0;
 
 		uint32_t raygenOffset = 0;
@@ -44,21 +52,39 @@ namespace Brisk
 
 		uint8_t* pData = static_cast<uint8_t*>(std::static_pointer_cast<BufferVulkan>(buffer)->GetMapped());
 
-		memcpy(pData + raygenOffset, m_shaderHandles.data() + 0 * shaderGroupHandleSize, shaderGroupHandleSize);
+		// Raygen
+		memcpy(pData + raygenOffset,
+			m_shaderHandles.data() + 0 * shaderGroupHandleSize,
+			shaderGroupHandleSize);
+
+		// Miss #0
+		memcpy(pData + missOffset,
+			m_shaderHandles.data() + 1 * shaderGroupHandleSize,
+			shaderGroupHandleSize);
+
+		// Miss #1 (shadow)
+		memcpy(pData + missOffset + 1 * missStride,
+			m_shaderHandles.data() + 2 * shaderGroupHandleSize,
+			shaderGroupHandleSize);
+
+		// Hit
+		memcpy(pData + hitOffset,
+			m_shaderHandles.data() + 3 * shaderGroupHandleSize,
+			shaderGroupHandleSize);
+
+
 		rayGen.deviceAddress = sbtDeviceAddress + raygenOffset;
-		rayGen.stride = raygenSize;
+		rayGen.stride = raygenStride;
 		rayGen.size = raygenSize;
 
-		// Miss shader (group 1)
-		memcpy(pData + missOffset, m_shaderHandles.data() + 1 * shaderGroupHandleSize, shaderGroupHandleSize);
+		// Miss shader
 		miss.deviceAddress = sbtDeviceAddress + missOffset;
-		miss.stride = missSize;
+		miss.stride = missStride;
 		miss.size = missSize;
 
-		// Hit shader (group 2)
-		memcpy(pData + hitOffset, m_shaderHandles.data() + 2 * shaderGroupHandleSize, shaderGroupHandleSize);
+		// Hit shader
 		hit.deviceAddress = sbtDeviceAddress + hitOffset;
-		hit.stride = hitSize;
+		hit.stride = hitStride;
 		hit.size = hitSize;
 
 		// Callable shaders

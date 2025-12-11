@@ -41,9 +41,11 @@ namespace Brisk
         uint32_t vertexCount;
         uint32_t meshletCount;
         uint32_t materialIndex;
+
         uint32_t meshletOffset;
         uint32_t indexCount;
         uint32_t indexOffset;
+        uint32_t _pad;
     };
 
     struct alignas(16) Meshlet {

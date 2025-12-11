@@ -839,7 +839,7 @@ namespace Brisk
                     shaderResource.p_Stages = module.shader_stage;
                     m_ShaderResources.push_back(shaderResource);
 
-                    if (reflBinding->count <= 0) {
+                    if (setIndex == 1) {
                         isBindless = true;
                         break;
                     }

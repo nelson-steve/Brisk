@@ -148,18 +148,20 @@ namespace Brisk
 				GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT,
 				GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT });
 			layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_COMPUTE_BIT,  GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-			layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-			layout->AddBinding(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT });
+			layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT, GPUResource::ShaderStageAccess::SHADER_STAGE_CLOSEST_HIT_BIT_KHR });
+			layout->AddBinding(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT, GPUResource::ShaderStageAccess::SHADER_STAGE_CLOSEST_HIT_BIT_KHR });
 			layout->AddBinding(4, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT });
 			layout->AddBinding(5, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_IMAGE,  { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->AddBinding(6, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->AddBinding(7, 4, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->AddBinding(8, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT });
-			layout->AddBinding(9, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT, GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+			layout->AddBinding(9, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT, GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT, GPUResource::ShaderStageAccess::SHADER_STAGE_CLOSEST_HIT_BIT_KHR });
 			layout->AddBinding(10, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT });
 			layout->AddBinding(11, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,  { GPUResource::ShaderStageAccess::SHADER_STAGE_RAYGEN_BIT_KHR, GPUResource::ShaderStageAccess::SHADER_STAGE_CLOSEST_HIT_BIT_KHR });
 			layout->AddBinding(12, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_IMAGE,  { GPUResource::ShaderStageAccess::SHADER_STAGE_RAYGEN_BIT_KHR });
 			layout->AddBinding(13, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_RAYGEN_BIT_KHR, GPUResource::ShaderStageAccess::SHADER_STAGE_CLOSEST_HIT_BIT_KHR });
+			layout->AddBinding(14, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_CLOSEST_HIT_BIT_KHR });
+			layout->AddBinding(15, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_CLOSEST_HIT_BIT_KHR });
 			layout->Init();
 			m_FrameGlobalDescriptorLayout = std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout();
 		}

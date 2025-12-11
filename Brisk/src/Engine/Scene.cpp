@@ -730,6 +730,7 @@ namespace Brisk
 			Application::GetRenderer()->m_DrawsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.draws[0]) * geometry.draws.size(), geometry.draws.data());
 			Application::GetRenderer()->m_IndexBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.indices[0]) * geometry.indices.size(), geometry.indices.data());
 			Application::GetRenderer()->m_VertexBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.vertices[0]) * geometry.vertices.size(), geometry.vertices.data());
+			Application::GetRenderer()->m_MeshesBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.meshes[0]) * geometry.meshes.size(), geometry.meshes.data());
 			Application::GetRenderer()->m_MeshletDataBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.meshletdata[0])* geometry.meshletdata.size(), geometry.meshletdata.data());
 			Application::GetRenderer()->m_MeshletsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.meshlets[0]) * geometry.meshlets.size(), geometry.meshlets.data());
 			Application::GetRenderer()->m_TransformsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.transforms[0]) * geometry.transforms.size(), geometry.transforms.data());

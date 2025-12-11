@@ -23,7 +23,6 @@ namespace Brisk
 		instancesBufferDesc.p_Persistant = true;
 		instancesBuffer->Init(instancesBufferDesc);
 
-		uint32_t instanceIndex = 0;
 		std::vector<VkAccelerationStructureInstanceKHR> instances(drawCount);
 		for (uint32_t i = 0; i < drawCount; i++) {
 			VkAccelerationStructureInstanceKHR& instance = instances[i];
@@ -32,7 +31,7 @@ namespace Brisk
 				0, 1, 0, 0,
 				0, 0, 1, 0
 			};
-			instance.instanceCustomIndex = instanceIndex;
+			instance.instanceCustomIndex = draws[i].meshIndex;
 			instance.flags = VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_KHR;
 			instance.accelerationStructureReference = std::static_pointer_cast<BLASVulkan>(blas)->blasAddresses[draws[i].meshIndex];
 			instance.instanceShaderBindingTableRecordOffset = 0;

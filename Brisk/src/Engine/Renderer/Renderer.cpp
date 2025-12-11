@@ -793,11 +793,20 @@ namespace Brisk
         drawBufferDesc.p_AllowCopyDst = true;
         m_DrawsBuffer->Init(drawBufferDesc);
 
+        m_MeshesBuffer = Buffer::Create();
+        BufferDesc meshesBufferDesc{};
+        meshesBufferDesc.p_Name = "Meshes buffer";
+        meshesBufferDesc.p_Size = SIZE_1MB; // 1 MB
+        meshesBufferDesc.p_Usage = Core::BufferUsage::IndirectBuffer | Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
+        meshesBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        meshesBufferDesc.p_AllowCopyDst = true;
+        m_MeshesBuffer->Init(meshesBufferDesc);
+
         m_IndexBuffer = Buffer::Create();
         BufferDesc indexBufferDesc{};
         indexBufferDesc.p_Name = "Index buffer";
         indexBufferDesc.p_Size = SIZE_1MB * 256; // 256 MB
-        indexBufferDesc.p_Usage = Core::BufferUsage::IndexBuffer | Core::BufferUsage::TransferDst | Core::BufferUsage::ShaderDeviceAddress | Core::BufferUsage::AccelerationStructureBuildInputReadOnly;
+        indexBufferDesc.p_Usage = Core::BufferUsage::IndexBuffer | Core::BufferUsage::TransferDst | Core::BufferUsage::StorageBuffer | Core::BufferUsage::ShaderDeviceAddress | Core::BufferUsage::AccelerationStructureBuildInputReadOnly;
         indexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
         indexBufferDesc.p_AllowCopyDst = true;
         m_IndexBuffer->Init(indexBufferDesc);
@@ -867,6 +876,8 @@ namespace Brisk
         m_BLAS->Build(m_VertexBuffer, m_IndexBuffer);
         m_TLAS->Build(m_BLAS);
 
+        m_RayTracing->UpdateResources("Meshes", {}, m_MeshesBuffer, {});
+        m_RayTracing->UpdateResources("Indices", {}, m_IndexBuffer, {});
         m_RayTracing->UpdateResources("topLevelAS", {}, {}, { m_TLAS });
         m_RayTracing->UpdateResources("resultImage", { m_RayTracingOutput }, {}, {});
         m_RayTracing->UpdateResources("camera", {}, { m_RayTracingPropsBuffer }, {});
@@ -879,7 +890,7 @@ namespace Brisk
         if (!SceneManager::pActiveScene) return;
 
         Application::GetJobSystem().ExecuteMainThreadCallbacks();
-        glm::vec3 lightDir{ 0.0f };
+        glm::vec3 lightDir{ 4.0f, -32.0f, 12.0f };
         MVP mvp{};
         mvp.ProjView = Application::GetCamera()->GetViewProjection();
         mvp.View = Application::GetCamera()->GetViewMatrix();

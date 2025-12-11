@@ -580,11 +580,16 @@ namespace Brisk
             // -- Ray Tracing --
             // Ray tracing pipeline
             {
+                // The order of these paths matter
+                // Raygen
+                // Miss 
+                // Shadow miss
+                // Closest Hit  
                 Pipeline::RayTracingPipelineSpecs pipelineSpecs{};
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/RayGeneration.spv");
-                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/ClosestHit.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/Miss.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/Shadow.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/ClosestHit.spv");
 
                 m_RayTracing = Pipeline::Create();
                 m_RayTracing->Init(pipelineSpecs);

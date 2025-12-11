@@ -16,6 +16,9 @@
 
 namespace Brisk
 {
+// Number of descriptor sets used in all the shaders
+#define NO_OF_DESCRIPTOR_SETS 4
+
     static std::string ReadFileAsString(const std::string& fileName) {
         std::ifstream file(fileName, std::ios::binary);
         if (!file.is_open()) {
@@ -26,43 +29,26 @@ namespace Brisk
         return buffer.str();
     }
 
-    void PipelineVulkan::Init(const GraphicsPipelineSpecs& specs) {
-        m_GraphicsSpecs = specs;
+    void GetPipelineData(const std::vector<std::string>& shaderPaths, 
+        std::vector<VkShaderModule>& modules, 
+        std::vector<VkDescriptorSetLayout>& descriptorSetLayouts, 
+        std::vector<VkPipelineShaderStageCreateInfo>& shaderStages,
+        std::vector<PipelineVulkan::ShaderResource>& shaderResources,
+        std::vector<VkPushConstantRange>& pushConstants,
+        std::vector<uint32_t>& setIndices,
+        bool& isUsingMeshShading) {
 
-        bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+        // Setting a dummy descriptor set layout for all layouts initially in case a pipeline doesnt use a layout and it needs to be skipped
+        // Since Vulkan doesn't allow null descriptor set layouts
+        descriptorSetLayouts.resize(NO_OF_DESCRIPTOR_SETS);
+        for (int i = 0; i < NO_OF_DESCRIPTOR_SETS; i++) {
+            descriptorSetLayouts[i] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
+        }
 
-        std::vector<VkShaderModule> shaderModules;
-        m_DescriptorSetLayouts.resize(4);
-        m_DescriptorSetLayouts[0] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[1] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[2] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[3] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
-        std::vector<VkPushConstantRange> pushConstants;
-        std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
-        bool usingMeshShading = false;
-        for (const std::string& path : specs.pShaderPathsVK)
+        for (const std::string& path : shaderPaths)
         {
             std::filesystem::path fsPath(path);
-            std::string filename = fsPath.stem().string(); // "DepthPrePassMS"
-
-            // Check shader stage
-            if (filename.find("MS") != std::string::npos) {
-                usingMeshShading = true;
-                std::cout << "Mesh Shader detected: " + path << std::endl;
-            }
-            else if (filename.find("VS") != std::string::npos) {
-                std::cout << "Vertex Shader detected\n";
-            }
-            else if (filename.find("GS") != std::string::npos) {
-                std::cout << "Geometry Shader detected\n";
-            }
-            else if (filename.find("FS") != std::string::npos) {
-                std::cout << "Fragment Shader detected\n";
-            }
-            else {
-                std::cout << "Unknown shader stage\n";
-            }
-
+            std::string filename = fsPath.stem().string();
 
             VkPipelineShaderStageCreateInfo shaderStage{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
             const std::vector<char>* shaderCode = UtilitiesVulkan::ReadShaderFile(path);
@@ -84,11 +70,10 @@ namespace Brisk
             shaderStage.stage = static_cast<VkShaderStageFlagBits>(module.shader_stage);
 
             if (shaderStage.stage == VK_SHADER_STAGE_MESH_BIT_EXT) {
-                usingMeshShading = true;
+                isUsingMeshShading = true;
             }
 
-            shaderModules.push_back(shaderModule);
-
+            modules.push_back(shaderModule);
             shaderStages.push_back(shaderStage);
 
             uint32_t setCount = 0;
@@ -97,56 +82,35 @@ namespace Brisk
             result = spvReflectEnumerateDescriptorSets(&module, &setCount, sets.data());
 
             for (auto set : sets) {
-                uint32_t setIndex = 0;
-                bool isBindless = false;
-                std::vector<VkDescriptorSetLayoutBinding> bindings;
+                uint32_t setIndex = set->set;
+
+                setIndices.push_back(setIndex);
+
                 for (uint32_t i = 0; i < set->binding_count; ++i) {
                     const SpvReflectDescriptorBinding* reflBinding = set->bindings[i];
-                    setIndex = reflBinding->set;
-
-                    ShaderResource shaderResource{};
+                    PipelineVulkan::ShaderResource shaderResource{};
                     shaderResource.p_Name = reflBinding->name;
                     shaderResource.p_Set = reflBinding->set;
                     shaderResource.p_Binding = reflBinding->binding;
                     shaderResource.p_Type = static_cast<VkDescriptorType>(reflBinding->descriptor_type);
                     shaderResource.p_Stages = module.shader_stage;
-                    m_ShaderResources.push_back(shaderResource);
+                    shaderResources.push_back(shaderResource);
+                }
 
-                    if (reflBinding->count <= 0) {
-                        isBindless = true;
-                        break;
-                    }
-                    VkDescriptorSetLayoutBinding binding{};
-                    binding.binding = reflBinding->binding;
-                    binding.descriptorType = static_cast<VkDescriptorType>(reflBinding->descriptor_type);
-                    binding.descriptorCount = reflBinding->count;
-                    binding.stageFlags = module.shader_stage;
-                    binding.pImmutableSamplers = nullptr;
-                    bindings.push_back(binding);
+                if (setIndex == 0) {
+                    descriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_FrameGlobalDescriptorLayout;
                 }
-                if (set->set == 0) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_FrameGlobalDescriptorLayout;
+                else if (setIndex == 1) {
+                    descriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_BindlessDescriptorLayout;
                 }
-                else if (set->set == 2) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_PerMeshDescriptorLayout;
+                else if (setIndex == 2) {
+                    descriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_PerMeshDescriptorLayout;
                 }
-                else if (set->set == 3) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_ClusteredLightingDescriptorLayout;
-                }
-                else if (isBindless) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_BindlessDescriptorLayout;
+                else if (setIndex == 3) {
+                    descriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_ClusteredLightingDescriptorLayout;
                 }
                 else {
-                    VkDescriptorSetLayoutCreateInfo layoutInfo{};
-                    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-                    layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-                    layoutInfo.pBindings = bindings.data();
-
-                    VkDescriptorSetLayout descriptorSetLayout;
-                    if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-                        throw std::runtime_error("Failed to create descriptor set layout!");
-                    }
-                    m_DescriptorSetLayouts[setIndex] = descriptorSetLayout;
+                    BRISK_CORE_ERROR("Invalid descriptor set index {}", setIndex);
                 }
             }
 
@@ -164,6 +128,19 @@ namespace Brisk
             }
             delete shaderCode;
         }
+    }
+
+    void PipelineVulkan::Init(const GraphicsPipelineSpecs& specs) {
+        m_GraphicsSpecs = specs;
+
+        bindPoint = VK_PIPELINE_BIND_POINT_GRAPHICS;
+
+        std::vector<VkShaderModule> shaderModules;
+        std::vector<VkPushConstantRange> pushConstants;
+        std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+        bool usingMeshShading = false;
+
+        GetPipelineData(specs.pShaderPathsVK, shaderModules, m_DescriptorSetLayouts, shaderStages, m_ShaderResources, pushConstants, m_SetIndices, usingMeshShading);
 
         VkPipelineLayoutCreateInfo pipelineLayoutInfo{};
         pipelineLayoutInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
@@ -314,108 +291,12 @@ namespace Brisk
 
         bindPoint = VK_PIPELINE_BIND_POINT_COMPUTE;
 
-        m_DescriptorSetLayouts.resize(6);
-        m_DescriptorSetLayouts[0] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[1] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[2] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[3] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[4] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[5] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
+        std::vector<VkShaderModule> shaderModules;
         std::vector<VkPushConstantRange> pushConstants;
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
 
-        const std::string& path = specs.pShaderPath;
-        VkPipelineShaderStageCreateInfo shaderStage{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
-        const std::vector<char>* shaderCode = UtilitiesVulkan::ReadShaderFile(path);
-
-        SpvReflectShaderModule module;
-        SpvReflectResult result = spvReflectCreateShaderModule(shaderCode->size(), shaderCode->data(), &module);
-
-        VkShaderModuleCreateInfo createInfo{};
-        createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-        createInfo.codeSize = shaderCode->size();
-        createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode->data());
-
-        VkShaderModule shaderModule;
-        if (vkCreateShaderModule(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-            throw std::runtime_error("Failed to create shader module!");
-        }
-        shaderStage.module = shaderModule;
-        shaderStage.pName = module.entry_point_name;
-        shaderStage.stage = static_cast<VkShaderStageFlagBits>(module.shader_stage);
-
-        shaderStages.push_back(shaderStage);
-
-        uint32_t setCount = 0;
-        result = spvReflectEnumerateDescriptorSets(&module, &setCount, nullptr);
-        std::vector<SpvReflectDescriptorSet*> sets(setCount);
-        result = spvReflectEnumerateDescriptorSets(&module, &setCount, sets.data());
-
-        for (auto set : sets) {
-            uint32_t setIndex = 0;
-            bool isBindless = false;
-            std::vector<VkDescriptorSetLayoutBinding> bindings;
-            for (uint32_t i = 0; i < set->binding_count; ++i) {
-                const SpvReflectDescriptorBinding* reflBinding = set->bindings[i];
-                setIndex = reflBinding->set;
-
-                ShaderResource shaderResource{};
-                shaderResource.p_Name = reflBinding->name;
-                shaderResource.p_Set = reflBinding->set;
-                shaderResource.p_Binding = reflBinding->binding;
-                shaderResource.p_Type = static_cast<VkDescriptorType>(reflBinding->descriptor_type);
-                shaderResource.p_Stages = module.shader_stage;
-                m_ShaderResources.push_back(shaderResource);
-
-                if (reflBinding->count <= 0) {
-                    isBindless = true;
-                    break;
-                }
-
-                VkDescriptorSetLayoutBinding binding{};
-                binding.binding = reflBinding->binding;
-                binding.descriptorType = static_cast<VkDescriptorType>(reflBinding->descriptor_type);
-                binding.descriptorCount = reflBinding->count;
-                binding.stageFlags = module.shader_stage;
-                binding.pImmutableSamplers = nullptr;
-                bindings.push_back(binding);
-            }
-
-            if (set->set == 3) {
-                m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_ClusteredLightingDescriptorLayout;
-            }
-            else if (set->set == 0) {
-                m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_FrameGlobalDescriptorLayout;
-            }
-            else if (isBindless) {
-                m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_BindlessDescriptorLayout;
-            }
-            else {
-                VkDescriptorSetLayoutCreateInfo layoutInfo{};
-                layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-                layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-                layoutInfo.pBindings = bindings.data();
-
-                VkDescriptorSetLayout descriptorSetLayout;
-                if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-                    throw std::runtime_error("Failed to create descriptor set layout!");
-                }
-                m_DescriptorSetLayouts[setIndex] = descriptorSetLayout;
-            }
-        }
-
-        uint32_t pc_count = 0;
-        result = spvReflectEnumeratePushConstantBlocks(&module, &pc_count, nullptr);
-        std::vector<SpvReflectBlockVariable*> pcs(pc_count);
-        result = spvReflectEnumeratePushConstantBlocks(&module, &pc_count, pcs.data());
-
-        for (auto pc : pcs) {
-            VkPushConstantRange range{};
-            range.stageFlags = module.shader_stage;
-            range.offset = pc->offset;
-            range.size = pc->size;
-            pushConstants.push_back(range);
-        }
+        bool usingMeshShading = false;
+        GetPipelineData({ specs.pShaderPath }, shaderModules, m_DescriptorSetLayouts, shaderStages, m_ShaderResources, pushConstants, m_SetIndices, usingMeshShading);
 
         VkPipelineLayoutCreateInfo computePipelineLayoutCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
         computePipelineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(m_DescriptorSetLayouts.size());
@@ -428,476 +309,62 @@ namespace Brisk
         }
 
         VkComputePipelineCreateInfo pipelineInfo{ VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO };
-        pipelineInfo.stage = shaderStage;
+        pipelineInfo.stage = shaderStages[0];
         pipelineInfo.layout = m_PipelineLayout;
 
         if (vkCreateComputePipelines(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), nullptr, 1, &pipelineInfo, nullptr, &m_Pipeline) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create compute pipeline!");
         }
 
-        vkDestroyShaderModule(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), shaderModule, nullptr);
-        delete shaderCode;
+        vkDestroyShaderModule(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), shaderModules[0], nullptr);
     }
 
     void PipelineVulkan::Init(const RayTracingPipelineSpecs& specs) {
-        std::string rayGenerationPath;
-        std::string missPath;
-        std::string closestHitPath;
-        std::string shadowMissPath;
-
         bindPoint = VK_PIPELINE_BIND_POINT_RAY_TRACING_KHR;
 
-        for (const std::string& path : specs.pShaderPathsVK) {
-            std::filesystem::path fsPath(path);
-            std::string filename = fsPath.stem().string(); // "DepthPrePassMS"
-
-            // Check shader stage
-            if (filename.find("RayGeneration") != std::string::npos) {
-                rayGenerationPath = path;
-            }
-            else if (filename.find("Miss") != std::string::npos) {
-                missPath = path;
-            }
-            else if (filename.find("ClosestHit") != std::string::npos) {
-                closestHitPath = path;
-            }
-            else if (filename.find("Shadow") != std::string::npos) {
-                shadowMissPath = path;
-            }
-            else {
-                std::cout << "Unknown shader stage\n";
-            }
-        }
-
-        m_DescriptorSetLayouts.resize(4);
-        m_DescriptorSetLayouts[0] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[1] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[2] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
-        m_DescriptorSetLayouts[3] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_DummyDescriptorLayout;
-
+        std::vector<VkShaderModule> shaderModules;
         std::vector<VkPushConstantRange> pushConstants;
-        std::vector<VkRayTracingShaderGroupCreateInfoKHR> shaderGroups{};
         std::vector<VkPipelineShaderStageCreateInfo> shaderStages;
+        bool usingMeshShading = false;
 
-        // Ray generation group
-        {
-            const std::string& path = rayGenerationPath;
-            VkPipelineShaderStageCreateInfo shaderStage{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
-            const std::vector<char>* shaderCode = UtilitiesVulkan::ReadShaderFile(path);
+        GetPipelineData(specs.pShaderPathsVK, shaderModules, m_DescriptorSetLayouts, shaderStages, m_ShaderResources, pushConstants, m_SetIndices, usingMeshShading);
 
-            SpvReflectShaderModule module;
-            SpvReflectResult result = spvReflectCreateShaderModule(shaderCode->size(), shaderCode->data(), &module);
+        // Raygen
+        // Miss 
+        // Shadow miss
+        // Closest Hit
 
-            VkShaderModuleCreateInfo createInfo{};
-            createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-            createInfo.codeSize = shaderCode->size();
-            createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode->data());
+        std::vector<VkRayTracingShaderGroupCreateInfoKHR> shaderGroups{};
 
-            VkShaderModule shaderModule;
-            if (vkCreateShaderModule(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-                throw std::runtime_error("Failed to create shader module!");
-            }
-            shaderStage.module = shaderModule;
-            shaderStage.pName = module.entry_point_name;
-            shaderStage.stage = static_cast<VkShaderStageFlagBits>(module.shader_stage);
+        VkRayTracingShaderGroupCreateInfoKHR shaderGroup{ VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR };
 
-            shaderStages.push_back(shaderStage);
+        shaderGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
+        shaderGroup.generalShader = 0;
+        shaderGroup.closestHitShader = VK_SHADER_UNUSED_KHR;
+        shaderGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
+        shaderGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
+        shaderGroups.push_back(shaderGroup);
 
-            uint32_t setCount = 0;
-            result = spvReflectEnumerateDescriptorSets(&module, &setCount, nullptr);
-            std::vector<SpvReflectDescriptorSet*> sets(setCount);
-            result = spvReflectEnumerateDescriptorSets(&module, &setCount, sets.data());
+        shaderGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
+        shaderGroup.generalShader = 1;
+        shaderGroup.closestHitShader = VK_SHADER_UNUSED_KHR;
+        shaderGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
+        shaderGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
+        shaderGroups.push_back(shaderGroup);
 
-            for (auto set : sets) {
-                uint32_t setIndex = 0;
-                bool isBindless = false;
-                std::vector<VkDescriptorSetLayoutBinding> bindings;
-                for (uint32_t i = 0; i < set->binding_count; ++i) {
-                    const SpvReflectDescriptorBinding* reflBinding = set->bindings[i];
-                    setIndex = reflBinding->set;
+        shaderGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
+        shaderGroup.generalShader = 2;
+        shaderGroup.closestHitShader = VK_SHADER_UNUSED_KHR;
+        shaderGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
+        shaderGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
+        shaderGroups.push_back(shaderGroup);
 
-                    ShaderResource shaderResource{};
-                    shaderResource.p_Name = reflBinding->name;
-                    shaderResource.p_Set = reflBinding->set;
-                    shaderResource.p_Binding = reflBinding->binding;
-                    shaderResource.p_Type = static_cast<VkDescriptorType>(reflBinding->descriptor_type);
-                    shaderResource.p_Stages = module.shader_stage;
-                    m_ShaderResources.push_back(shaderResource);
-
-                    if (reflBinding->count <= 0) {
-                        isBindless = true;
-                        break;
-                    }
-                    VkDescriptorSetLayoutBinding binding{};
-                    binding.binding = reflBinding->binding;
-                    binding.descriptorType = static_cast<VkDescriptorType>(reflBinding->descriptor_type);
-                    binding.descriptorCount = reflBinding->count;
-                    binding.stageFlags = module.shader_stage;
-                    binding.pImmutableSamplers = nullptr;
-                    bindings.push_back(binding);
-                }
-                if (set->set == 0) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_FrameGlobalDescriptorLayout;
-                }
-                else if (set->set == 2) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_PerMeshDescriptorLayout;
-                }
-                else if (set->set == 3) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_ClusteredLightingDescriptorLayout;
-                }
-                else if (isBindless) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_BindlessDescriptorLayout;
-                }
-                else {
-                    VkDescriptorSetLayoutCreateInfo layoutInfo{};
-                    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-                    layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-                    layoutInfo.pBindings = bindings.data();
-
-                    VkDescriptorSetLayout descriptorSetLayout;
-                    if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-                        throw std::runtime_error("Failed to create descriptor set layout!");
-                    }
-                    m_DescriptorSetLayouts[setIndex] = descriptorSetLayout;
-                }
-            }
-
-            uint32_t pc_count = 0;
-            result = spvReflectEnumeratePushConstantBlocks(&module, &pc_count, nullptr);
-            std::vector<SpvReflectBlockVariable*> pcs(pc_count);
-            result = spvReflectEnumeratePushConstantBlocks(&module, &pc_count, pcs.data());
-
-            for (auto pc : pcs) {
-                VkPushConstantRange range{};
-                range.stageFlags = module.shader_stage;
-                range.offset = pc->offset;
-                range.size = pc->size;
-                pushConstants.push_back(range);
-            }
-
-            VkRayTracingShaderGroupCreateInfoKHR shaderGroup{ VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR };
-            shaderGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
-            shaderGroup.generalShader = static_cast<uint32_t>(shaderStages.size() - 1);
-            shaderGroup.closestHitShader = VK_SHADER_UNUSED_KHR;
-            shaderGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
-            shaderGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
-            shaderGroups.push_back(shaderGroup);
-        }
-
-        // Miss group
-        {
-            const std::string& path = missPath;
-            VkPipelineShaderStageCreateInfo shaderStage{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
-            const std::vector<char>* shaderCode = UtilitiesVulkan::ReadShaderFile(path);
-
-            SpvReflectShaderModule module;
-            SpvReflectResult result = spvReflectCreateShaderModule(shaderCode->size(), shaderCode->data(), &module);
-
-            VkShaderModuleCreateInfo createInfo{};
-            createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-            createInfo.codeSize = shaderCode->size();
-            createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode->data());
-
-            VkShaderModule shaderModule;
-            if (vkCreateShaderModule(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-                throw std::runtime_error("Failed to create shader module!");
-            }
-            shaderStage.module = shaderModule;
-            shaderStage.pName = module.entry_point_name;
-            shaderStage.stage = static_cast<VkShaderStageFlagBits>(module.shader_stage);
-
-            shaderStages.push_back(shaderStage);
-
-            uint32_t setCount = 0;
-            result = spvReflectEnumerateDescriptorSets(&module, &setCount, nullptr);
-            std::vector<SpvReflectDescriptorSet*> sets(setCount);
-            result = spvReflectEnumerateDescriptorSets(&module, &setCount, sets.data());
-
-            for (auto set : sets) {
-                uint32_t setIndex = 0;
-                bool isBindless = false;
-                std::vector<VkDescriptorSetLayoutBinding> bindings;
-                for (uint32_t i = 0; i < set->binding_count; ++i) {
-                    const SpvReflectDescriptorBinding* reflBinding = set->bindings[i];
-                    setIndex = reflBinding->set;
-
-                    ShaderResource shaderResource{};
-                    shaderResource.p_Name = reflBinding->name;
-                    shaderResource.p_Set = reflBinding->set;
-                    shaderResource.p_Binding = reflBinding->binding;
-                    shaderResource.p_Type = static_cast<VkDescriptorType>(reflBinding->descriptor_type);
-                    shaderResource.p_Stages = module.shader_stage;
-                    m_ShaderResources.push_back(shaderResource);
-
-                    if (reflBinding->count <= 0) {
-                        isBindless = true;
-                        break;
-                    }
-                    VkDescriptorSetLayoutBinding binding{};
-                    binding.binding = reflBinding->binding;
-                    binding.descriptorType = static_cast<VkDescriptorType>(reflBinding->descriptor_type);
-                    binding.descriptorCount = reflBinding->count;
-                    binding.stageFlags = module.shader_stage;
-                    binding.pImmutableSamplers = nullptr;
-                    bindings.push_back(binding);
-                }
-                if (set->set == 0) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_FrameGlobalDescriptorLayout;
-                }
-                else if (set->set == 2) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_PerMeshDescriptorLayout;
-                }
-                else if (set->set == 3) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_ClusteredLightingDescriptorLayout;
-                }
-                else if (isBindless) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_BindlessDescriptorLayout;
-                }
-                else {
-                    VkDescriptorSetLayoutCreateInfo layoutInfo{};
-                    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-                    layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-                    layoutInfo.pBindings = bindings.data();
-
-                    VkDescriptorSetLayout descriptorSetLayout;
-                    if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-                        throw std::runtime_error("Failed to create descriptor set layout!");
-                    }
-                    m_DescriptorSetLayouts[setIndex] = descriptorSetLayout;
-                }
-            }
-
-            uint32_t pc_count = 0;
-            result = spvReflectEnumeratePushConstantBlocks(&module, &pc_count, nullptr);
-            std::vector<SpvReflectBlockVariable*> pcs(pc_count);
-            result = spvReflectEnumeratePushConstantBlocks(&module, &pc_count, pcs.data());
-
-            for (auto pc : pcs) {
-                VkPushConstantRange range{};
-                range.stageFlags = module.shader_stage;
-                range.offset = pc->offset;
-                range.size = pc->size;
-                pushConstants.push_back(range);
-            }
-
-            VkRayTracingShaderGroupCreateInfoKHR shaderGroup{ VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR };
-            shaderGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
-            shaderGroup.generalShader = static_cast<uint32_t>(shaderStages.size() - 1);
-            shaderGroup.closestHitShader = VK_SHADER_UNUSED_KHR;
-            shaderGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
-            shaderGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
-            shaderGroups.push_back(shaderGroup);
-        }
-
-        // Shadow Miss group
-        {
-            const std::string& path = shadowMissPath;
-            VkPipelineShaderStageCreateInfo shaderStage{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
-            const std::vector<char>* shaderCode = UtilitiesVulkan::ReadShaderFile(path);
-
-            SpvReflectShaderModule module;
-            SpvReflectResult result = spvReflectCreateShaderModule(shaderCode->size(), shaderCode->data(), &module);
-
-            VkShaderModuleCreateInfo createInfo{};
-            createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-            createInfo.codeSize = shaderCode->size();
-            createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode->data());
-
-            VkShaderModule shaderModule;
-            if (vkCreateShaderModule(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-                throw std::runtime_error("Failed to create shader module!");
-            }
-            shaderStage.module = shaderModule;
-            shaderStage.pName = module.entry_point_name;
-            shaderStage.stage = static_cast<VkShaderStageFlagBits>(module.shader_stage);
-
-            shaderStages.push_back(shaderStage);
-
-            uint32_t setCount = 0;
-            result = spvReflectEnumerateDescriptorSets(&module, &setCount, nullptr);
-            std::vector<SpvReflectDescriptorSet*> sets(setCount);
-            result = spvReflectEnumerateDescriptorSets(&module, &setCount, sets.data());
-
-            for (auto set : sets) {
-                uint32_t setIndex = 0;
-                bool isBindless = false;
-                std::vector<VkDescriptorSetLayoutBinding> bindings;
-                for (uint32_t i = 0; i < set->binding_count; ++i) {
-                    const SpvReflectDescriptorBinding* reflBinding = set->bindings[i];
-                    setIndex = reflBinding->set;
-
-                    ShaderResource shaderResource{};
-                    shaderResource.p_Name = reflBinding->name;
-                    shaderResource.p_Set = reflBinding->set;
-                    shaderResource.p_Binding = reflBinding->binding;
-                    shaderResource.p_Type = static_cast<VkDescriptorType>(reflBinding->descriptor_type);
-                    shaderResource.p_Stages = module.shader_stage;
-                    m_ShaderResources.push_back(shaderResource);
-
-                    if (reflBinding->count <= 0) {
-                        isBindless = true;
-                        break;
-                    }
-                    VkDescriptorSetLayoutBinding binding{};
-                    binding.binding = reflBinding->binding;
-                    binding.descriptorType = static_cast<VkDescriptorType>(reflBinding->descriptor_type);
-                    binding.descriptorCount = reflBinding->count;
-                    binding.stageFlags = module.shader_stage;
-                    binding.pImmutableSamplers = nullptr;
-                    bindings.push_back(binding);
-                }
-                if (set->set == 0) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_FrameGlobalDescriptorLayout;
-                }
-                else if (set->set == 2) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_PerMeshDescriptorLayout;
-                }
-                else if (set->set == 3) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_ClusteredLightingDescriptorLayout;
-                }
-                else if (isBindless) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_BindlessDescriptorLayout;
-                }
-                else {
-                    VkDescriptorSetLayoutCreateInfo layoutInfo{};
-                    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-                    layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-                    layoutInfo.pBindings = bindings.data();
-
-                    VkDescriptorSetLayout descriptorSetLayout;
-                    if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-                        throw std::runtime_error("Failed to create descriptor set layout!");
-                    }
-                    m_DescriptorSetLayouts[setIndex] = descriptorSetLayout;
-                }
-            }
-
-            uint32_t pc_count = 0;
-            result = spvReflectEnumeratePushConstantBlocks(&module, &pc_count, nullptr);
-            std::vector<SpvReflectBlockVariable*> pcs(pc_count);
-            result = spvReflectEnumeratePushConstantBlocks(&module, &pc_count, pcs.data());
-
-            for (auto pc : pcs) {
-                VkPushConstantRange range{};
-                range.stageFlags = module.shader_stage;
-                range.offset = pc->offset;
-                range.size = pc->size;
-                pushConstants.push_back(range);
-            }
-
-            VkRayTracingShaderGroupCreateInfoKHR shaderGroup{ VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR };
-            shaderGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
-            shaderGroup.generalShader = static_cast<uint32_t>(shaderStages.size() - 1);
-            shaderGroup.closestHitShader = VK_SHADER_UNUSED_KHR;
-            shaderGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
-            shaderGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
-            shaderGroups.push_back(shaderGroup);
-        }
-
-        // Closest hit group
-        {
-            const std::string& path = closestHitPath;
-            VkPipelineShaderStageCreateInfo shaderStage{ VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO };
-            const std::vector<char>* shaderCode = UtilitiesVulkan::ReadShaderFile(path);
-
-            SpvReflectShaderModule module;
-            SpvReflectResult result = spvReflectCreateShaderModule(shaderCode->size(), shaderCode->data(), &module);
-
-            VkShaderModuleCreateInfo createInfo{};
-            createInfo.sType = VK_STRUCTURE_TYPE_SHADER_MODULE_CREATE_INFO;
-            createInfo.codeSize = shaderCode->size();
-            createInfo.pCode = reinterpret_cast<const uint32_t*>(shaderCode->data());
-
-            VkShaderModule shaderModule;
-            if (vkCreateShaderModule(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &createInfo, nullptr, &shaderModule) != VK_SUCCESS) {
-                throw std::runtime_error("Failed to create shader module!");
-            }
-            shaderStage.module = shaderModule;
-            shaderStage.pName = module.entry_point_name;
-            shaderStage.stage = static_cast<VkShaderStageFlagBits>(module.shader_stage);
-
-            shaderStages.push_back(shaderStage);
-
-            uint32_t setCount = 0;
-            result = spvReflectEnumerateDescriptorSets(&module, &setCount, nullptr);
-            std::vector<SpvReflectDescriptorSet*> sets(setCount);
-            result = spvReflectEnumerateDescriptorSets(&module, &setCount, sets.data());
-
-            for (auto set : sets) {
-                uint32_t setIndex = 0;
-                bool isBindless = false;
-                std::vector<VkDescriptorSetLayoutBinding> bindings;
-                for (uint32_t i = 0; i < set->binding_count; ++i) {
-                    const SpvReflectDescriptorBinding* reflBinding = set->bindings[i];
-                    setIndex = reflBinding->set;
-
-                    ShaderResource shaderResource{};
-                    shaderResource.p_Name = reflBinding->name;
-                    shaderResource.p_Set = reflBinding->set;
-                    shaderResource.p_Binding = reflBinding->binding;
-                    shaderResource.p_Type = static_cast<VkDescriptorType>(reflBinding->descriptor_type);
-                    shaderResource.p_Stages = module.shader_stage;
-                    m_ShaderResources.push_back(shaderResource);
-
-                    if (setIndex == 1) {
-                        isBindless = true;
-                        break;
-                    }
-                    VkDescriptorSetLayoutBinding binding{};
-                    binding.binding = reflBinding->binding;
-                    binding.descriptorType = static_cast<VkDescriptorType>(reflBinding->descriptor_type);
-                    binding.descriptorCount = reflBinding->count;
-                    binding.stageFlags = module.shader_stage;
-                    binding.pImmutableSamplers = nullptr;
-                    bindings.push_back(binding);
-                }
-                if (set->set == 0) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_FrameGlobalDescriptorLayout;
-                }
-                else if (set->set == 2) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_PerMeshDescriptorLayout;
-                }
-                else if (set->set == 3) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_ClusteredLightingDescriptorLayout;
-                }
-                else if (isBindless) {
-                    m_DescriptorSetLayouts[setIndex] = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_BindlessDescriptorLayout;
-                }
-                else {
-                    VkDescriptorSetLayoutCreateInfo layoutInfo{};
-                    layoutInfo.sType = VK_STRUCTURE_TYPE_DESCRIPTOR_SET_LAYOUT_CREATE_INFO;
-                    layoutInfo.bindingCount = static_cast<uint32_t>(bindings.size());
-                    layoutInfo.pBindings = bindings.data();
-
-                    VkDescriptorSetLayout descriptorSetLayout;
-                    if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, &descriptorSetLayout) != VK_SUCCESS) {
-                        throw std::runtime_error("Failed to create descriptor set layout!");
-                    }
-                    m_DescriptorSetLayouts[setIndex] = descriptorSetLayout;
-                }
-            }
-
-            uint32_t pc_count = 0;
-            result = spvReflectEnumeratePushConstantBlocks(&module, &pc_count, nullptr);
-            std::vector<SpvReflectBlockVariable*> pcs(pc_count);
-            result = spvReflectEnumeratePushConstantBlocks(&module, &pc_count, pcs.data());
-
-            for (auto pc : pcs) {
-                VkPushConstantRange range{};
-                range.stageFlags = module.shader_stage;
-                range.offset = pc->offset;
-                range.size = pc->size;
-                pushConstants.push_back(range);
-            }
-
-            VkRayTracingShaderGroupCreateInfoKHR shaderGroup{ VK_STRUCTURE_TYPE_RAY_TRACING_SHADER_GROUP_CREATE_INFO_KHR };
-            shaderGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
-            shaderGroup.generalShader = VK_SHADER_UNUSED_KHR;
-            shaderGroup.closestHitShader = static_cast<uint32_t>(shaderStages.size() - 1);
-            shaderGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
-            shaderGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
-            shaderGroups.push_back(shaderGroup);
-        }
+        shaderGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
+        shaderGroup.generalShader = VK_SHADER_UNUSED_KHR;
+        shaderGroup.closestHitShader = 3;
+        shaderGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
+        shaderGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
+        shaderGroups.push_back(shaderGroup);
 
         VkPipelineLayoutCreateInfo rayTracinglineLayoutCreateInfo{ VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO };
         rayTracinglineLayoutCreateInfo.setLayoutCount = static_cast<uint32_t>(m_DescriptorSetLayouts.size());
@@ -942,55 +409,34 @@ namespace Brisk
             bindPoint,
             m_Pipeline);
 
-        // Totally production code
-        bool once1 = false;
-        bool once2 = false;
-        bool once3 = false;
-        bool once4 = false;
-        bool once5 = false;
-        bool once6 = false;
+        for (uint32_t index : m_SetIndices) {
+            VkDescriptorSet set;
+            if (index == SET_FRAME_GLOBAL) {
+                set = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_GlobalSet;
+            }
+            else if (index == SET_BINDLESS_TEXTURES) {
+                set = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_BindlessSet;
+            }
+            else if (index == SET_PER_MESH) {
+                set = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_PerMeshSet;
+            }
+            else if (index == SET_CLUSTERED_LIGHTING) {
+                set = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_ClusteredLightingSet;
+            }
+            else {
+                BRISK_CORE_ERROR("Invalid set index {}", index);
+            }
 
-        for (const ShaderResource& resource : m_ShaderResources) {
-            switch (resource.p_Set)
-            {
-            case SET_FRAME_GLOBAL:
-            {
-                if (!once1) {
-                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_GlobalSet, resource.p_Set);
-                    once1 = true;
-                }
-                break;
-            }
-            case SET_BINDLESS_TEXTURES:
-            {
-                if (!once2) {
-                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_BindlessSet, resource.p_Set);
-                    once2 = true;
-                }
-                break;
-            }
-            case SET_PER_MESH:
-            {
-                if (!once3) {
-                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_PerMeshSet, resource.p_Set);
-                    once3 = true;
-                }
-                break;
-            }
-            case SET_CLUSTERED_LIGHTING:
-            {
-                if (!once6) {
-                    BindInternal(cmd, std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->m_ClusteredLightingSet, resource.p_Set);
-                    once6 = true;
-                }
-                break;
-            }
-            default:
-            {
-                BRISK_CORE_ERROR("Descriptor set not found for set index {}", resource.p_Set);
-                break;
-            }
-            }
+            vkCmdBindDescriptorSets(
+                std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(),
+                bindPoint,
+                m_PipelineLayout,
+                index,
+                1,
+                &set,
+                0,
+                nullptr
+            );
         }
     }
 

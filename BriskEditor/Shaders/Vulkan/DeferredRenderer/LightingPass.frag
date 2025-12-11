@@ -283,7 +283,7 @@ void main() {
         float att = clamp(1.0 - dist/radius, 0.0, 1.0);
         vec3 radiance = lightColor * intensity * att;
 
-        //accum += evaluateLight(albedo, metallic, roughness, N, V, L, radiance, ao);
+        accum += evaluateLight(albedo, metallic, roughness, N, V, L, radiance, ao);
     }
 
     bool cascadedShadows = true;

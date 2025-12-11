@@ -11,6 +11,7 @@
 namespace Brisk
 {
 	class PipelineVulkan : public Pipeline {
+	public:
 		struct ShaderResource {
 			std::string p_Name;
 			uint32_t p_Set;
@@ -39,6 +40,7 @@ namespace Brisk
 		VkPipelineLayout m_PipelineLayout;
 		VkPipeline m_Pipeline;
 
+		std::vector<uint32_t> m_SetIndices;
 		std::vector<ShaderResource> m_ShaderResources;
 		std::vector<VkDescriptorSetLayout> m_DescriptorSetLayouts;
 	};

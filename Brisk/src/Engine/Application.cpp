@@ -16,6 +16,7 @@ namespace Brisk
 	std::shared_ptr<Renderer> Application::m_Renderer;
 	std::shared_ptr<Camera> Application::m_EditorCamera;
 	JobSystem Application::m_JobSystem;
+	RendererSettings Application::m_RendererSettings;
 
 	void GenerateRandomLights(uint32_t count, float range, float radiusMin, float radiusMax, float colorMin, float colorMax, float intensityMin, float intensityMax) {
 		std::random_device rd;
@@ -108,6 +109,7 @@ namespace Brisk
 		auto currentTime = std::chrono::high_resolution_clock::now();
 		float frameTime = 0.0f;
 
+		bool rayTracing = m_RendererSettings.RayTracing;
 		while (!ShouldClose()) {
 			auto newTime = std::chrono::high_resolution_clock::now();
 			frameTime = std::chrono::duration<float, std::chrono::seconds::period>(newTime - currentTime).count();
@@ -123,7 +125,20 @@ namespace Brisk
 			m_ImGuiLayer->End();
 
 			m_EditorCamera->OnUpdate(frameTime);
-			m_Renderer->RenderScene(frameTime);
+
+			if (rayTracing != m_RendererSettings.RayTracing) {
+				rayTracing = m_RendererSettings.RayTracing;
+
+				m_Adapter->WaitIdle();
+			}
+
+			if (m_RendererSettings.RayTracing) {
+				m_Renderer->RenderRT(frameTime);
+			}
+			else {
+				m_Renderer->RenderScene(frameTime);
+			}
+
 			m_Window->ProcessEvents();
 		}
 	}

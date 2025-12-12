@@ -20,6 +20,10 @@
 
 namespace Brisk 
 {
+	struct RendererSettings {
+		bool RayTracing = false;
+	};
+
 	class Application {
 	public:
 		Application() = default;
@@ -39,12 +43,14 @@ namespace Brisk
 		static const std::shared_ptr<Renderer> GetRenderer() { return m_Renderer; }
 		static const std::shared_ptr<Camera> GetCamera() { return m_EditorCamera; }
 		static JobSystem& GetJobSystem() { return m_JobSystem; }
+		static RendererSettings& GetRendererSettings() { return m_RendererSettings; }
 	private:
 		bool OnWindowClose(WindowCloseEvent& e);
 		bool OnWindowResize(WindowResizeEvent& e);
 		bool OnMouseMoved(MouseMovedEvent& e);
 		bool OnMouseScrolled(MouseScrolledEvent& e);
 	private:
+		static RendererSettings m_RendererSettings;
 		LayerStack m_LayerStack;
 		static JobSystem m_JobSystem;
 		static ImGuiLayer* m_ImGuiLayer;

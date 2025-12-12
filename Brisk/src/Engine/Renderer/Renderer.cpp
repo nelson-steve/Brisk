@@ -154,17 +154,17 @@ namespace Brisk
         m_Swapchain = SwapchainFactory::CreateSwapchain();
         m_Swapchain->Create(swapchainMode);
 
-        m_RayTracingOutput = Texture::Create();
+        //m_RayTracingOutput = Texture::Create();
 
-        {
-            Texture::TextureSpecification specs{};
-            specs.p_Width = 1920;
-            specs.p_Height = 1080;
-            specs.p_DebugName = "g_RayTracingOutput";
-            specs.p_Usage = Core::TextureUsage::ImageUsageStorage;
-            specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
-            m_RayTracingOutput->Init(specs);
-        }
+        //{
+        //    Texture::TextureSpecification specs{};
+        //    specs.p_Width = 1920;
+        //    specs.p_Height = 1080;
+        //    specs.p_DebugName = "g_RayTracingOutput";
+        //    specs.p_Usage = Core::TextureUsage::ImageUsageStorage;
+        //    specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
+        //    m_RayTracingOutput->Init(specs);
+        //}
 
         // Renderpasses
         {
@@ -321,7 +321,7 @@ namespace Brisk
                 specs.p_Width = 1920;
                 specs.p_Height = 1080;
                 specs.p_DebugName = "g_Lighting";
-                specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled;
+                specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled | Core::TextureUsage::ImageUsageStorage;
                 specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
                 m_LightingOutput->Init(specs);
             }
@@ -884,7 +884,7 @@ namespace Brisk
         m_RayTracing->UpdateResources("Meshes", {}, m_MeshesBuffer, {});
         m_RayTracing->UpdateResources("Indices", {}, m_IndexBuffer, {});
         m_RayTracing->UpdateResources("topLevelAS", {}, {}, { m_TLAS });
-        m_RayTracing->UpdateResources("resultImage", { m_RayTracingOutput }, {}, {});
+        m_RayTracing->UpdateResources("resultImage", { m_LightingOutput }, {}, {});
         m_RayTracing->UpdateResources("camera", {}, { m_RayTracingPropsBuffer }, {});
 
         renderRaytracing = true;
@@ -917,14 +917,6 @@ namespace Brisk
             auto& lc = entity.GetComponent<DirectionalLightComponent>();
             lightDir = lc.Direction;
         }
-
-        RayTracingProps rayProps{};
-        rayProps.ProjInv = glm::inverse(Application::GetCamera()->GetProjection());
-        rayProps.ViewInv = glm::inverse(Application::GetCamera()->GetViewMatrix());
-        rayProps.LightPos = lightDir;
-        rayProps.CamPos = Application::GetCamera()->GetPosition();
-        rayProps.dimension = glm::vec2(1920, 1080);
-        m_RayTracingPropsBuffer->UpdatePersistantData(sizeof(RayTracingProps), &rayProps);
 
         bool cascadedShadows = true;
 
@@ -1142,44 +1134,6 @@ namespace Brisk
             m_ShadowMapLOD3->TransitionImageLayout(m_CmdBuffer[m_CurrentFrame], { params });
         }
 
-        //// --- RAY TRACING PASS ---------------------------
-        ////------------------------------------------------------------------------------------------------------------------------------------------------
-        if (renderRaytracing) {
-
-            m_RayTracingFence[m_CurrentFrame]->Wait();
-            m_RayTracingFence[m_CurrentFrame]->Reset();
-
-            m_RayTracingCmdBuffer[m_CurrentFrame]->Bind();
-
-            {
-                Texture::ImageBarrierParams params{};
-                params.oldLayout = Core::ImageLayout::Undefined;
-                params.newLayout = Core::ImageLayout::General;
-                params.srcAccess = Core::AccessType::ShaderWrite;
-                params.dstAccess = Core::AccessType::ShaderWrite;
-                params.srcStage = Core::PipelineStage::RayTracing;
-                params.dstStage = Core::PipelineStage::RayTracing;
-
-                m_RayTracingOutput->TransitionImageLayout(m_RayTracingCmdBuffer[m_CurrentFrame], { params });
-            }
-
-            m_RayTracing->Bind(m_RayTracingCmdBuffer[m_CurrentFrame]);
-
-            RenderCommand::TraceRays(m_RayTracingCmdBuffer[m_CurrentFrame], m_SBT, 1920, 1080);
-            m_RayTracingCmdBuffer[m_CurrentFrame]->UnBind();
-            Queue::SubmitInfo rayTracingSubmitInfo{};
-            rayTracingSubmitInfo.pCmdBuffers.push_back(m_RayTracingCmdBuffer[m_CurrentFrame]);
-            rayTracingSubmitInfo.pSignalSemaphores.push_back(RayTracingFinishedSemaphore[m_CurrentFrame]);
-
-            {
-                std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
-                m_GraphicsQueue1->Submit(rayTracingSubmitInfo, m_RayTracingFence[m_CurrentFrame]);
-            }
-        }
-
-        ////------------------------------------------------------------------------------------------------------------------------------------------------
-
-
         //// --- LIGHTING PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
         m_LightingPass->Begin(m_CmdBuffer[m_CurrentFrame]);
@@ -1236,10 +1190,6 @@ namespace Brisk
             lightingSubmitInfo.pWaitStages.push_back(Core::PipelineStage::TransferStage);
             m_SubmitTransferWork = false;
         }
-        if (renderRaytracing) {
-            lightingSubmitInfo.pWaitSemaphores.push_back(RayTracingFinishedSemaphore[m_CurrentFrame]);
-            lightingSubmitInfo.pWaitStages.push_back(Core::PipelineStage::RayTracing);
-        }
         lightingSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore[m_CurrentFrame]);
         lightingSubmitInfo.pWaitSemaphores.push_back(AssignLightsSemaphore[m_CurrentFrame]);
         lightingSubmitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore[m_CurrentFrame]);
@@ -1250,6 +1200,157 @@ namespace Brisk
         {
             std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
             m_GraphicsQueue0->Submit(lightingSubmitInfo, m_GraphicsFence[m_CurrentFrame]);
+        }
+
+        Queue::PresentInfo presentInfo{};
+        presentInfo.pWaitSemaphores.push_back(RenderFinishedSemaphore[m_CurrentFrame]);
+        presentInfo.pSwapchains.push_back(m_Swapchain);
+        presentInfo.pImageIndex = m_ImageIndex;
+
+        // Present
+        {
+            std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
+            m_GraphicsQueue0->Present(presentInfo);
+        }
+
+        if (m_WindowResized) {
+            RecreateSwapchain();
+            m_WindowResized = false;
+        }
+
+        m_CurrentFrame = (m_CurrentFrame + 1) % FRAMES_IN_FLIGHT;
+    }
+
+    void Renderer::RenderRT(float deltaTime)
+    {
+        if (!SceneManager::pActiveScene) return;
+
+        Application::GetJobSystem().ExecuteMainThreadCallbacks();
+        glm::vec3 lightDir{ 4.0f, -32.0f, 12.0f };
+
+        auto lightView = SceneManager::pActiveScene->Reg().view<DirectionalLightComponent>();
+        for (auto e : lightView) {
+            Entity entity = { e, SceneManager::pActiveScene.get() };
+            auto& lc = entity.GetComponent<DirectionalLightComponent>();
+            lightDir = lc.Direction;
+        }
+
+        RayTracingProps rayProps{};
+        rayProps.ProjInv = glm::inverse(Application::GetCamera()->GetProjection());
+        rayProps.ViewInv = glm::inverse(Application::GetCamera()->GetViewMatrix());
+        rayProps.LightPos = lightDir;
+        rayProps.CamPos = Application::GetCamera()->GetPosition();
+        rayProps.dimension = glm::vec2(1920, 1080);
+        m_RayTracingPropsBuffer->UpdatePersistantData(sizeof(RayTracingProps), &rayProps);
+
+        if (!m_Swapchain->AcquireNextImage(UINT64_MAX, ImageAvailableSemaphore[m_CurrentFrame], nullptr, &m_ImageIndex)) {
+            RecreateSwapchain();
+            return;
+        }
+
+        if (m_SubmitTransferWork) {
+            Queue::SubmitInfo transferSubmitInfo{};
+            transferSubmitInfo.pSignalSemaphores.push_back(TransferFinishedSemaphore[m_CurrentFrame]);
+            transferSubmitInfo.pCmdBuffers.push_back(m_TransferCmdBuffer);
+
+            m_TransferQueue0->Submit(transferSubmitInfo, nullptr);
+
+            m_ScratchAllocator.Reset();
+        }
+
+        m_RayTracingCmdBuffer[m_CurrentFrame]->Reset();
+        m_RayTracingCmdBuffer[m_CurrentFrame]->Bind();
+
+        //// --- RAY TRACING PASS ---------------------------
+        ////------------------------------------------------------------------------------------------------------------------------------------------------
+        {
+            Texture::ImageBarrierParams params{};
+            params.oldLayout = Core::ImageLayout::Undefined;
+            params.newLayout = Core::ImageLayout::General;
+            params.srcAccess = Core::AccessType::ShaderWrite;
+            params.dstAccess = Core::AccessType::ShaderWrite;
+            params.srcStage = Core::PipelineStage::RayTracing;
+            params.dstStage = Core::PipelineStage::RayTracing;
+
+            m_LightingOutput->TransitionImageLayout(m_RayTracingCmdBuffer[m_CurrentFrame], { params });
+        }
+
+        m_RayTracingFence[m_CurrentFrame]->Wait();
+        m_RayTracingFence[m_CurrentFrame]->Reset();
+
+        m_RayTracing->Bind(m_RayTracingCmdBuffer[m_CurrentFrame]);
+
+        RenderCommand::TraceRays(m_RayTracingCmdBuffer[m_CurrentFrame], m_SBT, 1920, 1080);
+        m_RayTracingCmdBuffer[m_CurrentFrame]->UnBind();
+        Queue::SubmitInfo rayTracingSubmitInfo{};
+        rayTracingSubmitInfo.pCmdBuffers.push_back(m_RayTracingCmdBuffer[m_CurrentFrame]);
+        rayTracingSubmitInfo.pSignalSemaphores.push_back(RayTracingFinishedSemaphore[m_CurrentFrame]);
+
+        {
+            std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
+            m_GraphicsQueue1->Submit(rayTracingSubmitInfo, m_RayTracingFence[m_CurrentFrame]);
+        }
+
+        m_RayTracingFence[m_CurrentFrame]->Wait();
+        m_RayTracingFence[m_CurrentFrame]->Reset();
+
+        m_RayTracingCmdBuffer[m_CurrentFrame]->Reset();
+        m_RayTracingCmdBuffer[m_CurrentFrame]->Bind();
+
+        ////------------------------------------------------------------------------------------------------------------------------------------------------
+
+        {
+            Texture::ImageBarrierParams params{};
+            params.oldLayout = Core::ImageLayout::General;
+            params.newLayout = Core::ImageLayout::ShaderReadOnlyOptimal;
+            params.srcAccess = Core::AccessType::ShaderWrite;
+            params.dstAccess = Core::AccessType::ShaderRead;
+            params.srcStage = Core::PipelineStage::RayTracing;
+            params.dstStage = Core::PipelineStage::FragmentShader;    
+            m_LightingOutput->TransitionImageLayout(m_RayTracingCmdBuffer[m_CurrentFrame], { params });
+        }
+
+        //// --- UI PASS ---------------------------
+        ////------------------------------------------------------------------------------------------------------------------------------------------------
+        m_UIPass->Begin(m_RayTracingCmdBuffer[m_CurrentFrame], m_ImageIndex);
+
+        RenderCommand::SetViewport(m_RayTracingCmdBuffer[m_CurrentFrame], 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
+        RenderCommand::SetScissor(m_RayTracingCmdBuffer[m_CurrentFrame], 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
+
+        Application::GetGuiLayer()->Render(m_RayTracingCmdBuffer[m_CurrentFrame]);
+
+        m_UIPass->End(m_RayTracingCmdBuffer[m_CurrentFrame]);
+        ////------------------------------------------------------------------------------------------------------------------------------------------------
+
+        {
+            //Texture::ImageBarrierParams params{};
+            //params.oldLayout = Core::ImageLayout::ColorAttachmentOptimal;
+            //params.newLayout = Core::ImageLayout::PresentSrc;
+            //params.srcAccess = Core::AccessType::DepthStencilWrite;
+            //params.dstAccess = Core::AccessType::ShaderRead;
+            //params.srcStage = Core::PipelineStage::LateFragmentTest;
+            //params.dstStage = Core::PipelineStage::FragmentShader;
+            //m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
+        }
+
+        m_RayTracingCmdBuffer[m_CurrentFrame]->UnBind();
+
+        Queue::SubmitInfo submitInfo{};
+        if (m_SubmitTransferWork) {
+            submitInfo.pWaitSemaphores.push_back(TransferFinishedSemaphore[m_CurrentFrame]);
+            submitInfo.pWaitStages.push_back(Core::PipelineStage::TransferStage);
+            m_SubmitTransferWork = false;
+        }
+        submitInfo.pWaitSemaphores.push_back(RayTracingFinishedSemaphore[m_CurrentFrame]);
+        submitInfo.pWaitStages.push_back(Core::PipelineStage::RayTracing);
+        submitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore[m_CurrentFrame]);
+        submitInfo.pSignalSemaphores.push_back(RenderFinishedSemaphore[m_CurrentFrame]);
+        submitInfo.pWaitStages.push_back(Core::PipelineStage::ColorAttachment);
+        submitInfo.pCmdBuffers.push_back(m_RayTracingCmdBuffer[m_CurrentFrame]);
+
+        {
+            std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
+            m_GraphicsQueue0->Submit(submitInfo, m_RayTracingFence[m_CurrentFrame]);
         }
 
         Queue::PresentInfo presentInfo{};

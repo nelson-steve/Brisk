@@ -109,6 +109,7 @@ namespace Brisk
 		void Init();
 		void Release();
 		void RenderScene(float deltaTime);
+		void RenderRT(float deltaTime);
 		void UpdateTransforms();
 		void SetSubmitTransferWork(bool value) { m_SubmitTransferWork = value; }
 		void AddGlobalTexture(std::vector<std::shared_ptr<Texture>> textures) {
@@ -130,11 +131,11 @@ namespace Brisk
 		std::array<std::shared_ptr<Semaphore>, FRAMES_IN_FLIGHT> ImageAvailableSemaphore;
 		std::array<std::shared_ptr<Semaphore>, FRAMES_IN_FLIGHT> RenderFinishedSemaphore;
 		std::array<std::shared_ptr<Semaphore>, FRAMES_IN_FLIGHT> TransferFinishedSemaphore;
-		std::array<std::shared_ptr<Semaphore>, FRAMES_IN_FLIGHT> RayTracingFinishedSemaphore;
-
 		std::array<std::shared_ptr<Fence>, FRAMES_IN_FLIGHT> m_ClusterFence;
-		std::array<std::shared_ptr<Fence>, FRAMES_IN_FLIGHT> m_RayTracingFence;
 		std::array<std::shared_ptr<Fence>, FRAMES_IN_FLIGHT> m_GraphicsFence;
+
+		std::array<std::shared_ptr<Semaphore>, FRAMES_IN_FLIGHT> RayTracingFinishedSemaphore;
+		std::array<std::shared_ptr<Fence>, FRAMES_IN_FLIGHT> m_RayTracingFence;
 
 		std::shared_ptr<Queue> m_GraphicsQueue0;
 		std::shared_ptr<Queue> m_GraphicsQueue1;
@@ -158,7 +159,7 @@ namespace Brisk
 		std::shared_ptr<Texture> m_ShadowMapLOD2;
 		std::shared_ptr<Texture> m_ShadowMapLOD3;
 		std::shared_ptr<Texture> m_LightingOutput;
-		std::shared_ptr<Texture> m_RayTracingOutput;
+		//std::shared_ptr<Texture> m_RayTracingOutput;
 		// Attachments - End
 
 		// RenderPasses

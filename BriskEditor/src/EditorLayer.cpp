@@ -40,6 +40,17 @@ namespace Brisk
         ImGui::End();
     }
 
+    void ShowRendererSettingsWindow()
+    {
+        ImGui::Begin("Renderer Settings");
+
+        ImGui::Checkbox("##toggle", &Application::GetRendererSettings().RayTracing);
+        ImGui::SameLine();
+        ImGui::Text("RayTracing");
+
+        ImGui::End();
+    }
+
     void MenuBar() {
         if (ImGui::BeginMainMenuBar())
         {
@@ -131,6 +142,7 @@ namespace Brisk
 
         float deltaTime = 0.1;
         ShowPerformanceStatsWindow(deltaTime, stats);
+        ShowRendererSettingsWindow();
     }
 
     void EditorLayer::OnEvent(Event& e) {

@@ -14,7 +14,9 @@ namespace Brisk
 	std::shared_ptr<GpuAdapter> Application::m_Adapter;
 	std::shared_ptr<Window> Application::m_Window;
 	std::shared_ptr<Renderer> Application::m_Renderer;
+	std::shared_ptr<Camera> Application::m_ActiveCamera;
 	std::shared_ptr<Camera> Application::m_EditorCamera;
+	std::shared_ptr<Camera> Application::m_EditorCameraRT;
 	JobSystem Application::m_JobSystem;
 	RendererSettings Application::m_RendererSettings;
 
@@ -52,6 +54,9 @@ namespace Brisk
 		m_Adapter->Init();
 
 		m_EditorCamera = std::make_shared<Camera>((GLFWwindow*)m_Window->GetWindowHandle());
+		m_EditorCameraRT = std::make_shared<Camera>((GLFWwindow*)m_Window->GetWindowHandle());
+
+		m_ActiveCamera = m_EditorCamera;
 
 		m_SceneManager = std::make_unique<SceneManager>();
 		m_SceneManager->Init();
@@ -124,10 +129,12 @@ namespace Brisk
 
 			m_ImGuiLayer->End();
 
-			m_EditorCamera->OnUpdate(frameTime);
+			m_ActiveCamera->OnUpdate(frameTime);
 
 			if (rayTracing != m_RendererSettings.RayTracing) {
 				rayTracing = m_RendererSettings.RayTracing;
+
+				m_ActiveCamera = rayTracing ? m_EditorCameraRT : m_EditorCamera;
 
 				m_Adapter->WaitIdle();
 			}
@@ -153,14 +160,14 @@ namespace Brisk
 	}
 
 	bool Application::OnMouseMoved(MouseMovedEvent& e) {
-		m_EditorCamera->MouseMoved();
-		m_EditorCamera->SetMouseOffset(e.GetMouseX(), e.GetMouseY());
+		m_ActiveCamera->MouseMoved();
+		m_ActiveCamera->SetMouseOffset(e.GetMouseX(), e.GetMouseY());
 		return false;
 	}
 
 	bool Application::OnMouseScrolled(MouseScrolledEvent& e) {
-		m_EditorCamera->MouseMoved();
-		m_EditorCamera->OnMouseScroll(e.GetYOffset());
+		m_ActiveCamera->MouseMoved();
+		m_ActiveCamera->OnMouseScroll(e.GetYOffset());
 		return false;
 	}
 

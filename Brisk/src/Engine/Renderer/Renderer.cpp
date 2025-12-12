@@ -58,7 +58,7 @@ namespace Brisk
             glm::radians(45.0f), (float)1920 / (float)1080, nearPlane,
             farPlane);
         proj[1][1] *= -1.0f;
-        view = Application::GetCamera()->GetViewMatrix();
+        view = Application::GetEditorCamera()->GetViewMatrix();
 
         const auto corners = getFrustumCornersWorldSpace(proj, view);
 
@@ -897,15 +897,15 @@ namespace Brisk
         Application::GetJobSystem().ExecuteMainThreadCallbacks();
         glm::vec3 lightDir{ 4.0f, -32.0f, 12.0f };
         MVP mvp{};
-        mvp.ProjView = Application::GetCamera()->GetViewProjection();
-        mvp.View = Application::GetCamera()->GetViewMatrix();
-        mvp.CamPos = Application::GetCamera()->GetPosition();
+        mvp.ProjView = Application::GetEditorCamera()->GetViewProjection();
+        mvp.View = Application::GetEditorCamera()->GetViewMatrix();
+        mvp.CamPos = Application::GetEditorCamera()->GetPosition();
 
         m_MVPBuffer->UpdatePersistantData(sizeof(MVP), &mvp);
 
         ClusterInfo clusterInfo{};
-        clusterInfo.View = Application::GetCamera()->GetViewMatrix();
-        clusterInfo.InverseProj = glm::inverse(Application::GetCamera()->GetProjection());
+        clusterInfo.View = Application::GetEditorCamera()->GetViewMatrix();
+        clusterInfo.InverseProj = glm::inverse(Application::GetEditorCamera()->GetProjection());
         uint32_t sizePx = (unsigned int)std::ceilf(1920 / 16.0f);
         clusterInfo.TileSizes = glm::uvec4(16, 9, 24, sizePx);
         clusterInfo.ScreenDimensions = glm::uvec4(m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight(), 1, 1000);
@@ -1236,10 +1236,10 @@ namespace Brisk
         }
 
         RayTracingProps rayProps{};
-        rayProps.ProjInv = glm::inverse(Application::GetCamera()->GetProjection());
-        rayProps.ViewInv = glm::inverse(Application::GetCamera()->GetViewMatrix());
+        rayProps.ProjInv = glm::inverse(Application::GetEditorCamera()->GetProjection());
+        rayProps.ViewInv = glm::inverse(Application::GetEditorCamera()->GetViewMatrix());
         rayProps.LightPos = lightDir;
-        rayProps.CamPos = Application::GetCamera()->GetPosition();
+        rayProps.CamPos = Application::GetEditorCamera()->GetPosition();
         rayProps.dimension = glm::vec2(1920, 1080);
         m_RayTracingPropsBuffer->UpdatePersistantData(sizeof(RayTracingProps), &rayProps);
 

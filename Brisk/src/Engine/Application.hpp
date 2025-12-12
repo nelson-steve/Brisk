@@ -41,7 +41,7 @@ namespace Brisk
 		static ImGuiLayer* GetGuiLayer() { return m_ImGuiLayer; }
 		static const std::shared_ptr<GpuAdapter> GetGpuAdapter() { return m_Adapter; }
 		static const std::shared_ptr<Renderer> GetRenderer() { return m_Renderer; }
-		static const std::shared_ptr<Camera> GetCamera() { return m_EditorCamera; }
+		static const std::shared_ptr<Camera> GetEditorCamera() { return m_ActiveCamera; }
 		static JobSystem& GetJobSystem() { return m_JobSystem; }
 		static RendererSettings& GetRendererSettings() { return m_RendererSettings; }
 	private:
@@ -57,7 +57,9 @@ namespace Brisk
 		static std::shared_ptr<GpuAdapter> m_Adapter;
 		static std::shared_ptr<Renderer> m_Renderer;
 		static std::shared_ptr<Window> m_Window;
+		static std::shared_ptr<Camera> m_ActiveCamera;
 		static std::shared_ptr<Camera> m_EditorCamera;
+		static std::shared_ptr<Camera> m_EditorCameraRT;
 		std::shared_ptr<SceneManager> m_SceneManager;
 		std::shared_ptr<AssetManager> m_AssetManager;
 	};

@@ -34,7 +34,7 @@ void main() {
     vec4 viewPos = camera.projInv * pNDC;
     vec3 rayDir = normalize((camera.viewInv * vec4(viewPos.xyz, 0.0)).xyz);
 
-    payload.color = vec3(1.0);
+    payload.radiance = vec3(1.0);
 
     traceRayEXT(
         topLevelAS, 
@@ -48,5 +48,5 @@ void main() {
         0              // payload location
     );
 
-    imageStore(resultImage, ivec2(pix), vec4(payload.color, 1.0));
+    imageStore(resultImage, ivec2(pix), vec4(payload.radiance, 1.0));
 }

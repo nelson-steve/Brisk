@@ -2,6 +2,7 @@ struct Vertex {
     float vx, vy, vz;
     float nx, ny, nz;
     float tx, ty;
+    float tpx, tpy, tpz, tpw;
 };
 
 struct Meshlet

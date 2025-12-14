@@ -7,5 +7,5 @@
 layout(location = 0) rayPayloadInEXT RadiancePayload radiancePayload;
 
 void main() {
-    radiancePayload.color = vec3(0.5, 0.5, 0.5);
+    radiancePayload.radiance = vec3(0.5, 0.5, 0.5);
 }

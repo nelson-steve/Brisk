@@ -28,9 +28,10 @@ namespace Brisk
 	};
 
     struct Vertex {
-        float vx, vy, vz; // 4 + 4 + 4 = 12
-        float nx, ny, nz; // 4 + 4 + 4 = 12
-        float tx, ty;     // 4 + 4 = 8
+        float vx, vy, vz;         // 4 + 4 + 4 = 12
+        float nx, ny, nz;         // 4 + 4 + 4 = 12
+        float tx, ty;             // 4 + 4 = 8
+        float tpx, tpy, tpz, tpw; // 4 + 4 + 4 + 4 = 16
     };
 
     struct alignas(16) Mesh {
@@ -132,6 +133,7 @@ namespace Brisk
         uint32_t GetDrawsCount() { return m_Geometry.draws.size(); }
         const std::vector<Mesh>& GetMeshes() const { return m_Geometry.meshes; }
         const std::vector<MeshDraw>& GetDraws() const { return m_Geometry.draws; }
+        const std::vector<MeshTransform>& GetTransforms() const { return m_Geometry.transforms; }
 
 		entt::registry& Reg() { return m_Registry; }
 		glm::vec3 lightPos = glm::vec3(-2.0f, 4.0f, -1.0f);

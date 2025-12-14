@@ -156,7 +156,7 @@ namespace Brisk
 			layout->AddBinding(7, 4, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->AddBinding(8, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT });
 			layout->AddBinding(9, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT, GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT, GPUResource::ShaderStageAccess::SHADER_STAGE_CLOSEST_HIT_BIT_KHR });
-			layout->AddBinding(10, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT });
+			layout->AddBinding(10, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_MESH_BIT_EXT, GPUResource::ShaderStageAccess::SHADER_STAGE_CLOSEST_HIT_BIT_KHR		});
 			layout->AddBinding(11, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_ACCELERATION_STRUCTURE_KHR,  { GPUResource::ShaderStageAccess::SHADER_STAGE_RAYGEN_BIT_KHR, GPUResource::ShaderStageAccess::SHADER_STAGE_CLOSEST_HIT_BIT_KHR });
 			layout->AddBinding(12, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_IMAGE,  { GPUResource::ShaderStageAccess::SHADER_STAGE_RAYGEN_BIT_KHR });
 			layout->AddBinding(13, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_RAYGEN_BIT_KHR, GPUResource::ShaderStageAccess::SHADER_STAGE_CLOSEST_HIT_BIT_KHR });

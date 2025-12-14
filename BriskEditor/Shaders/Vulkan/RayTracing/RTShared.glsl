@@ -1,7 +1,7 @@
 struct RadiancePayload
 {
-    vec3 color;
-    float hitT;
+    vec3 radiance;
+    uint depth;
 };
 
 struct ShadowPayload

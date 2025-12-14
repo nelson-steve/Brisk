@@ -5,6 +5,9 @@
 #include "CommandBufferVulkan.hpp"
 #include "BLASVulkan.hpp"
 
+#include <glm/glm.hpp>
+#include <glm/gtc/matrix_transform.hpp>
+
 namespace Brisk
 {
 	void TLASVulkan::Build(std::shared_ptr<BLAS> blas) {
@@ -26,20 +29,31 @@ namespace Brisk
 		std::vector<VkAccelerationStructureInstanceKHR> instances(drawCount);
 		for (uint32_t i = 0; i < drawCount; i++) {
 			VkAccelerationStructureInstanceKHR& instance = instances[i];
-			instance.transform = {
-				1, 0, 0, 0,
-				0, 1, 0, 0,
-				0, 0, 1, 0
-			};
+
+			MeshTransform t = SceneManager::pActiveScene->GetTransforms()[SceneManager::pActiveScene->GetDraws()[i].transformIndex];
+			glm::quat q = glm::quat(
+				t.orientation.w,
+				t.orientation.x,
+				t.orientation.y,
+				t.orientation.z
+			);
+
+			glm::mat3 xform = glm::transpose(glm::mat3_cast(q)) * t.scale;
+
+			memcpy(instance.transform.matrix[0], &xform[0], sizeof(float) * 3);
+			memcpy(instance.transform.matrix[1], &xform[1], sizeof(float) * 3);
+			memcpy(instance.transform.matrix[2], &xform[2], sizeof(float) * 3);
+			instance.transform.matrix[0][3] = t.position.x;
+			instance.transform.matrix[1][3] = t.position.y;
+			instance.transform.matrix[2][3] = t.position.z;
+			instance.mask = 0xFF;
+
 			instance.instanceCustomIndex = draws[i].meshIndex;
 			instance.flags = VK_GEOMETRY_INSTANCE_FORCE_OPAQUE_BIT_KHR;
 			instance.accelerationStructureReference = std::static_pointer_cast<BLASVulkan>(blas)->blasAddresses[draws[i].meshIndex];
 			instance.instanceShaderBindingTableRecordOffset = 0;
-			instance.flags = VK_GEOMETRY_INSTANCE_TRIANGLE_FACING_CULL_DISABLE_BIT_KHR;
 			instance.mask = 0xFF;
-
 			void* ptr = instancesBuffer->GetMapped();
-
 			memcpy(static_cast<VkAccelerationStructureInstanceKHR*>(ptr) + i, &instance, sizeof(VkAccelerationStructureInstanceKHR));
 		}
 

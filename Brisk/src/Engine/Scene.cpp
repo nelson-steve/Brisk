@@ -382,6 +382,13 @@ namespace Brisk
 						vertex.ty = texcoords0[i].y();
 					}
 
+					if (hasTangent && i < tangent.size()) {
+						vertex.tpx = tangent[i].x();
+						vertex.tpy = tangent[i].y();
+						vertex.tpz = tangent[i].z();
+						vertex.tpw = tangent[i].w();
+					}
+
 					vertices.push_back(vertex);
 				}
 

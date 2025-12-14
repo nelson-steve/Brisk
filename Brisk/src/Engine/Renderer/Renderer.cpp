@@ -872,8 +872,8 @@ namespace Brisk
         m_GBufferPipeline->UpdateResources("Materials", {}, m_MaterialStorageBuffer, {});
         m_GBufferPipeline->UpdateResources("Transforms", {}, m_TransformsBuffer, {});
 
-        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf");
-        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
+        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf");
+        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/futuristic_muscle_car_launch_control_ready/scene.gltf");
     }
 
     bool renderRaytracing = false;

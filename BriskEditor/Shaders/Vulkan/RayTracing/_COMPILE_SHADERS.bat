@@ -6,8 +6,8 @@ setlocal
 if not exist "Compiled" mkdir Compiled
 
 :: Compile deferred renderer shaders
-echo Compiling RayGeneration.rgen...
-glslc RayGeneration.rgen -o Compiled/RayGeneration.spv --target-env=vulkan1.4 || goto :error
+echo Compiling RayGen.rgen...
+glslc RayGen.rgen -o Compiled/RayGen.spv --target-env=vulkan1.4 || goto :error
 
 echo Compiling ClosestHit.rchit...
 glslc ClosestHit.rchit -o Compiled/ClosestHit.spv --target-env=vulkan1.4 || goto :error

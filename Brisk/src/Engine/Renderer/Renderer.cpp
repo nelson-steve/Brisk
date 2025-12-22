@@ -586,7 +586,7 @@ namespace Brisk
                 // Shadow miss
                 // Closest Hit  
                 Pipeline::RayTracingPipelineSpecs pipelineSpecs{};
-                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/RayGeneration.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/RayGen.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/Miss.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/Shadow.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/ClosestHit.spv");
@@ -872,8 +872,8 @@ namespace Brisk
         m_GBufferPipeline->UpdateResources("Materials", {}, m_MaterialStorageBuffer, {});
         m_GBufferPipeline->UpdateResources("Transforms", {}, m_TransformsBuffer, {});
 
-        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf");
-        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/futuristic_muscle_car_launch_control_ready/scene.gltf");
+        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf");
+        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/futuristic_muscle_car_launch_control_ready/scene.gltf");
     }
 
     bool renderRaytracing = false;

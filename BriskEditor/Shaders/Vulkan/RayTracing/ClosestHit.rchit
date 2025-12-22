@@ -303,17 +303,16 @@ void main() {
         occlusion = texture(GlobalTextures[nonuniformEXT(material.occlusionTextureIndex)], uv).r;
     }
 
-    vec3 V = normalize(gl_WorldRayDirectionEXT);
-	vec3 lightVector = normalize(-camera.lightPos);
+    vec3 V = normalize(-gl_WorldRayDirectionEXT);
 
     vec3 P = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
-    vec3 L = normalize(camera.lightPos - P);
+    vec3 L = normalize(-camera.lightPos);
 
     vec3 accum = vec3(0.0);
     vec3 sunColor = vec3(1.0, 0.95, 0.9);
     float sunIntensity = 6.0;
     vec3 radiance = sunColor * sunIntensity;
-    accum +=  evaluateLight(albedo.rgb, metallic, roughness, NormalMap, V, lightVector, radiance, occlusion);
+    accum +=  evaluateLight(albedo.rgb, metallic, roughness, N, V, L, radiance, occlusion);
 
     vec3 ambient = vec3(0.03);
     ambient = ambient * albedo.rgb * occlusion;
@@ -323,14 +322,12 @@ void main() {
 
     radiancePayload.radiance = finalColor;
 
-    vec3 origin = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
-
 	float tmin = 0.001;
 	float tmax = 10000.0;
 
     shadowPayload.occluded = 1u;
 
-    traceRayEXT(topLevelAS, gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsOpaqueEXT | gl_RayFlagsSkipClosestHitShaderEXT, 0xFF, 0, 0, 1, origin, tmin, lightVector, tmax, 2);
+    traceRayEXT(topLevelAS, gl_RayFlagsTerminateOnFirstHitEXT | gl_RayFlagsOpaqueEXT | gl_RayFlagsSkipClosestHitShaderEXT, 0xFF, 0, 0, 1, P, tmin, L, tmax, 2);
     if(shadowPayload.occluded == 1u){
         radiancePayload.radiance *= vec3(0.2);
     }

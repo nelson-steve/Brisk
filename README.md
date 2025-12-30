@@ -1,5 +1,5 @@
 # Brisk Engine
-An open-source, C++20 game engine focused on modern rendering and GPU optimization.
+An open-source, C++20 game engine focused on modern rendering techniques and GPU optimization.
 
 ## Features
 - **Infinite Perspective Matrix**
@@ -10,8 +10,8 @@ An open-source, C++20 game engine focused on modern rendering and GPU optimizati
 - **Cascaded Shadow Maps**
 
 ## Graphics APIs
-- **Vulkan** (Primary)
-- **DirectX12** (Partial)
+- **Vulkan** (Functional)
+- **DirectX12** (Still in early development)
 
 ## Platforms
 - **Windows**

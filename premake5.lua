@@ -102,7 +102,6 @@ project "Brisk"
         'VMA_VOLK_HEADER_PATH="volk.h"'
     }
 
-
     links {
         "GLFW",
         "ImGui",
@@ -136,6 +135,26 @@ project "Brisk"
 
     filter "configurations:Release"
         optimize "On"
+
+    filter "files:**.c"
+        flags { "NoPCH" }
+    filter {}
+
+    filter "files:**.cc"
+        flags { "NoPCH" }
+    filter {}
+
+    filter "files:Brisk/src/VmaUsage.cpp"
+        flags { "NoPCH" }
+    filter {}
+
+    filter "files:Brisk/src/VolkUsage.cpp"
+        flags { "NoPCH" }
+    filter {}    
+
+    filter "files:Brisk/src/Graphics/Vulkan/volk.cpp"
+        flags { "NoPCH" }
+    filter {}    
 
 project "BriskEditor"
     location "BriskEditor"
@@ -175,7 +194,6 @@ project "BriskEditor"
         "VK_NO_PROTOTYPES",
     }
 
-
     links {
         "Brisk"
     }
@@ -192,4 +210,11 @@ project "BriskEditor"
 
     filter "configurations:Release"
         optimize "On"
-        
+
+    filter "files:**.c"
+        flags { "NoPCH" }
+    filter {}
+
+    filter "files:**.cc"
+        flags { "NoPCH" }
+    filter {}        

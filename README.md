@@ -24,6 +24,11 @@ An open-source, C++20 game engine focused on modern rendering and GPU optimizati
 ```bash
 git clone https://github.com/nelson-steve/Brisk.git
 ```
+OR
+- Clone without commit history for faster clone
+```bash
+git clone --depth=1 https://github.com/nelson-steve/Brisk.git
+```
 - Run `GenerateProjects-Windows.bat` in Brisk/Scripts directory
 - Open Brisk.sln
 - Build `Ctrl + Shift + B`

@@ -1,5 +1,5 @@
-vendors/**/bin/
-vendors/**/bin-int/
+Brisk/vendors/**/bin/
+Brisk/vendors/**/bin-int/
 
 **bin/
 **bin-int/

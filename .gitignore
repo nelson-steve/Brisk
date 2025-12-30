@@ -19,5 +19,7 @@ vendors/**/bin-int/
 **x64/
 # Files
 *.user
-*.sln
 *.vcxproj
+*.vcxproj.filters
+*.vcxproj.user
+*.sln

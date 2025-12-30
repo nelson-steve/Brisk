@@ -8,14 +8,16 @@
 layout(location = 0) rayPayloadEXT RadiancePayload radiancePayload;
 
 layout(set = 0, binding = 11) uniform accelerationStructureEXT topLevelAS;
-layout(set = 0, binding = 12) uniform writeonly image2D resultImage;
+layout(set = 0, binding = 12, rgba32f) uniform image2D resultImage;
+layout(set = 0, binding = 16, rgba32f) uniform image2D accumulation;
 layout(set = 0, binding = 13) uniform CameraUBO {
     mat4 viewInv;
     mat4 projInv;
     vec3 lightPos;
     vec3 camPos;
     vec2 dimension; // width, height
-    vec2 _pad;
+    uint frame;
+    uint _pad;
 } camera;
 
 void main() {
@@ -35,21 +37,53 @@ void main() {
     vec4 viewPos = camera.projInv * pNDC;
     vec3 rayDir = normalize((camera.viewInv * vec4(viewPos.xyz, 0.0)).xyz);
 
-    radiancePayload.radiance = vec3(1.0);
+    vec3 radiance = vec3(0.0);
+    vec3 throughput = vec3(1.0);
 
-    traceRayEXT(
-        topLevelAS, 
-        gl_RayFlagsOpaqueEXT,
-        0xFF,          // cull mask
-        0, 
-        0,
-        0, // miss index
-        rayOrigin,
-        0.001,         // tmin
-        rayDir,
-        10000.0,       // tmax
-        0              // payload location
-    );
+    #define MAX_BOUNCES 32
 
-    imageStore(resultImage, ivec2(pix), vec4(radiancePayload.radiance, 1.0));
+    for (int bounce = 0; bounce < MAX_BOUNCES; bounce++) {
+        radiancePayload.done = false;
+        radiancePayload.throughput = throughput;
+        radiancePayload.radiance = vec3(0.0);
+
+        traceRayEXT(
+            topLevelAS, 
+            gl_RayFlagsOpaqueEXT,
+            0xFF,          // cull mask
+            0, 
+            0,
+            0, // miss index
+            rayOrigin,
+            0.001,         // tmin
+            rayDir,
+            10000.0,       // tmax
+            0              // payload location
+        );
+
+        radiance += radiancePayload.radiance;
+        if (radiancePayload.done)
+            break;
+
+        throughput *= radiancePayload.throughput;
+
+        rayOrigin = radiancePayload.nextOrigin;
+        rayDir    = radiancePayload.nextDir;
+    }
+
+    vec4 prev = imageLoad(accumulation, ivec2(pix));
+
+    vec3 sampleColor = radiancePayload.radiance;
+
+    vec3 accumulated;
+    if (camera.frame == 0) {
+        accumulated = sampleColor;
+    } else {
+        accumulated =
+            (prev.rgb * float(camera.frame ) + sampleColor)
+            / float(camera.frame  + 1);
+    }
+
+    imageStore(accumulation, ivec2(pix), vec4(accumulated, 1.0));
+    imageStore(resultImage, ivec2(pix), vec4(accumulated, 1.0));
 }

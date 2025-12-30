@@ -96,9 +96,6 @@
     <ClInclude Include="src\Engine\Mutexes.hpp">
       <Filter>Engine</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\OrthographicCamera.hpp">
-      <Filter>Engine</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Renderer\BLAS.hpp">
       <Filter>Engine\Renderer</Filter>
     </ClInclude>
@@ -178,12 +175,6 @@
       <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\SceneManager.hpp">
-      <Filter>Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\SceneSerializer.hpp">
-      <Filter>Engine</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\ScriptEngine.hpp">
       <Filter>Engine</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Window.hpp">
@@ -337,9 +328,6 @@
     <ClCompile Include="src\Engine\Mutexes.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
-    <ClCompile Include="src\Engine\OrthographicCamera.cpp">
-      <Filter>Engine</Filter>
-    </ClCompile>
     <ClCompile Include="src\Engine\Renderer\BLAS.cpp">
       <Filter>Engine\Renderer</Filter>
     </ClCompile>
@@ -407,12 +395,6 @@
       <Filter>Engine</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\SceneManager.cpp">
-      <Filter>Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\SceneSerializer.cpp">
-      <Filter>Engine</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\ScriptEngine.cpp">
       <Filter>Engine</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Window.cpp">

@@ -322,8 +322,20 @@ namespace Brisk
                 specs.p_Height = 1080;
                 specs.p_DebugName = "g_Lighting";
                 specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled | Core::TextureUsage::ImageUsageStorage;
-                specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
+                specs.p_Format = Core::Format::FORMAT_R32G32B32A32_SFLOAT;
                 m_LightingOutput->Init(specs);
+            }
+
+            m_AccumulationImage = Texture::Create();
+
+            {
+                Texture::TextureSpecification specs{};
+                specs.p_Width = 1920;
+                specs.p_Height = 1080;
+                specs.p_DebugName = "g_Accumulation";
+                specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled | Core::TextureUsage::ImageUsageStorage;
+                specs.p_Format = Core::Format::FORMAT_R32G32B32A32_SFLOAT;
+                m_AccumulationImage->Init(specs);
             }
 
             m_LightingPass = RenderPass::Create();
@@ -583,13 +595,11 @@ namespace Brisk
                 // The order of these paths matter
                 // Raygen
                 // Miss 
-                // Shadow miss
                 // Closest Hit  
                 Pipeline::RayTracingPipelineSpecs pipelineSpecs{};
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/RayGen.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/Miss.spv");
-                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/Shadow.spv");
-                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/ClosestHit.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/RayTracing/Compiled/CHit.spv");
 
                 m_RayTracing = Pipeline::Create();
                 m_RayTracing->Init(pipelineSpecs);
@@ -873,7 +883,9 @@ namespace Brisk
         m_GBufferPipeline->UpdateResources("Transforms", {}, m_TransformsBuffer, {});
 
         SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf");
-        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/futuristic_muscle_car_launch_control_ready/scene.gltf");
+        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/mixed_workflow/scene.gltf");
+        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/lamborghini_temerario_gt3_2026/scene.gltf");
+        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
     }
 
     bool renderRaytracing = false;
@@ -885,6 +897,7 @@ namespace Brisk
         m_RayTracing->UpdateResources("Indices", {}, m_IndexBuffer, {});
         m_RayTracing->UpdateResources("topLevelAS", {}, {}, { m_TLAS });
         m_RayTracing->UpdateResources("resultImage", { m_LightingOutput }, {}, {});
+        m_RayTracing->UpdateResources("accumulation", { m_AccumulationImage }, {}, {});
         m_RayTracing->UpdateResources("camera", {}, { m_RayTracingPropsBuffer }, {});
 
         renderRaytracing = true;
@@ -1241,6 +1254,7 @@ namespace Brisk
         rayProps.LightPos = lightDir;
         rayProps.CamPos = Application::GetEditorCamera()->GetPosition();
         rayProps.dimension = glm::vec2(1920, 1080);
+        rayProps.frame = Application::GetEditorCamera()->GetFrameIndex();
         m_RayTracingPropsBuffer->UpdatePersistantData(sizeof(RayTracingProps), &rayProps);
 
         if (!m_Swapchain->AcquireNextImage(UINT64_MAX, ImageAvailableSemaphore[m_CurrentFrame], nullptr, &m_ImageIndex)) {

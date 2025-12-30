@@ -48,6 +48,7 @@ namespace Brisk
 		glm::vec3 GetRightDirection() const;
 		glm::vec3 GetForwardDirection() const;
 		const glm::vec3& GetPosition() const { return m_Position; }
+		const uint32_t GetFrameIndex() const { return m_FrameIndex; }
 		glm::quat GetOrientation() const;
 
 		float GetPitch() const { return m_Pitch; }
@@ -81,6 +82,7 @@ namespace Brisk
 		glm::vec3 m_FocalPoint = { 0.0f, 0.0f, 0.0f };
 
 		glm::vec2 m_InitialMousePosition = { 0.0f, 0.0f };
+		uint32_t m_FrameIndex;
 
 		float m_Distance = 10.0f;
 		float m_Pitch = 0.0f, m_Yaw = 0.0f;

@@ -331,7 +331,6 @@ namespace Brisk
 
         // Raygen
         // Miss 
-        // Shadow miss
         // Closest Hit
 
         std::vector<VkRayTracingShaderGroupCreateInfoKHR> shaderGroups{};
@@ -352,16 +351,9 @@ namespace Brisk
         shaderGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
         shaderGroups.push_back(shaderGroup);
 
-        shaderGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_GENERAL_KHR;
-        shaderGroup.generalShader = 2;
-        shaderGroup.closestHitShader = VK_SHADER_UNUSED_KHR;
-        shaderGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
-        shaderGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
-        shaderGroups.push_back(shaderGroup);
-
         shaderGroup.type = VK_RAY_TRACING_SHADER_GROUP_TYPE_TRIANGLES_HIT_GROUP_KHR;
         shaderGroup.generalShader = VK_SHADER_UNUSED_KHR;
-        shaderGroup.closestHitShader = 3;
+        shaderGroup.closestHitShader = 2;
         shaderGroup.anyHitShader = VK_SHADER_UNUSED_KHR;
         shaderGroup.intersectionShader = VK_SHADER_UNUSED_KHR;
         shaderGroups.push_back(shaderGroup);

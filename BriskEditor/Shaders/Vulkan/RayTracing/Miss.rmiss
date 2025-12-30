@@ -7,5 +7,7 @@
 layout(location = 0) rayPayloadInEXT RadiancePayload radiancePayload;
 
 void main() {
-    radiancePayload.radiance = vec3(0.5, 0.5, 0.5);
+    vec3 sky = vec3(0.5, 0.7, 1.0);
+    radiancePayload.radiance += radiancePayload.throughput * sky;
+    radiancePayload.done = true;
 }

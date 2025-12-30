@@ -121,7 +121,6 @@
     <ClInclude Include="src\Engine\JobSystem.hpp" />
     <ClInclude Include="src\Engine\MeshAsset.hpp" />
     <ClInclude Include="src\Engine\Mutexes.hpp" />
-    <ClInclude Include="src\Engine\OrthographicCamera.hpp" />
     <ClInclude Include="src\Engine\Renderer\BLAS.hpp" />
     <ClInclude Include="src\Engine\Renderer\Buffer.hpp" />
     <ClInclude Include="src\Engine\Renderer\CSMRenderPass.hpp" />
@@ -149,8 +148,6 @@
     <ClInclude Include="src\Engine\Renderer\Texture.hpp" />
     <ClInclude Include="src\Engine\Scene.hpp" />
     <ClInclude Include="src\Engine\SceneManager.hpp" />
-    <ClInclude Include="src\Engine\SceneSerializer.hpp" />
-    <ClInclude Include="src\Engine\ScriptEngine.hpp" />
     <ClInclude Include="src\Engine\Window.hpp" />
     <ClInclude Include="src\Entrypoint\Entrypoint.h" />
     <ClInclude Include="src\Graphics\DirectX12\BufferDirectX12.hpp" />
@@ -204,7 +201,6 @@
     <ClCompile Include="src\Engine\JobSystem.cpp" />
     <ClCompile Include="src\Engine\MeshAsset.cpp" />
     <ClCompile Include="src\Engine\Mutexes.cpp" />
-    <ClCompile Include="src\Engine\OrthographicCamera.cpp" />
     <ClCompile Include="src\Engine\Renderer\BLAS.cpp" />
     <ClCompile Include="src\Engine\Renderer\Buffer.cpp" />
     <ClCompile Include="src\Engine\Renderer\CSMRenderPass.cpp" />
@@ -228,11 +224,6 @@
     <ClCompile Include="src\Engine\Renderer\Texture.cpp" />
     <ClCompile Include="src\Engine\Scene.cpp" />
     <ClCompile Include="src\Engine\SceneManager.cpp" />
-    <ClCompile Include="src\Engine\SceneSerializer.cpp" />
-    <ClCompile Include="src\Engine\ScriptEngine.cpp">
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">NotUsing</PrecompiledHeader>
-      <PrecompiledHeader Condition="'$(Configuration)|$(Platform)'=='Release|x64'">NotUsing</PrecompiledHeader>
-    </ClCompile>
     <ClCompile Include="src\Engine\Window.cpp" />
     <ClCompile Include="src\Graphics\DirectX12\BufferDirectX12.cpp" />
     <ClCompile Include="src\Graphics\DirectX12\CommandBufferAllocatorDirectX12.cpp" />

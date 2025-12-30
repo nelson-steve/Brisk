@@ -76,7 +76,8 @@ namespace Brisk
 		alignas(16) glm::vec3 LightPos;
 		alignas(16) glm::vec3 CamPos;
 		alignas(16) glm::uvec2 dimension; // width, height
-		glm::uvec2 _pad;
+		uint32_t frame;
+		uint32_t _pad;
 	};
 
 	struct ShadowData {
@@ -159,6 +160,7 @@ namespace Brisk
 		std::shared_ptr<Texture> m_ShadowMapLOD2;
 		std::shared_ptr<Texture> m_ShadowMapLOD3;
 		std::shared_ptr<Texture> m_LightingOutput;
+		std::shared_ptr<Texture> m_AccumulationImage;
 		//std::shared_ptr<Texture> m_RayTracingOutput;
 		// Attachments - End
 

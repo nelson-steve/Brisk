@@ -162,6 +162,7 @@ namespace Brisk
 			layout->AddBinding(13, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_RAYGEN_BIT_KHR, GPUResource::ShaderStageAccess::SHADER_STAGE_CLOSEST_HIT_BIT_KHR });
 			layout->AddBinding(14, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_CLOSEST_HIT_BIT_KHR });
 			layout->AddBinding(15, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_CLOSEST_HIT_BIT_KHR });
+			layout->AddBinding(16, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_IMAGE,  { GPUResource::ShaderStageAccess::SHADER_STAGE_RAYGEN_BIT_KHR });
 			layout->Init();
 			m_FrameGlobalDescriptorLayout = std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout();
 		}

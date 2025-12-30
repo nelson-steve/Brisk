@@ -8,7 +8,7 @@ namespace Brisk
 	uint32_t shaderGroupHandleSize = 32;
 	uint32_t shaderGroupBaseAlignment = 64;
 	uint32_t shaderGroupHandleAlignment = 4;
-	uint32_t groupCount = 4;
+	uint32_t groupCount = 3;
 
 	void SBTVulkan::Init(std::shared_ptr<Pipeline> pipeline) {
 		size_t dataSize = shaderGroupHandleSize * groupCount;
@@ -25,7 +25,7 @@ namespace Brisk
 		uint32_t hitStride = alignUp(shaderGroupHandleSize, shaderGroupHandleAlignment);
 		uint32_t callableStride = 0;
 
-		uint32_t missCount = 2;
+		uint32_t missCount = 1;
 
 		uint32_t raygenSize = raygenStride * 1;
 		uint32_t missSize = missStride * missCount;
@@ -62,14 +62,9 @@ namespace Brisk
 			m_shaderHandles.data() + 1 * shaderGroupHandleSize,
 			shaderGroupHandleSize);
 
-		// Miss #1 (shadow)
-		memcpy(pData + missOffset + 1 * missStride,
-			m_shaderHandles.data() + 2 * shaderGroupHandleSize,
-			shaderGroupHandleSize);
-
 		// Hit
 		memcpy(pData + hitOffset,
-			m_shaderHandles.data() + 3 * shaderGroupHandleSize,
+			m_shaderHandles.data() + 2 * shaderGroupHandleSize,
 			shaderGroupHandleSize);
 
 

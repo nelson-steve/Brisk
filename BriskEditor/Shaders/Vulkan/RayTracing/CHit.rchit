@@ -4,6 +4,7 @@
 #extension GL_GOOGLE_include_directive: require
 
 #include "RTShared.glsl"
+#include "RTHelpers.glsl"
 
 #define PI 3.14159265359
 
@@ -150,47 +151,70 @@ vec3 DiffuseLambert(vec3 albedo) {
     return albedo / PI;
 }
 
-vec3 evaluateLight(
-    vec3 albedo,
-    float metallic,
-    float roughness,
-    vec3 N,
-    vec3 V,
-    vec3 L,
-    vec3 radiance,
-    float ao
-) {
-    vec3 H = normalize(V + L);
-    float NdotL = max(dot(N, L), 0.0);
-    float NdotV = max(dot(N, V), 0.0);
-    float NdotH = max(dot(N, H), 0.0);
-    float VdotH = max(dot(V, H), 0.0);
-
-    // Fresnel F0
-    vec3 F0 = mix(vec3(0.04), albedo, metallic);
-
-    // Cook-Torrance
-    float D = DGGX(NdotH, roughness);
-    float G = GSmith(NdotV, NdotL, roughness);
-    vec3 F = FSchlick(F0, VdotH);
-
-    vec3 specNumer = D * G * F;
-    float denom = max(4.0 * NdotV * NdotL, 1e-6);
-    vec3 spec = specNumer / denom;
-
-    // Energy-conserving diffuse
-    vec3 kS = F;
-    vec3 kD = (vec3(1.0) - kS) * (1.0 - metallic);
-    vec3 diffuse = kD * (albedo / PI);
-
-    // final contribution from this light
-    return (diffuse + spec) * radiance * NdotL;
-}
-
 vec3 rotateQuat(vec3 v, vec4 q)
 {
     return v + 2.0 * cross(q.xyz, cross(q.xyz, v) + q.w * v);
 }
+
+vec3 sampleGGX(vec3 N, float roughness, inout uint rng)
+{
+    float a  = roughness * roughness;
+    float a2 = a * a;
+
+    float r1 = Random(rng);
+    float r2 = Random(rng);
+
+    float phi = 2.0 * PI * r1;
+
+    float cosTheta = sqrt((1.0 - r2) / (1.0 + (a2 - 1.0) * r2));
+    float sinTheta = sqrt(max(0.0, 1.0 - cosTheta * cosTheta));
+
+    // GGX half-vector in tangent space
+    vec3 Ht = vec3(
+        cos(phi) * sinTheta,
+        sin(phi) * sinTheta,
+        cosTheta
+    );
+
+    // Build TBN basis
+    vec3 T = normalize(abs(N.z) < 0.999
+        ? cross(N, vec3(0, 0, 1))
+        : cross(N, vec3(0, 1, 0)));
+
+    vec3 B = cross(N, T);
+
+    // Transform to world space
+    return normalize(T * Ht.x + B * Ht.y + N * Ht.z);
+}
+
+vec3 CosineHemisphere(vec3 N, inout uint rng)
+{
+    float r1 = Random(rng);
+    float r2 = Random(rng);
+
+    float phi = 2.0 * PI * r1;
+
+    float cosTheta = sqrt(1.0 - r2);
+    float sinTheta = sqrt(r2);
+
+    // Local (tangent-space) direction
+    vec3 Lh = vec3(
+        cos(phi) * sinTheta,
+        sin(phi) * sinTheta,
+        cosTheta
+    );
+
+    // Build orthonormal basis (TBN)
+    vec3 T = normalize(abs(N.z) < 0.999
+        ? cross(N, vec3(0, 0, 1))
+        : cross(N, vec3(0, 1, 0)));
+
+    vec3 B = cross(N, T);
+
+    // Transform to world space
+    return normalize(T * Lh.x + B * Lh.y + N * Lh.z);
+}
+
 
 void main() {
     MeshDraw draw = MeshDraws.meshDraws[gl_InstanceID];
@@ -305,19 +329,65 @@ void main() {
     vec3 V = normalize(-gl_WorldRayDirectionEXT);
 
     vec3 P = gl_WorldRayOriginEXT + gl_WorldRayDirectionEXT * gl_HitTEXT;
-    vec3 L = normalize(-camera.lightPos);
+    P += N * max(1e-4, 1e-4 * gl_HitTEXT);
 
-    vec3 accum = vec3(0.0);
-    vec3 sunColor = vec3(1.0, 0.95, 0.9);
-    float sunIntensity = 6.0;
-    vec3 radiance = sunColor * sunIntensity;
-    accum +=  evaluateLight(albedo.rgb, metallic, roughness, N, V, L, radiance, occlusion);
 
-    vec3 ambient = vec3(0.03);
-    ambient = ambient * albedo.rgb * occlusion;
-    vec3 finalColor = ambient + accum;
+    vec3 emission = material.emissiveFactor * material.emissiveStrength;
+    if (material.emissiveTextureIndex != 0)
+        emission *= texture(GlobalTextures[nonuniformEXT(material.emissiveTextureIndex)], uv).rgb;
 
-    finalColor = finalColor / (finalColor + vec3(1.0));
+    radiancePayload.radiance += radiancePayload.throughput * emission;
 
-    radiancePayload.radiance = finalColor;
+    vec3 F0 = mix(vec3(0.04), albedo.rgb, metallic);
+
+    float specProb = max(F0.r, max(F0.g, F0.b));
+    float r = Random(radiancePayload.rngState);
+
+    vec3 newDir;
+    vec3 brdf;
+    float pdf;
+
+    if (r < specProb) {
+        // GGX specular
+        vec3 H = sampleGGX(N, roughness, radiancePayload.rngState);
+        newDir = reflect(-V, H);
+
+        float NdotL = max(dot(N, newDir), 0.0); 
+
+        if (dot(N, newDir) <= 0.0) {
+            radiancePayload.done = true;
+            return;
+        }
+
+        float NdotV = max(dot(N, V), 0.0);
+        float NdotH = max(dot(N, H), 0.0);
+        float VdotH = max(dot(V, H), 0.0);
+
+        vec3 F = FSchlick(F0, VdotH);
+        float D = DGGX(NdotH, roughness);
+        float G = GSmith(NdotV, NdotL, roughness);
+
+        brdf = (D * G * F) / max(4.0 * NdotL * NdotV, 1e-6);
+        pdf  = D * NdotH / max(4.0 * VdotH, 1e-6);
+        //pdf = (D * NdotH) / (4.0 * abs(VdotH));
+    } else {
+        // Diffuse
+        newDir = CosineHemisphere(N, radiancePayload.rngState);
+        brdf = albedo.rgb / PI;
+        pdf = (max(dot(N, newDir), 0.0) / PI);
+    }
+
+    if (pdf <= 0.0) {
+        radiancePayload.done = true;
+        return;
+    }
+
+    radiancePayload.throughput *= brdf * max(dot(N, newDir), 0.0) / pdf;
+
+    float maxThroughput = 10.0;
+    radiancePayload.throughput =
+        min(radiancePayload.throughput, vec3(maxThroughput));
+
+    radiancePayload.nextOrigin = P;
+    radiancePayload.nextDir    = normalize(newDir);
 }

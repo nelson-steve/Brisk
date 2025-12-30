@@ -22,6 +22,7 @@ An open-source, C++20 game engine focused on modern rendering techniques and GPU
 ## Requirements
 - `VulkanSDK>=1.4`
   - Download from https://vulkan.lunarg.com/ and follow install instruction.
+- Visual Studio 2022
 ## Build Instructions
 - Clone the repo
 ```bash

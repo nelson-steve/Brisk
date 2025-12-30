@@ -10,7 +10,6 @@ vendors/**/bin-int/
 *.dll
 *.so
 *.a
-*.exe
 *.pdb
 
 .vs/

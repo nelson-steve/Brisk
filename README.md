@@ -16,6 +16,9 @@ An open-source, C++20 game engine focused on modern rendering and GPU optimizati
 ## Platforms
 - **Windows**
 
+# GPU used in development
+- AMD Radeon RX 7900 GRE
+
 ## Requirements
 - `VulkanSDK>=1.4`
   - Download from https://vulkan.lunarg.com/ and follow install instruction.

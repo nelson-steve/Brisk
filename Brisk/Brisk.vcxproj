@@ -131,13 +131,11 @@
     <ClInclude Include="src\Engine\Renderer\Fence.hpp" />
     <ClInclude Include="src\Engine\Renderer\Framebuffer.hpp" />
     <ClInclude Include="src\Engine\Renderer\GpuAdapter.hpp" />
-    <ClInclude Include="src\Engine\Renderer\IBLTextureMaker.hpp" />
     <ClInclude Include="src\Engine\Renderer\Material.hpp" />
     <ClInclude Include="src\Engine\Renderer\Pipeline.hpp" />
     <ClInclude Include="src\Engine\Renderer\Queue.hpp" />
     <ClInclude Include="src\Engine\Renderer\RHI.hpp" />
     <ClInclude Include="src\Engine\Renderer\RenderCommand.hpp" />
-    <ClInclude Include="src\Engine\Renderer\RenderGraph.hpp" />
     <ClInclude Include="src\Engine\Renderer\RenderPass.hpp" />
     <ClInclude Include="src\Engine\Renderer\Renderer.hpp" />
     <ClInclude Include="src\Engine\Renderer\RendererAPI.hpp" />
@@ -210,7 +208,6 @@
     <ClCompile Include="src\Engine\Renderer\Descriptor.cpp" />
     <ClCompile Include="src\Engine\Renderer\Fence.cpp" />
     <ClCompile Include="src\Engine\Renderer\GpuAdapter.cpp" />
-    <ClCompile Include="src\Engine\Renderer\IBLTextureMaker.cpp" />
     <ClCompile Include="src\Engine\Renderer\Pipeline.cpp" />
     <ClCompile Include="src\Engine\Renderer\Queue.cpp" />
     <ClCompile Include="src\Engine\Renderer\RenderCommand.cpp" />

@@ -126,9 +126,6 @@
     <ClInclude Include="src\Engine\Renderer\GpuAdapter.hpp">
       <Filter>Engine\Renderer</Filter>
     </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\IBLTextureMaker.hpp">
-      <Filter>Engine\Renderer</Filter>
-    </ClInclude>
     <ClInclude Include="src\Engine\Renderer\Material.hpp">
       <Filter>Engine\Renderer</Filter>
     </ClInclude>
@@ -142,9 +139,6 @@
       <Filter>Engine\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Renderer\RenderCommand.hpp">
-      <Filter>Engine\Renderer</Filter>
-    </ClInclude>
-    <ClInclude Include="src\Engine\Renderer\RenderGraph.hpp">
       <Filter>Engine\Renderer</Filter>
     </ClInclude>
     <ClInclude Include="src\Engine\Renderer\RenderPass.hpp">
@@ -353,9 +347,6 @@
       <Filter>Engine\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Renderer\GpuAdapter.cpp">
-      <Filter>Engine\Renderer</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Engine\Renderer\IBLTextureMaker.cpp">
       <Filter>Engine\Renderer</Filter>
     </ClCompile>
     <ClCompile Include="src\Engine\Renderer\Pipeline.cpp">

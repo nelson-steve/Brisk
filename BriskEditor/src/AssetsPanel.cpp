@@ -25,17 +25,17 @@ namespace Brisk
         }
     }
     void AssetsPanel::OnCreate() {
-        LoadAssets("../Data");
+        LoadAssets("../Assets");
 
         m_FBX = Texture::Create();
         m_Folder = Texture::Create();
         m_OBJ = Texture::Create();
         m_Photo = Texture::Create();
 
-        m_FBX->Init("../Data/Images/fbx.png");
-        m_Folder->Init("../Data/Images/folder.png");
-        m_OBJ->Init("../Data/Images/obj.png");
-        m_Photo->Init("../Data/Images/photo.png");
+        m_FBX->Init("../Assets/Images/fbx.png");
+        m_Folder->Init("../Assets/Images/folder.png");
+        m_OBJ->Init("../Assets/Images/obj.png");
+        m_Photo->Init("../Assets/Images/photo.png");
 
         FBXDescriptorSet = ImGui_ImplVulkan_AddTexture(std::static_pointer_cast<TextureVulkan>(m_FBX)->GetSampler(), std::static_pointer_cast<TextureVulkan>(m_FBX)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);
         FolderDescriptorSet = ImGui_ImplVulkan_AddTexture(std::static_pointer_cast<TextureVulkan>(m_Folder)->GetSampler(), std::static_pointer_cast<TextureVulkan>(m_Folder)->GetView(), VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL);

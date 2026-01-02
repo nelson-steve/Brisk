@@ -326,6 +326,19 @@ namespace Brisk
                 m_LightingOutput->Init(specs);
             }
 
+            m_TonemapOutput = Texture::Create();
+
+            {
+                Texture::TextureSpecification specs{};
+                specs.p_Width = 1920;
+                specs.p_Height = 1080;
+                specs.p_DebugName = "g_Tonemap";
+                specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled;
+                specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
+                m_TonemapOutput->Init(specs);
+            }
+
+
             m_AccumulationImage = Texture::Create();
 
             {
@@ -360,6 +373,31 @@ namespace Brisk
                 },
                 {
                     RenderPassAttachment{ 0, AttachmentType::Color, m_LightingOutput, LoadOp::Clear, StoreOp::Store, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal }
+                }
+            );
+
+            m_TonemappingPass = RenderPass::Create();
+            m_TonemappingPass->Init(
+                {
+                    RenderPassDependency {
+                        -1,
+                        0,
+                        Core::AccessType::None, // src access
+                        Core::AccessType::ColorAttachmentWrite, // dst access
+                        Core::PipelineStage::ColorAttachment, // src stage
+                        Core::PipelineStage::ColorAttachment // dst stage
+                    },
+                    RenderPassDependency {
+                        0,
+                        -1,
+                        Core::AccessType::ColorAttachmentWrite, // src access
+                        Core::AccessType::ShaderRead, // dst access
+                        Core::PipelineStage::ColorAttachment, // src stage
+                        Core::PipelineStage::FragmentShader // dst stage
+                    },
+                },
+                {
+                    RenderPassAttachment{ 0, AttachmentType::Color, m_TonemapOutput, LoadOp::Clear, StoreOp::Store, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal }
                 }
             );
 
@@ -563,6 +601,35 @@ namespace Brisk
 
                 m_LightingPipeline = Pipeline::Create();
                 m_LightingPipeline->Init(pipelineSpecs);
+            }
+            //----------------------------------------------------------------------------------------------------
+
+            // Tonemapping pass pipeline
+            //----------------------------------------------------------------------------------------------------
+            {
+                Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
+                pipelineSpecs.pRenderPass = m_TonemappingPass;
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/TonemappingPassVS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/TonemappingPassFS.spv");
+                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\Tonemapping_vert.cso");
+                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\Tonemapping_frag.cso");
+
+                pipelineSpecs.pDepthClampEnable = false;
+                pipelineSpecs.pRasterizationDiscardEnable = false;
+                pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
+                pipelineSpecs.pLineWidth = 1.0f;
+                pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
+                pipelineSpecs.pFrontFace = Pipeline::FrontFace::COUTNER_CLOCKWISE;
+                pipelineSpecs.pDepthBiasEnable = false;
+                pipelineSpecs.pDepthTestEnable = false;
+                pipelineSpecs.pDepthWriteEnable = false;
+                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_NEVER;
+                pipelineSpecs.pDepthBoundsTestEnable = false;
+                pipelineSpecs.pStencilTestEnable = false;
+                pipelineSpecs.pDebugName = "Tonemapping pipeline";
+
+                m_TonemappingPipeline = Pipeline::Create();
+                m_TonemappingPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
 
@@ -882,14 +949,15 @@ namespace Brisk
         m_GBufferPipeline->UpdateResources("Materials", {}, m_MaterialStorageBuffer, {});
         m_GBufferPipeline->UpdateResources("Transforms", {}, m_TransformsBuffer, {});
 
-        SceneManager::pActiveScene->LoadGltfScene("../Assets/Sponza/glTF/Sponza.gltf");
-        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf");
+        m_TonemappingPipeline->UpdateResources("LightingOutput", { m_LightingOutput }, {}, {});
+
+        //SceneManager::pActiveScene->LoadGltfScene("../Assets/Sponza/glTF/Sponza.gltf");
+        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf");
         //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/mixed_workflow/scene.gltf");
         //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/lamborghini_temerario_gt3_2026/scene.gltf");
-        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
+        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
     }
 
-    bool renderRaytracing = false;
     void Renderer::RebuildAccelerationStructures() {
         m_BLAS->Build(m_VertexBuffer, m_IndexBuffer);
         m_TLAS->Build(m_BLAS);
@@ -897,11 +965,9 @@ namespace Brisk
         m_RayTracing->UpdateResources("Meshes", {}, m_MeshesBuffer, {});
         m_RayTracing->UpdateResources("Indices", {}, m_IndexBuffer, {});
         m_RayTracing->UpdateResources("topLevelAS", {}, {}, { m_TLAS });
-        m_RayTracing->UpdateResources("resultImage", { m_LightingOutput }, {}, {});
-        m_RayTracing->UpdateResources("accumulation", { m_AccumulationImage }, {}, {});
+        //m_RayTracing->UpdateResources("resultImage", { m_LightingOutput }, {}, {});
+        //m_RayTracing->UpdateResources("accumulation", { m_AccumulationImage }, {}, {});
         m_RayTracing->UpdateResources("camera", {}, { m_RayTracingPropsBuffer }, {});
-
-        renderRaytracing = true;
     }
 
     void Renderer::RenderScene(float deltaTime)
@@ -937,7 +1003,7 @@ namespace Brisk
         if (!cascadedShadows) { // No cascades
             glm::mat4 lightProjectionMatrix, lightViewMatrix;
             glm::mat4 lightSpaceMatrix;
-            float near_plane = 1.0f, far_plane = 50.0f;
+            float near_plane = 1.0f, far_plane = 200.0f;
             float lightSize = 10;
             lightProjectionMatrix = glm::orthoZO(-lightSize, lightSize, -lightSize, lightSize, near_plane, far_plane);
             lightProjectionMatrix[1][1] *= -1.0f;
@@ -1075,17 +1141,6 @@ namespace Brisk
         }
         //------------------------------------------------------------------------------------------------------------------------------------------------
 
-        {
-            //Texture::ImageBarrierParams params{};
-            //params.oldLayout = Core::ImageLayout::Undefined;
-            //params.newLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
-            //params.srcAccess = Core::AccessType::DepthStencilWrite;
-            //params.dstAccess = Core::AccessType::ShaderRead;
-            //params.srcStage = Core::PipelineStage::LateFragmentTest;
-            //params.dstStage = Core::PipelineStage::FragmentShader;
-            //m_DepthPre->TransitionImageLayout(m_CmdBuffer, { params });
-        }
-
         // --- DEPTH PRE PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
         m_DepthPrePass->Begin(m_CmdBuffer[m_CurrentFrame]);
@@ -1162,15 +1217,28 @@ namespace Brisk
         m_LightingPass->End(m_CmdBuffer[m_CurrentFrame]);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
+        //// --- TONEMAP PASS ---------------------------
+        ////------------------------------------------------------------------------------------------------------------------------------------------------
+        m_TonemappingPass->Begin(m_CmdBuffer[m_CurrentFrame]);
+        m_TonemappingPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
+
+        RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_TonemapOutput->GetWidth(), m_TonemapOutput->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_TonemapOutput->GetWidth(), m_TonemapOutput->GetHeight());
+
+        RenderCommand::Draw(m_CmdBuffer[m_CurrentFrame], 3, 0);
+
+        m_TonemappingPass->End(m_CmdBuffer[m_CurrentFrame]);
+        ////------------------------------------------------------------------------------------------------------------------------------------------------
+
         {
-            //Texture::ImageBarrierParams params{};
-            //params.oldLayout = Core::ImageLayout::PresentSrc;
-            //params.newLayout = Core::ImageLayout::ColorAttachmentOptimal;
-            //params.srcAccess = Core::AccessType::DepthStencilWrite;
-            //params.dstAccess = Core::AccessType::ShaderRead;
-            //params.srcStage = Core::PipelineStage::LateFragmentTest;
-            //params.dstStage = Core::PipelineStage::FragmentShader;    
-            //m_Swapchain->TransitionCurrentImage(m_CmdBuffer[m_CurrentFrame], params, m_ImageIndex);
+            Texture::ImageBarrierParams params{};
+            params.oldLayout = Core::ImageLayout::ShaderReadOnlyOptimal;
+            params.newLayout = Core::ImageLayout::ColorAttachmentOptimal;
+            params.srcAccess = Core::AccessType::ShaderRead;
+            params.dstAccess = Core::AccessType::ColorAttachmentWrite;
+            params.srcStage = Core::PipelineStage::FragmentShader;
+            params.dstStage = Core::PipelineStage::ColorAttachment;
+            m_LightingOutput->TransitionImageLayout(m_CmdBuffer[m_CurrentFrame], { params });
         }
 
         //// --- UI PASS ---------------------------
@@ -1184,17 +1252,6 @@ namespace Brisk
 
         m_UIPass->End(m_CmdBuffer[m_CurrentFrame]);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-
-        {
-            //Texture::ImageBarrierParams params{};
-            //params.oldLayout = Core::ImageLayout::ColorAttachmentOptimal;
-            //params.newLayout = Core::ImageLayout::PresentSrc;
-            //params.srcAccess = Core::AccessType::DepthStencilWrite;
-            //params.dstAccess = Core::AccessType::ShaderRead;
-            //params.srcStage = Core::PipelineStage::LateFragmentTest;
-            //params.dstStage = Core::PipelineStage::FragmentShader;
-            //m_Swapchain->TransitionCurrentImage(m_CmdBuffer, params, m_ImageIndex);
-        }
 
         m_CmdBuffer[m_CurrentFrame]->UnBind();
 

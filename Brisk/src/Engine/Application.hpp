@@ -21,7 +21,7 @@
 namespace Brisk 
 {
 	struct RendererSettings {
-		bool RayTracing = true;
+		bool RayTracing = false;
 	};
 
 	class Application {

@@ -213,11 +213,11 @@ vec3 projectToShadowMap(vec3 worldPos, int cascadeIndex) {
     return ndc;
 }
 
-float sampleShadow(int cascadeIndex, vec3 shadowCoord) {
+float sampleShadow(int cascadeIndex, vec3 shadowCoord, vec3 normal, vec3 lightDir) {
     if (shadowCoord.z > 1.0) return 1.0; // behind light frustum, lit
     
     float shadow = 0.0;
-    float bias = 0.001; // depth bias to reduce acne
+    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
     int samples = 3; // 3x3 kernel
     float texelSize = 1.0 / textureSize(ShadowMaps[cascadeIndex], 0).x;
     
@@ -231,7 +231,7 @@ float sampleShadow(int cascadeIndex, vec3 shadowCoord) {
     return shadow;
 }
 
-float computeShadow(vec3 worldPos, mat4 viewMatrix) {
+float computeShadow(vec3 worldPos, mat4 viewMatrix, vec3 normal, vec3 lightDir) {
     int cascadeIndex = NUM_CASCADES - 1; // farthest cascade
     vec4 viewPos = viewMatrix * vec4(worldPos, 1.0);
     float depth = -viewPos.z; // camera looks along -Z
@@ -243,7 +243,7 @@ float computeShadow(vec3 worldPos, mat4 viewMatrix) {
     }
 
     vec3 shadowCoord = projectToShadowMap(worldPos, cascadeIndex);
-    return sampleShadow(cascadeIndex, shadowCoord);
+    return sampleShadow(cascadeIndex, shadowCoord, normal, lightDir);
 }
 
 void main() {
@@ -253,7 +253,7 @@ void main() {
     float ao = mat.r;
     float roughness = mat.g;
     float metallic = mat.b;
-    vec3 N = normalize(texture(sampler_Normal, uv).xyz);
+    vec3 N = normalize(texture(sampler_Normal, uv).xyz * 2.0 - 1.0);
     vec3 emissive = texture(sampler_Emissive, uv).rgb;
     vec3 fragPos = texture(sampler_Position, uv).rgb;
 
@@ -283,14 +283,14 @@ void main() {
         float att = clamp(1.0 - dist/radius, 0.0, 1.0);
         vec3 radiance = lightColor * intensity * att;
 
-        //accum += evaluateLight(albedo, metallic, roughness, N, V, L, radiance, ao);
+        accum += evaluateLight(albedo, metallic, roughness, N, V, L, radiance, ao);
     }
 
     bool cascadedShadows = true;
 
     float shadow = 0.0f;
     if(cascadedShadows){
-        shadow = computeShadow(fragPos, MVP.View);
+        shadow = computeShadow(fragPos, MVP.View, N, LightDir);
     }
     else {
         vec4 fragPosLightSpace = u_Shadow.lightSpaceMatrices[0] * mat4(1.0) * vec4(fragPos, 1.0);
@@ -299,7 +299,7 @@ void main() {
     
     // Sun light
     vec3 sunColor = vec3(1.0, 0.95, 0.9);
-    float sunIntensity = 6.0;
+    float sunIntensity = 20.0;
     vec3 radiance = sunColor * sunIntensity;
     accum +=  shadow * evaluateLight(albedo, metallic, roughness, N, V, LightDir, radiance, ao);
 

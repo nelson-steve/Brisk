@@ -6,10 +6,11 @@
 
 #include "Mesh.hpp"
 
-layout(location = 0) in vec3 fragPosition;
-layout(location = 1) in vec3 fragNormal;
-layout(location = 2) in vec2 fragUV;
+layout(location = 0) in vec3 Position;
+layout(location = 1) in vec3 Normal;
+layout(location = 2) in vec2 UV;
 layout(location = 3) flat in uint drawId;
+layout(location = 4) in vec4 Tangent;
 
 layout(location = 0) out vec4 outPosition;
 layout(location = 1) out vec4 outNormal;
@@ -51,7 +52,7 @@ void main() {
 
     vec4 baseColor = material.baseColorFactor;
     if (material.baseColorTextureIndex != 0) {
-        baseColor *= texture(GlobalTextures[nonuniformEXT(material.baseColorTextureIndex)], fragUV);
+        baseColor *= texture(GlobalTextures[nonuniformEXT(material.baseColorTextureIndex)], UV);
 
         if (material.alphaMode == 1) { // MASK
             if (baseColor.a < material.alphaCutoff) {
@@ -64,35 +65,45 @@ void main() {
         }
     }
 
-    outPosition = vec4(fragPosition, 1.0);
-    vec3 normal = fragNormal;
+    outPosition = vec4(Position, 1.0);
+    vec3 normal = Normal;
 
     float metallic = material.metallicFactor;
     float roughness = material.roughnessFactor;
     if (material.metallicRoughnessTextureIndex != 0) {
-        vec4 textureSample = texture(GlobalTextures[nonuniformEXT(material.metallicRoughnessTextureIndex)], fragUV);
+        vec4 textureSample = texture(GlobalTextures[nonuniformEXT(material.metallicRoughnessTextureIndex)], UV);
         metallic *= textureSample.b;
         roughness *= textureSample.g;
     }
 
+    vec3 biTangent = cross(Normal, Tangent.xyz) * Tangent.w;
+
+    mat3 TBN = mat3(
+        normalize(Tangent.xyz),
+        normalize(biTangent),
+        normalize(Normal)
+    );
+
     if (material.normalTextureIndex != 0) {
-        vec3 tangentNormal = texture(GlobalTextures[nonuniformEXT(material.normalTextureIndex)], fragUV).xyz;
-        tangentNormal = tangentNormal * 2.0 - 1.0;
-        normal = normalize(tangentNormal); // Ideally transform to world-space if using tangent-space normals
+        vec3 tangentNormal = texture(GlobalTextures[nonuniformEXT(material.normalTextureIndex)], UV).xyz;
+        normal = tangentNormal * 2.0 - 1.0;
+        normal = normalize(TBN * normal);
+
+        normal = normal * 0.5 + 0.5;
     }
 
     outEmissive = vec4(material.emissiveFactor, 1.0);
     if (material.emissiveTextureIndex != 0) {
-        outEmissive *= texture(GlobalTextures[nonuniformEXT(material.emissiveTextureIndex)], fragUV);
+        outEmissive *= texture(GlobalTextures[nonuniformEXT(material.emissiveTextureIndex)], UV);
     }
     outEmissive *= material.emissiveStrength;
 
     float occlusion = 1.0;
     if (material.occlusionTextureIndex != 0) {
-        occlusion = texture(GlobalTextures[nonuniformEXT(material.occlusionTextureIndex)], fragUV).r;
+        occlusion = texture(GlobalTextures[nonuniformEXT(material.occlusionTextureIndex)], UV).r;
     }
 
-    outNormal = vec4(normalize(normal), 1.0);
+    outNormal = vec4(normal, 1.0);
     outAlbedo = baseColor;
     outMaterial = vec4(occlusion, roughness, metallic, 1.0);
 }

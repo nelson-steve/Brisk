@@ -159,6 +159,7 @@ namespace Brisk
 		std::shared_ptr<Texture> m_ShadowMapLOD2;
 		std::shared_ptr<Texture> m_ShadowMapLOD3;
 		std::shared_ptr<Texture> m_LightingOutput;
+		std::shared_ptr<Texture> m_TonemapOutput;
 		std::shared_ptr<Texture> m_AccumulationImage;
 		//std::shared_ptr<Texture> m_RayTracingOutput;
 		// Attachments - End
@@ -168,6 +169,7 @@ namespace Brisk
 		std::shared_ptr<CSMRenderPass> m_CSMShadowMapPass;
 		std::shared_ptr<RenderPass> m_GeometryBufferPass;
 		std::shared_ptr<RenderPass> m_LightingPass;
+		std::shared_ptr<RenderPass> m_TonemappingPass;
 		std::shared_ptr<RenderPass> m_UIPass;
 		std::shared_ptr<RenderPass> m_ClusteredDebugPass;
 		// RenderPasses - End
@@ -179,6 +181,7 @@ namespace Brisk
 		std::shared_ptr<Pipeline> m_GBufferDoubleSidedPipeline;
 		std::shared_ptr<Pipeline> m_GBufferAlphaBlendPipeline;
 		std::shared_ptr<Pipeline> m_LightingPipeline;
+		std::shared_ptr<Pipeline> m_TonemappingPipeline;
 
 		std::shared_ptr<Pipeline> m_AABBGeneratorPipeline;
 		std::shared_ptr<Pipeline> m_AssignLightsToClustersPipeline;

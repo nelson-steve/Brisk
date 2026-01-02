@@ -94,7 +94,6 @@ namespace Brisk
 
     void EditorLayer::OnAttach() {
         ScenePanel* scenePanel = new ScenePanel();
-        //scenePanel->SetImage(tex);
         m_Panels.insert({ "Scene" , scenePanel });
 
         AssetsPanel* assetsPanel = new AssetsPanel();

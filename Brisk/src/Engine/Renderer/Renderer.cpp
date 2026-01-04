@@ -154,18 +154,6 @@ namespace Brisk
         m_Swapchain = SwapchainFactory::CreateSwapchain();
         m_Swapchain->Create(swapchainMode);
 
-        //m_RayTracingOutput = Texture::Create();
-
-        //{
-        //    Texture::TextureSpecification specs{};
-        //    specs.p_Width = 1920;
-        //    specs.p_Height = 1080;
-        //    specs.p_DebugName = "g_RayTracingOutput";
-        //    specs.p_Usage = Core::TextureUsage::ImageUsageStorage;
-        //    specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
-        //    m_RayTracingOutput->Init(specs);
-        //}
-
         // Renderpasses
         {
             // Depth Pre pass
@@ -204,7 +192,7 @@ namespace Brisk
                     },
                 },
                 {   
-                    RenderPassAttachment{ 0, AttachmentType::Depth, m_DepthPre, LoadOp::Clear, StoreOp::Store, Core::ImageLayout::Undefined, Core::ImageLayout::DepthStencilAttachmentOptimal }
+                    RenderPassAttachment{ 0, AttachmentType::Depth, LoadOp::Clear, StoreOp::Store, m_DepthPre->GetSpecs().p_Format, Core::ImageLayout::Undefined, Core::ImageLayout::DepthStencilAttachmentOptimal}
                 }
             );
 
@@ -303,12 +291,12 @@ namespace Brisk
                     },
                 },
                 {   
-                    RenderPassAttachment{ 0, AttachmentType::Color, m_Pos,      LoadOp::Clear, StoreOp::Store   , Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
-                    RenderPassAttachment{ 1, AttachmentType::Color, m_Normal,   LoadOp::Clear, StoreOp::Store   , Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
-                    RenderPassAttachment{ 2, AttachmentType::Color, m_Albedo,   LoadOp::Clear, StoreOp::Store   , Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
-                    RenderPassAttachment{ 3, AttachmentType::Color, m_Material, LoadOp::Clear, StoreOp::Store   , Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
-                    RenderPassAttachment{ 4, AttachmentType::Color, m_Emissive, LoadOp::Clear, StoreOp::Store   , Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
-                    RenderPassAttachment{ 5, AttachmentType::Depth, m_DepthPre, LoadOp::Load,  StoreOp::DontCare, Core::ImageLayout::DepthStencilAttachmentOptimal, Core::ImageLayout::DepthStencilAttachmentOptimal},
+                    RenderPassAttachment{ 0, AttachmentType::Color, LoadOp::Clear, StoreOp::Store   , m_Pos->GetSpecs().p_Format,      Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
+                    RenderPassAttachment{ 1, AttachmentType::Color, LoadOp::Clear, StoreOp::Store   , m_Normal->GetSpecs().p_Format,   Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
+                    RenderPassAttachment{ 2, AttachmentType::Color, LoadOp::Clear, StoreOp::Store   , m_Albedo->GetSpecs().p_Format,   Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
+                    RenderPassAttachment{ 3, AttachmentType::Color, LoadOp::Clear, StoreOp::Store   , m_Material->GetSpecs().p_Format, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
+                    RenderPassAttachment{ 4, AttachmentType::Color, LoadOp::Clear, StoreOp::Store   , m_Emissive->GetSpecs().p_Format, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
+                    RenderPassAttachment{ 5, AttachmentType::Depth, LoadOp::Load,  StoreOp::DontCare, m_DepthPre->GetSpecs().p_Format, Core::ImageLayout::DepthStencilAttachmentOptimal, Core::ImageLayout::DepthStencilAttachmentOptimal},
                 }
             );
 
@@ -322,8 +310,36 @@ namespace Brisk
                 specs.p_Height = 1080;
                 specs.p_DebugName = "g_Lighting";
                 specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled | Core::TextureUsage::ImageUsageStorage;
-                specs.p_Format = Core::Format::FORMAT_R32G32B32A32_SFLOAT;
+                specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
                 m_LightingOutput->Init(specs);
+            }
+
+            m_BrightOuput = Texture::Create();
+
+            {
+                Texture::TextureSpecification specs{};
+                specs.p_Width = 1920;
+                specs.p_Height = 1080;
+                specs.p_DebugName = "g_BrightOuput";
+                specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled;
+                specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
+                m_BrightOuput->Init(specs);
+            }
+
+            for (int i = 0; i < BLOOM_LEVELS; i++)
+            {
+                uint32_t w = 1920 >> (i + 1);
+                uint32_t h = 1080 >> (i + 1);
+
+                m_BloomOutputs[i] = Texture::Create();
+
+                Texture::TextureSpecification specs{};
+                specs.p_Width = w;
+                specs.p_Height = h;
+                specs.p_DebugName = "g_Bloom_" + i;
+                specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled;
+                specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
+                m_BloomOutputs[i]->Init(specs);
             }
 
             m_TonemapOutput = Texture::Create();
@@ -347,7 +363,7 @@ namespace Brisk
                 specs.p_Height = 1080;
                 specs.p_DebugName = "g_Accumulation";
                 specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled | Core::TextureUsage::ImageUsageStorage;
-                specs.p_Format = Core::Format::FORMAT_R32G32B32A32_SFLOAT;
+                specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
                 m_AccumulationImage->Init(specs);
             }
 
@@ -358,11 +374,11 @@ namespace Brisk
                         -1,
                         0,
                         Core::AccessType::None, // src access
-                        Core::AccessType::ColorAttachmentWrite, // dst access
-                        Core::PipelineStage::ColorAttachment, // src stage
-                        Core::PipelineStage::ColorAttachment // dst stage
+                            Core::AccessType::ColorAttachmentWrite, // dst access
+                            Core::PipelineStage::ColorAttachment, // src stage
+                            Core::PipelineStage::ColorAttachment // dst stage
                     },
-                    RenderPassDependency {
+                    RenderPassDependency{
                         0,
                         -1,
                         Core::AccessType::ColorAttachmentWrite, // src access
@@ -372,89 +388,198 @@ namespace Brisk
                     },
                 },
                 {
-                    RenderPassAttachment{ 0, AttachmentType::Color, m_LightingOutput, LoadOp::Clear, StoreOp::Store, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal }
+                    RenderPassAttachment{ 0, AttachmentType::Color, LoadOp::Clear, StoreOp::Store, m_LightingOutput->GetSpecs().p_Format, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal},
+                    RenderPassAttachment{ 1, AttachmentType::Color, LoadOp::Clear, StoreOp::Store, m_BrightOuput->GetSpecs().p_Format, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal}
                 }
-            );
+                );
 
-            m_TonemappingPass = RenderPass::Create();
-            m_TonemappingPass->Init(
-                {
-                    RenderPassDependency {
-                        -1,
-                        0,
-                        Core::AccessType::None, // src access
-                        Core::AccessType::ColorAttachmentWrite, // dst access
-                        Core::PipelineStage::ColorAttachment, // src stage
-                        Core::PipelineStage::ColorAttachment // dst stage
+                m_TonemappingPass = RenderPass::Create();
+                m_TonemappingPass->Init(
+                    {
+                        RenderPassDependency {
+                            -1,
+                            0,
+                            Core::AccessType::None, // src access
+                            Core::AccessType::ColorAttachmentWrite, // dst access
+                            Core::PipelineStage::ColorAttachment, // src stage
+                            Core::PipelineStage::ColorAttachment // dst stage
+                        },
+                        RenderPassDependency {
+                            0,
+                            -1,
+                            Core::AccessType::ColorAttachmentWrite, // src access
+                            Core::AccessType::ShaderRead, // dst access
+                            Core::PipelineStage::ColorAttachment, // src stage
+                            Core::PipelineStage::FragmentShader // dst stage
+                        },
                     },
-                    RenderPassDependency {
-                        0,
-                        -1,
-                        Core::AccessType::ColorAttachmentWrite, // src access
-                        Core::AccessType::ShaderRead, // dst access
-                        Core::PipelineStage::ColorAttachment, // src stage
-                        Core::PipelineStage::FragmentShader // dst stage
-                    },
-                },
                 {
-                    RenderPassAttachment{ 0, AttachmentType::Color, m_TonemapOutput, LoadOp::Clear, StoreOp::Store, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal }
+                    RenderPassAttachment{ 0, AttachmentType::Color, LoadOp::Clear, StoreOp::Store, m_TonemapOutput->GetSpecs().p_Format, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal }
                 }
-            );
+                );
 
-            // Clustered debug pass
-            //----------------------------------------------------------------------------------------------------
-            m_ClusteredDebugPass = RenderPass::Create();
-            m_ClusteredDebugPass->Init(
-                {
-                    RenderPassDependency {
-                        -1,
-                        0,
-                        Core::AccessType::None, // src access
-                        Core::AccessType::ColorAttachmentWrite, // dst access
-                        Core::PipelineStage::ColorAttachment, // src stage
-                        Core::PipelineStage::ColorAttachment // dst stage
+                m_BloomBlurPass = RenderPass::Create();
+                m_BloomBlurPass->Init(
+                    {
+                        RenderPassDependency {
+                            -1,
+                            0,
+                            Core::AccessType::None, // src access
+                            Core::AccessType::ColorAttachmentWrite, // dst access
+                            Core::PipelineStage::ColorAttachment, // src stage
+                            Core::PipelineStage::ColorAttachment // dst stage
+                        },
+                        RenderPassDependency {
+                            0,
+                            -1,
+                            Core::AccessType::ColorAttachmentWrite, // src access
+                            Core::AccessType::ShaderRead, // dst access
+                            Core::PipelineStage::ColorAttachment, // src stage
+                            Core::PipelineStage::FragmentShader // dst stage
+                        },
                     },
-                    RenderPassDependency {
-                        0,
-                        -1,
-                        Core::AccessType::ColorAttachmentWrite, // src access
-                        Core::AccessType::ShaderRead, // dst access
-                        Core::PipelineStage::ColorAttachment, // src stage
-                        Core::PipelineStage::FragmentShader // dst stage
-                    },
-                },
                 {
-                    RenderPassAttachment{ 0, AttachmentType::Color, m_LightingOutput, LoadOp::Load, StoreOp::Store, Core::ImageLayout::ColorAttachmentOptimal, Core::ImageLayout::ShaderReadOnlyOptimal }
+                    RenderPassAttachment{ 0, AttachmentType::Color, LoadOp::Clear, StoreOp::Store, m_BloomOutputs[0]->GetSpecs().p_Format, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
                 }
-            );
+                );
 
-
-            // UI pass
-            //----------------------------------------------------------------------------------------------------
-            m_UIPass = RenderPass::Create();
-            m_UIPass->Init(
-                {
-                    RenderPassDependency {
-                        -1,
-                        0,
-                        Core::AccessType::None, // src access
-                        Core::AccessType::ColorAttachmentWrite, // dst access
-                        Core::PipelineStage::ColorAttachment, // src stage
-                        Core::PipelineStage::ColorAttachment // dst stage
+                // UI pass
+                //----------------------------------------------------------------------------------------------------
+                m_UIPass = RenderPass::Create();
+                m_UIPass->Init(
+                    {
+                        RenderPassDependency {
+                            -1,
+                            0,
+                            Core::AccessType::None, // src access
+                            Core::AccessType::ColorAttachmentWrite, // dst access
+                            Core::PipelineStage::ColorAttachment, // src stage
+                            Core::PipelineStage::ColorAttachment // dst stage
+                        },
+                        RenderPassDependency {
+                            0,
+                            -1,
+                            Core::AccessType::ColorAttachmentWrite,
+                            Core::AccessType::None,
+                            Core::PipelineStage::ColorAttachment,
+                            Core::PipelineStage::BottomOfPipe
+                        },
                     },
-                    RenderPassDependency {
-                        0,
-                        -1,
-                        Core::AccessType::ColorAttachmentWrite,
-                        Core::AccessType::None, 
-                        Core::PipelineStage::ColorAttachment,
-                        Core::PipelineStage::BottomOfPipe
-                    },
-                },
                 {
-                    RenderPassAttachment{ 0, AttachmentType::Swapchain, nullptr, LoadOp::Clear, StoreOp::Store, Core::ImageLayout::Undefined, Core::ImageLayout::PresentSrc }
+                    RenderPassAttachment{ 0, AttachmentType::Swapchain, LoadOp::Clear, StoreOp::Store, Core::Format::FORMAT_R8G8B8A8_UNORM, Core::ImageLayout::Undefined, Core::ImageLayout::PresentSrc }
                 }
-            );
+                );
+        }
+
+        // Framebuffers
+        {
+            m_DepthPreFramebuffer = Framebuffer::Create();
+            {
+                Framebuffer::FramebufferSpecs specs{};
+                specs.p_Width = 1920;
+                specs.p_Height = 1080;
+                specs.p_RenderPass = m_DepthPrePass;
+                specs.p_Attachments.push_back(m_DepthPre);
+
+                m_DepthPreFramebuffer->Init(specs);
+            }
+
+            m_GBufferFramebuffer = Framebuffer::Create();
+            {
+                Framebuffer::FramebufferSpecs specs{};
+                specs.p_Width = 1920;
+                specs.p_Height = 1080;
+                specs.p_RenderPass = m_GeometryBufferPass;
+                specs.p_Attachments.push_back(m_Pos);
+                specs.p_Attachments.push_back(m_Normal);
+                specs.p_Attachments.push_back(m_Albedo);
+                specs.p_Attachments.push_back(m_Material);
+                specs.p_Attachments.push_back(m_Emissive);
+                specs.p_Attachments.push_back(m_DepthPre);
+
+                m_GBufferFramebuffer->Init(specs);
+            }
+
+            m_LightingFramebuffer = Framebuffer::Create();
+            {
+                Framebuffer::FramebufferSpecs specs{};
+                specs.p_Width = 1920;
+                specs.p_Height = 1080;
+                specs.p_RenderPass = m_LightingPass;
+                specs.p_Attachments.push_back(m_LightingOutput);
+                specs.p_Attachments.push_back(m_BrightOuput);
+
+                m_LightingFramebuffer->Init(specs);
+            }
+
+            m_TonemappingFramebuffer = Framebuffer::Create();
+            {
+                Framebuffer::FramebufferSpecs specs{};
+                specs.p_Width = 1920;
+                specs.p_Height = 1080;
+                specs.p_RenderPass = m_TonemappingPass;
+                specs.p_Attachments.push_back(m_TonemapOutput);
+
+                m_TonemappingFramebuffer->Init(specs);
+            }
+
+            m_BloomBlur0Framebuffer = Framebuffer::Create();
+            {
+                Framebuffer::FramebufferSpecs specs{};
+                specs.p_Width = 1920 / 2;
+                specs.p_Height = 1080 / 2;
+                specs.p_RenderPass = m_BloomBlurPass;
+                specs.p_Attachments.push_back(m_BloomOutputs[0]);
+
+                m_BloomBlur0Framebuffer->Init(specs);
+            }
+
+            m_BloomBlur1Framebuffer = Framebuffer::Create();
+            {
+                Framebuffer::FramebufferSpecs specs{};
+                specs.p_Width = 1920 / 4;
+                specs.p_Height = 1080 / 4;
+                specs.p_RenderPass = m_BloomBlurPass;
+                specs.p_Attachments.push_back(m_BloomOutputs[1]);
+
+                m_BloomBlur1Framebuffer->Init(specs);
+            }
+
+            m_BloomBlur2Framebuffer = Framebuffer::Create();
+            {
+                Framebuffer::FramebufferSpecs specs{};
+                specs.p_Width = 1920 / 8;
+                specs.p_Height = 1080 / 8;
+                specs.p_RenderPass = m_BloomBlurPass;
+                specs.p_Attachments.push_back(m_BloomOutputs[2]);
+
+                m_BloomBlur2Framebuffer->Init(specs);
+            }
+
+            m_BloomBlur3Framebuffer = Framebuffer::Create();
+            {
+                Framebuffer::FramebufferSpecs specs{};
+                specs.p_Width = 1920 / 16;
+                specs.p_Height = 1080 / 16;
+                specs.p_RenderPass = m_BloomBlurPass;
+                specs.p_Attachments.push_back(m_BloomOutputs[3]);
+
+                m_BloomBlur3Framebuffer->Init(specs);
+            }
+            
+            m_UIFramebuffers.resize(Application::GetRenderer()->GetSwapchain()->GetImageCount());
+            for (int i = 0; i < m_UIFramebuffers.size(); i++) {
+                m_UIFramebuffers[i] = Framebuffer::Create();
+                {
+                    Framebuffer::FramebufferSpecs specs{};
+                    specs.p_Width = 1920;
+                    specs.p_Height = 1080;
+                    specs.p_RenderPass = m_UIPass;
+                    specs.swapchainIndex = i;
+
+                    m_UIFramebuffers[i]->Init(specs);
+                }
+            }
         }
 
         // Pipelines
@@ -1143,7 +1268,7 @@ namespace Brisk
 
         // --- DEPTH PRE PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
-        m_DepthPrePass->Begin(m_CmdBuffer[m_CurrentFrame]);
+        m_DepthPrePass->Begin(m_CmdBuffer[m_CurrentFrame], m_DepthPreFramebuffer);
 
         RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_DepthPre->GetWidth(), m_DepthPre->GetHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_DepthPre->GetWidth(), m_DepthPre->GetHeight());
@@ -1163,7 +1288,7 @@ namespace Brisk
 
         // --- GBUFFER PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        m_GeometryBufferPass->Begin(m_CmdBuffer[m_CurrentFrame]);
+        m_GeometryBufferPass->Begin(m_CmdBuffer[m_CurrentFrame], m_GBufferFramebuffer);
         RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
 
@@ -1205,7 +1330,7 @@ namespace Brisk
 
         //// --- LIGHTING PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        m_LightingPass->Begin(m_CmdBuffer[m_CurrentFrame]);
+        m_LightingPass->Begin(m_CmdBuffer[m_CurrentFrame], m_LightingFramebuffer);
         m_LightingPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
 
         RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight(), 0, 1);
@@ -1219,7 +1344,7 @@ namespace Brisk
 
         //// --- TONEMAP PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        m_TonemappingPass->Begin(m_CmdBuffer[m_CurrentFrame]);
+        m_TonemappingPass->Begin(m_CmdBuffer[m_CurrentFrame], m_TonemappingFramebuffer);
         m_TonemappingPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
 
         RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_TonemapOutput->GetWidth(), m_TonemapOutput->GetHeight(), 0, 1);
@@ -1243,7 +1368,7 @@ namespace Brisk
 
         //// --- UI PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        m_UIPass->Begin(m_CmdBuffer[m_CurrentFrame], m_ImageIndex);
+        m_UIPass->Begin(m_CmdBuffer[m_CurrentFrame], m_UIFramebuffers[m_ImageIndex]);
 
         RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
         RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
@@ -1384,7 +1509,7 @@ namespace Brisk
 
         //// --- UI PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        m_UIPass->Begin(m_RayTracingCmdBuffer[m_CurrentFrame], m_ImageIndex);
+        m_UIPass->Begin(m_RayTracingCmdBuffer[m_CurrentFrame], m_UIFramebuffers[m_ImageIndex]);
 
         RenderCommand::SetViewport(m_RayTracingCmdBuffer[m_CurrentFrame], 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight(), 0, 1);
         RenderCommand::SetScissor(m_RayTracingCmdBuffer[m_CurrentFrame], 0, 0, m_Swapchain->GetExtentWidth(), m_Swapchain->GetExtentHeight());
@@ -1471,7 +1596,7 @@ namespace Brisk
                 },
             },
                 {
-                    RenderPassAttachment{ 0, AttachmentType::Swapchain, nullptr, LoadOp::Clear, StoreOp::Store, Core::ImageLayout::Undefined, Core::ImageLayout::PresentSrc }
+                    RenderPassAttachment{ 0, AttachmentType::Swapchain, LoadOp::Clear, StoreOp::Store, Core::Format::FORMAT_R8G8B8A8_UNORM, Core::ImageLayout::Undefined, Core::ImageLayout::PresentSrc }
                 }
         );
     }

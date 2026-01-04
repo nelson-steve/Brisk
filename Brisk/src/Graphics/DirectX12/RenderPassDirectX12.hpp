@@ -16,7 +16,7 @@ namespace Brisk
         virtual void Init(const std::vector<RenderPassDependency>& dependencies, const std::vector<RenderPassAttachment>& outputs) override;
         virtual void Release() override { BRISK_CORE_ASSERT(false); }
 
-        virtual void Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t imageIndex = 0) override;
+        virtual void Begin(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Framebuffer> framebuffer) override;
         virtual void End(std::shared_ptr<CommandBuffer> cmd) override;
     private:
         std::vector<D3D12_RENDER_PASS_RENDER_TARGET_DESC> m_RenderTargets;

@@ -6,81 +6,44 @@
 #include "PipelineVulkan.hpp"
 #include "UtilitiesVulkan.hpp"
 #include "TextureVulkan.hpp"
+#include "FramebufferVulkan.hpp"
 
 namespace Brisk
 {
-    void RenderPassVulkan::Init(const std::vector<RenderPassDependency>& dependencies, const std::vector<RenderPassAttachment>& outputs) {
+    void RenderPassVulkan::Init(const std::vector<RenderPassDependency>& dependencies, const std::vector<RenderPassAttachment>& renderAttachments) {
         std::vector<VkAttachmentDescription> attachments;
         std::vector<VkAttachmentReference> colorAttachmentRefs;
         VkAttachmentReference depthAttachmentRef{};
 
         uint32_t attachmentIndex = 0;
         std::vector<std::vector<VkImageView>> imageViews;
+        std::vector<VkAttachmentDescription> attachmentDescs;
 
-        bool hasSwapchain = false;
-        for (const auto& attachment : outputs) {
-            hasSwapchain = attachment.pAttachmentType == AttachmentType::Swapchain;
-            if (hasSwapchain) break;
-        }
-
-        uint32_t framebufferCount = hasSwapchain ? Application::GetRenderer()->GetSwapchain()->GetImageCount() : 1;
-        imageViews.resize(framebufferCount);
-
-        for (const auto& attachment : outputs) {
-            bool isSwapchain = attachment.pAttachmentType == AttachmentType::Swapchain;
-            m_ClearCount++;
-            if (!isSwapchain) {
-                if (!attachment.pImage->IsDepth()) {
-                    m_ColorAttachmentCount++;
-                }
-            }
-            else {
-                m_ColorAttachmentCount++;
-            }
-
-            auto texture = !isSwapchain ? std::static_pointer_cast<TextureVulkan>(attachment.pImage) : nullptr;
+        for (const auto& attachment : renderAttachments) {
             VkAttachmentDescription desc{};
-            desc.format = isSwapchain ? std::static_pointer_cast<SwapchainVulkan>(Application::GetRenderer()->GetSwapchain())->GetFormat().format : texture->GetFormat();
+            desc.format = UtilitiesVulkan::FormatToVkFormat(attachment.p_Format);
             desc.samples = VK_SAMPLE_COUNT_1_BIT;
 
-            if (attachment.pLoadOp == LoadOp::Clear)
-                desc.loadOp = VK_ATTACHMENT_LOAD_OP_CLEAR;
-            else if (attachment.pLoadOp == LoadOp::Load)
-                desc.loadOp = VK_ATTACHMENT_LOAD_OP_LOAD;
-            else if (attachment.pLoadOp == LoadOp::DontCare)
-                desc.loadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
-
-            if (attachment.pStoreOp == StoreOp::Store)
-                desc.storeOp = VK_ATTACHMENT_STORE_OP_STORE;
-            else if (attachment.pStoreOp == StoreOp::DontCare)
-                desc.storeOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
+            desc.loadOp = UtilitiesVulkan::LoadOpToVkType(attachment.p_LoadOp);
+            desc.storeOp = UtilitiesVulkan::StoreOpToVkType(attachment.p_StoreOp);
 
             desc.stencilLoadOp = VK_ATTACHMENT_LOAD_OP_DONT_CARE;
             desc.stencilStoreOp = VK_ATTACHMENT_STORE_OP_DONT_CARE;
-            desc.initialLayout = attachment.pLoadOp == LoadOp::Load ? VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL : VK_IMAGE_LAYOUT_UNDEFINED;
 
-            desc.initialLayout = UtilitiesVulkan::ImageLayoutToVkImageLayout(attachment.pInitialLayout);
-            desc.finalLayout = UtilitiesVulkan::ImageLayoutToVkImageLayout(attachment.pFinalLayout);
+            desc.initialLayout = UtilitiesVulkan::ImageLayoutToVkImageLayout(attachment.p_InitialLayout);
+            desc.finalLayout = UtilitiesVulkan::ImageLayoutToVkImageLayout(attachment.p_FinalLayout);
 
-            attachments.push_back(desc);
-
-            if (isSwapchain) {
-                m_FramebufferWidth = Application::GetRenderer()->GetSwapchain()->GetExtentWidth();
-                m_FramebufferHeight = Application::GetRenderer()->GetSwapchain()->GetExtentHeight();
-            }
-            else {
-                m_FramebufferWidth = texture->GetWidth();
-                m_FramebufferHeight = texture->GetHeight();
-            }
+            attachmentDescs.push_back(desc);
 
             VkAttachmentReference ref{};
-            ref.attachment = attachment.pBinding;
+            ref.attachment = attachment.p_Binding;
 
-            if (attachment.pAttachmentType == AttachmentType::Color || attachment.pAttachmentType == AttachmentType::Swapchain) {
+            if (attachment.p_AttachmentType == AttachmentType::Color || attachment.p_AttachmentType == AttachmentType::Swapchain) {
                 ref.layout = VK_IMAGE_LAYOUT_COLOR_ATTACHMENT_OPTIMAL;
                 colorAttachmentRefs.push_back(ref);
+                m_ColorAttachmentCount++;
             }
-            if (attachment.pAttachmentType == AttachmentType::Depth) {
+            if (attachment.p_AttachmentType == AttachmentType::Depth) {
                 ref.layout = VK_IMAGE_LAYOUT_DEPTH_STENCIL_ATTACHMENT_OPTIMAL;
                 depthAttachmentRef = ref;
                 m_HasDepth = true;
@@ -115,8 +78,8 @@ namespace Brisk
         }
 
         VkRenderPassCreateInfo renderPassInfo{ VK_STRUCTURE_TYPE_RENDER_PASS_CREATE_INFO };
-        renderPassInfo.attachmentCount = static_cast<uint32_t>(attachments.size());
-        renderPassInfo.pAttachments = attachments.data();
+        renderPassInfo.attachmentCount = static_cast<uint32_t>(attachmentDescs.size());
+        renderPassInfo.pAttachments = attachmentDescs.data();
         renderPassInfo.subpassCount = 1;
         renderPassInfo.pSubpasses = &subpass;
         renderPassInfo.dependencyCount = subpassDependencies.size();
@@ -135,40 +98,9 @@ namespace Brisk
 #if _DEBUG
         vkSetDebugUtilsObjectNameEXT(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
 #endif
-
-        for (int i = 0; i < framebufferCount; i++) {
-            for (const auto& attachment : outputs) {
-                bool isSwapchain = attachment.pAttachmentType == AttachmentType::Swapchain;
-                auto texture = !isSwapchain ? std::static_pointer_cast<TextureVulkan>(attachment.pImage) : nullptr;
-
-                if (isSwapchain) {
-                    imageViews[i].push_back(std::static_pointer_cast<SwapchainVulkan>(Application::GetRenderer()->GetSwapchain())->GetSwapchainImageViews()[i]);
-                }
-                else {
-                    imageViews[i].push_back(std::static_pointer_cast<TextureVulkan>(attachment.pImage)->GetView());
-                }
-            }
-        }
-
-        m_Framebuffers.resize(framebufferCount);
-        for (int i = 0; i < framebufferCount; i++) {
-            VkFramebufferCreateInfo framebufferInfo{ VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO };
-            framebufferInfo.renderPass = m_RenderPass;
-            framebufferInfo.attachmentCount = static_cast<uint32_t>(imageViews[i].size());
-            framebufferInfo.pAttachments = imageViews[i].data();
-            framebufferInfo.width = m_FramebufferWidth;
-            framebufferInfo.height = m_FramebufferHeight;
-            framebufferInfo.layers = 1;
-
-            BRISK_CORE_INFO("Framebuffer width: {} height: {}", m_FramebufferWidth, m_FramebufferHeight);
-
-            if (vkCreateFramebuffer(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffers[i]) != VK_SUCCESS) {
-                throw std::runtime_error("Failed to create Vulkan framebuffer");
-            }
-        }
     }
 
-    void RenderPassVulkan::Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t imageIndex) {
+    void RenderPassVulkan::Begin(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Framebuffer> framebuffer) {
         std::vector<VkClearValue> clearValues;
         clearValues.resize(m_ColorAttachmentCount);
 
@@ -181,16 +113,16 @@ namespace Brisk
             clearValues.push_back(depthClear);
         }
 
-        BRISK_CORE_ASSERT(m_FramebufferWidth != 0 && m_FramebufferHeight != 0);
+        BRISK_CORE_ASSERT(framebuffer->GetWidth() != 0 && framebuffer->GetHeight() != 0);
 
         VkRenderPassBeginInfo renderPassInfo{};
         renderPassInfo.sType = VK_STRUCTURE_TYPE_RENDER_PASS_BEGIN_INFO;
         renderPassInfo.renderPass = m_RenderPass;
-        renderPassInfo.framebuffer = m_Framebuffers[imageIndex];
+        renderPassInfo.framebuffer = std::static_pointer_cast<FramebufferVulkan>(framebuffer)->GetFramebuffer();
         renderPassInfo.renderArea.offset = { 0, 0 };
         VkExtent2D extent{};
-        extent.width = m_FramebufferWidth;
-        extent.height = m_FramebufferHeight;
+        extent.width = framebuffer->GetWidth();
+        extent.height = framebuffer->GetHeight();
         renderPassInfo.renderArea.extent = extent;
         renderPassInfo.clearValueCount = static_cast<uint32_t>(clearValues.size());
         renderPassInfo.pClearValues = clearValues.data();
@@ -203,9 +135,6 @@ namespace Brisk
     }
 
     void RenderPassVulkan::Release() {
-        for(auto framebuffer : m_Framebuffers)
-            vkDestroyFramebuffer(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), framebuffer, nullptr);
-
         vkDestroyRenderPass(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_RenderPass, nullptr);
     }
 }

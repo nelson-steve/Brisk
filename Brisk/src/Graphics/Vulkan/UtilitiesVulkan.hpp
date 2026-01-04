@@ -30,6 +30,27 @@ namespace Brisk
 		static VkFrontFace FrontFaceToVulkanType(Pipeline::FrontFace frontFace);
 		static VkCompareOp CompareOpToVulkanType(Pipeline::CompareOp compareOp);
 
+		static VkAttachmentLoadOp LoadOpToVkType(LoadOp op) {
+			switch (op) {
+				case LoadOp::Load: return VK_ATTACHMENT_LOAD_OP_LOAD;
+				case LoadOp::Clear: return VK_ATTACHMENT_LOAD_OP_CLEAR;
+				case LoadOp::DontCare: return VK_ATTACHMENT_LOAD_OP_DONT_CARE;
+				case LoadOp::None: return VK_ATTACHMENT_LOAD_OP_NONE;
+			}
+			BRISK_CORE_ERROR("Invalid load op parameter");
+			return VK_ATTACHMENT_LOAD_OP_NONE;
+		}
+
+		static VkAttachmentStoreOp StoreOpToVkType(StoreOp op) {
+			switch (op) {
+				case StoreOp::Store: return VK_ATTACHMENT_STORE_OP_STORE;
+				case StoreOp::DontCare: return VK_ATTACHMENT_STORE_OP_DONT_CARE;
+				case StoreOp::None: return VK_ATTACHMENT_STORE_OP_NONE;
+			}
+			BRISK_CORE_ERROR("Invalid load op parameter");
+			return VK_ATTACHMENT_STORE_OP_NONE;
+		}
+
 		static VkFormat FormatToVkFormat(Core::Format format) {
 			switch (format) {
 				case Core::Format::FORMAT_UNDEFINED: return VK_FORMAT_UNDEFINED;

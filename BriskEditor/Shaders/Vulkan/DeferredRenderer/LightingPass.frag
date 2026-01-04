@@ -6,6 +6,7 @@
 
 layout(location = 0) in vec2 uv;
 layout(location = 0) out vec4 outColor;
+layout(location = 1) out vec4 outBrightColor;
 
 layout(std140, set = 0, binding = 0) uniform MVPBuffer {
     mat4 ProjView;
@@ -311,4 +312,19 @@ void main() {
     //finalColor = pow(finalColor, vec3(1.0/2.2)); // gamma
 
     outColor = vec4(finalColor, 1.0);
+
+    //
+    float knee = 0.8;
+    float threshold = 0.8;
+
+    float brightness = max(max(finalColor.r, finalColor.g), finalColor.b);
+
+    float soft = brightness - threshold + knee;
+    soft = clamp(soft / (2.0 * knee), 0.0, 1.0);
+
+    float contribution = max(brightness - threshold, 0.0);
+    contribution += soft * soft * knee;
+
+    outBrightColor = vec4(outColor.xyz * contribution / max(brightness, 0.0001), 1.0);
+    //
 }

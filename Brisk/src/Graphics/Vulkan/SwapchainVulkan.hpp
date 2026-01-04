@@ -23,7 +23,10 @@ namespace Brisk
 		VkSwapchainKHR GetSwapchain() const { return m_Swapchain; }
 		std::vector<VkImage> GetSwapchainImages() const { return m_SwapchainImages; }
 		std::vector<VkImageView> GetSwapchainImageViews() const { return m_SwapchainImageViews; }
-		virtual uint32_t GetExtentWidth() const override { return m_extent.width; }
+		virtual uint32_t GetExtentWidth() const override 
+		{ 
+			return m_extent.width; 
+		}
 		virtual uint32_t GetExtentHeight() const override { return m_extent.height; }
 		VkSurfaceFormatKHR GetFormat() const { return m_surface_format; }
 		VkFormat GetDepthFormat() const { return m_DepthFormat; }

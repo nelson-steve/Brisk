@@ -16,6 +16,7 @@
 #include "BLAS.hpp"
 #include "TLAS.hpp"
 #include "SBT.hpp"
+#include "Framebuffer.hpp"
 //---------------
 
 #define MAX_LIGHTS 2048
@@ -28,6 +29,8 @@
 #define SIZE_1MB 1048576 
 #define SIZE_10MB 10485760 
 #define SIZE_100MB 104857600
+
+#define BLOOM_LEVELS 4
 
 #define FRAMES_IN_FLIGHT 2
 
@@ -160,8 +163,9 @@ namespace Brisk
 		std::shared_ptr<Texture> m_ShadowMapLOD3;
 		std::shared_ptr<Texture> m_LightingOutput;
 		std::shared_ptr<Texture> m_TonemapOutput;
+		std::shared_ptr<Texture> m_BrightOuput;
+		std::array<std::shared_ptr<Texture>, BLOOM_LEVELS> m_BloomOutputs;
 		std::shared_ptr<Texture> m_AccumulationImage;
-		//std::shared_ptr<Texture> m_RayTracingOutput;
 		// Attachments - End
 
 		// RenderPasses
@@ -170,8 +174,21 @@ namespace Brisk
 		std::shared_ptr<RenderPass> m_GeometryBufferPass;
 		std::shared_ptr<RenderPass> m_LightingPass;
 		std::shared_ptr<RenderPass> m_TonemappingPass;
+		std::shared_ptr<RenderPass> m_BloomBlurPass;
 		std::shared_ptr<RenderPass> m_UIPass;
-		std::shared_ptr<RenderPass> m_ClusteredDebugPass;
+		// RenderPasses - End
+
+		// Framebuffers
+		std::shared_ptr<Framebuffer> m_DepthPreFramebuffer;
+		std::shared_ptr<Framebuffer> m_CSMShadowMapFramebuffer;
+		std::shared_ptr<Framebuffer> m_GBufferFramebuffer;
+		std::shared_ptr<Framebuffer> m_LightingFramebuffer;
+		std::shared_ptr<Framebuffer> m_TonemappingFramebuffer;
+		std::shared_ptr<Framebuffer> m_BloomBlur0Framebuffer;
+		std::shared_ptr<Framebuffer> m_BloomBlur1Framebuffer;
+		std::shared_ptr<Framebuffer> m_BloomBlur2Framebuffer;
+		std::shared_ptr<Framebuffer> m_BloomBlur3Framebuffer;
+		std::vector<std::shared_ptr<Framebuffer>> m_UIFramebuffers;
 		// RenderPasses - End
 
 		// Pipelines
@@ -182,6 +199,7 @@ namespace Brisk
 		std::shared_ptr<Pipeline> m_GBufferAlphaBlendPipeline;
 		std::shared_ptr<Pipeline> m_LightingPipeline;
 		std::shared_ptr<Pipeline> m_TonemappingPipeline;
+		std::shared_ptr<Pipeline> m_BlurPipeline;
 
 		std::shared_ptr<Pipeline> m_AABBGeneratorPipeline;
 		std::shared_ptr<Pipeline> m_AssignLightsToClustersPipeline;

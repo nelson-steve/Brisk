@@ -9,6 +9,8 @@
 
 namespace Brisk 
 {
+	class Framebuffer;
+
 	enum class AttachmentType {
 		Color,
 		Depth,
@@ -30,22 +32,24 @@ namespace Brisk
 	enum class LoadOp {
 		Clear,
 		Load,
-		DontCare
+		DontCare,
+		None
 	};
 
 	enum class StoreOp {
 		Store,
-		DontCare
+		DontCare,
+		None
 	};
 
 	struct RenderPassAttachment {
-		uint32_t pBinding;
-		AttachmentType pAttachmentType;
-		std::shared_ptr<Texture> pImage;
-		LoadOp pLoadOp;
-		StoreOp pStoreOp;
-		Core::ImageLayout pInitialLayout;
-		Core::ImageLayout pFinalLayout;
+		uint32_t p_Binding;
+		AttachmentType p_AttachmentType;
+		LoadOp p_LoadOp;
+		StoreOp p_StoreOp;
+		Core::Format p_Format;
+		Core::ImageLayout p_InitialLayout;
+		Core::ImageLayout p_FinalLayout;
 	};
 
 	class RenderPass {
@@ -54,18 +58,17 @@ namespace Brisk
 		virtual void Init(const std::vector<RenderPassDependency>& dependencies, const std::vector<RenderPassAttachment>& outputs) = 0;
 		virtual void Release() = 0;
 
-		virtual void Begin(std::shared_ptr<CommandBuffer> cmd, uint32_t imageIndex = 0) = 0;
+		virtual void Begin(std::shared_ptr<CommandBuffer> cmd, std::shared_ptr<Framebuffer> framebuffer) = 0;
 		virtual void End(std::shared_ptr<CommandBuffer> cmd) = 0;
 
-		int GetClearCount() const { return m_ClearCount; }
+		//int GetClearCount() const { return m_ClearCount; }
 		int GetColorAttachmentCount() const { return m_ColorAttachmentCount; }
-		bool HasDepth() const { return m_HasDepth; }
+		//bool HasDepth() const { return m_HasDepth; }
 
 		static std::shared_ptr<RenderPass> Create();
 
 	protected:
 		bool m_HasDepth;
-		int m_ClearCount = 0;
 		int m_ColorAttachmentCount = 0;
 	};
 };

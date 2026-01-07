@@ -22,6 +22,10 @@ namespace Brisk
 {
 	struct RendererSettings {
 		bool RayTracing = false;
+
+		float knee = 1.0;
+		float threshold = 1.0;
+		float intensity = 1.0;
 	};
 
 	class Application {

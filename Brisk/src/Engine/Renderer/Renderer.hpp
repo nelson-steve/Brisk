@@ -31,6 +31,7 @@
 #define SIZE_100MB 104857600
 
 #define BLOOM_LEVELS 4
+#define BLOOM_DIM 512
 
 #define FRAMES_IN_FLIGHT 2
 
@@ -70,6 +71,13 @@ namespace Brisk
 		alignas(16) glm::mat4 ProjView;
 		alignas(16) glm::mat4 View;
 		alignas(16) glm::vec3 CamPos;
+	};
+
+	struct alignas(16) BloomSetting {
+		float knee;
+		float threshold;
+		float intensity;
+		uint32_t _pad;
 	};
 
 	struct RayTracingProps {
@@ -163,8 +171,10 @@ namespace Brisk
 		std::shared_ptr<Texture> m_ShadowMapLOD3;
 		std::shared_ptr<Texture> m_LightingOutput;
 		std::shared_ptr<Texture> m_TonemapOutput;
-		std::shared_ptr<Texture> m_BrightOuput;
-		std::array<std::shared_ptr<Texture>, BLOOM_LEVELS> m_BloomOutputs;
+		std::shared_ptr<Texture> m_GlowOuput;
+		std::shared_ptr<Texture> m_BloomOutputH;
+		std::shared_ptr<Texture> m_BloomOutputV;
+		std::shared_ptr<Texture> m_BloomCombineOutput;
 		std::shared_ptr<Texture> m_AccumulationImage;
 		// Attachments - End
 
@@ -175,6 +185,7 @@ namespace Brisk
 		std::shared_ptr<RenderPass> m_LightingPass;
 		std::shared_ptr<RenderPass> m_TonemappingPass;
 		std::shared_ptr<RenderPass> m_BloomBlurPass;
+		std::shared_ptr<RenderPass> m_BloomCombinePass;
 		std::shared_ptr<RenderPass> m_UIPass;
 		// RenderPasses - End
 
@@ -184,10 +195,9 @@ namespace Brisk
 		std::shared_ptr<Framebuffer> m_GBufferFramebuffer;
 		std::shared_ptr<Framebuffer> m_LightingFramebuffer;
 		std::shared_ptr<Framebuffer> m_TonemappingFramebuffer;
-		std::shared_ptr<Framebuffer> m_BloomBlur0Framebuffer;
-		std::shared_ptr<Framebuffer> m_BloomBlur1Framebuffer;
-		std::shared_ptr<Framebuffer> m_BloomBlur2Framebuffer;
-		std::shared_ptr<Framebuffer> m_BloomBlur3Framebuffer;
+		std::shared_ptr<Framebuffer> m_BloomBlurHFramebuffer;
+		std::shared_ptr<Framebuffer> m_BloomBlurVFramebuffer;
+		std::shared_ptr<Framebuffer> m_BloomCombineFramebuffer;
 		std::vector<std::shared_ptr<Framebuffer>> m_UIFramebuffers;
 		// RenderPasses - End
 
@@ -199,7 +209,9 @@ namespace Brisk
 		std::shared_ptr<Pipeline> m_GBufferAlphaBlendPipeline;
 		std::shared_ptr<Pipeline> m_LightingPipeline;
 		std::shared_ptr<Pipeline> m_TonemappingPipeline;
-		std::shared_ptr<Pipeline> m_BlurPipeline;
+		std::shared_ptr<Pipeline> m_BlurVPipeline;
+		std::shared_ptr<Pipeline> m_BlurHPipeline;
+		std::shared_ptr<Pipeline> m_BloomCombinePipeline;
 
 		std::shared_ptr<Pipeline> m_AABBGeneratorPipeline;
 		std::shared_ptr<Pipeline> m_AssignLightsToClustersPipeline;
@@ -235,6 +247,7 @@ namespace Brisk
 		std::shared_ptr<Buffer> m_MeshletDataBuffer;
 		std::shared_ptr<Buffer> m_MaterialStorageBuffer;
 		std::shared_ptr<Buffer> m_TransformsBuffer;
+		std::shared_ptr<Buffer> m_BloomSettingBuffer;
 		// Buffer - End
 
 		std::shared_ptr<SBT> m_SBT;

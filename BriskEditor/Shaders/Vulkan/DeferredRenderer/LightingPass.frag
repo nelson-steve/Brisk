@@ -14,6 +14,13 @@ layout(std140, set = 0, binding = 0) uniform MVPBuffer {
     vec3 CamPos;
 } MVP;
 
+layout(std140, set = 0, binding = 21) uniform BloomSettingBuffer {
+    float knee;
+    float threshold;
+    float intensity;
+    int _pad;
+} BloomSetting;
+
 // G-buffer textures
 layout(set = 2, binding = 0) uniform sampler2D sampler_Position;
 layout(set = 2, binding = 1) uniform sampler2D sampler_Normal;
@@ -314,17 +321,13 @@ void main() {
     outColor = vec4(finalColor, 1.0);
 
     //
-    float knee = 0.8;
-    float threshold = 0.8;
-
     float brightness = max(max(finalColor.r, finalColor.g), finalColor.b);
 
-    float soft = brightness - threshold + knee;
-    soft = clamp(soft / (2.0 * knee), 0.0, 1.0);
+    float soft = brightness - BloomSetting.threshold + BloomSetting.knee;
+    soft = clamp(soft / (2.0 * BloomSetting.knee), 0.0, 1.0);
 
-    float contribution = max(brightness - threshold, 0.0);
-    contribution += soft * soft * knee;
+    float contribution = max(brightness - BloomSetting.threshold, 0.0);
+    contribution += soft * soft * BloomSetting.knee;
 
     outBrightColor = vec4(outColor.xyz * contribution / max(brightness, 0.0001), 1.0);
-    //
 }

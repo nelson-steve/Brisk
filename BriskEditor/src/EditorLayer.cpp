@@ -44,12 +44,21 @@ namespace Brisk
     {
         ImGui::Begin("Renderer Settings");
 
-        ImGui::Checkbox("##toggle", &Application::GetRendererSettings().RayTracing);
-        ImGui::SameLine();
-        ImGui::Text("RayTracing");
+        RendererSettings& settings = Application::GetRendererSettings();
+
+        // Ray Tracing toggle
+        ImGui::Checkbox("Ray Tracing", &settings.RayTracing);
+
+        ImGui::Separator();
+
+        // Bloom settings
+        ImGui::DragFloat("Bloom Threshold", &settings.threshold, 0.01f, 0.0f, 10.0f);
+        ImGui::DragFloat("Bloom Knee", &settings.knee, 0.01f, 0.0f, 10.0f);
+        ImGui::DragFloat("Bloom Intensity", &settings.intensity, 0.01f, 0.0f, 10.0f);
 
         ImGui::End();
     }
+
 
     void MenuBar() {
         if (ImGui::BeginMainMenuBar())

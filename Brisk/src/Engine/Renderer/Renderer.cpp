@@ -314,32 +314,52 @@ namespace Brisk
                 m_LightingOutput->Init(specs);
             }
 
-            m_BrightOuput = Texture::Create();
+            m_GlowOuput = Texture::Create();
 
             {
                 Texture::TextureSpecification specs{};
                 specs.p_Width = 1920;
                 specs.p_Height = 1080;
-                specs.p_DebugName = "g_BrightOuput";
+                specs.p_DebugName = "g_GlowOuput";
                 specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled;
                 specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
-                m_BrightOuput->Init(specs);
+                m_GlowOuput->Init(specs);
             }
 
-            for (int i = 0; i < BLOOM_LEVELS; i++)
+            m_BloomOutputH = Texture::Create();
+
             {
-                uint32_t w = 1920 >> (i + 1);
-                uint32_t h = 1080 >> (i + 1);
-
-                m_BloomOutputs[i] = Texture::Create();
-
                 Texture::TextureSpecification specs{};
-                specs.p_Width = w;
-                specs.p_Height = h;
-                specs.p_DebugName = "g_Bloom_" + i;
+                specs.p_Width = BLOOM_DIM;
+                specs.p_Height = BLOOM_DIM;
+                specs.p_DebugName = "g_BloomBlur_H";
                 specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled;
                 specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
-                m_BloomOutputs[i]->Init(specs);
+                m_BloomOutputH->Init(specs);
+            }
+
+            m_BloomOutputV = Texture::Create();
+
+            {
+                Texture::TextureSpecification specs{};
+                specs.p_Width = BLOOM_DIM;
+                specs.p_Height = BLOOM_DIM;
+                specs.p_DebugName = "g_BloomBlur_V";
+                specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled;
+                specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
+                m_BloomOutputV->Init(specs);
+            }
+
+            m_BloomCombineOutput = Texture::Create();
+
+            {
+                Texture::TextureSpecification specs{};
+                specs.p_Width = 1920;
+                specs.p_Height = 1080;
+                specs.p_DebugName = "g_BloomCombine";
+                specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled;
+                specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
+                m_BloomCombineOutput->Init(specs);
             }
 
             m_TonemapOutput = Texture::Create();
@@ -388,8 +408,8 @@ namespace Brisk
                     },
                 },
                 {
-                    RenderPassAttachment{ 0, AttachmentType::Color, LoadOp::Clear, StoreOp::Store, m_LightingOutput->GetSpecs().p_Format, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal},
-                    RenderPassAttachment{ 1, AttachmentType::Color, LoadOp::Clear, StoreOp::Store, m_BrightOuput->GetSpecs().p_Format, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal}
+                    RenderPassAttachment{ 0, AttachmentType::Color, LoadOp::Clear, StoreOp::Store, m_LightingOutput->GetSpecs().p_Format, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
+                    RenderPassAttachment{ 1, AttachmentType::Color, LoadOp::Clear, StoreOp::Store, m_GlowOuput->GetSpecs().p_Format, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal }
                 }
                 );
 
@@ -439,7 +459,32 @@ namespace Brisk
                         },
                     },
                 {
-                    RenderPassAttachment{ 0, AttachmentType::Color, LoadOp::Clear, StoreOp::Store, m_BloomOutputs[0]->GetSpecs().p_Format, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
+                    RenderPassAttachment{ 0, AttachmentType::Color, LoadOp::Clear, StoreOp::Store, m_BloomOutputH->GetSpecs().p_Format, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
+                }
+                );
+
+                m_BloomCombinePass = RenderPass::Create();
+                m_BloomCombinePass->Init(
+                    {
+                        RenderPassDependency {
+                            -1,
+                            0,
+                            Core::AccessType::None, // src access
+                            Core::AccessType::ColorAttachmentWrite, // dst access
+                            Core::PipelineStage::ColorAttachment, // src stage
+                            Core::PipelineStage::ColorAttachment // dst stage
+                        },
+                        RenderPassDependency {
+                            0,
+                            -1,
+                            Core::AccessType::ColorAttachmentWrite, // src access
+                            Core::AccessType::ShaderRead, // dst access
+                            Core::PipelineStage::ColorAttachment, // src stage
+                            Core::PipelineStage::FragmentShader // dst stage
+                        },
+                    },
+                {
+                    RenderPassAttachment{ 0, AttachmentType::Color, LoadOp::Clear, StoreOp::Store, m_BloomCombineOutput->GetSpecs().p_Format, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
                 }
                 );
 
@@ -507,7 +552,7 @@ namespace Brisk
                 specs.p_Height = 1080;
                 specs.p_RenderPass = m_LightingPass;
                 specs.p_Attachments.push_back(m_LightingOutput);
-                specs.p_Attachments.push_back(m_BrightOuput);
+                specs.p_Attachments.push_back(m_GlowOuput);
 
                 m_LightingFramebuffer->Init(specs);
             }
@@ -523,48 +568,37 @@ namespace Brisk
                 m_TonemappingFramebuffer->Init(specs);
             }
 
-            m_BloomBlur0Framebuffer = Framebuffer::Create();
+            m_BloomBlurHFramebuffer = Framebuffer::Create();
             {
                 Framebuffer::FramebufferSpecs specs{};
-                specs.p_Width = 1920 / 2;
-                specs.p_Height = 1080 / 2;
+                specs.p_Width = BLOOM_DIM;
+                specs.p_Height = BLOOM_DIM;
                 specs.p_RenderPass = m_BloomBlurPass;
-                specs.p_Attachments.push_back(m_BloomOutputs[0]);
+                specs.p_Attachments.push_back(m_BloomOutputH);
 
-                m_BloomBlur0Framebuffer->Init(specs);
+                m_BloomBlurHFramebuffer->Init(specs);
             }
 
-            m_BloomBlur1Framebuffer = Framebuffer::Create();
+            m_BloomBlurVFramebuffer = Framebuffer::Create();
             {
                 Framebuffer::FramebufferSpecs specs{};
-                specs.p_Width = 1920 / 4;
-                specs.p_Height = 1080 / 4;
+                specs.p_Width = BLOOM_DIM;
+                specs.p_Height = BLOOM_DIM;
                 specs.p_RenderPass = m_BloomBlurPass;
-                specs.p_Attachments.push_back(m_BloomOutputs[1]);
+                specs.p_Attachments.push_back(m_BloomOutputV);
 
-                m_BloomBlur1Framebuffer->Init(specs);
+                m_BloomBlurVFramebuffer->Init(specs);
             }
 
-            m_BloomBlur2Framebuffer = Framebuffer::Create();
+            m_BloomCombineFramebuffer = Framebuffer::Create();
             {
                 Framebuffer::FramebufferSpecs specs{};
-                specs.p_Width = 1920 / 8;
-                specs.p_Height = 1080 / 8;
-                specs.p_RenderPass = m_BloomBlurPass;
-                specs.p_Attachments.push_back(m_BloomOutputs[2]);
+                specs.p_Width = 1920;
+                specs.p_Height = 1080;
+                specs.p_RenderPass = m_BloomCombinePass;
+                specs.p_Attachments.push_back(m_BloomCombineOutput);
 
-                m_BloomBlur2Framebuffer->Init(specs);
-            }
-
-            m_BloomBlur3Framebuffer = Framebuffer::Create();
-            {
-                Framebuffer::FramebufferSpecs specs{};
-                specs.p_Width = 1920 / 16;
-                specs.p_Height = 1080 / 16;
-                specs.p_RenderPass = m_BloomBlurPass;
-                specs.p_Attachments.push_back(m_BloomOutputs[3]);
-
-                m_BloomBlur3Framebuffer->Init(specs);
+                m_BloomCombineFramebuffer->Init(specs);
             }
             
             m_UIFramebuffers.resize(Application::GetRenderer()->GetSwapchain()->GetImageCount());
@@ -705,7 +739,7 @@ namespace Brisk
             {
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
                 pipelineSpecs.pRenderPass = m_LightingPass;
-                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/LightingPassVS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/QuadRenderPassVS.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/LightingPassFS.spv");
                 pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\LightingPass_vert.cso");
                 pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\LightingPass_frag.cso");
@@ -729,12 +763,75 @@ namespace Brisk
             }
             //----------------------------------------------------------------------------------------------------
 
+            // Blur pass pipeline
+            //----------------------------------------------------------------------------------------------------
+            {
+                Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
+                pipelineSpecs.pRenderPass = m_BloomBlurPass;
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/QuadRenderPassVS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/BloomBlurVPassFS.spv");
+                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\BloomBlurPass_vert.cso");
+                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\BloomBlurPass_frag.cso");
+
+                pipelineSpecs.pDepthClampEnable = false;
+                pipelineSpecs.pRasterizationDiscardEnable = false;
+                pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
+                pipelineSpecs.pLineWidth = 1.0f;
+                pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
+                pipelineSpecs.pFrontFace = Pipeline::FrontFace::COUTNER_CLOCKWISE;
+                pipelineSpecs.pDepthBiasEnable = false;
+                pipelineSpecs.pDepthTestEnable = false;
+                pipelineSpecs.pDepthWriteEnable = false;
+                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_NEVER;
+                pipelineSpecs.pDepthBoundsTestEnable = false;
+                pipelineSpecs.pStencilTestEnable = false;
+                pipelineSpecs.pDebugName = "BloomBlurVPass pipeline";
+
+                m_BlurVPipeline = Pipeline::Create();
+                m_BlurVPipeline->Init(pipelineSpecs);
+
+                pipelineSpecs.pDebugName = "BloomBlurHPass pipeline";
+                pipelineSpecs.pShaderPathsVK[1] = "Shaders/Vulkan/DeferredRenderer/Compiled/BloomBlurHPassFS.spv";
+                m_BlurHPipeline = Pipeline::Create();
+                m_BlurHPipeline->Init(pipelineSpecs);
+            }
+            //----------------------------------------------------------------------------------------------------
+
+            // Bloom combine pass pipeline
+            //----------------------------------------------------------------------------------------------------
+            {
+                Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
+                pipelineSpecs.pRenderPass = m_BloomBlurPass;
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/QuadRenderPassVS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/BloomCombinePassFS.spv");
+                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\BloomBlurPass_vert.cso");
+                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\BloomBlurPass_frag.cso");
+
+                pipelineSpecs.pDepthClampEnable = false;
+                pipelineSpecs.pRasterizationDiscardEnable = false;
+                pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
+                pipelineSpecs.pLineWidth = 1.0f;
+                pipelineSpecs.pCullMode = Pipeline::CullMode::BACK;
+                pipelineSpecs.pFrontFace = Pipeline::FrontFace::COUTNER_CLOCKWISE;
+                pipelineSpecs.pDepthBiasEnable = false;
+                pipelineSpecs.pDepthTestEnable = false;
+                pipelineSpecs.pDepthWriteEnable = false;
+                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_NEVER;
+                pipelineSpecs.pDepthBoundsTestEnable = false;
+                pipelineSpecs.pStencilTestEnable = false;
+                pipelineSpecs.pDebugName = "BloomCombinePass pipeline";
+
+                m_BloomCombinePipeline = Pipeline::Create();
+                m_BloomCombinePipeline->Init(pipelineSpecs);
+            }
+            //----------------------------------------------------------------------------------------------------
+
             // Tonemapping pass pipeline
             //----------------------------------------------------------------------------------------------------
             {
                 Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
                 pipelineSpecs.pRenderPass = m_TonemappingPass;
-                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/TonemappingPassVS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/QuadRenderPassVS.spv");
                 pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/TonemappingPassFS.spv");
                 pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\Tonemapping_vert.cso");
                 pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\Tonemapping_frag.cso");
@@ -808,6 +905,14 @@ namespace Brisk
         mvpBufferDesc.p_Memory = BufferDesc::MemoryUsage::CPU_To_GPU;
         mvpBufferDesc.p_Persistant = true;
         m_MVPBuffer->Init(mvpBufferDesc);
+
+        m_BloomSettingBuffer = Buffer::Create();
+        BufferDesc bloomSettingBufferDesc{};
+        bloomSettingBufferDesc.p_Size = sizeof(BloomSetting);
+        bloomSettingBufferDesc.p_Usage = Core::BufferUsage::UniformBuffer;
+        bloomSettingBufferDesc.p_Memory = BufferDesc::MemoryUsage::CPU_To_GPU;
+        bloomSettingBufferDesc.p_Persistant = true;
+        m_BloomSettingBuffer->Init(bloomSettingBufferDesc);
 
         m_RayTracingPropsBuffer = Buffer::Create();
         BufferDesc rayTracingBufferDesc{};
@@ -913,6 +1018,7 @@ namespace Brisk
         }
 
         m_DepthPrePassPipeline->UpdateResources("MVP", {}, m_MVPBuffer, {});
+        m_LightingPipeline->UpdateResources("BloomSetting", {}, m_BloomSettingBuffer, {});
 
         m_LightingPipeline->UpdateResources("sampler_Position", { m_Pos      }, nullptr, {});
         m_LightingPipeline->UpdateResources("sampler_Normal",   { m_Normal   }, nullptr, {});
@@ -1081,6 +1187,18 @@ namespace Brisk
         //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/mixed_workflow/scene.gltf");
         //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/lamborghini_temerario_gt3_2026/scene.gltf");
         SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
+
+        m_BlurVPipeline->UpdateResources("Glow", 
+            { 
+                m_GlowOuput,
+            }, {}, {});
+
+        m_BlurHPipeline->UpdateResources("BlurVert",
+            {
+                m_BloomOutputV,
+            }, {}, {});
+
+        m_BloomCombinePipeline->UpdateResources("bloom", { m_BloomOutputH, }, {}, {});
     }
 
     void Renderer::RebuildAccelerationStructures() {
@@ -1105,8 +1223,13 @@ namespace Brisk
         mvp.ProjView = Application::GetEditorCamera()->GetViewProjection();
         mvp.View = Application::GetEditorCamera()->GetViewMatrix();
         mvp.CamPos = Application::GetEditorCamera()->GetPosition();
-
         m_MVPBuffer->UpdatePersistantData(sizeof(MVP), &mvp);
+
+        BloomSetting bloomSetting{};
+        bloomSetting.knee = Application::GetRendererSettings().knee;
+        bloomSetting.threshold = Application::GetRendererSettings().threshold;
+        bloomSetting.intensity = Application::GetRendererSettings().intensity;
+        m_BloomSettingBuffer->UpdatePersistantData(sizeof(BloomSetting), &bloomSetting);
 
         ClusterInfo clusterInfo{};
         clusterInfo.View = Application::GetEditorCamera()->GetViewMatrix();
@@ -1342,29 +1465,65 @@ namespace Brisk
         m_LightingPass->End(m_CmdBuffer[m_CurrentFrame]);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
-        //// --- TONEMAP PASS ---------------------------
+        //// --- BLOOM BLUR V PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-        m_TonemappingPass->Begin(m_CmdBuffer[m_CurrentFrame], m_TonemappingFramebuffer);
-        m_TonemappingPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
-
-        RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_TonemapOutput->GetWidth(), m_TonemapOutput->GetHeight(), 0, 1);
-        RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_TonemapOutput->GetWidth(), m_TonemapOutput->GetHeight());
+        m_BloomBlurPass->Begin(m_CmdBuffer[m_CurrentFrame], m_BloomBlurVFramebuffer);
+        m_BlurVPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
+        RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_BloomOutputV->GetWidth(), m_BloomOutputV->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_BloomOutputV->GetWidth(), m_BloomOutputV->GetHeight());
 
         RenderCommand::Draw(m_CmdBuffer[m_CurrentFrame], 3, 0);
 
-        m_TonemappingPass->End(m_CmdBuffer[m_CurrentFrame]);
+        m_BloomBlurPass->End(m_CmdBuffer[m_CurrentFrame]);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
-        {
-            Texture::ImageBarrierParams params{};
-            params.oldLayout = Core::ImageLayout::ShaderReadOnlyOptimal;
-            params.newLayout = Core::ImageLayout::ColorAttachmentOptimal;
-            params.srcAccess = Core::AccessType::ShaderRead;
-            params.dstAccess = Core::AccessType::ColorAttachmentWrite;
-            params.srcStage = Core::PipelineStage::FragmentShader;
-            params.dstStage = Core::PipelineStage::ColorAttachment;
-            m_LightingOutput->TransitionImageLayout(m_CmdBuffer[m_CurrentFrame], { params });
-        }
+        //// --- BLOOM BLUR H PASS ---------------------------
+        ////------------------------------------------------------------------------------------------------------------------------------------------------
+        m_BloomBlurPass->Begin(m_CmdBuffer[m_CurrentFrame], m_BloomBlurHFramebuffer);
+        m_BlurHPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
+        RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_BloomOutputH->GetWidth(), m_BloomOutputH->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_BloomOutputH->GetWidth(), m_BloomOutputH->GetHeight());
+
+        RenderCommand::Draw(m_CmdBuffer[m_CurrentFrame], 3, 0);
+
+        m_BloomBlurPass->End(m_CmdBuffer[m_CurrentFrame]);
+        ////------------------------------------------------------------------------------------------------------------------------------------------------
+
+        //// --- BLOOM COMBINE PASS ---------------------------
+        ////------------------------------------------------------------------------------------------------------------------------------------------------
+        m_BloomCombinePass->Begin(m_CmdBuffer[m_CurrentFrame], m_BloomCombineFramebuffer);
+        m_BloomCombinePipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
+        RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_BloomCombineOutput->GetWidth(), m_BloomCombineOutput->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_BloomCombineOutput->GetWidth(), m_BloomCombineOutput->GetHeight());
+
+        RenderCommand::Draw(m_CmdBuffer[m_CurrentFrame], 3, 0);
+
+        m_BloomCombinePass->End(m_CmdBuffer[m_CurrentFrame]);
+        ////------------------------------------------------------------------------------------------------------------------------------------------------
+
+        ////// --- TONEMAP PASS ---------------------------
+        //////------------------------------------------------------------------------------------------------------------------------------------------------
+        //m_TonemappingPass->Begin(m_CmdBuffer[m_CurrentFrame], m_TonemappingFramebuffer);
+        //m_TonemappingPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
+
+        //RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_TonemapOutput->GetWidth(), m_TonemapOutput->GetHeight(), 0, 1);
+        //RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_TonemapOutput->GetWidth(), m_TonemapOutput->GetHeight());
+
+        //RenderCommand::Draw(m_CmdBuffer[m_CurrentFrame], 3, 0);
+
+        //m_TonemappingPass->End(m_CmdBuffer[m_CurrentFrame]);
+        //////------------------------------------------------------------------------------------------------------------------------------------------------
+
+        //{
+        //    Texture::ImageBarrierParams params{};
+        //    params.oldLayout = Core::ImageLayout::ShaderReadOnlyOptimal;
+        //    params.newLayout = Core::ImageLayout::ColorAttachmentOptimal;
+        //    params.srcAccess = Core::AccessType::ShaderRead;
+        //    params.dstAccess = Core::AccessType::ColorAttachmentWrite;
+        //    params.srcStage = Core::PipelineStage::FragmentShader;
+        //    params.dstStage = Core::PipelineStage::ColorAttachment;
+        //    m_LightingOutput->TransitionImageLayout(m_CmdBuffer[m_CurrentFrame], { params });
+        //}
 
         //// --- UI PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------

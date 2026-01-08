@@ -21,7 +21,7 @@ layout(location = 4) out vec4 outEmissive;
 layout(set = 1, binding = 0) uniform sampler2D GlobalTextures[];
 
 struct MaterialData {
-    uint alphaMode; // use 4 bytes to avoid packing issues
+    uint alphaMode;
     float alphaCutoff;
     float metallicFactor;
     float roughnessFactor;
@@ -31,11 +31,11 @@ struct MaterialData {
 
     float emissiveStrength;
 
-    uint baseColorTextureIndex;
-    uint metallicRoughnessTextureIndex;
-    uint normalTextureIndex;
-    uint occlusionTextureIndex;
-    uint emissiveTextureIndex;
+    int baseColorTextureIndex;
+    int metallicRoughnessTextureIndex;
+    int normalTextureIndex;
+    int occlusionTextureIndex;
+    int emissiveTextureIndex;
 };
 
 layout(std430, set = 0, binding = 2) readonly buffer MaterialsBuffer {
@@ -51,59 +51,64 @@ void main() {
     MaterialData material = Materials.materials[draw.materialIndex];
 
     vec4 baseColor = material.baseColorFactor;
-    if (material.baseColorTextureIndex != 0) {
+    if (material.baseColorTextureIndex != -1) {
         baseColor *= texture(GlobalTextures[nonuniformEXT(material.baseColorTextureIndex)], UV);
 
         if (material.alphaMode == 1) { // MASK
             if (baseColor.a < material.alphaCutoff) {
-                //discard;
+                discard;
             }
         } else if (material.alphaMode == 2) { // BLEND
-            outAlbedo.a = baseColor.a; // Pass alpha to lighting pass
-            // You typically render this in a **separate transparent pass**.
-            //return; // Skip writing to G-buffer in opaque pass
+            outAlbedo.a = baseColor.a;
+            return;
         }
     }
 
     outPosition = vec4(Position, 1.0);
-    vec3 normal = Normal;
+    vec3 Ng = normalize(Normal);
+    vec3 Ns = Ng;
 
     float metallic = material.metallicFactor;
     float roughness = material.roughnessFactor;
-    if (material.metallicRoughnessTextureIndex != 0) {
+    if (material.metallicRoughnessTextureIndex != -1) {
         vec4 textureSample = texture(GlobalTextures[nonuniformEXT(material.metallicRoughnessTextureIndex)], UV);
         metallic *= textureSample.b;
         roughness *= textureSample.g;
     }
 
-    vec3 biTangent = cross(Normal, Tangent.xyz) * Tangent.w;
-
-    mat3 TBN = mat3(
-        normalize(Tangent.xyz),
-        normalize(biTangent),
-        normalize(Normal)
-    );
-
-    if (material.normalTextureIndex != 0) {
-        vec3 tangentNormal = texture(GlobalTextures[nonuniformEXT(material.normalTextureIndex)], UV).xyz;
-        normal = tangentNormal * 2.0 - 1.0;
-        normal = normalize(TBN * normal);
-
-        normal = normal * 0.5 + 0.5;
+    bool hasValidTangent = length(Tangent.xyz) > 0.0001;
+    if (material.normalTextureIndex != -1 && hasValidTangent) {
+        // [0,1] -> [-1,1]
+        vec3 tangentNormal =
+            texture(GlobalTextures[nonuniformEXT(material.normalTextureIndex)], UV).xyz
+            * 2.0 - 1.0;
+        
+        vec3 T = normalize(Tangent.xyz);
+        T = normalize(T - Ng * dot(Ng, T));
+        vec3 B = cross(Ng, T) * Tangent.w;
+        
+        mat3 TBN = mat3(T, B, Ng);
+        
+        Ns = normalize(TBN * tangentNormal);
+        
+        // Clamp invalid normals
+        if (dot(Ns, Ng) < 0.0)
+            Ns = Ng;
     }
 
     outEmissive = vec4(material.emissiveFactor, 1.0);
-    if (material.emissiveTextureIndex != 0) {
+    if (material.emissiveTextureIndex != -1) {
         outEmissive *= texture(GlobalTextures[nonuniformEXT(material.emissiveTextureIndex)], UV);
     }
     outEmissive *= material.emissiveStrength;
 
     float occlusion = 1.0;
-    if (material.occlusionTextureIndex != 0) {
+    if (material.occlusionTextureIndex != -1) {
         occlusion = texture(GlobalTextures[nonuniformEXT(material.occlusionTextureIndex)], UV).r;
     }
 
-    outNormal = vec4(normal, 1.0);
+    outNormal = vec4(Ns * 0.5 + 0.5, 1.0);
     outAlbedo = baseColor;
+
     outMaterial = vec4(occlusion, roughness, metallic, 1.0);
 }

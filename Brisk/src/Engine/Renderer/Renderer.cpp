@@ -1026,7 +1026,6 @@ namespace Brisk
         m_LightingPipeline->UpdateResources("sampler_Material", { m_Material }, nullptr, {});
         m_LightingPipeline->UpdateResources("sampler_Emissive", { m_Emissive }, nullptr, {});
         m_LightingPipeline->UpdateResources("sampler_Depth",    { m_DepthPre }, nullptr, {});
-        m_LightingPipeline->UpdateResources("ClusterAABB", {}, m_ClusterTilesSSBO, {});
         m_LightingPipeline->UpdateResources("MVP",            {}, m_MVPBuffer, {});
         m_LightingPipeline->UpdateResources("ShadowMaps",       { m_ShadowMapLOD0, m_ShadowMapLOD1, m_ShadowMapLOD2, m_ShadowMapLOD3 }, nullptr, {});
 
@@ -1180,10 +1179,10 @@ namespace Brisk
         m_GBufferPipeline->UpdateResources("Materials", {}, m_MaterialStorageBuffer, {});
         m_GBufferPipeline->UpdateResources("Transforms", {}, m_TransformsBuffer, {});
 
-        m_TonemappingPipeline->UpdateResources("LightingOutput", { m_LightingOutput }, {}, {});
+        m_TonemappingPipeline->UpdateResources("BloomOuput", { m_BloomCombineOutput }, {}, {});
 
         //SceneManager::pActiveScene->LoadGltfScene("../Assets/Sponza/glTF/Sponza.gltf");
-        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf");
+        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf");
         //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/mixed_workflow/scene.gltf");
         //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/lamborghini_temerario_gt3_2026/scene.gltf");
         SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
@@ -1199,6 +1198,7 @@ namespace Brisk
             }, {}, {});
 
         m_BloomCombinePipeline->UpdateResources("bloom", { m_BloomOutputH, }, {}, {});
+        m_BloomCombinePipeline->UpdateResources("scene", { m_LightingOutput, }, {}, {});
     }
 
     void Renderer::RebuildAccelerationStructures() {
@@ -1208,8 +1208,8 @@ namespace Brisk
         m_RayTracing->UpdateResources("Meshes", {}, m_MeshesBuffer, {});
         m_RayTracing->UpdateResources("Indices", {}, m_IndexBuffer, {});
         m_RayTracing->UpdateResources("topLevelAS", {}, {}, { m_TLAS });
-        //m_RayTracing->UpdateResources("resultImage", { m_LightingOutput }, {}, {});
-        //m_RayTracing->UpdateResources("accumulation", { m_AccumulationImage }, {}, {});
+        m_RayTracing->UpdateResources("resultImage", { m_LightingOutput }, {}, {});
+        m_RayTracing->UpdateResources("accumulation", { m_AccumulationImage }, {}, {});
         m_RayTracing->UpdateResources("camera", {}, { m_RayTracingPropsBuffer }, {});
     }
 
@@ -1501,29 +1501,40 @@ namespace Brisk
         m_BloomCombinePass->End(m_CmdBuffer[m_CurrentFrame]);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
-        ////// --- TONEMAP PASS ---------------------------
-        //////------------------------------------------------------------------------------------------------------------------------------------------------
-        //m_TonemappingPass->Begin(m_CmdBuffer[m_CurrentFrame], m_TonemappingFramebuffer);
-        //m_TonemappingPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
-
-        //RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_TonemapOutput->GetWidth(), m_TonemapOutput->GetHeight(), 0, 1);
-        //RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_TonemapOutput->GetWidth(), m_TonemapOutput->GetHeight());
-
-        //RenderCommand::Draw(m_CmdBuffer[m_CurrentFrame], 3, 0);
-
-        //m_TonemappingPass->End(m_CmdBuffer[m_CurrentFrame]);
-        //////------------------------------------------------------------------------------------------------------------------------------------------------
-
         //{
         //    Texture::ImageBarrierParams params{};
-        //    params.oldLayout = Core::ImageLayout::ShaderReadOnlyOptimal;
-        //    params.newLayout = Core::ImageLayout::ColorAttachmentOptimal;
-        //    params.srcAccess = Core::AccessType::ShaderRead;
-        //    params.dstAccess = Core::AccessType::ColorAttachmentWrite;
-        //    params.srcStage = Core::PipelineStage::FragmentShader;
-        //    params.dstStage = Core::PipelineStage::ColorAttachment;
-        //    m_LightingOutput->TransitionImageLayout(m_CmdBuffer[m_CurrentFrame], { params });
+        //    params.oldLayout = Core::ImageLayout::ColorAttachmentOptimal;
+        //    params.newLayout = Core::ImageLayout::ShaderReadOnlyOptimal;
+        //    params.srcAccess = Core::AccessType::ColorAttachmentWrite;
+        //    params.dstAccess = Core::AccessType::ShaderRead;
+        //    params.srcStage = Core::PipelineStage::ColorAttachment;
+        //    params.dstStage = Core::PipelineStage::FragmentShader;
+        //    m_BloomCombineOutput->TransitionImageLayout(m_CmdBuffer[m_CurrentFrame], { params });
         //}
+
+        //// --- TONEMAP PASS ---------------------------
+        ////------------------------------------------------------------------------------------------------------------------------------------------------
+        m_TonemappingPass->Begin(m_CmdBuffer[m_CurrentFrame], m_TonemappingFramebuffer);
+        m_TonemappingPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
+
+        RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_TonemapOutput->GetWidth(), m_TonemapOutput->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_TonemapOutput->GetWidth(), m_TonemapOutput->GetHeight());
+
+        RenderCommand::Draw(m_CmdBuffer[m_CurrentFrame], 3, 0);
+
+        m_TonemappingPass->End(m_CmdBuffer[m_CurrentFrame]);
+        ////------------------------------------------------------------------------------------------------------------------------------------------------
+
+        {
+            Texture::ImageBarrierParams params{};
+            params.oldLayout = Core::ImageLayout::ShaderReadOnlyOptimal;
+            params.newLayout = Core::ImageLayout::ColorAttachmentOptimal;
+            params.srcAccess = Core::AccessType::ShaderRead;
+            params.dstAccess = Core::AccessType::ColorAttachmentWrite;
+            params.srcStage = Core::PipelineStage::FragmentShader;
+            params.dstStage = Core::PipelineStage::ColorAttachment;
+            m_LightingOutput->TransitionImageLayout(m_CmdBuffer[m_CurrentFrame], { params });
+        }
 
         //// --- UI PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------

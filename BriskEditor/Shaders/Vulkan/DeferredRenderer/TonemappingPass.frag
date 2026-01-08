@@ -1,6 +1,6 @@
 #version 450
 
-layout(set = 0, binding = 17) uniform sampler2D LightingOutput;
+layout(set = 0, binding = 22) uniform sampler2D BloomOuput;
 layout(location = 0) in vec2 uv;
 layout(location = 0) out vec4 outColor;
 
@@ -14,7 +14,7 @@ vec3 ACESFilm(vec3 x) {
 }
 
 void main() {
-    vec3 hdr = texture(LightingOutput, uv).rgb;
+    vec3 hdr = texture(BloomOuput, uv).rgb;
 
     // Exposure
     float exposure = 1.0;

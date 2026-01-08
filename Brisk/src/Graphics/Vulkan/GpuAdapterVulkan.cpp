@@ -168,6 +168,7 @@ namespace Brisk
 			layout->AddBinding(19, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->AddBinding(20, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->AddBinding(21, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
+			layout->AddBinding(22, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_COMBINED_IMAGE_SAMPLER,  { GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->Init();
 			m_FrameGlobalDescriptorLayout = std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout();
 		}

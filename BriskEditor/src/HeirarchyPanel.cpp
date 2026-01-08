@@ -46,12 +46,12 @@ namespace Brisk
     void HeirarchyPanel::OnUpdate(){
         ImGui::Begin("Hierarchy");
 
-        //SceneManager::pActiveScene->Reg().view<TagComponent>().each([&](entt::entity entity, TagComponent& name) {
-        //    //if (!SceneManager::pActiveScene->Reg().any_of<ParentComponent>(entity)) {
-        //    Entity outEntity = { entity, SceneManager::pActiveScene.get() };
-        //    DrawEntityNode(outEntity);
-        //    //}
-        //    });
+        SceneManager::pActiveScene->Reg().view<TagComponent>().each([&](entt::entity entity, TagComponent& name) {
+            //if (!SceneManager::pActiveScene->Reg().any_of<ParentComponent>(entity)) {
+            Entity outEntity = { entity, SceneManager::pActiveScene.get() };
+            DrawEntityNode(outEntity);
+            //}
+            });
 
 
         // Check if right-click is inside the window and not on any item

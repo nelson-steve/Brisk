@@ -93,11 +93,11 @@ namespace Brisk
 
         float emissiveStrength;
 
-        uint32_t baseColorTextureIndex;
-        uint32_t metallicRoughnessTextureIndex;
-        uint32_t normalTextureIndex;
-        uint32_t occlusionTextureIndex;
-        uint32_t emissiveTextureIndex;
+        int32_t baseColorTextureIndex = -1;
+        int32_t metallicRoughnessTextureIndex = -1;
+        int32_t normalTextureIndex = -1;
+        int32_t occlusionTextureIndex = -1;
+        int32_t emissiveTextureIndex = -1;
     };
 
     struct Geometry {

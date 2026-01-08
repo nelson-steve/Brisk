@@ -579,14 +579,14 @@ namespace Brisk
 				geometry.draws.push_back(draw);
 			}
 
-			//Entity e = CreateEntity(asset.nodes[nodeIndex].name.c_str());
-			//TransformComponent& tc = e.GetComponent<TransformComponent>();
-			//MeshComponent& mc = e.AddComponent<MeshComponent>();
-			//tc.p_TransformIndex = geometry.transforms.size() - 1;
-			//range = primitives[asset.nodes[nodeIndex].meshIndex.value()];
-			//for (int i = 0; i < range.second; i++) {
-			//	mc.p_SubMeshIndices.push_back(range.first + i);
-			//}
+			Entity e = SceneManager::pActiveScene->CreateEntity(asset.nodes[nodeIndex].name.c_str());
+			TransformComponent& tc = e.GetComponent<TransformComponent>();
+			MeshComponent& mc = e.AddComponent<MeshComponent>();
+			tc.p_TransformIndex = geometry.transforms.size() - 1;
+			range = primitives[asset.nodes[nodeIndex].meshIndex.value()];
+			for (int i = 0; i < range.second; i++) {
+				mc.p_SubMeshIndices.push_back(range.first + i);
+			}
 		}
 
 		uint32_t texturesOffset = Engine::s_TexturesOffset;

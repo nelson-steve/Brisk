@@ -289,7 +289,7 @@ namespace Brisk
 
         ImGui_ImplVulkan_Init(&info);
 
-        Application::GetRenderer()->m_ImGuiIdScene = Application::GetRenderer()->m_BloomCombineOutput->AddTextureToImGui();
+        Application::GetRenderer()->m_ImGuiIdScene = Application::GetRenderer()->m_TonemapOutput->AddTextureToImGui();
         Application::GetRenderer()->m_ImGuiIdShadowMap0 = Application::GetRenderer()->m_ShadowMapLOD0->AddTextureToImGui();
         Application::GetRenderer()->m_ImGuiIdShadowMap1 = Application::GetRenderer()->m_ShadowMapLOD1->AddTextureToImGui();
         Application::GetRenderer()->m_ImGuiIdShadowMap2 = Application::GetRenderer()->m_ShadowMapLOD2->AddTextureToImGui();

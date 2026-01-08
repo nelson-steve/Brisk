@@ -6,7 +6,7 @@
 namespace Brisk
 {
 	Engine::EngineSettings Engine::s_EngineSettings;
-	uint32_t Engine::s_TexturesOffset;
+	uint32_t Engine::s_TexturesOffset = 0;
 
 	void Engine::InitSystems() {
 		s_EngineSettings.API = Engine::EngineSettings::GraphicsAPI::Vulkan;

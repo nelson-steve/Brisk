@@ -38,10 +38,6 @@ layout(std430, set = 0, binding = 1) readonly buffer LightsListBuffer {
     LightData lights[];
 } LightsList;
 
-layout(std430, set = 3, binding = 0) readonly buffer ClustersBuffer {
-    vec4 dummy[]; // Not accessed directly in deferred
-} ClusterAABB;
-
 layout(std430, set = 3, binding = 2) readonly buffer LightIndicesBuffer {
     uint lightIndexList[];
 } LightIndices;

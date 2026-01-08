@@ -88,8 +88,8 @@ void main()
         vec2 uv = vec2(Vertices.vertices[vi].tx, Vertices.vertices[vi].ty);        
         vec4 tangent = vec4(Vertices.vertices[vi].tpx, Vertices.vertices[vi].tpy, Vertices.vertices[vi].tpz, Vertices.vertices[vi].tpw);
 
-        vec3 worldTangent = rotateQuat(tangent.xyz, transform.orientation); 
         vec3 worldNormal = rotateQuat(normal, transform.orientation);
+        vec3 worldTangent = rotateQuat(tangent.xyz, transform.orientation); 
 
         gl_MeshVerticesEXT[i].gl_Position = MVP.ProjView * worldPos;
 

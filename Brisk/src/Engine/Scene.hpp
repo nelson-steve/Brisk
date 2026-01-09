@@ -87,6 +87,7 @@ namespace Brisk
         float alphaCutoff;
         float metallicFactor;
         float roughnessFactor;
+        bool doubleSided;
 
         alignas(16) glm::vec4 baseColorFactor;
         alignas(16) glm::vec3 emissiveFactor;
@@ -107,7 +108,9 @@ namespace Brisk
         std::vector<uint32_t> meshletdata;
         std::vector<Mesh> meshes;
         std::vector<MeshTransform> transforms;
-        std::vector<MeshDraw> draws;
+        std::vector<MeshDraw> drawsOpaque;
+        std::vector<MeshDraw> drawsDoubleSided;
+        //std::vector<MeshDraw> drawsTransparent;
         std::vector<MaterialData> materials;
     };
 
@@ -130,9 +133,11 @@ namespace Brisk
 		void SetPaused(bool paused) { m_IsPaused = paused; }
         void UpdateTransforms();
 
-        uint32_t GetDrawsCount() { return m_Geometry.draws.size(); }
+        uint32_t GetDrawsOpaqueCount() { return m_Geometry.drawsOpaque.size(); }
+        uint32_t GetDrawsDoubleSidedCount() { return m_Geometry.drawsDoubleSided.size(); }
         const std::vector<Mesh>& GetMeshes() const { return m_Geometry.meshes; }
-        const std::vector<MeshDraw>& GetDraws() const { return m_Geometry.draws; }
+        const std::vector<MeshDraw>& GetDrawsOpaque() const { return m_Geometry.drawsOpaque; }
+        const std::vector<MeshDraw>& GetDrawsDoubleSided() const { return m_Geometry.drawsDoubleSided; }
         const std::vector<MeshTransform>& GetTransforms() const { return m_Geometry.transforms; }
 
 		entt::registry& Reg() { return m_Registry; }

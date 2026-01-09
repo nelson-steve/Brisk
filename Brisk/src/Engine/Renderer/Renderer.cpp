@@ -724,9 +724,10 @@ namespace Brisk
                 m_GBufferPipeline = Pipeline::Create();
                 m_GBufferPipeline->Init(pipelineSpecs);
 
+                pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
                 pipelineSpecs.pCullMode = Pipeline::CullMode::NONE;
                 m_GBufferDoubleSidedPipeline = Pipeline::Create();
-                //m_GBufferDoubleSidedPipeline->Init(pipelineSpecs);
+                m_GBufferDoubleSidedPipeline->Init(pipelineSpecs);
 
                 pipelineSpecs.pTransparent = true;
                 m_GBufferAlphaBlendPipeline = Pipeline::Create();
@@ -1096,14 +1097,23 @@ namespace Brisk
         m_ComputeQueue1->Init(Queue::QueueType::Compute);
         //
 
-        m_DrawsBuffer = Buffer::Create();
-        BufferDesc drawBufferDesc{};
-        drawBufferDesc.p_Name = "Draws buffer";
-        drawBufferDesc.p_Size = SIZE_1MB * 8; // 8 MB
-        drawBufferDesc.p_Usage = Core::BufferUsage::IndirectBuffer | Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
-        drawBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
-        drawBufferDesc.p_AllowCopyDst = true;
-        m_DrawsBuffer->Init(drawBufferDesc);
+        m_DrawsOpaqueBuffer = Buffer::Create();
+        BufferDesc drawOpBufferDesc{};
+        drawOpBufferDesc.p_Name = "Draws Opaque buffer";
+        drawOpBufferDesc.p_Size = SIZE_1MB * 8; // 8 MB
+        drawOpBufferDesc.p_Usage = Core::BufferUsage::IndirectBuffer | Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
+        drawOpBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        drawOpBufferDesc.p_AllowCopyDst = true;
+        m_DrawsOpaqueBuffer->Init(drawOpBufferDesc);
+
+        m_DrawsDoubleSidedBuffer = Buffer::Create();
+        BufferDesc drawDSBufferDesc{};
+        drawDSBufferDesc.p_Name = "Draws Double sided buffer";
+        drawDSBufferDesc.p_Size = SIZE_1MB * 8; // 8 MB
+        drawDSBufferDesc.p_Usage = Core::BufferUsage::IndirectBuffer | Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
+        drawDSBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        drawDSBufferDesc.p_AllowCopyDst = true;
+        m_DrawsDoubleSidedBuffer->Init(drawDSBufferDesc);
 
         m_MeshesBuffer = Buffer::Create();
         BufferDesc meshesBufferDesc{};
@@ -1172,7 +1182,8 @@ namespace Brisk
         m_SBT->Init(m_RayTracing);
 
         m_GBufferPipeline->UpdateResources("Vertices", {}, m_VertexBuffer, {});
-        m_GBufferPipeline->UpdateResources("MeshDraws", {}, m_DrawsBuffer, {});
+        m_GBufferPipeline->UpdateResources("MeshDraws", {}, m_DrawsOpaqueBuffer, {});
+        m_GBufferPipeline->UpdateResources("MeshDrawsDS", {}, m_DrawsDoubleSidedBuffer, {});
         m_GBufferPipeline->UpdateResources("Meshlets", {}, m_MeshletsBuffer, {});
         m_GBufferPipeline->UpdateResources("MeshletData", {}, m_MeshletDataBuffer, {});
         m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer, {});
@@ -1181,7 +1192,7 @@ namespace Brisk
 
         m_TonemappingPipeline->UpdateResources("BloomOuput", { m_BloomCombineOutput }, {}, {});
 
-        //SceneManager::pActiveScene->LoadGltfScene("../Assets/Sponza/glTF/Sponza.gltf");
+        SceneManager::pActiveScene->LoadGltfScene("../Assets/Sponza/glTF/Sponza.gltf");
         //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf");
         //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/mixed_workflow/scene.gltf");
         //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/lamborghini_temerario_gt3_2026/scene.gltf");
@@ -1376,13 +1387,26 @@ namespace Brisk
             RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_ShadowMapLOD0->GetWidth(), m_ShadowMapLOD0->GetHeight(), 0, 1);
             RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_ShadowMapLOD0->GetWidth(), m_ShadowMapLOD0->GetHeight());
 
-            glm::mat4 matrix = lightMatrix;
-            m_ShadowMapPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
+            struct PushConstant {
+                glm::mat4 matrix;
+                uint32_t OpaquePass;
+            } pc;
+
+            pc.matrix = lightMatrix;
+            pc.OpaquePass = 1;
+            m_ShadowMapPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(PushConstant), &pc, 0, Core::ShaderStageFlags::Mesh);
             m_ShadowMapPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
-            if (SceneManager::pActiveScene->GetDrawsCount() != 0) {
+            if (SceneManager::pActiveScene->GetDrawsOpaqueCount() != 0) {
                 RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer[m_CurrentFrame],
-                    m_DrawsBuffer,
-                    offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->GetDrawsCount(), sizeof(MeshDraw));
+                    m_DrawsOpaqueBuffer,
+                    offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->GetDrawsOpaqueCount(), sizeof(MeshDraw));
+            }
+            pc.OpaquePass = 0;
+            m_ShadowMapPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(PushConstant), &pc, 0, Core::ShaderStageFlags::Mesh);
+            if (SceneManager::pActiveScene->GetDrawsDoubleSidedCount() != 0) {
+                RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer[m_CurrentFrame],
+                    m_DrawsDoubleSidedBuffer,
+                    offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->GetDrawsDoubleSidedCount(), sizeof(MeshDraw));
             }
 
             m_CSMShadowMapPass->End(m_CmdBuffer[m_CurrentFrame]);
@@ -1397,13 +1421,12 @@ namespace Brisk
         RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_DepthPre->GetWidth(), m_DepthPre->GetHeight());
 
         m_DepthPrePassPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
-
         glm::mat4 matrix{ 1.0f };
         m_DepthPrePassPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-        if (SceneManager::pActiveScene->GetDrawsCount() != 0) {
+        if (SceneManager::pActiveScene->GetDrawsOpaqueCount() != 0) {
             RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer[m_CurrentFrame],
-                m_DrawsBuffer,
-                offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->GetDrawsCount(), sizeof(MeshDraw));
+                m_DrawsOpaqueBuffer,
+                offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->GetDrawsOpaqueCount(), sizeof(MeshDraw));
         }
 
         m_DepthPrePass->End(m_CmdBuffer[m_CurrentFrame]);
@@ -1416,12 +1439,21 @@ namespace Brisk
         RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_Pos->GetWidth(), m_Pos->GetHeight());
 
         m_GBufferPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
-
-        m_GBufferPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(glm::mat4), &matrix, 0, Core::ShaderStageFlags::Mesh);
-        if (SceneManager::pActiveScene->GetDrawsCount() != 0) {
+        uint32_t OpaquePass = 1;
+        m_GBufferPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(uint32_t), &OpaquePass, 0, Core::ShaderStageFlags::Mesh | Core::ShaderStageFlags::Fragment);
+        if (SceneManager::pActiveScene->GetDrawsOpaqueCount() != 0) {
             RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer[m_CurrentFrame],
-                m_DrawsBuffer,
-                offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->GetDrawsCount(), sizeof(MeshDraw));
+                m_DrawsOpaqueBuffer,
+                offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->GetDrawsOpaqueCount(), sizeof(MeshDraw));
+        }
+
+        m_GBufferDoubleSidedPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
+        OpaquePass = 0;
+        m_GBufferPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(uint32_t), &OpaquePass, 0, Core::ShaderStageFlags::Mesh | Core::ShaderStageFlags::Fragment);
+        if (SceneManager::pActiveScene->GetDrawsDoubleSidedCount() != 0) {
+            RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer[m_CurrentFrame],
+                m_DrawsDoubleSidedBuffer,
+                offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->GetDrawsDoubleSidedCount(), sizeof(MeshDraw));
         }
 
         m_GeometryBufferPass->End(m_CmdBuffer[m_CurrentFrame]);

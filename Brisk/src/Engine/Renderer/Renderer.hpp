@@ -241,7 +241,8 @@ namespace Brisk
 
 		std::shared_ptr<Buffer> m_VertexBuffer;
 		std::shared_ptr<Buffer> m_IndexBuffer;
-		std::shared_ptr<Buffer> m_DrawsBuffer;
+		std::shared_ptr<Buffer> m_DrawsOpaqueBuffer;
+		std::shared_ptr<Buffer> m_DrawsDoubleSidedBuffer;
 		std::shared_ptr<Buffer> m_MeshesBuffer;
 		std::shared_ptr<Buffer> m_MeshletsBuffer;
 		std::shared_ptr<Buffer> m_MeshletDataBuffer;

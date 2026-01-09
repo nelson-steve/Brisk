@@ -19,6 +19,7 @@ layout(std140, set = 0, binding = 0) uniform MVPBuffer {
 
 layout(push_constant) uniform MeshDataBuffer {
     mat4 matrix;
+    uint OpaquePass;
 } MeshData;
 
 layout(std430, set = 0, binding = 3) readonly buffer VerticesBuffer {
@@ -45,13 +46,23 @@ layout(set = 0, binding = 9) readonly buffer MeshDrawsBuffer {
 	MeshDraw meshDraws[];
 } MeshDraws;
 
+layout(set = 0, binding = 23) readonly buffer MeshDrawsDSBuffer {
+	MeshDraw meshDraws[];
+} MeshDrawsDS;
+
 layout(set = 0, binding = 10) readonly buffer TransformsBuffer {
 	Transform transforms[];
 } Transforms;
 
 void main()
 {
-    MeshDraw draw = MeshDraws.meshDraws[gl_DrawIDARB];
+    MeshDraw draw;
+    if(MeshData.OpaquePass == 1u){
+        draw = MeshDraws.meshDraws[gl_DrawIDARB];
+    }
+    else {
+        draw = MeshDrawsDS.meshDraws[gl_DrawIDARB];
+    }
     uint meshletCount = draw.meshletCount;
     uint meshletOffset = draw.meshletOffset;
     Transform transform = Transforms.transforms[draw.transformIndex];

@@ -426,6 +426,64 @@ namespace Brisk
 					}
 				}
 
+				// Calculate tangents
+				std::vector<glm::vec3> tan1(vertices.size(), glm::vec3(0.0f));
+				std::vector<glm::vec3> tan2(vertices.size(), glm::vec3(0.0f));
+
+				if(tangent.size() <= 0)
+				{
+					for (size_t i = 0; i < indices.size(); i += 3)
+					{
+						uint32_t i0 = indices[i + 0];
+						uint32_t i1 = indices[i + 1];
+						uint32_t i2 = indices[i + 2];
+
+						const glm::vec3& p0 = glm::vec3(vertices[i0].vx, vertices[i0].vy, vertices[i0].vz);
+						const glm::vec3& p1 = glm::vec3(vertices[i1].vx, vertices[i1].vy, vertices[i1].vz);
+						const glm::vec3& p2 = glm::vec3(vertices[i2].vx, vertices[i2].vy, vertices[i2].vz);
+
+						const glm::vec2& uv0 = glm::vec2(vertices[i0].tx, vertices[i0].vy);
+						const glm::vec2& uv1 = glm::vec2(vertices[i1].tx, vertices[i1].vy);
+						const glm::vec2& uv2 = glm::vec2(vertices[i2].tx, vertices[i2].vy);
+
+						glm::vec3 dp1 = p1 - p0;
+						glm::vec3 dp2 = p2 - p0;
+
+						glm::vec2 duv1 = uv1 - uv0;
+						glm::vec2 duv2 = uv2 - uv0;
+
+						float r = 1.0f / (duv1.x * duv2.y - duv1.y * duv2.x);
+
+						glm::vec3 tangent = (dp1 * duv2.y - dp2 * duv1.y) * r;
+						glm::vec3 bitangent = (dp2 * duv1.x - dp1 * duv2.x) * r;
+
+						tan1[i0] += tangent;
+						tan1[i1] += tangent;
+						tan1[i2] += tangent;
+
+						tan2[i0] += bitangent;
+						tan2[i1] += bitangent;
+						tan2[i2] += bitangent;
+					}
+
+					for (size_t i = 0; i < vertices.size(); i++)
+					{
+						glm::vec3 N = glm::vec3(vertices[i].nx, vertices[i].ny, vertices[i].nz);
+						glm::vec3 T = tan1[i];
+
+						// Gram-Schmidt
+						T = glm::normalize(T - N * glm::dot(N, T));
+
+						float handedness = (glm::dot(glm::cross(N, T), tan2[i]) < 0.0f)
+							? -1.0f : 1.0f;
+
+						vertices[i].tpx = T.x;
+						vertices[i].tpy = T.y;
+						vertices[i].tpz = T.z;
+						vertices[i].tpw = handedness;
+					}
+				}
+
 				std::vector<uint32_t> remap(vertices.size());
 				size_t uniqueVertices = meshopt_generateVertexRemap(remap.data(), indices.data(), indices.size(), vertices.data(), vertices.size(), sizeof(Vertex));
 
@@ -541,56 +599,7 @@ namespace Brisk
 			primitives.push_back(std::make_pair(meshOffset, geometry.meshes.size() - meshOffset));
 		}
 
-		for (int nodeIndex = 0; nodeIndex < asset.nodes.size(); nodeIndex++) {
-			if (!asset.nodes[nodeIndex].meshIndex.has_value()) continue;
-			std::pair<uint32_t, uint32_t> range = primitives[asset.nodes[nodeIndex].meshIndex.value()];
-
-			glm::mat4 mat = GetWorldTransform(asset, nodeIndex);
-
-			float scale[3];
-			float rotation[4];
-			float translation[3];
-
-			//glm::decompose(mat, scale, rotation, translation, skew, perspective);
-
-			decomposeTransform(translation, rotation, scale, glm::value_ptr(mat));
-
-			MeshTransform transform = {};
-			transform.position = glm::vec3(translation[0], translation[1], translation[2]);
-			transform.scale = std::max(scale[0], std::max(scale[1], scale[2]));
-			transform.orientation = glm::vec4(rotation[0], rotation[1], rotation[2], rotation[3]);
-			geometry.transforms.push_back(transform);
-
-			std::cout << "Node " << asset.nodes[nodeIndex].name << ":\n";
-			for (int i = 0; i < range.second; i++) {
-				const auto& trs = std::get<fastgltf::TRS>(asset.nodes[nodeIndex].transform);
-
-				MeshDraw draw = {};
-				draw.transformIndex = geometry.transforms.size() - 1;
-				draw.meshIndex = range.first + i;
-				draw.materialIndex = geometry.meshes[draw.meshIndex].materialIndex;
-				draw.meshletCount = geometry.meshes[draw.meshIndex].meshletCount;
-				draw.meshletOffset = geometry.meshes[draw.meshIndex].meshletOffset;
-
-				draw.groupCountX = geometry.meshes[draw.meshIndex].meshletCount;
-				draw.groupCountY = 1;
-				draw.groupCountZ = 1;
-
-				geometry.draws.push_back(draw);
-			}
-
-			Entity e = SceneManager::pActiveScene->CreateEntity(asset.nodes[nodeIndex].name.c_str());
-			TransformComponent& tc = e.GetComponent<TransformComponent>();
-			MeshComponent& mc = e.AddComponent<MeshComponent>();
-			tc.p_TransformIndex = geometry.transforms.size() - 1;
-			range = primitives[asset.nodes[nodeIndex].meshIndex.value()];
-			for (int i = 0; i < range.second; i++) {
-				mc.p_SubMeshIndices.push_back(range.first + i);
-			}
-		}
-
 		uint32_t texturesOffset = Engine::s_TexturesOffset;
-
 		geometry.materials.reserve(asset.materials.size());
 		for (const auto& material : asset.materials) {
 			MaterialData outMaterial{};
@@ -601,7 +610,7 @@ namespace Brisk
 			outMaterial.roughnessFactor = material.pbrData.roughnessFactor;
 			//outMaterial.ior = material.ior;
 			//outMaterial.dispersion = material.dispersion;
-			//outMaterial.doubleSided = material.doubleSided;
+			outMaterial.doubleSided = material.doubleSided;
 			//outMaterial.unlit = material.unlit;
 			outMaterial.emissiveStrength = material.emissiveStrength;
 
@@ -722,6 +731,57 @@ namespace Brisk
 
 		}
 
+		for (int nodeIndex = 0; nodeIndex < asset.nodes.size(); nodeIndex++) {
+			if (!asset.nodes[nodeIndex].meshIndex.has_value()) continue;
+			std::pair<uint32_t, uint32_t> range = primitives[asset.nodes[nodeIndex].meshIndex.value()];
+
+			glm::mat4 mat = GetWorldTransform(asset, nodeIndex);
+
+			float scale[3];
+			float rotation[4];
+			float translation[3];
+
+			//glm::decompose(mat, scale, rotation, translation, skew, perspective);
+
+			decomposeTransform(translation, rotation, scale, glm::value_ptr(mat));
+
+			MeshTransform transform = {};
+			transform.position = glm::vec3(translation[0], translation[1], translation[2]);
+			transform.scale = std::max(scale[0], std::max(scale[1], scale[2]));
+			transform.orientation = glm::vec4(rotation[0], rotation[1], rotation[2], rotation[3]);
+			geometry.transforms.push_back(transform);
+
+			std::cout << "Node " << asset.nodes[nodeIndex].name << ":\n";
+			for (int i = 0; i < range.second; i++) {
+				const auto& trs = std::get<fastgltf::TRS>(asset.nodes[nodeIndex].transform);
+
+				MeshDraw draw = {};
+				draw.transformIndex = geometry.transforms.size() - 1;
+				draw.meshIndex = range.first + i;
+				draw.materialIndex = geometry.meshes[draw.meshIndex].materialIndex;
+				draw.meshletCount = geometry.meshes[draw.meshIndex].meshletCount;
+				draw.meshletOffset = geometry.meshes[draw.meshIndex].meshletOffset;
+
+				draw.groupCountX = geometry.meshes[draw.meshIndex].meshletCount;
+				draw.groupCountY = 1;
+				draw.groupCountZ = 1;
+
+				if(geometry.materials[draw.materialIndex].doubleSided)
+					geometry.drawsDoubleSided.push_back(draw);
+				else
+					geometry.drawsOpaque.push_back(draw);
+			}
+
+			Entity e = SceneManager::pActiveScene->CreateEntity(asset.nodes[nodeIndex].name.c_str());
+			TransformComponent& tc = e.GetComponent<TransformComponent>();
+			MeshComponent& mc = e.AddComponent<MeshComponent>();
+			tc.p_TransformIndex = geometry.transforms.size() - 1;
+			range = primitives[asset.nodes[nodeIndex].meshIndex.value()];
+			for (int i = 0; i < range.second; i++) {
+				mc.p_SubMeshIndices.push_back(range.first + i);
+			}
+		}
+
 		for (const auto& tex : asset.textures) {
 			const fastgltf::Image& image = asset.images[tex.imageIndex.value()];
 
@@ -734,7 +794,8 @@ namespace Brisk
 		{
 			std::lock_guard<std::mutex> lock(g_TransferCommandBufferMutex);
 			Application::GetRenderer()->m_TransferCmdBuffer->Bind();
-			Application::GetRenderer()->m_DrawsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.draws[0]) * geometry.draws.size(), geometry.draws.data());
+			Application::GetRenderer()->m_DrawsOpaqueBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.drawsOpaque[0]) * geometry.drawsOpaque.size(), geometry.drawsOpaque.data());
+			Application::GetRenderer()->m_DrawsDoubleSidedBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.drawsDoubleSided[0]) * geometry.drawsDoubleSided.size(), geometry.drawsDoubleSided.data());
 			Application::GetRenderer()->m_IndexBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.indices[0]) * geometry.indices.size(), geometry.indices.data());
 			Application::GetRenderer()->m_VertexBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.vertices[0]) * geometry.vertices.size(), geometry.vertices.data());
 			Application::GetRenderer()->m_MeshesBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.meshes[0]) * geometry.meshes.size(), geometry.meshes.data());

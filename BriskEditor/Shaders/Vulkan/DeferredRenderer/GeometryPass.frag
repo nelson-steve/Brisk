@@ -20,11 +20,16 @@ layout(location = 4) out vec4 outEmissive;
 
 layout(set = 1, binding = 0) uniform sampler2D GlobalTextures[];
 
+layout(push_constant) uniform MeshDataBuffer {
+    uint OpaquePass;
+};
+
 struct MaterialData {
     uint alphaMode;
     float alphaCutoff;
     float metallicFactor;
     float roughnessFactor;
+    bool doubleSided;
 
     vec4 baseColorFactor;
     vec3 emissiveFactor;
@@ -46,23 +51,35 @@ layout(set = 0, binding = 9) readonly buffer MeshDrawsBuffer {
 	MeshDraw meshDraws[];
 } MeshDraws;
 
+layout(set = 0, binding = 23) readonly buffer MeshDrawsDSBuffer {
+	MeshDraw meshDraws[];
+} MeshDrawsDS;
+
 void main() {
-    MeshDraw draw = MeshDraws.meshDraws[drawId];
+    MeshDraw draw;
+    if(OpaquePass == 1u){
+        draw = MeshDraws.meshDraws[drawId];
+    }
+    else {
+        draw = MeshDrawsDS.meshDraws[drawId];
+    }
     MaterialData material = Materials.materials[draw.materialIndex];
 
     vec4 baseColor = material.baseColorFactor;
     if (material.baseColorTextureIndex != -1) {
         baseColor *= texture(GlobalTextures[nonuniformEXT(material.baseColorTextureIndex)], UV);
-
-        if (material.alphaMode == 1) { // MASK
-            if (baseColor.a < material.alphaCutoff) {
-                discard;
-            }
-        } else if (material.alphaMode == 2) { // BLEND
-            outAlbedo.a = baseColor.a;
-            return;
-        }
     }
+
+    if (material.alphaMode == 1) { // MASK
+        if (baseColor.a < material.alphaCutoff) {
+            discard;
+        }
+    } else if (material.alphaMode == 2) { // BLEND
+        outAlbedo.a = baseColor.a;
+        return;
+    }
+
+    outAlbedo = vec4(baseColor.xyz, 1.0);
 
     outPosition = vec4(Position, 1.0);
     vec3 Ng = normalize(Normal);
@@ -108,7 +125,6 @@ void main() {
     }
 
     outNormal = vec4(Ns * 0.5 + 0.5, 1.0);
-    outAlbedo = baseColor;
 
     outMaterial = vec4(occlusion, roughness, metallic, 1.0);
 }

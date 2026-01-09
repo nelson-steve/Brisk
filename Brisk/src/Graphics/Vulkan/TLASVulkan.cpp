@@ -11,7 +11,7 @@
 namespace Brisk
 {
 	void TLASVulkan::Build(std::shared_ptr<BLAS> blas) {
-		auto draws = SceneManager::pActiveScene->GetDraws();
+		auto draws = SceneManager::pActiveScene->GetDrawsOpaque();
 		uint32_t drawCount = draws.size();
 
 		std::shared_ptr<CommandBufferVulkan> cmd = std::make_shared<CommandBufferVulkan>();
@@ -30,7 +30,7 @@ namespace Brisk
 		for (uint32_t i = 0; i < drawCount; i++) {
 			VkAccelerationStructureInstanceKHR& instance = instances[i];
 
-			MeshTransform t = SceneManager::pActiveScene->GetTransforms()[SceneManager::pActiveScene->GetDraws()[i].transformIndex];
+			MeshTransform t = SceneManager::pActiveScene->GetTransforms()[SceneManager::pActiveScene->GetDrawsOpaque()[i].transformIndex];
 			glm::quat q = glm::quat(
 				t.orientation.w,
 				t.orientation.x,

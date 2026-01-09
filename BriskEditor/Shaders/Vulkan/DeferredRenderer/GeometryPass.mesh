@@ -18,9 +18,8 @@ layout(std140, set = 0, binding = 0) uniform MVPBuffer {
 } MVP;
 
 layout(push_constant) uniform MeshDataBuffer {
-    mat4 model;
-    int  materialIndex;
-} ObjectData;
+    uint OpaquePass;
+};
 
 layout(std430, set = 0, binding = 3) readonly buffer VerticesBuffer {
     Vertex vertices[];
@@ -46,6 +45,10 @@ layout(set = 0, binding = 9) readonly buffer MeshDrawsBuffer {
 	MeshDraw meshDraws[];
 } MeshDraws;
 
+layout(set = 0, binding = 23) readonly buffer MeshDrawsDSBuffer {
+	MeshDraw meshDraws[];
+} MeshDrawsDS;
+
 layout(set = 0, binding = 10) readonly buffer TransformsBuffer {
 	Transform transforms[];
 } Transforms;
@@ -58,7 +61,14 @@ layout(location = 4) out vec4 Tangent[];
 
 void main()
 {
-    MeshDraw draw = MeshDraws.meshDraws[gl_DrawIDARB];
+    // Can use specialization instead
+    MeshDraw draw;
+    if(OpaquePass == 1u){
+        draw = MeshDraws.meshDraws[gl_DrawIDARB];
+    }
+    else {
+        draw = MeshDrawsDS.meshDraws[gl_DrawIDARB];
+    }
     uint meshletCount = draw.meshletCount;
     uint meshletOffset = draw.meshletOffset;
     Transform transform = Transforms.transforms[draw.transformIndex];

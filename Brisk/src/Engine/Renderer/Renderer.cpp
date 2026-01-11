@@ -436,6 +436,7 @@ namespace Brisk
                 },
                 {
                     RenderPassAttachment{ 0, AttachmentType::Color, LoadOp::Load, StoreOp::Store, m_LightingOutput->GetSpecs().p_Format, Core::ImageLayout::ColorAttachmentOptimal, Core::ImageLayout::ShaderReadOnlyOptimal },
+                    RenderPassAttachment{ 1, AttachmentType::Depth, LoadOp::Load,  StoreOp::DontCare, m_DepthPre->GetSpecs().p_Format, Core::ImageLayout::DepthStencilAttachmentOptimal, Core::ImageLayout::DepthStencilAttachmentOptimal},
                 }
             );
 
@@ -590,6 +591,7 @@ namespace Brisk
                 specs.p_Height = 1080;
                 specs.p_RenderPass = m_TransparentPass;
                 specs.p_Attachments.push_back(m_LightingOutput);
+                specs.p_Attachments.push_back(m_DepthPre);
 
                 m_TransparentFramebuffer->Init(specs);
             }
@@ -819,7 +821,7 @@ namespace Brisk
                 pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
                 pipelineSpecs.pLineWidth = 1.0f;
                 pipelineSpecs.pDepthBiasEnable = false;
-                pipelineSpecs.pDepthTestEnable = false;
+                pipelineSpecs.pDepthTestEnable = true;
                 pipelineSpecs.pDepthWriteEnable = false;
                 pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS_OR_EQUAL;
                 pipelineSpecs.pDepthBoundsTestEnable = false;
@@ -1096,7 +1098,6 @@ namespace Brisk
         m_LightingPipeline->UpdateResources("sampler_Albedo",   { m_Albedo   }, nullptr, {});
         m_LightingPipeline->UpdateResources("sampler_Material", { m_Material }, nullptr, {});
         m_LightingPipeline->UpdateResources("sampler_Emissive", { m_Emissive }, nullptr, {});
-        m_LightingPipeline->UpdateResources("sampler_Depth",    { m_DepthPre }, nullptr, {});
         m_LightingPipeline->UpdateResources("MVP",            {}, m_MVPBuffer, {});
         m_LightingPipeline->UpdateResources("ShadowMaps",       { m_ShadowMapLOD0, m_ShadowMapLOD1, m_ShadowMapLOD2, m_ShadowMapLOD3 }, nullptr, {});
 
@@ -1281,12 +1282,11 @@ namespace Brisk
 
         m_TonemappingPipeline->UpdateResources("BloomOuput", { m_BloomCombineOutput }, {}, {});
 
-        //SceneManager::pActiveScene->LoadGltfScene("../Assets/Sponza/glTF/Sponza.gltf");
-        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf");
-        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/mixed_workflow/scene.gltf");
-        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/lancia_fulvia_rallye/scene.gltf");
-        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
-        SceneManager::pActiveScene->LoadGltfScene("../Data/gltfModels/2.0/AlphaBlendModeTest/glTF/AlphaBlendModeTest.gltf");
+        SceneManager::pActiveScene->LoadGltfScene("../Assets/Sponza/glTF/Sponza.gltf");
+        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/lancia_fulvia_rallye/scene.gltf");
+        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
+        SceneManager::pActiveScene->LoadGltfScene("../Data/gltfModels/2.0/Suzanne/glTF/Suzanne.gltf");
+        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/lamborghini_temerario_gt3_2026/scene.gltf");
 
         m_BlurVPipeline->UpdateResources("Glow", 
             { 
@@ -1549,16 +1549,6 @@ namespace Brisk
 
         m_GeometryBufferPass->End(m_CmdBuffer[m_CurrentFrame]);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
-
-        Texture::ImageBarrierParams params{};
-        params.oldLayout = Core::ImageLayout::DepthStencilAttachmentOptimal;
-        params.newLayout = Core::ImageLayout::ShaderReadOnlyOptimal;
-        params.srcAccess = Core::AccessType::DepthStencilWrite;
-        params.dstAccess = Core::AccessType::ShaderRead;
-        params.srcStage = Core::PipelineStage::LateFragmentTest;
-        params.dstStage = Core::PipelineStage::FragmentShader;
-
-        m_DepthPre->TransitionImageLayout(m_CmdBuffer[m_CurrentFrame], { params });
 
         {
             Texture::ImageBarrierParams params{};

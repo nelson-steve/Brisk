@@ -813,10 +813,13 @@ namespace Brisk
 		{
 			std::lock_guard<std::mutex> lock(g_TransferCommandBufferMutex);
 			Application::GetRenderer()->m_TransferCmdBuffer->Bind();
-			Application::GetRenderer()->m_DrawsOpaqueBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.draws[0]) * geometry.draws.size(), geometry.draws.data());
-			Application::GetRenderer()->m_DrawsDoubleSidedBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.drawsDoubleSided[0]) * geometry.drawsDoubleSided.size(), geometry.drawsDoubleSided.data());
+			if(geometry.draws.size() > 0)
+				Application::GetRenderer()->m_DrawsOpaqueBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.draws[0]) * geometry.draws.size(), geometry.draws.data());
+			if(geometry.drawsDoubleSided.size() > 0)
+				Application::GetRenderer()->m_DrawsDoubleSidedBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.drawsDoubleSided[0]) * geometry.drawsDoubleSided.size(), geometry.drawsDoubleSided.data());
 			//Application::GetRenderer()->m_DrawsBlendBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.drawsBlend[0]) * geometry.drawsBlend.size(), geometry.drawsDoubleSided.data());
-			Application::GetRenderer()->m_DrawsBlendDoubleSidedBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.drawsBlendDoubleSided[0]) * geometry.drawsBlendDoubleSided.size(), geometry.drawsBlendDoubleSided.data());
+			if(geometry.drawsBlendDoubleSided.size() > 0)
+				Application::GetRenderer()->m_DrawsBlendDoubleSidedBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.drawsBlendDoubleSided[0]) * geometry.drawsBlendDoubleSided.size(), geometry.drawsBlendDoubleSided.data());
 			Application::GetRenderer()->m_IndexBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.indices[0]) * geometry.indices.size(), geometry.indices.data());
 			Application::GetRenderer()->m_VertexBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.vertices[0]) * geometry.vertices.size(), geometry.vertices.data());
 			Application::GetRenderer()->m_MeshesBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.meshes[0]) * geometry.meshes.size(), geometry.meshes.data());

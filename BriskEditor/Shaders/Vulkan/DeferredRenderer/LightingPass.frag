@@ -27,7 +27,6 @@ layout(set = 2, binding = 1) uniform sampler2D sampler_Normal;
 layout(set = 2, binding = 2) uniform sampler2D sampler_Albedo;
 layout(set = 2, binding = 3) uniform sampler2D sampler_Material; // metal/rough/occlusion
 layout(set = 2, binding = 4) uniform sampler2D sampler_Emissive;
-layout(set = 2, binding = 5) uniform sampler2D sampler_Depth;
 
 struct LightData {
     vec4 position; // xyz = pos, w = radius

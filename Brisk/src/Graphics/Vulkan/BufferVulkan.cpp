@@ -230,6 +230,8 @@ namespace Brisk
         size_t allocationOffset = Application::GetRenderer()->m_ScratchAllocator.Allocate(size);
         Application::GetRenderer()->m_ScratchAllocator.m_ScratchBuffer->UpdatePersistantData(size, data, allocationOffset);
 
+        BRISK_CORE_ASSERT(size > 0, "buffer size is 0");
+
         VkBufferCopy copyRegion{};
         copyRegion.srcOffset = allocationOffset;
         copyRegion.dstOffset = 0;

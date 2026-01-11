@@ -369,7 +369,7 @@ namespace Brisk
                 specs.p_Width = 1920;
                 specs.p_Height = 1080;
                 specs.p_DebugName = "g_Tonemap";
-                specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled;
+                specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled | Core::TextureUsage::ImageUsageStorage;
                 specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
                 m_TonemapOutput->Init(specs);
             }
@@ -406,12 +406,38 @@ namespace Brisk
                         Core::PipelineStage::ColorAttachment, // src stage
                         Core::PipelineStage::FragmentShader // dst stage
                     },
+
                 },
                 {
-                    RenderPassAttachment{ 0, AttachmentType::Color, LoadOp::Clear, StoreOp::Store, m_LightingOutput->GetSpecs().p_Format, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal },
+                    RenderPassAttachment{ 0, AttachmentType::Color, LoadOp::Clear, StoreOp::Store, m_LightingOutput->GetSpecs().p_Format, Core::ImageLayout::Undefined, Core::ImageLayout::ColorAttachmentOptimal },
                     RenderPassAttachment{ 1, AttachmentType::Color, LoadOp::Clear, StoreOp::Store, m_GlowOuput->GetSpecs().p_Format, Core::ImageLayout::Undefined, Core::ImageLayout::ShaderReadOnlyOptimal }
                 }
                 );
+
+            m_TransparentPass = RenderPass::Create();
+            m_TransparentPass->Init(
+                {
+                    RenderPassDependency {
+                        -1,
+                        0,
+                        Core::AccessType::None, // src access
+                            Core::AccessType::ColorAttachmentWrite | Core::AccessType::ColorAttachmentRead, // dst access
+                            Core::PipelineStage::ColorAttachment, // src stage
+                            Core::PipelineStage::ColorAttachment // dst stage
+                    },
+                    RenderPassDependency{
+                        0,
+                        -1,
+                        Core::AccessType::ColorAttachmentWrite | Core::AccessType::ColorAttachmentRead, // src access
+                        Core::AccessType::ShaderRead, // dst access
+                        Core::PipelineStage::ColorAttachment, // src stage
+                        Core::PipelineStage::FragmentShader // dst stage
+                    },
+                },
+                {
+                    RenderPassAttachment{ 0, AttachmentType::Color, LoadOp::Load, StoreOp::Store, m_LightingOutput->GetSpecs().p_Format, Core::ImageLayout::ColorAttachmentOptimal, Core::ImageLayout::ShaderReadOnlyOptimal },
+                }
+            );
 
                 m_TonemappingPass = RenderPass::Create();
                 m_TonemappingPass->Init(
@@ -555,6 +581,17 @@ namespace Brisk
                 specs.p_Attachments.push_back(m_GlowOuput);
 
                 m_LightingFramebuffer->Init(specs);
+            }
+
+            m_TransparentFramebuffer = Framebuffer::Create();
+            {
+                Framebuffer::FramebufferSpecs specs{};
+                specs.p_Width = 1920;
+                specs.p_Height = 1080;
+                specs.p_RenderPass = m_TransparentPass;
+                specs.p_Attachments.push_back(m_LightingOutput);
+
+                m_TransparentFramebuffer->Init(specs);
             }
 
             m_TonemappingFramebuffer = Framebuffer::Create();
@@ -728,10 +765,6 @@ namespace Brisk
                 pipelineSpecs.pCullMode = Pipeline::CullMode::NONE;
                 m_GBufferDoubleSidedPipeline = Pipeline::Create();
                 m_GBufferDoubleSidedPipeline->Init(pipelineSpecs);
-
-                pipelineSpecs.pTransparent = true;
-                m_GBufferAlphaBlendPipeline = Pipeline::Create();
-                //m_GBufferAlphaBlendPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
 
@@ -761,6 +794,43 @@ namespace Brisk
 
                 m_LightingPipeline = Pipeline::Create();
                 m_LightingPipeline->Init(pipelineSpecs);
+            }
+            //----------------------------------------------------------------------------------------------------
+
+            // Transparent pass pipeline
+            //----------------------------------------------------------------------------------------------------
+            {
+                Pipeline::GraphicsPipelineSpecs pipelineSpecs{};
+                Pipeline::VertexDataLayout vertexLayout;
+                vertexLayout.pBinding = 0;
+                //vertexLayout.pStride = sizeof(MeshAsset::Vertex);
+                vertexLayout.pAttributes = {
+                };
+                pipelineSpecs.pLayout = vertexLayout;
+                pipelineSpecs.pRenderPass = m_TransparentPass;
+
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/ForwardPassMS.spv");
+                pipelineSpecs.pShaderPathsVK.push_back("Shaders/Vulkan/DeferredRenderer/Compiled/ForwardPassFS.spv");
+                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\GeometryPass_vert.cso");
+                pipelineSpecs.pShaderPathsDX.push_back("\\Shaders\\DirectX12\\DeferredRenderer\\Compiled\\GeometryPass_frag.cso");
+
+                pipelineSpecs.pDepthClampEnable = false;
+                pipelineSpecs.pRasterizationDiscardEnable = false;
+                pipelineSpecs.pPolygoneMode = Pipeline::POLYGON_MODE_FILL;
+                pipelineSpecs.pLineWidth = 1.0f;
+                pipelineSpecs.pDepthBiasEnable = false;
+                pipelineSpecs.pDepthTestEnable = false;
+                pipelineSpecs.pDepthWriteEnable = false;
+                pipelineSpecs.pCompareOp = Pipeline::COMPARE_OP_LESS_OR_EQUAL;
+                pipelineSpecs.pDepthBoundsTestEnable = false;
+                pipelineSpecs.pStencilTestEnable = false;
+                pipelineSpecs.pDebugName = "ForwardPass pipeline";
+                pipelineSpecs.pFrontFace = Pipeline::FrontFace::CLOCKWISE;
+                pipelineSpecs.pCullMode = Pipeline::CullMode::NONE;
+                pipelineSpecs.pTransparent = true;
+
+                m_TransparentPipeline = Pipeline::Create();
+                m_TransparentPipeline->Init(pipelineSpecs);
             }
             //----------------------------------------------------------------------------------------------------
 
@@ -1115,6 +1185,24 @@ namespace Brisk
         drawDSBufferDesc.p_AllowCopyDst = true;
         m_DrawsDoubleSidedBuffer->Init(drawDSBufferDesc);
 
+        m_DrawsBlendBuffer = Buffer::Create();
+        BufferDesc drawBlendBufferDesc{};
+        drawBlendBufferDesc.p_Name = "Draws blend buffer";
+        drawBlendBufferDesc.p_Size = SIZE_1MB * 8; // 8 MB
+        drawBlendBufferDesc.p_Usage = Core::BufferUsage::IndirectBuffer | Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
+        drawBlendBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        drawBlendBufferDesc.p_AllowCopyDst = true;
+        m_DrawsBlendBuffer->Init(drawBlendBufferDesc);
+
+        m_DrawsBlendDoubleSidedBuffer = Buffer::Create();
+        BufferDesc drawBlendDSBufferDesc{};
+        drawBlendDSBufferDesc.p_Name = "Draws blend buffer";
+        drawBlendDSBufferDesc.p_Size = SIZE_1MB * 8; // 8 MB
+        drawBlendDSBufferDesc.p_Usage = Core::BufferUsage::IndirectBuffer | Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
+        drawBlendDSBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
+        drawBlendDSBufferDesc.p_AllowCopyDst = true;
+        m_DrawsBlendDoubleSidedBuffer->Init(drawBlendDSBufferDesc);
+
         m_MeshesBuffer = Buffer::Create();
         BufferDesc meshesBufferDesc{};
         meshesBufferDesc.p_Name = "Meshes buffer";
@@ -1184,6 +1272,7 @@ namespace Brisk
         m_GBufferPipeline->UpdateResources("Vertices", {}, m_VertexBuffer, {});
         m_GBufferPipeline->UpdateResources("MeshDraws", {}, m_DrawsOpaqueBuffer, {});
         m_GBufferPipeline->UpdateResources("MeshDrawsDS", {}, m_DrawsDoubleSidedBuffer, {});
+        m_TransparentPipeline->UpdateResources("MeshDrawsBlended", {}, m_DrawsBlendDoubleSidedBuffer, {});
         m_GBufferPipeline->UpdateResources("Meshlets", {}, m_MeshletsBuffer, {});
         m_GBufferPipeline->UpdateResources("MeshletData", {}, m_MeshletDataBuffer, {});
         m_LightingPipeline->UpdateResources("u_Shadow", {}, m_ShadowDataBuffer, {});
@@ -1192,11 +1281,12 @@ namespace Brisk
 
         m_TonemappingPipeline->UpdateResources("BloomOuput", { m_BloomCombineOutput }, {}, {});
 
-        SceneManager::pActiveScene->LoadGltfScene("../Assets/Sponza/glTF/Sponza.gltf");
+        //SceneManager::pActiveScene->LoadGltfScene("../Assets/Sponza/glTF/Sponza.gltf");
         //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/Sponza/glTF/Sponza.gltf");
         //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/mixed_workflow/scene.gltf");
-        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/lamborghini_temerario_gt3_2026/scene.gltf");
-        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
+        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/lancia_fulvia_rallye/scene.gltf");
+        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
+        SceneManager::pActiveScene->LoadGltfScene("../Data/gltfModels/2.0/AlphaBlendModeTest/glTF/AlphaBlendModeTest.gltf");
 
         m_BlurVPipeline->UpdateResources("Glow", 
             { 
@@ -1216,12 +1306,13 @@ namespace Brisk
         m_BLAS->Build(m_VertexBuffer, m_IndexBuffer);
         m_TLAS->Build(m_BLAS);
 
-        m_RayTracing->UpdateResources("Meshes", {}, m_MeshesBuffer, {});
-        m_RayTracing->UpdateResources("Indices", {}, m_IndexBuffer, {});
-        m_RayTracing->UpdateResources("topLevelAS", {}, {}, { m_TLAS });
-        m_RayTracing->UpdateResources("resultImage", { m_LightingOutput }, {}, {});
-        m_RayTracing->UpdateResources("accumulation", { m_AccumulationImage }, {}, {});
-        m_RayTracing->UpdateResources("camera", {}, { m_RayTracingPropsBuffer }, {});
+        //m_RayTracing->UpdateResources("Meshes", {}, m_MeshesBuffer, {});
+        //m_RayTracing->UpdateResources("Indices", {}, m_IndexBuffer, {});
+        //m_RayTracing->UpdateResources("topLevelAS", {}, {}, { m_TLAS });
+        // TODO: Create separate output texture for ray tracing
+        //m_RayTracing->UpdateResources("resultImage", { m_TonemapOutput }, {}, {});
+        //m_RayTracing->UpdateResources("accumulation", { m_AccumulationImage }, {}, {});
+        //m_RayTracing->UpdateResources("camera", {}, { m_RayTracingPropsBuffer }, {});
     }
 
     void Renderer::RenderScene(float deltaTime)
@@ -1495,6 +1586,24 @@ namespace Brisk
         RenderCommand::Draw(m_CmdBuffer[m_CurrentFrame], 3, 0);
 
         m_LightingPass->End(m_CmdBuffer[m_CurrentFrame]);
+        ////------------------------------------------------------------------------------------------------------------------------------------------------
+
+        //// --- FORWARD TRANSPARENT PASS ---------------------------
+        ////------------------------------------------------------------------------------------------------------------------------------------------------
+        m_TransparentPass->Begin(m_CmdBuffer[m_CurrentFrame], m_TransparentFramebuffer);
+        m_TransparentPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
+
+        RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight(), 0, 1);
+        RenderCommand::SetScissor(m_CmdBuffer[m_CurrentFrame], 0, 0, m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight());
+
+        m_TransparentPipeline->BindPushConstant(m_CmdBuffer[m_CurrentFrame], sizeof(glm::vec3), &lightDir, 0, Core::ShaderStageFlags::Fragment);
+        if (SceneManager::pActiveScene->GetDrawsBlendDSCount() != 0) {
+            RenderCommand::DrawMeshTasksIndirect(m_CmdBuffer[m_CurrentFrame],
+                m_DrawsBlendDoubleSidedBuffer,
+                offsetof(MeshDraw, MeshDraw::groupCountX), SceneManager::pActiveScene->GetDrawsBlendDSCount(), sizeof(MeshDraw));
+        }
+
+        m_TransparentPass->End(m_CmdBuffer[m_CurrentFrame]);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
         //// --- BLOOM BLUR V PASS ---------------------------
@@ -1834,7 +1943,7 @@ namespace Brisk
         m_ShadowMapPipeline->Release();
         m_GBufferPipeline->Release();
         m_GBufferDoubleSidedPipeline->Release();
-        m_GBufferAlphaBlendPipeline->Release();
+        m_TransparentPipeline->Release();
         m_LightingPipeline->Release();
 
         m_Swapchain->Release();

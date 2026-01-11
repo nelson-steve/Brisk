@@ -17,11 +17,6 @@ layout(std140, set = 0, binding = 0) uniform MVPBuffer {
     vec3 CamPos;
 } MVP;
 
-layout(push_constant) uniform MeshDataBuffer {
-    mat4 matrix;
-    uint OpaquePass;
-} MeshData;
-
 layout(std430, set = 0, binding = 3) readonly buffer VerticesBuffer {
     Vertex vertices[];
 } Vertices;
@@ -42,24 +37,22 @@ layout(set = 0, binding = 8) readonly buffer MeshletDataBuffer8 {
 	uint8_t meshletData8[];
 } MeshletData8;
 
-layout(set = 0, binding = 9) readonly buffer MeshDrawsBuffer {
+layout(set = 0, binding = 24) readonly buffer MeshDrawsBlendedBuffer {
 	MeshDraw meshDraws[];
-} MeshDraws;
-
-layout(set = 0, binding = 23) readonly buffer MeshDrawsDSBuffer {
-	MeshDraw meshDraws[];
-} MeshDrawsDS;
+} MeshDrawsBlended;
 
 layout(set = 0, binding = 10) readonly buffer TransformsBuffer {
 	Transform transforms[];
 } Transforms;
 
-void main()
-{
-    MeshDraw draw =
-        (MeshData.OpaquePass == 1u)
-        ? MeshDraws.meshDraws[gl_DrawIDARB]
-        : MeshDrawsDS.meshDraws[gl_DrawIDARB];
+layout(location = 0) out vec3 Position[];
+layout(location = 1) out vec3 Normal[];
+layout(location = 2) out vec2 UV[];
+layout(location = 3) flat out uint drawId[];
+layout(location = 4) out vec4 Tangent[];
+
+void main() {
+    MeshDraw draw = MeshDrawsBlended.meshDraws[gl_DrawIDARB];
 
     uint meshletCount = draw.meshletCount;
     uint meshletOffset = draw.meshletOffset;
@@ -77,17 +70,29 @@ void main()
 	uint baseVertex = Meshlets.meshlets[mi].baseVertex;
 	bool shortRefs = uint(Meshlets.meshlets[mi].shortRefs) == 1;
 	uint vertexOffset = dataOffset;
-	uint indexOffset = dataOffset + (shortRefs ? (vertexCount + 1) / 2 : vertexCount);    
+	uint indexOffset = dataOffset + (shortRefs ? (vertexCount + 1) / 2 : vertexCount);
 
     for (uint i = ti; i < vertexCount; i += MESH_WGSIZE)
     {
 		uint vi = shortRefs ? uint(MeshletData16.meshletData16[vertexOffset * 2 + i]) + baseVertex : MeshletData.meshletData[vertexOffset + i] + baseVertex;
 
         vec3 pos    = vec3(Vertices.vertices[vi].vx, Vertices.vertices[vi].vy, Vertices.vertices[vi].vz);
-        vec3 normal = vec3(Vertices.vertices[vi].nx, Vertices.vertices[vi].ny, Vertices.vertices[vi].nz);
+        vec3 normal = vec3(Vertices.vertices[vi].nx, Vertices.vertices[vi].ny, Vertices.vertices[vi].nz); 
 
         vec4 worldPos = vec4(rotateQuat(pos, transform.orientation) * transform.scale + transform.position, 1.0); 
-        gl_MeshVerticesEXT[i].gl_Position = MeshData.matrix * worldPos;
+        vec2 uv = vec2(Vertices.vertices[vi].tx, Vertices.vertices[vi].ty);        
+        vec4 tangent = vec4(Vertices.vertices[vi].tpx, Vertices.vertices[vi].tpy, Vertices.vertices[vi].tpz, Vertices.vertices[vi].tpw);
+
+        vec3 worldNormal = rotateQuat(normal, transform.orientation);
+        vec3 worldTangent = rotateQuat(tangent.xyz, transform.orientation); 
+
+        gl_MeshVerticesEXT[i].gl_Position = MVP.ProjView * worldPos;
+
+        drawId[i] = uint(gl_DrawIDARB);
+        Position[i] = worldPos.xyz;
+        Normal[i]   = worldNormal;
+        UV[i]       = uv;
+        Tangent[i]  = vec4(worldTangent, tangent.w);
     }
 
     barrier();

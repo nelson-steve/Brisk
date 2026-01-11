@@ -183,6 +183,7 @@ namespace Brisk
 		std::shared_ptr<CSMRenderPass> m_CSMShadowMapPass;
 		std::shared_ptr<RenderPass> m_GeometryBufferPass;
 		std::shared_ptr<RenderPass> m_LightingPass;
+		std::shared_ptr<RenderPass> m_TransparentPass;
 		std::shared_ptr<RenderPass> m_TonemappingPass;
 		std::shared_ptr<RenderPass> m_BloomBlurPass;
 		std::shared_ptr<RenderPass> m_BloomCombinePass;
@@ -194,6 +195,7 @@ namespace Brisk
 		std::shared_ptr<Framebuffer> m_CSMShadowMapFramebuffer;
 		std::shared_ptr<Framebuffer> m_GBufferFramebuffer;
 		std::shared_ptr<Framebuffer> m_LightingFramebuffer;
+		std::shared_ptr<Framebuffer> m_TransparentFramebuffer;
 		std::shared_ptr<Framebuffer> m_TonemappingFramebuffer;
 		std::shared_ptr<Framebuffer> m_BloomBlurHFramebuffer;
 		std::shared_ptr<Framebuffer> m_BloomBlurVFramebuffer;
@@ -206,7 +208,7 @@ namespace Brisk
 		std::shared_ptr<Pipeline> m_ShadowMapPipeline;
 		std::shared_ptr<Pipeline> m_GBufferPipeline;
 		std::shared_ptr<Pipeline> m_GBufferDoubleSidedPipeline;
-		std::shared_ptr<Pipeline> m_GBufferAlphaBlendPipeline;
+		std::shared_ptr<Pipeline> m_TransparentPipeline;
 		std::shared_ptr<Pipeline> m_LightingPipeline;
 		std::shared_ptr<Pipeline> m_TonemappingPipeline;
 		std::shared_ptr<Pipeline> m_BlurVPipeline;
@@ -243,6 +245,8 @@ namespace Brisk
 		std::shared_ptr<Buffer> m_IndexBuffer;
 		std::shared_ptr<Buffer> m_DrawsOpaqueBuffer;
 		std::shared_ptr<Buffer> m_DrawsDoubleSidedBuffer;
+		std::shared_ptr<Buffer> m_DrawsBlendBuffer;
+		std::shared_ptr<Buffer> m_DrawsBlendDoubleSidedBuffer;
 		std::shared_ptr<Buffer> m_MeshesBuffer;
 		std::shared_ptr<Buffer> m_MeshletsBuffer;
 		std::shared_ptr<Buffer> m_MeshletDataBuffer;

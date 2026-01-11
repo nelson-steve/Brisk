@@ -62,13 +62,11 @@ layout(location = 4) out vec4 Tangent[];
 void main()
 {
     // Can use specialization instead
-    MeshDraw draw;
-    if(OpaquePass == 1u){
-        draw = MeshDraws.meshDraws[gl_DrawIDARB];
-    }
-    else {
-        draw = MeshDrawsDS.meshDraws[gl_DrawIDARB];
-    }
+    MeshDraw draw =
+        (OpaquePass == 1u)
+        ? MeshDraws.meshDraws[gl_DrawIDARB]
+        : MeshDrawsDS.meshDraws[gl_DrawIDARB];
+
     uint meshletCount = draw.meshletCount;
     uint meshletOffset = draw.meshletOffset;
     Transform transform = Transforms.transforms[draw.transformIndex];

@@ -766,10 +766,30 @@ namespace Brisk
 				draw.groupCountY = 1;
 				draw.groupCountZ = 1;
 
-				if(geometry.materials[draw.materialIndex].doubleSided)
+				// Opaque double sided
+				//if (geometry.materials[draw.materialIndex].alphaMode == 0 && geometry.materials[draw.materialIndex].doubleSided) {
+				//	geometry.drawsDoubleSided.push_back(draw);
+				//}
+				// Opaque no double sided
+				if (geometry.materials[draw.materialIndex].alphaMode == 0 ) {
+					geometry.draws.push_back(draw);
+				}
+				// Mask double sided
+				else if (geometry.materials[draw.materialIndex].alphaMode == 1 && geometry.materials[draw.materialIndex].doubleSided) {
 					geometry.drawsDoubleSided.push_back(draw);
-				else
-					geometry.drawsOpaque.push_back(draw);
+				}
+				// Mask no double sided
+				else if (geometry.materials[draw.materialIndex].alphaMode == 1 && !geometry.materials[draw.materialIndex].doubleSided) {
+					geometry.draws.push_back(draw);
+				}
+				// Blend double sided
+				else if (geometry.materials[draw.materialIndex].alphaMode == 2 && geometry.materials[draw.materialIndex].doubleSided) {
+					geometry.drawsBlendDoubleSided.push_back(draw);
+				}
+				// Blend no double sided
+				else if (geometry.materials[draw.materialIndex].alphaMode == 2 && !geometry.materials[draw.materialIndex].doubleSided) {
+					geometry.drawsBlend.push_back(draw);
+				}
 			}
 
 			Entity e = SceneManager::pActiveScene->CreateEntity(asset.nodes[nodeIndex].name.c_str());
@@ -788,14 +808,15 @@ namespace Brisk
 			std::shared_ptr<Texture> texture = Texture::Create();
 			texture->Init(image, asset);
 			textures.push_back(texture);
-
 		}
 
 		{
 			std::lock_guard<std::mutex> lock(g_TransferCommandBufferMutex);
 			Application::GetRenderer()->m_TransferCmdBuffer->Bind();
-			Application::GetRenderer()->m_DrawsOpaqueBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.drawsOpaque[0]) * geometry.drawsOpaque.size(), geometry.drawsOpaque.data());
+			Application::GetRenderer()->m_DrawsOpaqueBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.draws[0]) * geometry.draws.size(), geometry.draws.data());
 			Application::GetRenderer()->m_DrawsDoubleSidedBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.drawsDoubleSided[0]) * geometry.drawsDoubleSided.size(), geometry.drawsDoubleSided.data());
+			//Application::GetRenderer()->m_DrawsBlendBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.drawsBlend[0]) * geometry.drawsBlend.size(), geometry.drawsDoubleSided.data());
+			Application::GetRenderer()->m_DrawsBlendDoubleSidedBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.drawsBlendDoubleSided[0]) * geometry.drawsBlendDoubleSided.size(), geometry.drawsBlendDoubleSided.data());
 			Application::GetRenderer()->m_IndexBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.indices[0]) * geometry.indices.size(), geometry.indices.data());
 			Application::GetRenderer()->m_VertexBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.vertices[0]) * geometry.vertices.size(), geometry.vertices.data());
 			Application::GetRenderer()->m_MeshesBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(geometry.meshes[0]) * geometry.meshes.size(), geometry.meshes.data());
@@ -814,12 +835,6 @@ namespace Brisk
 			Application::GetRenderer()->m_TransferQueue0->Submit(submitInfo, nullptr);
 			Application::GetGpuAdapter()->WaitIdle();
 		}
-
-		BRISK_CORE_INFO("TASK COMPLETE");
-		BRISK_CORE_INFO("TASK COMPLETE");
-		BRISK_CORE_INFO("TASK COMPLETE");
-		BRISK_CORE_INFO("TASK COMPLETE");
-		BRISK_CORE_INFO("TASK COMPLETE");
 	}
 
 	void Scene::LoadGltfScene(const std::filesystem::path& gltfPath) {

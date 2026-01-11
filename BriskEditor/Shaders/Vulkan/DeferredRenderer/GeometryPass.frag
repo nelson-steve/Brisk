@@ -56,13 +56,11 @@ layout(set = 0, binding = 23) readonly buffer MeshDrawsDSBuffer {
 } MeshDrawsDS;
 
 void main() {
-    MeshDraw draw;
-    if(OpaquePass == 1u){
-        draw = MeshDraws.meshDraws[drawId];
-    }
-    else {
-        draw = MeshDrawsDS.meshDraws[drawId];
-    }
+    MeshDraw draw =
+        (OpaquePass == 1u)
+        ? MeshDraws.meshDraws[drawId]
+        : MeshDrawsDS.meshDraws[drawId];
+
     MaterialData material = Materials.materials[draw.materialIndex];
 
     vec4 baseColor = material.baseColorFactor;
@@ -89,8 +87,8 @@ void main() {
     float roughness = material.roughnessFactor;
     if (material.metallicRoughnessTextureIndex != -1) {
         vec4 textureSample = texture(GlobalTextures[nonuniformEXT(material.metallicRoughnessTextureIndex)], UV);
-        metallic *= textureSample.b;
         roughness *= textureSample.g;
+        metallic *= textureSample.b;
     }
 
     bool hasValidTangent = length(Tangent.xyz) > 0.0001;

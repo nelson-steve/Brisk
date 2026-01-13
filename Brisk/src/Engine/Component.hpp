@@ -76,7 +76,6 @@ namespace Brisk
 	{
 		std::string name = "Mesh Component";
 
-		std::vector<uint32_t> p_SubMeshIndices;
 		std::string p_Name;
 
 		MeshComponent() = default;

@@ -1283,10 +1283,10 @@ namespace Brisk
         m_TonemappingPipeline->UpdateResources("BloomOuput", { m_BloomCombineOutput }, {}, {});
 
         SceneManager::pActiveScene->LoadGltfScene("../Assets/Sponza/glTF/Sponza.gltf");
-        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/lancia_fulvia_rallye/scene.gltf");
-        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
-        SceneManager::pActiveScene->LoadGltfScene("../Data/gltfModels/2.0/Suzanne/glTF/Suzanne.gltf");
-        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/lamborghini_temerario_gt3_2026/scene.gltf");
+        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/lancia_fulvia_rallye/scene.gltf");
+        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
+        //SceneManager::pActiveScene->LoadGltfScene("../Data/gltfModels/2.0/Suzanne/glTF/Suzanne.gltf");
+        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/lamborghini_temerario_gt3_2026/scene.gltf");
 
         m_BlurVPipeline->UpdateResources("Glow", 
             { 
@@ -1300,6 +1300,9 @@ namespace Brisk
 
         m_BloomCombinePipeline->UpdateResources("bloom", { m_BloomOutputH, }, {}, {});
         m_BloomCombinePipeline->UpdateResources("scene", { m_LightingOutput, }, {}, {});
+
+        m_GpuTiming = GpuTiming::Create();
+        m_GpuTiming->Init(FRAMES_IN_FLIGHT);
     }
 
     void Renderer::RebuildAccelerationStructures() {
@@ -1315,12 +1318,16 @@ namespace Brisk
         //m_RayTracing->UpdateResources("camera", {}, { m_RayTracingPropsBuffer }, {});
     }
 
+    uint32_t frameIndex = 0;
+    uint32_t prevFrame = 0;
     void Renderer::RenderScene(float deltaTime)
     {
         if (!SceneManager::pActiveScene) return;
 
         Application::GetJobSystem().ExecuteMainThreadCallbacks();
+
         glm::vec3 lightDir{ 4.0f, -32.0f, 12.0f };
+
         MVP mvp{};
         mvp.ProjView = Application::GetEditorCamera()->GetViewProjection();
         mvp.View = Application::GetEditorCamera()->GetViewMatrix();
@@ -1348,9 +1355,10 @@ namespace Brisk
             lightDir = lc.Direction;
         }
 
-        bool cascadedShadows = true;
-
-        if (!cascadedShadows) { // No cascades
+        if (Application::GetRendererSettings().CSM) {
+            m_SunMatrices = getLightSpaceMatrices(glm::normalize(-lightDir));
+        }
+        else {
             glm::mat4 lightProjectionMatrix, lightViewMatrix;
             glm::mat4 lightSpaceMatrix;
             float near_plane = 1.0f, far_plane = 200.0f;
@@ -1370,9 +1378,6 @@ namespace Brisk
             m_SunMatrices[2] = lightSpaceMatrix;
             m_SunMatrices[3] = lightSpaceMatrix;
         }
-        else { // CSM
-            m_SunMatrices = getLightSpaceMatrices(glm::normalize(-lightDir));
-        }
 
         ShadowData shadowData{};
         shadowData.lightSpaceMatrices[0] = m_SunMatrices[0];
@@ -1382,13 +1387,13 @@ namespace Brisk
         shadowData.cascadeSplits = glm::vec4(shadowCascadeLevels[0], shadowCascadeLevels[1], shadowCascadeLevels[2], shadowCascadeLevels[3]);
         m_ShadowDataBuffer->UpdatePersistantData(sizeof(ShadowData), &shadowData);
 
-        m_ClusterFence[m_CurrentFrame]->Wait();
-        m_ClusterFence[m_CurrentFrame]->Reset();
-
         m_ClusteredCmdBuffer[m_CurrentFrame]->Reset();
         m_ClusteredCmdBuffer[m_CurrentFrame]->Bind();
         //// --- CLUSTERS AABB GENERATOR COMPUTE TASK ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
+        m_GpuTiming->Reset(m_ClusteredCmdBuffer[m_CurrentFrame], m_CurrentFrame);
+
+        m_GpuTiming->TimeStamp(m_ClusteredCmdBuffer[m_CurrentFrame], Core::PipelineStage::ComputeShader, m_CurrentFrame, 0);
         m_AABBGeneratorPipeline->Bind(m_ClusteredCmdBuffer[m_CurrentFrame]);
         ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer[m_CurrentFrame], 16, 9, 24);
         m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer[m_CurrentFrame],
@@ -1399,8 +1404,8 @@ namespace Brisk
                 Core::PipelineStage::ComputeShader,
             });
         ////------------------------------------------------------------------------------------------------------------------------------------------------
+        m_GpuTiming->TimeStamp(m_ClusteredCmdBuffer[m_CurrentFrame], Core::PipelineStage::ComputeShader, m_CurrentFrame, 1);
         m_ClusteredCmdBuffer[m_CurrentFrame]->UnBind();
-
         Queue::SubmitInfo clusteredSubmitInfo{};
         clusteredSubmitInfo.pCmdBuffers.push_back(m_ClusteredCmdBuffer[m_CurrentFrame]);
         clusteredSubmitInfo.pSignalSemaphores.push_back(AABBGenerateSemaphore[m_CurrentFrame]);
@@ -1413,6 +1418,7 @@ namespace Brisk
         m_ClusteredCmdBuffer[m_CurrentFrame]->Bind();
         //// --- ASSIGN LIGHTS TO CLUSTERS COMPUTE TASK ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
+        m_GpuTiming->TimeStamp(m_ClusteredCmdBuffer[m_CurrentFrame], Core::PipelineStage::ComputeShader, m_CurrentFrame, 2);
         m_AssignLightsToClustersPipeline->Bind(m_ClusteredCmdBuffer[m_CurrentFrame]);
         ComputeCommand::CmdDispatch(m_ClusteredCmdBuffer[m_CurrentFrame], 16, 9, 24);
         m_ClusterTilesSSBO->MemoryPipelineBarrier(m_ClusteredCmdBuffer[m_CurrentFrame],
@@ -1436,6 +1442,7 @@ namespace Brisk
                 Core::PipelineStage::ComputeShader,
                 Core::PipelineStage::ComputeShader,
             });
+        m_GpuTiming->TimeStamp(m_ClusteredCmdBuffer[m_CurrentFrame], Core::PipelineStage::ComputeShader, m_CurrentFrame, 3);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
         m_ClusteredCmdBuffer[m_CurrentFrame]->UnBind();
 
@@ -1446,14 +1453,12 @@ namespace Brisk
         clusteredSubmitInfo2.pWaitStages.push_back(Core::PipelineStage::ComputeShader);
         m_ComputeQueue0->Submit(clusteredSubmitInfo2, m_ClusterFence[m_CurrentFrame]);
 
-        m_GraphicsFence[m_CurrentFrame]->Wait();
+        m_ClusterFence[m_CurrentFrame]->Wait();
+        m_ClusterFence[m_CurrentFrame]->Reset();
 
         if (!m_Swapchain->AcquireNextImage(UINT64_MAX, ImageAvailableSemaphore[m_CurrentFrame], nullptr, &m_ImageIndex)) {
             RecreateSwapchain();
-            return;
         }
-
-        m_GraphicsFence[m_CurrentFrame]->Reset();
 
         if (m_SubmitTransferWork) {
             Queue::SubmitInfo transferSubmitInfo{};
@@ -1470,6 +1475,7 @@ namespace Brisk
 
         // --- SHADOW MAP PASS ---------------------------
         //------------------------------------------------------------------------------------------------------------------------------------------------
+        m_GpuTiming->TimeStamp(m_CmdBuffer[m_CurrentFrame], Core::PipelineStage::EarlyFragmentTest, m_CurrentFrame, 4);
         uint32_t framebuffer = 0;
         m_ShadowMapPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
         for (const glm::mat4& lightMatrix : m_SunMatrices) {
@@ -1677,6 +1683,7 @@ namespace Brisk
         Application::GetGuiLayer()->Render(m_CmdBuffer[m_CurrentFrame]);
 
         m_UIPass->End(m_CmdBuffer[m_CurrentFrame]);
+        m_GpuTiming->TimeStamp(m_CmdBuffer[m_CurrentFrame], Core::PipelineStage::BottomOfPipe, m_CurrentFrame, 5);
         ////------------------------------------------------------------------------------------------------------------------------------------------------
 
         m_CmdBuffer[m_CurrentFrame]->UnBind();
@@ -1699,6 +1706,9 @@ namespace Brisk
             m_GraphicsQueue0->Submit(lightingSubmitInfo, m_GraphicsFence[m_CurrentFrame]);
         }
 
+        m_GraphicsFence[m_CurrentFrame]->Wait();
+        m_GraphicsFence[m_CurrentFrame]->Reset();
+
         Queue::PresentInfo presentInfo{};
         presentInfo.pWaitSemaphores.push_back(RenderFinishedSemaphore[m_CurrentFrame]);
         presentInfo.pSwapchains.push_back(m_Swapchain);
@@ -1714,6 +1724,20 @@ namespace Brisk
             RecreateSwapchain();
             m_WindowResized = false;
         }
+
+        if (frameIndex >= FRAMES_IN_FLIGHT - 1) {
+            prevFrame =
+                (m_CurrentFrame + FRAMES_IN_FLIGHT - 1) % FRAMES_IN_FLIGHT;
+
+            m_GpuTiming->QueryTime(prevFrame);
+
+            m_GpuTiming->GetTime(0, 1, m_AABBTime);
+            m_GpuTiming->GetTime(2, 3, m_AssignLightToClustersTime);
+            m_GpuTiming->GetTime(4, 5, m_RasterTime);
+            m_GpuTiming->GetTime(0, 5, m_GpuTime);
+        }
+
+        frameIndex++;
 
         m_CurrentFrame = (m_CurrentFrame + 1) % FRAMES_IN_FLIGHT;
     }
@@ -1874,6 +1898,9 @@ namespace Brisk
         Application::GetGpuAdapter()->WaitIdle();
         m_UIPass->Release();
         m_Swapchain->Release();
+        for (int i = 0; i < m_UIFramebuffers.size(); i++) {
+            m_UIFramebuffers[i]->Destroy();
+        }
 
         m_Swapchain->Create(swapchainMode);
 
@@ -1896,10 +1923,24 @@ namespace Brisk
                     Core::PipelineStage::FragmentShader
                 },
             },
-                {
-                    RenderPassAttachment{ 0, AttachmentType::Swapchain, LoadOp::Clear, StoreOp::Store, Core::Format::FORMAT_R8G8B8A8_UNORM, Core::ImageLayout::Undefined, Core::ImageLayout::PresentSrc }
-                }
+            {
+                RenderPassAttachment{ 0, AttachmentType::Swapchain, LoadOp::Clear, StoreOp::Store, Core::Format::FORMAT_R8G8B8A8_UNORM, Core::ImageLayout::Undefined, Core::ImageLayout::PresentSrc }
+            }
         );
+
+        m_UIFramebuffers.resize(Application::GetRenderer()->GetSwapchain()->GetImageCount());
+        for (int i = 0; i < m_UIFramebuffers.size(); i++) {
+            m_UIFramebuffers[i] = Framebuffer::Create();
+            {
+                Framebuffer::FramebufferSpecs specs{};
+                specs.p_Width = 1920;
+                specs.p_Height = 1080;
+                specs.p_RenderPass = m_UIPass;
+                specs.swapchainIndex = i;
+
+                m_UIFramebuffers[i]->Init(specs);
+            }
+        }
     }
 
     glm::mat4 GetWorldTransform(Entity entity) {

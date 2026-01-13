@@ -2,7 +2,6 @@
 #include "Engine/Engine.hpp"
 #include "AssetsPanel.hpp"
 #include "ConsolePanel.hpp"
-#include "GamePanel.hpp"
 #include "HeirarchyPanel.hpp"
 #include "InspectorPanel.hpp"
 #include "ScenePanel.hpp"
@@ -16,25 +15,93 @@
 
 #include <memory>
 #include <Graphics/DirectX12/CommandBufferDirectX12.hpp>
+#include <imgui_internal.h>
 
 namespace Brisk 
 {
-    struct PerformanceStat
-    {
+    struct GpuTimerResult {
         std::string name;
-        float value;
-        std::string unit;
+        float timeMS;
     };
 
-    void ShowPerformanceStatsWindow(float deltaTime, const std::vector<PerformanceStat>& stats)
+    struct FrameStats {
+        float cpuTimeMS;
+        float frameTimeMS;
+        int drawCalls;
+        int dispatches;
+        float memoryMB;
+        std::vector<GpuTimerResult> gpuTimers;
+    };
+
+    void ShowPerformanceStatsWindow(float deltaTime)
     {
         ImGui::Begin("Performance Stats");
 
         ImGui::Text("FPS: %.1f", ImGui::GetIO().Framerate);
-        ImGui::Text("Delta Time: %.3f ms", ImGui::GetIO().DeltaTime * 1000.0f);
-        for (const auto& stat : stats)
+        ImGui::Text("CPU Time: %.3f ms", ImGui::GetIO().DeltaTime * 1000.0f);
+        ImGui::Text("GPU Time: %.3f ms", Application::GetRenderer()->m_GpuTime);
+
+        static std::vector<FrameStats> frames;
+
+        FrameStats f;
+        f.cpuTimeMS = ImGui::GetIO().DeltaTime * 1000.0f;
+        f.frameTimeMS = float(16 + rand() % 5);
+        f.drawCalls = 1000 + rand() % 500;
+        f.dispatches = 50 + rand() % 20;
+        f.memoryMB = 2000 + rand() % 500;
+
+        f.gpuTimers = {
+            {"Clusters AABB", Application::GetRenderer()->m_AABBTime},
+            {"Assign Lights", Application::GetRenderer()->m_AssignLightToClustersTime},
+            {"Raster", Application::GetRenderer()->m_RasterTime},
+        };
+
+        frames.push_back(f);
+
+        int32_t historySize = 120;
+        if (frames.size() > historySize)
+            frames.erase(frames.begin());
+
+        if (frames.empty())
         {
-            ImGui::Text("%s: %.3f %s", stat.name.c_str(), stat.value, stat.unit.c_str());
+            ImGui::Text("No data yet");
+            ImGui::End();
+            return;
+        }
+
+        const FrameStats& latest = frames.back();
+
+        // GPU per pass
+        if (!latest.gpuTimers.empty())
+        {
+            ImGui::Separator();
+            ImGui::Text("GPU Timings (ms):");
+
+            ImGui::Columns(2, "GPU Timer", true);
+            ImGui::Text("Pass"); ImGui::NextColumn();
+            ImGui::Text("Time (ms)"); ImGui::NextColumn();
+            ImGui::Separator();
+
+            for (const auto& t : latest.gpuTimers)
+            {
+                ImGui::Text("%s", t.name.c_str()); ImGui::NextColumn();
+                ImGui::Text("%.6f", t.timeMS); ImGui::NextColumn();
+            }
+
+            ImGui::Columns(1);
+        }
+
+        if (frames.size() > 1)
+        {
+            ImGui::Separator();
+            ImGui::Text("Frame Time (ms)");
+
+            std::vector<float> frameTimes;
+            frameTimes.reserve(historySize);
+            for (int i = std::max(0, (int)frames.size() - historySize); i < frames.size(); ++i)
+                frameTimes.push_back(frames[i].frameTimeMS);
+
+            ImGui::PlotLines("Frame Time", frameTimes.data(), frameTimes.size(), 0, nullptr, 0.0f, 50.0f, ImVec2(0, 80));
         }
 
         ImGui::End();
@@ -46,12 +113,11 @@ namespace Brisk
 
         RendererSettings& settings = Application::GetRendererSettings();
 
-        // Ray Tracing toggle
         ImGui::Checkbox("Ray Tracing", &settings.RayTracing);
+        ImGui::Checkbox("CSM", &settings.CSM);
 
         ImGui::Separator();
 
-        // Bloom settings
         ImGui::DragFloat("Bloom Threshold", &settings.threshold, 0.01f, 0.0f, 10.0f);
         ImGui::DragFloat("Bloom Knee", &settings.knee, 0.01f, 0.0f, 10.0f);
         ImGui::DragFloat("Bloom Intensity", &settings.intensity, 0.01f, 0.0f, 10.0f);
@@ -59,6 +125,46 @@ namespace Brisk
         ImGui::End();
     }
 
+    void ShowDebugCSMMapsWindow()
+    {
+        ImGui::Begin("CSM Debug");
+
+        ImVec2 avail = ImGui::GetContentRegionAvail();
+        ImVec2 cellSize = { avail.x * 0.5f, avail.y * 0.5f }; // 2x2 grid
+
+        auto ShowShadowMap = [&](ImTextureID texId, const char* label)
+            {
+                float aspect = (float)2048 / (float)2048;
+
+                ImVec2 imageSize = cellSize;
+                if (imageSize.x / imageSize.y > aspect) {
+                    imageSize.x = imageSize.y * aspect;
+                }
+                else {
+                    imageSize.y = imageSize.x / aspect;
+                }
+
+                ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
+                ImGui::Image(texId, imageSize);
+                ImGui::PopStyleVar();
+            };
+
+        ImGui::BeginChild("ShadowMapDebug");
+        {
+            // Row 0
+            ShowShadowMap((ImTextureID)Application::GetRenderer()->m_ImGuiIdShadowMap0, "Cascade0");
+            ImGui::SameLine();
+            ShowShadowMap((ImTextureID)Application::GetRenderer()->m_ImGuiIdShadowMap1, "Cascade1");
+
+            // Row 1
+            ShowShadowMap((ImTextureID)Application::GetRenderer()->m_ImGuiIdShadowMap2, "Cascade2");
+            ImGui::SameLine();
+            ShowShadowMap((ImTextureID)Application::GetRenderer()->m_ImGuiIdShadowMap3, "Cascade3");
+        }
+        ImGui::EndChild();
+
+        ImGui::End();
+    }
 
     void MenuBar() {
         if (ImGui::BeginMainMenuBar())
@@ -114,9 +220,6 @@ namespace Brisk
         MaterialPanel* materialPanel = new MaterialPanel();
         m_Panels.insert({ "Material" , materialPanel });
 
-        GamePanel* gamePanel = new GamePanel();
-        m_Panels.insert({ "Game" , gamePanel });
-
         HeirarchyPanel* heirarchyPanel = new HeirarchyPanel();
         m_Panels.insert({ "Heirarchy" , heirarchyPanel });
 
@@ -141,16 +244,10 @@ namespace Brisk
             panel.second->OnUpdate();
         }
 
-        std::vector<PerformanceStat> stats = {
-            {"GPU Usage", 65.0f, "%"},
-            {"CPU Usage", 45.3f, "%"},
-            {"Memory Usage", 1536.0f, "MB"},
-            {"Render Time", 16.67f, "ms"}
-        };
-
         float deltaTime = 0.1;
-        ShowPerformanceStatsWindow(deltaTime, stats);
+        ShowPerformanceStatsWindow(deltaTime);
         ShowRendererSettingsWindow();
+        ShowDebugCSMMapsWindow();
     }
 
     void EditorLayer::OnEvent(Event& e) {

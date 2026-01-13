@@ -125,7 +125,6 @@ namespace Brisk
 				Application::GetRenderer()->m_TransferCmdBuffer->Bind();
 				Application::GetRenderer()->m_TransformsBuffer->RecordUpload(Application::GetRenderer()->m_TransferCmdBuffer, sizeof(m_Geometry.transforms[0]) * m_Geometry.transforms.size(), m_Geometry.transforms.data());
 				Application::GetRenderer()->m_TransferCmdBuffer->UnBind();
-				//shouldUpload = true;
 			}
 		}
 	}
@@ -212,7 +211,6 @@ namespace Brisk
 		geometry.indices.reserve(geometry.indices.size() + indexCount);
 
 		std::vector<std::pair<uint32_t, uint32_t>> primitives;
-		std::vector<uint32_t> primitiveMaterials;
 
 		size_t firstMeshOffset = geometry.meshes.size();
 
@@ -221,8 +219,6 @@ namespace Brisk
 			size_t meshOffset = geometry.meshes.size();
 
 			for (auto it = gltfMesh.primitives.begin(); it != gltfMesh.primitives.end(); ++it) {
-				primitiveMaterials.push_back(it->materialIndex.value());
-
 				const fastgltf::Attribute* positionIt = it->findAttribute("POSITION");
 				const fastgltf::Attribute* normalIt = it->findAttribute("NORMAL");
 				const fastgltf::Attribute* texCoord0It = it->findAttribute("TEXCOORD_0");
@@ -798,7 +794,7 @@ namespace Brisk
 			tc.p_TransformIndex = geometry.transforms.size() - 1;
 			range = primitives[asset.nodes[nodeIndex].meshIndex.value()];
 			for (int i = 0; i < range.second; i++) {
-				mc.p_SubMeshIndices.push_back(range.first + i);
+				//uint32_t v = range.first + i;
 			}
 		}
 

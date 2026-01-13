@@ -9,7 +9,7 @@ namespace Brisk
     void FenceVulkan::Init() {
         VkFenceCreateInfo fenceCreateInfo = {};
         fenceCreateInfo.sType = VK_STRUCTURE_TYPE_FENCE_CREATE_INFO;
-        fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // Optional: create as signaled if needed
+        //fenceCreateInfo.flags = VK_FENCE_CREATE_SIGNALED_BIT; // Optional: create as signaled if needed
 
         VkResult result = vkCreateFence(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &fenceCreateInfo, nullptr, &m_Fence);
         if (result != VK_SUCCESS) {

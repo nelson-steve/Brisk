@@ -17,6 +17,7 @@
 #include "TLAS.hpp"
 #include "SBT.hpp"
 #include "Framebuffer.hpp"
+#include "GpuTIming.hpp"
 //---------------
 
 #define MAX_LIGHTS 2048
@@ -135,6 +136,13 @@ namespace Brisk
 		static std::unique_ptr<Renderer> Create();
 	public:
 		static std::shared_ptr<Swapchain> m_Swapchain;
+
+		float m_AABBTime = 0.0f;
+		float m_AssignLightToClustersTime = 0.0f;
+		float m_RasterTime = 0.0f;
+		float m_GpuTime = 0.0f;
+
+		std::shared_ptr<GpuTiming> m_GpuTiming;
 
 		// Synchronization objects
 		std::array<std::shared_ptr<Semaphore>, FRAMES_IN_FLIGHT> AABBGenerateSemaphore;

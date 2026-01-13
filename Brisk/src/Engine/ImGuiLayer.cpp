@@ -122,6 +122,52 @@ namespace Brisk
         colors[ImGuiCol_MenuBarBg] = ImVec4{ 0.08f, 0.08f, 0.1f, 1.0f }; // Very dark for collapsed title
     }
 
+    void MonotoneDarkTheme()
+    {
+        auto& colors = ImGui::GetStyle().Colors;
+
+        // Base background
+        colors[ImGuiCol_WindowBg] = ImVec4{ 0.08f, 0.08f, 0.08f, 1.0f };  // Dark gray
+        colors[ImGuiCol_PopupBg] = ImVec4{ 0.1f, 0.1f, 0.1f, 1.0f };     // Slightly lighter for popups
+
+        // Headers
+        colors[ImGuiCol_Header] = ImVec4{ 0.12f, 0.12f, 0.12f, 1.0f };
+        colors[ImGuiCol_HeaderHovered] = ImVec4{ 0.15f, 0.15f, 0.15f, 1.0f };
+        colors[ImGuiCol_HeaderActive] = ImVec4{ 0.14f, 0.14f, 0.14f, 1.0f };
+
+        // Buttons
+        colors[ImGuiCol_Button] = ImVec4{ 0.12f, 0.12f, 0.12f, 1.0f };
+        colors[ImGuiCol_ButtonHovered] = ImVec4{ 0.15f, 0.15f, 0.15f, 1.0f };
+        colors[ImGuiCol_ButtonActive] = ImVec4{ 0.14f, 0.14f, 0.14f, 1.0f };
+
+        // Frame background (inputs, sliders)
+        colors[ImGuiCol_FrameBg] = ImVec4{ 0.1f, 0.1f, 0.1f, 1.0f };
+        colors[ImGuiCol_FrameBgHovered] = ImVec4{ 0.15f, 0.15f, 0.15f, 1.0f };
+        colors[ImGuiCol_FrameBgActive] = ImVec4{ 0.13f, 0.13f, 0.13f, 1.0f };
+
+        // Tabs
+        colors[ImGuiCol_Tab] = ImVec4{ 0.12f, 0.12f, 0.12f, 1.0f };
+        colors[ImGuiCol_TabHovered] = ImVec4{ 0.15f, 0.15f, 0.15f, 1.0f };
+        colors[ImGuiCol_TabActive] = ImVec4{ 0.14f, 0.14f, 0.14f, 1.0f };
+        colors[ImGuiCol_TabUnfocused] = ImVec4{ 0.1f, 0.1f, 0.1f, 1.0f };
+        colors[ImGuiCol_TabUnfocusedActive] = ImVec4{ 0.12f, 0.12f, 0.12f, 1.0f };
+
+        // Title bar
+        colors[ImGuiCol_TitleBg] = ImVec4{ 0.1f, 0.1f, 0.1f, 1.0f };
+        colors[ImGuiCol_TitleBgActive] = ImVec4{ 0.14f, 0.14f, 0.14f, 1.0f };
+        colors[ImGuiCol_TitleBgCollapsed] = ImVec4{ 0.08f, 0.08f, 0.08f, 1.0f };
+
+        // Menu bar
+        colors[ImGuiCol_MenuBarBg] = ImVec4{ 0.08f, 0.08f, 0.08f, 1.0f };
+
+        // Optional: other subtle elements
+        colors[ImGuiCol_ScrollbarBg] = ImVec4{ 0.1f, 0.1f, 0.1f, 1.0f };
+        colors[ImGuiCol_ScrollbarGrab] = ImVec4{ 0.2f, 0.2f, 0.2f, 1.0f };
+        colors[ImGuiCol_ScrollbarGrabHovered] = ImVec4{ 0.25f, 0.25f, 0.25f, 1.0f };
+        colors[ImGuiCol_ScrollbarGrabActive] = ImVec4{ 0.22f, 0.22f, 0.22f, 1.0f };
+    }
+
+
     void PinkTheme() {
         auto& colors = ImGui::GetStyle().Colors;
 
@@ -248,8 +294,7 @@ namespace Brisk
 
         io.FontDefault = io.Fonts->AddFontFromFileTTF("../Assets/Fonts/Nunito/Nunito-Medium.ttf", 18.0f);
 
-        LavenderTheme();
-
+        MonotoneDarkTheme();
 #ifdef BRISK_ENABLE_DIRECTX12
         auto gpuAdapter = std::static_pointer_cast<GpuAdapterDirectX12>(Application::GetGpuAdapter());
         // 1. Create descriptor heap for ImGui fonts/textures

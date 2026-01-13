@@ -26,6 +26,8 @@ namespace Brisk
 		float knee = 1.0;
 		float threshold = 1.0;
 		float intensity = 1.0;
+
+		bool CSM = true;
 	};
 
 	class Application {

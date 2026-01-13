@@ -1040,7 +1040,7 @@ namespace Brisk
 
             m_LightsList = Buffer::Create();
             BufferDesc lightsBufferDesc{};
-            lightsBufferDesc.p_Size = sizeof(lights) * lights.size();
+            lightsBufferDesc.p_Size = sizeof(lights[0]) * lights.size();
             lightsBufferDesc.p_Data = lights.data();
             lightsBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
             lightsBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;

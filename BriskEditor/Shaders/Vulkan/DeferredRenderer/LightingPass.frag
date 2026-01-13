@@ -75,6 +75,7 @@ vec3 applyLight(vec3 fragPos, vec3 normal, uint lightIdx) {
 
 uint computeClusterIndex(vec3 fragPosView) {
     vec2 fragCoord = gl_FragCoord.xy;
+    // TODO: Get viewport size
     uvec2 screenSize = uvec2(textureSize(sampler_Position, 0));
 
     // Cluster XY

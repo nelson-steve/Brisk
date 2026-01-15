@@ -6,7 +6,7 @@
 
 namespace Brisk
 {
-	void CommandBufferDirectX12::Bind() {
+	void CommandBufferDirectX12::Bind(bool singleUse) {
 		m_ParentAllocator->Reset();
 		m_CommandList->Reset(m_ParentAllocator.Get(), nullptr);
 	}
@@ -20,17 +20,17 @@ namespace Brisk
 		switch (type)
 		{
 			case PoolType::Graphics:
-				hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(
+				hr = std::static_pointer_cast<GpuAdapterDirectX12>(Application::GetGpuAdapter())->GetDevice()->CreateCommandAllocator(
 					D3D12_COMMAND_LIST_TYPE_DIRECT,
 					IID_PPV_ARGS(&m_ParentAllocator));
 				break;
 			case PoolType::Compute:
-				hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(
+				hr = std::static_pointer_cast<GpuAdapterDirectX12>(Application::GetGpuAdapter())->GetDevice()->CreateCommandAllocator(
 					D3D12_COMMAND_LIST_TYPE_COMPUTE,
 					IID_PPV_ARGS(&m_ParentAllocator));
 				break;
 			case PoolType::Transfer:
-				hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(
+				hr = std::static_pointer_cast<GpuAdapterDirectX12>(Application::GetGpuAdapter())->GetDevice()->CreateCommandAllocator(
 					D3D12_COMMAND_LIST_TYPE_COPY,
 					IID_PPV_ARGS(&m_ParentAllocator));
 				break;
@@ -40,7 +40,7 @@ namespace Brisk
 			BRISK_CORE_ERROR("Failed to create Graphics command allocator");
 		}
 
-		Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandList(
+		std::static_pointer_cast<GpuAdapterDirectX12>(Application::GetGpuAdapter())->GetDevice()->CreateCommandList(
 			0,                                 // Node mask (use 0 for single-GPU)
 			D3D12_COMMAND_LIST_TYPE_DIRECT,
 			m_ParentAllocator.Get(),

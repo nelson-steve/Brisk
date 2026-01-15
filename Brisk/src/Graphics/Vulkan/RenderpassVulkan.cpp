@@ -85,7 +85,7 @@ namespace Brisk
         renderPassInfo.dependencyCount = subpassDependencies.size();
         renderPassInfo.pDependencies = subpassDependencies.data();
 
-        if (vkCreateRenderPass(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
+        if (vkCreateRenderPass(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &renderPassInfo, nullptr, &m_RenderPass) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create Vulkan render pass");
         }
 
@@ -96,7 +96,7 @@ namespace Brisk
         nameInfo.pObjectName = "renderpass";
 
 #if _DEBUG
-        vkSetDebugUtilsObjectNameEXT(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
+        vkSetDebugUtilsObjectNameEXT(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &nameInfo);
 #endif
     }
 
@@ -135,6 +135,6 @@ namespace Brisk
     }
 
     void RenderPassVulkan::Release() {
-        vkDestroyRenderPass(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_RenderPass, nullptr);
+        vkDestroyRenderPass(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), m_RenderPass, nullptr);
     }
 }

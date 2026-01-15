@@ -20,7 +20,7 @@ namespace Brisk
 
         ComPtr<IDXGISwapChain1> tempSwapChain;
         
-        HRESULT hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDXGIFactory()->CreateSwapChainForHwnd(
+        HRESULT hr = std::static_pointer_cast<GpuAdapterDirectX12>(Application::GetGpuAdapter())->GetDXGIFactory()->CreateSwapChainForHwnd(
             std::static_pointer_cast<GpuAdapterDirectX12>(Application::GetGpuAdapter())->GetGraphicsQueue(),
             (HWND)Application::GetWindow()->GetHWNDWindowHandle(),
             &swapChainDesc,

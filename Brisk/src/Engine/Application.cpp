@@ -19,8 +19,9 @@ namespace Brisk
 	std::shared_ptr<Camera> Application::m_EditorCameraRT;
 	JobSystem Application::m_JobSystem;
 	RendererSettings Application::m_RendererSettings;
+	std::vector<PointLight> Application::m_RandomLights;
 
-	void GenerateRandomLights(uint32_t count, float range, float radiusMin, float radiusMax, float colorMin, float colorMax, float intensityMin, float intensityMax) {
+	void Application::GenerateRandomLights(uint32_t count, float range, float radiusMin, float radiusMax, float colorMin, float colorMax, float intensityMin, float intensityMax) {
 		std::random_device rd;
 		std::mt19937 rng(rd());
 
@@ -29,6 +30,7 @@ namespace Brisk
 		std::uniform_real_distribution<float> colorDist(colorMin, colorMax);  // bright colors
 		std::uniform_real_distribution<float> intensityDist(intensityMin, intensityMax); // intensity
 
+		m_RandomLights.resize(count);
 		for (uint32_t i = 0; i < count; ++i) {
 			glm::vec3 pos = glm::vec3(posDist(rng), posDist(rng), posDist(rng));
 			float radius = radiusDist(rng);
@@ -36,14 +38,13 @@ namespace Brisk
 			glm::vec3 color = glm::vec3(colorDist(rng), colorDist(rng), colorDist(rng));
 			float intensity = intensityDist(rng);
 
-			Entity lightEntity = SceneManager::pActiveScene->CreateEntity("Light");
-			PointLightComponent& lc = lightEntity.AddComponent<PointLightComponent>();
-
-			lc.Position = glm::vec3(pos);
-			lc.Color = glm::vec3(color);
-			lc.Intensity = intensity;
-			lc.Radius = radius;
+			PointLight light;
+			light.position = glm::vec4(pos, radius);
+			light.color = glm::vec4(color, intensity);
+			m_RandomLights[i] = light;
 		}
+
+		m_Renderer->UpdateRandomLights(m_RandomLights);
 	}
 
 	Application::Application(std::string name) {
@@ -81,6 +82,9 @@ namespace Brisk
 			/* 14 */"../Data/Models/modural_robot_mecha_chimera_dyan_high-poly_mesh/scene.gltf",
 		};
 
+		m_Renderer = Renderer::Create();
+		m_Renderer->Init();
+
 		Entity lightEntity = m_SceneManager->pActiveScene->CreateEntity("Sun Light");
 		DirectionalLightComponent& lc = lightEntity.AddComponent<DirectionalLightComponent>();
 		lc.Direction = glm::vec3(0.0f, -1.0f, 0.0f);
@@ -93,9 +97,6 @@ namespace Brisk
 		float intensityMin = 3.0f;
 		float intensityMax = 5.0f;
 		GenerateRandomLights(MAX_LIGHTS, range, radiusMin, radiusMax, colorMin, colorMax, intensityMin, intensityMax);
-
-		m_Renderer = Renderer::Create();
-		m_Renderer->Init();
 
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);

@@ -1024,25 +1024,10 @@ namespace Brisk
         }
 
         {
-            auto lightsView = SceneManager::pActiveScene->Reg().view<PointLightComponent>();
-
-            std::vector<PointLight> lights;
-            for (auto e : lightsView) {
-                Entity entity = { e, SceneManager::pActiveScene.get() };
-                auto& light = entity.GetComponent<PointLightComponent>();
-
-                PointLight pointLight;
-                pointLight.position = glm::vec4(light.Position, light.Radius);
-                pointLight.color = glm::vec4(light.Color, light.Intensity);
-
-                lights.push_back(pointLight);
-            }
-
             m_LightsList = Buffer::Create();
             BufferDesc lightsBufferDesc{};
-            lightsBufferDesc.p_Size = sizeof(lights[0]) * lights.size();
-            lightsBufferDesc.p_Data = lights.data();
-            lightsBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
+            lightsBufferDesc.p_Size = SIZE_1MB * 100;
+            lightsBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer | Core::BufferUsage::TransferDst;
             lightsBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
             lightsBufferDesc.p_AllowSRV = true;
             m_LightsList->Init(lightsBufferDesc);
@@ -1055,13 +1040,13 @@ namespace Brisk
             clusterLightsIndexBufferDesc.p_AllowUAV = true;
             m_ClusterLightIndexList->Init(clusterLightsIndexBufferDesc);
 
-            m_ClusterLightOffsetList = Buffer::Create();
+            m_ClusterLightCountsList = Buffer::Create();
             BufferDesc clusterLightsOffsetsBufferDesc{};
-            clusterLightsOffsetsBufferDesc.p_Size = sizeof(LightOffset) * NUM_CLUSTERS;
+            clusterLightsOffsetsBufferDesc.p_Size = sizeof(uint32_t) * NUM_CLUSTERS;
             clusterLightsOffsetsBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
             clusterLightsOffsetsBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
             clusterLightsOffsetsBufferDesc.p_AllowUAV = true;
-            m_ClusterLightOffsetList->Init(clusterLightsOffsetsBufferDesc);
+            m_ClusterLightCountsList->Init(clusterLightsOffsetsBufferDesc);
 
             m_AtomicCounters = Buffer::Create();
             BufferDesc atomicCountersBufferDesc{};
@@ -1071,23 +1056,12 @@ namespace Brisk
             atomicCountersBufferDesc.p_AllowUAV = true;
             m_AtomicCounters->Init(atomicCountersBufferDesc);
 
-            uint32_t globalIndex = 0;
-            m_GlobalIndexCountSSBO = Buffer::Create();
-            BufferDesc globalIndexBufferDesc{};
-            globalIndexBufferDesc.p_Size = sizeof(uint32_t);
-            globalIndexBufferDesc.p_Data = &globalIndex;
-            globalIndexBufferDesc.p_Usage = Core::BufferUsage::StorageBuffer;
-            globalIndexBufferDesc.p_Memory = BufferDesc::MemoryUsage::GPU_Only;
-            globalIndexBufferDesc.p_AllowUAV = true;
-            m_GlobalIndexCountSSBO->Init(globalIndexBufferDesc);
-
             m_AssignLightsToClustersPipeline->UpdateResources("ClusterInfo", {}, m_ClusterInfoUBO, {});
             m_AssignLightsToClustersPipeline->UpdateResources("LightsList", {}, m_LightsList, {});
             m_AssignLightsToClustersPipeline->UpdateResources("ClusterAABB", {}, m_ClusterTilesSSBO, {});
             m_AssignLightsToClustersPipeline->UpdateResources("ClusterLightIndexList", {}, m_ClusterLightIndexList, {});
-            m_AssignLightsToClustersPipeline->UpdateResources("ClusterLightOffsetList", {}, m_ClusterLightOffsetList, {});
+            m_AssignLightsToClustersPipeline->UpdateResources("ClusterLightCountsList", {}, m_ClusterLightCountsList, {});
             m_AssignLightsToClustersPipeline->UpdateResources("AtomicCounters", {}, m_AtomicCounters, {});
-            m_AssignLightsToClustersPipeline->UpdateResources("GlobalIndex", {}, m_GlobalIndexCountSSBO, {});
         }
 
         m_DepthPrePassPipeline->UpdateResources("MVP", {}, m_MVPBuffer, {});
@@ -1146,26 +1120,6 @@ namespace Brisk
             m_ClusteredCmdBuffer[i]->Allocate(CommandBuffer::PoolType::Compute);
             //
         }
-        //
-
-        // Creating Queue
-        m_GraphicsQueue0 = Queue::Create();
-        m_GraphicsQueue0->Init(Queue::QueueType::Graphics);
-
-        m_GraphicsQueue1 = Queue::Create();
-        m_GraphicsQueue1->Init(Queue::QueueType::Graphics);
-
-        m_TransferQueue0 = Queue::Create();
-        m_TransferQueue0->Init(Queue::QueueType::Transfer);
-
-        m_TransferQueue1 = Queue::Create();
-        m_TransferQueue1->Init(Queue::QueueType::Transfer);
-
-        m_ComputeQueue0 = Queue::Create();
-        m_ComputeQueue0->Init(Queue::QueueType::Compute);
-
-        m_ComputeQueue1 = Queue::Create();
-        m_ComputeQueue1->Init(Queue::QueueType::Compute);
         //
 
         m_DrawsOpaqueBuffer = Buffer::Create();
@@ -1305,6 +1259,22 @@ namespace Brisk
         m_GpuTiming->Init(FRAMES_IN_FLIGHT);
     }
 
+    void Renderer::UpdateRandomLights(const std::vector<PointLight>& lights) {
+        m_NoOfRandomLights = lights.size();
+
+        std::shared_ptr<CommandBuffer> cmd = CommandBuffer::Create();
+        cmd->Allocate(CommandBuffer::PoolType::Transfer);
+        cmd->Bind(true);
+        m_LightsList->RecordUpload(cmd, sizeof(lights[0]) * lights.size(), (void*)lights.data());
+        cmd->UnBind();
+
+        GpuAdapter::SubmitInfo submitInfo{};
+        submitInfo.pCmdBuffers.push_back(cmd);
+
+        Application::GetGpuAdapter()->SubmitTransfer(submitInfo, nullptr);
+        Application::GetGpuAdapter()->WaitIdle();
+    }
+
     void Renderer::RebuildAccelerationStructures() {
         m_BLAS->Build(m_VertexBuffer, m_IndexBuffer);
         m_TLAS->Build(m_BLAS);
@@ -1346,6 +1316,7 @@ namespace Brisk
         uint32_t sizePx = (unsigned int)std::ceilf(1920 / 16.0f);
         clusterInfo.TileSizes = glm::uvec4(16, 9, 24, sizePx);
         clusterInfo.ScreenDimensions = glm::uvec4(m_LightingOutput->GetWidth(), m_LightingOutput->GetHeight(), 1, 1000);
+        clusterInfo.NoOfLights = m_NoOfRandomLights;
         m_ClusterInfoUBO->UpdatePersistantData(sizeof(ClusterInfo), &clusterInfo);
 
         auto lightView = SceneManager::pActiveScene->Reg().view<DirectionalLightComponent>();
@@ -1406,10 +1377,11 @@ namespace Brisk
         ////------------------------------------------------------------------------------------------------------------------------------------------------
         m_GpuTiming->TimeStamp(m_ClusteredCmdBuffer[m_CurrentFrame], Core::PipelineStage::ComputeShader, m_CurrentFrame, 1);
         m_ClusteredCmdBuffer[m_CurrentFrame]->UnBind();
-        Queue::SubmitInfo clusteredSubmitInfo{};
+        GpuAdapter::SubmitInfo clusteredSubmitInfo{};
         clusteredSubmitInfo.pCmdBuffers.push_back(m_ClusteredCmdBuffer[m_CurrentFrame]);
         clusteredSubmitInfo.pSignalSemaphores.push_back(AABBGenerateSemaphore[m_CurrentFrame]);
-        m_ComputeQueue0->Submit(clusteredSubmitInfo, m_ClusterFence[m_CurrentFrame]);
+
+        Application::GetGpuAdapter()->SubmitCompute(clusteredSubmitInfo, m_ClusterFence[m_CurrentFrame]);
 
         m_ClusterFence[m_CurrentFrame]->Wait();
         m_ClusterFence[m_CurrentFrame]->Reset();
@@ -1428,7 +1400,7 @@ namespace Brisk
                 Core::PipelineStage::ComputeShader,
                 Core::PipelineStage::ComputeShader,
             });
-        m_ClusterLightOffsetList->MemoryPipelineBarrier(m_ClusteredCmdBuffer[m_CurrentFrame],
+        m_ClusterLightCountsList->MemoryPipelineBarrier(m_ClusteredCmdBuffer[m_CurrentFrame],
             {
                 Core::AccessType::ShaderWrite,
                 Core::AccessType::ShaderRead,
@@ -1446,12 +1418,12 @@ namespace Brisk
         ////------------------------------------------------------------------------------------------------------------------------------------------------
         m_ClusteredCmdBuffer[m_CurrentFrame]->UnBind();
 
-        Queue::SubmitInfo clusteredSubmitInfo2{};
+        GpuAdapter::SubmitInfo clusteredSubmitInfo2{};
         clusteredSubmitInfo2.pCmdBuffers.push_back(m_ClusteredCmdBuffer[m_CurrentFrame]);
         clusteredSubmitInfo2.pWaitSemaphores.push_back(AABBGenerateSemaphore[m_CurrentFrame]);
         clusteredSubmitInfo2.pSignalSemaphores.push_back(AssignLightsSemaphore[m_CurrentFrame]);
         clusteredSubmitInfo2.pWaitStages.push_back(Core::PipelineStage::ComputeShader);
-        m_ComputeQueue0->Submit(clusteredSubmitInfo2, m_ClusterFence[m_CurrentFrame]);
+        Application::GetGpuAdapter()->SubmitCompute(clusteredSubmitInfo2, m_ClusterFence[m_CurrentFrame]);
 
         m_ClusterFence[m_CurrentFrame]->Wait();
         m_ClusterFence[m_CurrentFrame]->Reset();
@@ -1460,12 +1432,11 @@ namespace Brisk
             RecreateSwapchain();
         }
 
-        if (m_SubmitTransferWork) {
-            Queue::SubmitInfo transferSubmitInfo{};
+        if (m_HasTransferWork) {
+            GpuAdapter::SubmitInfo transferSubmitInfo{};
             transferSubmitInfo.pSignalSemaphores.push_back(TransferFinishedSemaphore[m_CurrentFrame]);
             transferSubmitInfo.pCmdBuffers.push_back(m_TransferCmdBuffer);
-
-            m_TransferQueue0->Submit(transferSubmitInfo, nullptr);
+            Application::GetGpuAdapter()->SubmitTransfer(transferSubmitInfo, nullptr);
 
             m_ScratchAllocator.Reset();
         }
@@ -1688,11 +1659,11 @@ namespace Brisk
 
         m_CmdBuffer[m_CurrentFrame]->UnBind();
 
-        Queue::SubmitInfo lightingSubmitInfo{};
-        if (m_SubmitTransferWork) {
+        GpuAdapter::SubmitInfo lightingSubmitInfo{};
+        if (m_HasTransferWork) {
             lightingSubmitInfo.pWaitSemaphores.push_back(TransferFinishedSemaphore[m_CurrentFrame]);
             lightingSubmitInfo.pWaitStages.push_back(Core::PipelineStage::TransferStage);
-            m_SubmitTransferWork = false;
+            m_HasTransferWork = false;
         }
         lightingSubmitInfo.pWaitSemaphores.push_back(ImageAvailableSemaphore[m_CurrentFrame]);
         lightingSubmitInfo.pWaitSemaphores.push_back(AssignLightsSemaphore[m_CurrentFrame]);
@@ -1703,13 +1674,13 @@ namespace Brisk
 
         {
             std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
-            m_GraphicsQueue0->Submit(lightingSubmitInfo, m_GraphicsFence[m_CurrentFrame]);
+            Application::GetGpuAdapter()->SubmitGraphics(lightingSubmitInfo, m_GraphicsFence[m_CurrentFrame]);
         }
 
         m_GraphicsFence[m_CurrentFrame]->Wait();
         m_GraphicsFence[m_CurrentFrame]->Reset();
 
-        Queue::PresentInfo presentInfo{};
+        GpuAdapter::PresentInfo presentInfo{};
         presentInfo.pWaitSemaphores.push_back(RenderFinishedSemaphore[m_CurrentFrame]);
         presentInfo.pSwapchains.push_back(m_Swapchain);
         presentInfo.pImageIndex = m_ImageIndex;
@@ -1717,7 +1688,7 @@ namespace Brisk
         // Present
         {
             std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
-            m_GraphicsQueue0->Present(presentInfo);
+            Application::GetGpuAdapter()->Present(presentInfo);
         }
 
         if (m_WindowResized) {
@@ -1770,12 +1741,11 @@ namespace Brisk
             return;
         }
 
-        if (m_SubmitTransferWork) {
-            Queue::SubmitInfo transferSubmitInfo{};
+        if (m_HasTransferWork) {
+            GpuAdapter::SubmitInfo transferSubmitInfo{};
             transferSubmitInfo.pSignalSemaphores.push_back(TransferFinishedSemaphore[m_CurrentFrame]);
             transferSubmitInfo.pCmdBuffers.push_back(m_TransferCmdBuffer);
-
-            m_TransferQueue0->Submit(transferSubmitInfo, nullptr);
+            Application::GetGpuAdapter()->SubmitTransfer(transferSubmitInfo, m_ClusterFence[m_CurrentFrame]);
 
             m_ScratchAllocator.Reset();
         }
@@ -1804,13 +1774,13 @@ namespace Brisk
 
         RenderCommand::TraceRays(m_RayTracingCmdBuffer[m_CurrentFrame], m_SBT, 1920, 1080);
         m_RayTracingCmdBuffer[m_CurrentFrame]->UnBind();
-        Queue::SubmitInfo rayTracingSubmitInfo{};
+        GpuAdapter::SubmitInfo rayTracingSubmitInfo{};
         rayTracingSubmitInfo.pCmdBuffers.push_back(m_RayTracingCmdBuffer[m_CurrentFrame]);
         rayTracingSubmitInfo.pSignalSemaphores.push_back(RayTracingFinishedSemaphore[m_CurrentFrame]);
 
         {
             std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
-            m_GraphicsQueue1->Submit(rayTracingSubmitInfo, m_RayTracingFence[m_CurrentFrame]);
+            Application::GetGpuAdapter()->SubmitGraphics(rayTracingSubmitInfo, m_RayTracingFence[m_CurrentFrame]);
         }
 
         m_RayTracingFence[m_CurrentFrame]->Wait();
@@ -1857,11 +1827,11 @@ namespace Brisk
 
         m_RayTracingCmdBuffer[m_CurrentFrame]->UnBind();
 
-        Queue::SubmitInfo submitInfo{};
-        if (m_SubmitTransferWork) {
+        GpuAdapter::SubmitInfo submitInfo{};
+        if (m_HasTransferWork) {
             submitInfo.pWaitSemaphores.push_back(TransferFinishedSemaphore[m_CurrentFrame]);
             submitInfo.pWaitStages.push_back(Core::PipelineStage::TransferStage);
-            m_SubmitTransferWork = false;
+            m_HasTransferWork = false;
         }
         submitInfo.pWaitSemaphores.push_back(RayTracingFinishedSemaphore[m_CurrentFrame]);
         submitInfo.pWaitStages.push_back(Core::PipelineStage::RayTracing);
@@ -1872,10 +1842,11 @@ namespace Brisk
 
         {
             std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
-            m_GraphicsQueue0->Submit(submitInfo, m_RayTracingFence[m_CurrentFrame]);
+
+            Application::GetGpuAdapter()->SubmitGraphics(submitInfo, m_RayTracingFence[m_CurrentFrame]);
         }
 
-        Queue::PresentInfo presentInfo{};
+        GpuAdapter::PresentInfo presentInfo{};
         presentInfo.pWaitSemaphores.push_back(RenderFinishedSemaphore[m_CurrentFrame]);
         presentInfo.pSwapchains.push_back(m_Swapchain);
         presentInfo.pImageIndex = m_ImageIndex;
@@ -1883,7 +1854,7 @@ namespace Brisk
         // Present
         {
             std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
-            m_GraphicsQueue0->Present(presentInfo);
+            Application::GetGpuAdapter()->Present(presentInfo);
         }
 
         if (m_WindowResized) {

@@ -145,9 +145,9 @@ namespace Brisk
 
 			cmd->UnBind();
 
-			Queue::SubmitInfo submitInfo{};
+			GpuAdapter::SubmitInfo submitInfo{};
 			submitInfo.pCmdBuffers.push_back(cmd);
-			Application::GetRenderer()->m_GraphicsQueue0->Submit(submitInfo, nullptr);
+			Application::GetGpuAdapter()->SubmitGraphics(submitInfo, nullptr);
 			Application::GetGpuAdapter()->WaitIdle();
 		}
 

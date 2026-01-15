@@ -10,13 +10,13 @@ namespace Brisk
         VkSemaphoreCreateInfo semaphoreCreateInfo = {};
         semaphoreCreateInfo.sType = VK_STRUCTURE_TYPE_SEMAPHORE_CREATE_INFO;
 
-        if (vkCreateSemaphore(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &semaphoreCreateInfo, nullptr, &m_Semaphore) != VK_SUCCESS) {
+        if (vkCreateSemaphore(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &semaphoreCreateInfo, nullptr, &m_Semaphore) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create Vulkan semaphore!");
         }
     }
 
     void SemaphoreVulkan::Release() {
-        vkDestroySemaphore(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_Semaphore, nullptr);
+        vkDestroySemaphore(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), m_Semaphore, nullptr);
     }
 
     VkSemaphore SemaphoreVulkan::Get() {

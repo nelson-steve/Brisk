@@ -30,7 +30,7 @@ namespace Brisk
         layoutInfo.bindingCount = static_cast<uint32_t>(layoutBindings.size());
         layoutInfo.pBindings = layoutBindings.data();
 
-        if (vkCreateDescriptorSetLayout(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &layoutInfo, nullptr, &m_DescriptorLayout) != VK_SUCCESS) {
+        if (vkCreateDescriptorSetLayout(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &layoutInfo, nullptr, &m_DescriptorLayout) != VK_SUCCESS) {
             throw std::runtime_error("failed to create descriptor set layout!");
         }
 	}

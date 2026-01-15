@@ -1,7 +1,6 @@
 #pragma once
 
 // INCLUDES
-#include "Queue.hpp"
 #include "Buffer.hpp"
 #include "Pipeline.hpp"
 #include "Swapchain.hpp"
@@ -21,7 +20,7 @@
 //---------------
 
 #define MAX_LIGHTS 8192
-#define MAX_LIGHTS_PER_CLUSTER 128
+#define MAX_LIGHTS_PER_CLUSTER 512
 #define NUM_CLUSTERS 16 * 9 * 24
 
 #define SIZE_1KB 1024 
@@ -47,10 +46,6 @@ namespace Brisk
 		glm::vec4 color;    // xyz = color, w = intensity
 	};
 
-	struct LightOffset {
-		alignas(8) glm::uvec2 Offset;
-	};
-
 	struct TileAABB {
 		alignas(16) glm::vec4 minPoint;
 		alignas(16) glm::vec4 maxPoint;
@@ -61,6 +56,7 @@ namespace Brisk
 		alignas(16) glm::mat4 InverseProj;
 		alignas(16) glm::uvec4 TileSizes;
 		alignas(16) glm::uvec4 ScreenDimensions; // x.y -> screen dimension, z.w -> near far
+		uint32_t NoOfLights; // x.y -> screen dimension, z.w -> near far
 	};
 
 	struct alignas(16) LightsMVP {
@@ -122,11 +118,11 @@ namespace Brisk
 		void Release();
 		void RenderScene(float deltaTime);
 		void RenderRT(float deltaTime);
-		void UpdateTransforms();
-		void SetSubmitTransferWork(bool value) { m_SubmitTransferWork = value; }
+		void SetSubmitTransferWork(bool value) { m_HasTransferWork = value; }
 		void AddGlobalTexture(std::vector<std::shared_ptr<Texture>> textures) {
 			m_GBufferPipeline->UpdateResources("GlobalTextures", textures, nullptr, {});
 		}
+		void UpdateRandomLights(const std::vector<PointLight>& lights);
 		void RebuildAccelerationStructures();
 
 		static std::shared_ptr<Swapchain> GetSwapchain() { return m_Swapchain; }
@@ -156,14 +152,14 @@ namespace Brisk
 		std::array<std::shared_ptr<Semaphore>, FRAMES_IN_FLIGHT> RayTracingFinishedSemaphore;
 		std::array<std::shared_ptr<Fence>, FRAMES_IN_FLIGHT> m_RayTracingFence;
 
-		std::shared_ptr<Queue> m_GraphicsQueue0;
-		std::shared_ptr<Queue> m_GraphicsQueue1;
+		//std::shared_ptr<Queue> m_GraphicsQueue0;
+		//std::shared_ptr<Queue> m_GraphicsQueue1;
 
-		std::shared_ptr<Queue> m_TransferQueue0;
-		std::shared_ptr<Queue> m_TransferQueue1;
+		//std::shared_ptr<Queue> m_TransferQueue0;
+		//std::shared_ptr<Queue> m_TransferQueue1;
 
-		std::shared_ptr<Queue> m_ComputeQueue0;
-		std::shared_ptr<Queue> m_ComputeQueue1;
+		//std::shared_ptr<Queue> m_ComputeQueue0;
+		//std::shared_ptr<Queue> m_ComputeQueue1;
 		// Synchronization objects - End
 
 		// Attachments
@@ -239,13 +235,12 @@ namespace Brisk
 
 		std::shared_ptr<Buffer> m_ClusterInfoUBO;
 		std::shared_ptr<Buffer> m_ClusterTilesSSBO;
-		std::shared_ptr<Buffer> m_GlobalIndexCountSSBO;
 		std::shared_ptr<Buffer> m_ClustersVertexBuffer;
 		std::shared_ptr<Buffer> m_ClustersIndexBuffer;
 
 		std::shared_ptr<Buffer> m_LightsList;
 		std::shared_ptr<Buffer> m_ClusterLightIndexList;
-		std::shared_ptr<Buffer> m_ClusterLightOffsetList;
+		std::shared_ptr<Buffer> m_ClusterLightCountsList;
 
 		std::shared_ptr<Buffer> m_AtomicCounters;
 
@@ -275,14 +270,16 @@ namespace Brisk
 		uint64_t m_ImGuiIdShadowMap2;
 		uint64_t m_ImGuiIdShadowMap3;
 
+		std::shared_ptr<CommandBuffer> m_TransferCmdBuffer;
 		std::array<std::shared_ptr<CommandBuffer>, FRAMES_IN_FLIGHT> m_CmdBuffer;
 		std::array<std::shared_ptr<CommandBuffer>, FRAMES_IN_FLIGHT> m_RayTracingCmdBuffer;
-		std::shared_ptr<CommandBuffer> m_TransferCmdBuffer;
 		std::array<std::shared_ptr<CommandBuffer>, FRAMES_IN_FLIGHT> m_ClusteredCmdBuffer;
 		RenderCommand m_RenderCommand;
 		uint32_t m_ImageIndex;
 		uint32_t m_CurrentFrame = 0;
-		bool m_SubmitTransferWork = false;
+		bool m_HasTransferWork = false;
+
+		uint32_t m_NoOfRandomLights;
 
 		std::atomic<bool> m_WindowResized = false;
 	};

@@ -14,7 +14,7 @@ namespace Brisk
 		size_t dataSize = shaderGroupHandleSize * groupCount;
 		std::vector<uint8_t> m_shaderHandles(dataSize);
 		VkPipeline vkPipeline = std::static_pointer_cast<PipelineVulkan>(pipeline)->GetPipeline();
-		if (vkGetRayTracingShaderGroupHandlesKHR(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), vkPipeline, 0, groupCount, dataSize, m_shaderHandles.data()) != VK_SUCCESS) {
+		if (vkGetRayTracingShaderGroupHandlesKHR(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), vkPipeline, 0, groupCount, dataSize, m_shaderHandles.data()) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to get ray tracing shader group handle");
 		}
 

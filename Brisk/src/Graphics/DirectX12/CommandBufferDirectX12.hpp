@@ -15,7 +15,7 @@ namespace Brisk
 {
 	class CommandBufferDirectX12 : public CommandBuffer {
 	public:
-		virtual void Bind() override;
+		virtual void Bind(bool singleUse) override;
 		virtual void UnBind() override;
 		virtual void Reset() override;
 		virtual void Allocate(PoolType type) override;

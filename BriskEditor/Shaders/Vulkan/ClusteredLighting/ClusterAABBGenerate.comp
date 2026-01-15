@@ -20,6 +20,7 @@ layout (std140, set = 3, binding = 1) uniform ClusterInfoBuffer {
     mat4 invProj;
     uvec4 tileSizes;
     uvec4 screen; // xy = dimensions, zw = near far
+    uint noOfLights;
 } ClusterInfo;
 
 vec4 ClipToView(vec4 clip) {

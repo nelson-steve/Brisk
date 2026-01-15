@@ -826,12 +826,12 @@ namespace Brisk
 			Application::GetRenderer()->m_TransferCmdBuffer->UnBind();
 		}
 
-		Queue::SubmitInfo submitInfo{};
+		GpuAdapter::SubmitInfo submitInfo{};
 		submitInfo.pCmdBuffers.push_back(Application::GetRenderer()->m_TransferCmdBuffer);
 		// Present
 		{
 			std::lock_guard<std::mutex> lock(g_GraphicsQueueMutex);
-			Application::GetRenderer()->m_TransferQueue0->Submit(submitInfo, nullptr);
+			Application::GetGpuAdapter()->SubmitTransfer(submitInfo, nullptr);
 			Application::GetGpuAdapter()->WaitIdle();
 		}
 	}

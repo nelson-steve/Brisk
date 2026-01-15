@@ -33,7 +33,7 @@ namespace Brisk
 
         BRISK_CORE_INFO("Framebuffer width: {} height: {}", framebufferInfo.width, framebufferInfo.height);
 
-        if (vkCreateFramebuffer(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffer) != VK_SUCCESS) {
+        if (vkCreateFramebuffer(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &framebufferInfo, nullptr, &m_Framebuffer) != VK_SUCCESS) {
             throw std::runtime_error("Failed to create Vulkan framebuffer");
         }
 	}

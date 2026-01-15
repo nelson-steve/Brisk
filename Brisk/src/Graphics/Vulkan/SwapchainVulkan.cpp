@@ -13,9 +13,9 @@ namespace Brisk
 {
 	void SwapchainVulkan::Release() {
 		for (auto imageView : m_SwapchainImageViews) {
-			vkDestroyImageView(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), imageView, nullptr);
+			vkDestroyImageView(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), imageView, nullptr);
 		}
-		vkDestroySwapchainKHR(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), m_Swapchain, nullptr);
+		vkDestroySwapchainKHR(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), m_Swapchain, nullptr);
 	}
 
 	void SwapchainVulkan::Create(Mode mode) {
@@ -26,21 +26,21 @@ namespace Brisk
 		int imageCount = static_cast<uint32_t>(mode);
 
 		VkSurfaceCapabilitiesKHR surfaceCapabilities;
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetPhysicalDevice(), std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetSurface()->GetRef(), &surfaceCapabilities);
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetPhysicalDevice(), std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetSurface()->GetRef(), &surfaceCapabilities);
 		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetPhysicalDevice(), Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetSurface()->GetRef(), &formatCount, nullptr);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetPhysicalDevice(), std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetSurface()->GetRef(), &formatCount, nullptr);
 		std::vector<VkSurfaceFormatKHR> supportedFormats;
 		if (formatCount != 0) {
 			supportedFormats.resize(formatCount);
-			vkGetPhysicalDeviceSurfaceFormatsKHR(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetPhysicalDevice(), std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetSurface()->GetRef(), &formatCount, supportedFormats.data());
+			vkGetPhysicalDeviceSurfaceFormatsKHR(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetPhysicalDevice(), std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetSurface()->GetRef(), &formatCount, supportedFormats.data());
 		}
 		uint32_t presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetPhysicalDevice(), Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetSurface()->GetRef(), &presentModeCount, nullptr);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetPhysicalDevice(), std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetSurface()->GetRef(), &presentModeCount, nullptr);
 
 		std::vector<VkPresentModeKHR> presentModes;
 		if (presentModeCount != 0) {
 			presentModes.resize(presentModeCount);
-			vkGetPhysicalDeviceSurfacePresentModesKHR(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetPhysicalDevice(), Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetSurface()->GetRef(), &presentModeCount, presentModes.data());
+			vkGetPhysicalDeviceSurfacePresentModesKHR(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetPhysicalDevice(), std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetSurface()->GetRef(), &presentModeCount, presentModes.data());
 		}
 
 		bool format_found = false;
@@ -72,10 +72,10 @@ namespace Brisk
 
 		std::cout << "Swapchain image count: " << imageCount << std::endl;
 		uint32_t queueFamilyCount = 0;
-		vkGetPhysicalDeviceQueueFamilyProperties(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetPhysicalDevice(), &queueFamilyCount, nullptr);
+		vkGetPhysicalDeviceQueueFamilyProperties(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetPhysicalDevice(), &queueFamilyCount, nullptr);
 
 		std::vector<VkQueueFamilyProperties> queueFamilies(queueFamilyCount);
-		vkGetPhysicalDeviceQueueFamilyProperties(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetPhysicalDevice(), &queueFamilyCount, queueFamilies.data());
+		vkGetPhysicalDeviceQueueFamilyProperties(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetPhysicalDevice(), &queueFamilyCount, queueFamilies.data());
 
 		swapChainCreateInfo.imageSharingMode = VK_SHARING_MODE_EXCLUSIVE;
 
@@ -85,7 +85,7 @@ namespace Brisk
 		swapChainCreateInfo.presentMode = vSync ? VK_PRESENT_MODE_FIFO_KHR : VK_PRESENT_MODE_IMMEDIATE_KHR;
 		swapChainCreateInfo.clipped = VK_TRUE;
 		swapChainCreateInfo.oldSwapchain = VK_NULL_HANDLE;
-		VK_LOG(vkCreateSwapchainKHR(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &swapChainCreateInfo, nullptr, &m_Swapchain));
+		VK_LOG(vkCreateSwapchainKHR(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &swapChainCreateInfo, nullptr, &m_Swapchain));
 
 		vkGetSwapchainImagesKHR(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), m_Swapchain, &m_ImageCount, nullptr);
 		m_SwapchainImages.resize(m_ImageCount);
@@ -109,7 +109,7 @@ namespace Brisk
 			image_views_create_info.subresourceRange.baseArrayLayer = 0;
 			image_views_create_info.subresourceRange.layerCount = 1;
 		
-			if (vkCreateImageView(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &image_views_create_info, nullptr, &m_SwapchainImageViews[i]) != VK_SUCCESS) {
+			if (vkCreateImageView(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &image_views_create_info, nullptr, &m_SwapchainImageViews[i]) != VK_SUCCESS) {
 				throw std::runtime_error("Failed to create Swapchain Image Views!");
 			}
 		}
@@ -117,7 +117,7 @@ namespace Brisk
 
 	bool SwapchainVulkan::AcquireNextImage(uint64_t timeout, std::shared_ptr<Semaphore> semaphore, std::shared_ptr<Fence> fence, uint32_t* pImageIndex) {
 		VkResult result = vkAcquireNextImageKHR(
-			Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(),
+			std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(),
 			m_Swapchain,
 			timeout,
 			semaphore ? std::static_pointer_cast<SemaphoreVulkan>(semaphore)->Get() : VK_NULL_HANDLE,

@@ -13,7 +13,7 @@ namespace Brisk {
 		};
 		DEFINE_BASE_CLASS_CONSTRUCTOR(CommandBuffer)
 	public:
-		virtual void Bind() = 0;
+		virtual void Bind(bool singleUse = false) = 0;
 
 		virtual void Allocate(PoolType type) = 0;
 		virtual void UnBind() = 0;

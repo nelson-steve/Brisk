@@ -10,7 +10,7 @@ namespace Brisk
 {
 	class CommandBufferVulkan : public CommandBuffer {
 	public:
-		virtual void Bind() override;
+		virtual void Bind(bool singleUse = 0) override;
 		virtual void UnBind() override;
 
 		void SetParentAllocator(VkCommandPool allocator);

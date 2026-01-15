@@ -9,6 +9,10 @@
 #include "DescriptorLayoutVulkan.hpp"
 
 #include <volk.h>
+#include "SemaphoreVulkan.hpp"
+#include "CommandBufferVulkan.hpp"
+#include "FenceVulkan.hpp"
+#include "SwapchainVulkan.hpp"
 //-----------------
 
 namespace Brisk
@@ -193,8 +197,6 @@ namespace Brisk
 			layout->AddBinding(1, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_UNIFORM_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_COMPUTE_BIT, GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->AddBinding(2, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_COMPUTE_BIT, GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
 			layout->AddBinding(3, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_COMPUTE_BIT, GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-			layout->AddBinding(4, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_COMPUTE_BIT, GPUResource::ShaderStageAccess::SHADER_STAGE_FRAGMENT_BIT });
-			layout->AddBinding(5, 1, GPUResource::ResourceType::DESCRIPTOR_TYPE_STORAGE_BUFFER, { GPUResource::ShaderStageAccess::SHADER_STAGE_COMPUTE_BIT });
 			layout->Init();
 			m_ClusteredLightingDescriptorLayout = std::static_pointer_cast<DescriptorLayoutVulkan>(layout)->GetLayout();
 		}
@@ -204,19 +206,19 @@ namespace Brisk
 		allocInfo.descriptorPool = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDescriptorPool();
 		allocInfo.descriptorSetCount = 1;
 		allocInfo.pSetLayouts = &m_FrameGlobalDescriptorLayout;
-		if (vkAllocateDescriptorSets(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_GlobalSet) != VK_SUCCESS)
+		if (vkAllocateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &allocInfo, &m_GlobalSet) != VK_SUCCESS)
 		{
 			throw std::runtime_error("Failed to allocate descriptor sets!");
 		}
 
 		allocInfo.pSetLayouts = &m_PerMeshDescriptorLayout;
-		if (vkAllocateDescriptorSets(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_PerMeshSet) != VK_SUCCESS)
+		if (vkAllocateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &allocInfo, &m_PerMeshSet) != VK_SUCCESS)
 		{
 			throw std::runtime_error("Failed to allocate descriptor sets!");
 		}
 
 		allocInfo.pSetLayouts = &m_ClusteredLightingDescriptorLayout;
-		if (vkAllocateDescriptorSets(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_ClusteredLightingSet) != VK_SUCCESS)
+		if (vkAllocateDescriptorSets(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &allocInfo, &m_ClusteredLightingSet) != VK_SUCCESS)
 		{
 			throw std::runtime_error("Failed to allocate descriptor sets!");
 		}
@@ -225,24 +227,24 @@ namespace Brisk
 		VkCommandPoolCreateInfo poolInfo{ VK_STRUCTURE_TYPE_COMMAND_POOL_CREATE_INFO };
 		poolInfo.queueFamilyIndex = m_GraphicsQueueFamily;
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		if (vkCreateCommandPool(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &poolInfo, nullptr, &m_GraphicsCommandPool) != VK_SUCCESS) {
+		if (vkCreateCommandPool(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &poolInfo, nullptr, &m_GraphicsCommandPool) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create command pool!");
 		}
-		if (vkCreateCommandPool(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &poolInfo, nullptr, &m_BGGraphicsCommandPool) != VK_SUCCESS) {
+		if (vkCreateCommandPool(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &poolInfo, nullptr, &m_BGGraphicsCommandPool) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create command pool!");
 		}
 
 		// Creating Compute command pool
 		poolInfo.queueFamilyIndex = m_ComputeQueueFamily;
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		if (vkCreateCommandPool(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &poolInfo, nullptr, &m_ComputeCommandPool) != VK_SUCCESS) {
+		if (vkCreateCommandPool(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &poolInfo, nullptr, &m_ComputeCommandPool) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create command pool!");
 		}
 
 		// Creating Transfer command pool
 		poolInfo.queueFamilyIndex = m_TransferQueueFamily;
 		poolInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
-		if (vkCreateCommandPool(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &poolInfo, nullptr, &m_TransferCommandPool) != VK_SUCCESS) {
+		if (vkCreateCommandPool(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &poolInfo, nullptr, &m_TransferCommandPool) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create command pool!");
 		}
 	}
@@ -518,6 +520,160 @@ namespace Brisk
 
 		vkDestroyDevice(m_Device, nullptr);
 		vkDestroyInstance(m_Instance, nullptr);
+	}
+
+	void GpuAdapterVulkan::SubmitGraphics(SubmitInfo submitInfo, std::shared_ptr<Fence> fence) {
+		std::vector<VkSemaphore> waitSemaphores(submitInfo.pWaitSemaphores.size());
+		std::vector<VkSemaphore> signalSemaphores(submitInfo.pSignalSemaphores.size());
+		std::vector<VkPipelineStageFlags> waitStages(submitInfo.pWaitStages.size());
+
+		BRISK_CORE_ASSERT(waitSemaphores.size() == waitStages.size());
+
+		for (size_t i = 0; i < submitInfo.pWaitStages.size(); ++i) {
+			waitStages[i] = UtilitiesVulkan::PipelineStageToVkPipelineStageFlags(submitInfo.pWaitStages[i]);
+		}
+
+		for (size_t i = 0; i < submitInfo.pWaitSemaphores.size(); ++i) {
+			waitSemaphores[i] = std::static_pointer_cast<SemaphoreVulkan>(submitInfo.pWaitSemaphores[i])->Get();
+		}
+		for (size_t i = 0; i < submitInfo.pSignalSemaphores.size(); ++i) {
+			signalSemaphores[i] = std::static_pointer_cast<SemaphoreVulkan>(submitInfo.pSignalSemaphores[i])->Get();
+		}
+
+		std::vector<VkCommandBuffer> commandBuffers(submitInfo.pCmdBuffers.size());
+		for (size_t i = 0; i < submitInfo.pCmdBuffers.size(); ++i) {
+			commandBuffers[i] = std::static_pointer_cast<CommandBufferVulkan>(submitInfo.pCmdBuffers[i])->Get();
+		}
+
+		// Create submit info struct for Vulkan
+		VkSubmitInfo submitInfoVk = {};
+		submitInfoVk.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfoVk.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
+		submitInfoVk.pWaitSemaphores = waitSemaphores.data();
+		submitInfoVk.pWaitDstStageMask = waitStages.data();
+		submitInfoVk.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
+		submitInfoVk.pCommandBuffers = commandBuffers.data();
+		submitInfoVk.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
+		submitInfoVk.pSignalSemaphores = signalSemaphores.data();
+
+		VkFence vkFence = fence ? std::static_pointer_cast<FenceVulkan>(fence)->Get() : VK_NULL_HANDLE;
+
+		VkResult result = vkQueueSubmit(m_GraphicsQueue, 1, &submitInfoVk, vkFence);
+		if (result != VK_SUCCESS) {
+			throw std::runtime_error("Failed to submit command buffers to Vulkan queue");
+		}
+	}
+
+	void GpuAdapterVulkan::SubmitTransfer(SubmitInfo submitInfo, std::shared_ptr<Fence> fence) {
+		std::vector<VkSemaphore> waitSemaphores(submitInfo.pWaitSemaphores.size());
+		std::vector<VkSemaphore> signalSemaphores(submitInfo.pSignalSemaphores.size());
+		std::vector<VkPipelineStageFlags> waitStages(submitInfo.pWaitStages.size());
+
+		BRISK_CORE_ASSERT(waitSemaphores.size() == waitStages.size());
+
+		for (size_t i = 0; i < submitInfo.pWaitStages.size(); ++i) {
+			waitStages[i] = UtilitiesVulkan::PipelineStageToVkPipelineStageFlags(submitInfo.pWaitStages[i]);
+		}
+
+		for (size_t i = 0; i < submitInfo.pWaitSemaphores.size(); ++i) {
+			waitSemaphores[i] = std::static_pointer_cast<SemaphoreVulkan>(submitInfo.pWaitSemaphores[i])->Get();
+		}
+		for (size_t i = 0; i < submitInfo.pSignalSemaphores.size(); ++i) {
+			signalSemaphores[i] = std::static_pointer_cast<SemaphoreVulkan>(submitInfo.pSignalSemaphores[i])->Get();
+		}
+
+		std::vector<VkCommandBuffer> commandBuffers(submitInfo.pCmdBuffers.size());
+		for (size_t i = 0; i < submitInfo.pCmdBuffers.size(); ++i) {
+			commandBuffers[i] = std::static_pointer_cast<CommandBufferVulkan>(submitInfo.pCmdBuffers[i])->Get();
+		}
+
+		// Create submit info struct for Vulkan
+		VkSubmitInfo submitInfoVk = {};
+		submitInfoVk.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfoVk.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
+		submitInfoVk.pWaitSemaphores = waitSemaphores.data();
+		submitInfoVk.pWaitDstStageMask = waitStages.data();
+		submitInfoVk.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
+		submitInfoVk.pCommandBuffers = commandBuffers.data();
+		submitInfoVk.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
+		submitInfoVk.pSignalSemaphores = signalSemaphores.data();
+
+		VkFence vkFence = fence ? std::static_pointer_cast<FenceVulkan>(fence)->Get() : VK_NULL_HANDLE;
+
+		VkResult result = vkQueueSubmit(m_TransferQueue, 1, &submitInfoVk, vkFence);
+		if (result != VK_SUCCESS) {
+			throw std::runtime_error("Failed to submit command buffers to Vulkan queue");
+		}
+	}
+
+	void GpuAdapterVulkan::SubmitCompute(SubmitInfo submitInfo, std::shared_ptr<Fence> fence) {
+		std::vector<VkSemaphore> waitSemaphores(submitInfo.pWaitSemaphores.size());
+		std::vector<VkSemaphore> signalSemaphores(submitInfo.pSignalSemaphores.size());
+		std::vector<VkPipelineStageFlags> waitStages(submitInfo.pWaitStages.size());
+
+		BRISK_CORE_ASSERT(waitSemaphores.size() == waitStages.size());
+
+		for (size_t i = 0; i < submitInfo.pWaitStages.size(); ++i) {
+			waitStages[i] = UtilitiesVulkan::PipelineStageToVkPipelineStageFlags(submitInfo.pWaitStages[i]);
+		}
+
+		for (size_t i = 0; i < submitInfo.pWaitSemaphores.size(); ++i) {
+			waitSemaphores[i] = std::static_pointer_cast<SemaphoreVulkan>(submitInfo.pWaitSemaphores[i])->Get();
+		}
+		for (size_t i = 0; i < submitInfo.pSignalSemaphores.size(); ++i) {
+			signalSemaphores[i] = std::static_pointer_cast<SemaphoreVulkan>(submitInfo.pSignalSemaphores[i])->Get();
+		}
+
+		std::vector<VkCommandBuffer> commandBuffers(submitInfo.pCmdBuffers.size());
+		for (size_t i = 0; i < submitInfo.pCmdBuffers.size(); ++i) {
+			commandBuffers[i] = std::static_pointer_cast<CommandBufferVulkan>(submitInfo.pCmdBuffers[i])->Get();
+		}
+
+		// Create submit info struct for Vulkan
+		VkSubmitInfo submitInfoVk = {};
+		submitInfoVk.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfoVk.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
+		submitInfoVk.pWaitSemaphores = waitSemaphores.data();
+		submitInfoVk.pWaitDstStageMask = waitStages.data();
+		submitInfoVk.commandBufferCount = static_cast<uint32_t>(commandBuffers.size());
+		submitInfoVk.pCommandBuffers = commandBuffers.data();
+		submitInfoVk.signalSemaphoreCount = static_cast<uint32_t>(signalSemaphores.size());
+		submitInfoVk.pSignalSemaphores = signalSemaphores.data();
+
+		VkFence vkFence = fence ? std::static_pointer_cast<FenceVulkan>(fence)->Get() : VK_NULL_HANDLE;
+
+		VkResult result = vkQueueSubmit(m_ComputeQueue, 1, &submitInfoVk, vkFence);
+		if (result != VK_SUCCESS) {
+			throw std::runtime_error("Failed to submit command buffers to Vulkan queue");
+		}
+	}
+
+	void GpuAdapterVulkan::Present(GpuAdapter::PresentInfo info) {
+		std::vector<VkSemaphore> waitSemaphores(info.pWaitSemaphores.size());
+
+		for (size_t i = 0; i < info.pWaitSemaphores.size(); ++i) {
+			waitSemaphores[i] = std::static_pointer_cast<SemaphoreVulkan>(info.pWaitSemaphores[i])->Get();
+		}
+
+		std::vector<VkSwapchainKHR> swapchains(info.pSwapchains.size());
+		for (size_t i = 0; i < info.pSwapchains.size(); ++i) {
+			swapchains[i] = std::static_pointer_cast<SwapchainVulkan>(info.pSwapchains[i])->GetSwapchain();
+		}
+
+		VkPresentInfoKHR presentInfoVk = {};
+		presentInfoVk.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+		presentInfoVk.waitSemaphoreCount = static_cast<uint32_t>(waitSemaphores.size());
+		presentInfoVk.pWaitSemaphores = waitSemaphores.data();
+		VkSwapchainKHR swapChains[] = { std::static_pointer_cast<SwapchainVulkan>(info.pSwapchains[0])->GetSwapchain() };
+		presentInfoVk.pSwapchains = { swapChains };
+		presentInfoVk.swapchainCount = 1;
+		uint32_t indices = info.pImageIndex;
+		presentInfoVk.pImageIndices = &indices;
+
+		VkResult result = vkQueuePresentKHR(m_GraphicsQueue, &presentInfoVk);
+		if (result != VK_SUCCESS) {
+			throw std::runtime_error("Failed to submit command buffers to Vulkan queue");
+		}
 	}
 
 	void GpuAdapterVulkan::ReleasePools() {

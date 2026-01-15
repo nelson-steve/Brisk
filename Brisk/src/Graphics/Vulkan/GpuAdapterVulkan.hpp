@@ -25,6 +25,12 @@ namespace Brisk
 		virtual void Release() override;
 		virtual void ReleasePools() override;
 
+		virtual void SubmitGraphics(SubmitInfo submitInfo, std::shared_ptr<Fence> fence) override;
+		virtual void SubmitTransfer(SubmitInfo submitInfo, std::shared_ptr<Fence> fence) override;
+		virtual void SubmitCompute(SubmitInfo submitInfo, std::shared_ptr<Fence> fence) override;
+
+		virtual void Present(PresentInfo info) override;
+
 		VkPhysicalDevice GetPhysicalDevice() const { return m_PhysicalDevice; }
 		VkDevice& GetDevice() { return m_Device; }
 		VkCommandPool GetGraphicsCommandPool() const { return m_GraphicsCommandPool; }
@@ -80,8 +86,8 @@ namespace Brisk
 		/// Vulkan queue handles
 		/// </summary>
 		VkQueue m_GraphicsQueue;
-		VkQueue m_ComputeQueue;
 		VkQueue m_TransferQueue;
+		VkQueue m_ComputeQueue;
 
 		VmaAllocator m_VmaAllocator;
 

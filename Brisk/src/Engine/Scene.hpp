@@ -133,6 +133,7 @@ namespace Brisk
 		void LoadGltfScene(const std::filesystem::path& gltfPath);
 		void SetPaused(bool paused) { m_IsPaused = paused; }
         void UpdateTransforms();
+        void UpdateRandomLights();
 
         uint32_t GetDrawsOpaqueCount() { return m_Geometry.draws.size(); }
         uint32_t GetDrawsDoubleSidedCount() { return m_Geometry.drawsDoubleSided.size(); }

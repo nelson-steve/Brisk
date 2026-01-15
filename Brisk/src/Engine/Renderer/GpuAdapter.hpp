@@ -4,6 +4,9 @@
 #include "Engine/Renderer/Texture.hpp"
 #include "Engine/Renderer/Buffer.hpp"
 #include "Engine/Renderer/Descriptor.hpp"
+#include "Engine/Renderer/Fence.hpp"
+#include "Engine/Renderer/Semaphore.hpp"
+#include "Engine/Renderer/Swapchain.hpp"
 //---------------
 #include <memory>
 //---------------
@@ -17,15 +20,34 @@ namespace Brisk
 	constexpr uint32_t SET_CLUSTERED_LIGHTING = 3; // Clustered lighting
 	//
 
-	class GpuAdapter  : public std::enable_shared_from_this<GpuAdapter> {
+	class GpuAdapter {
 		DEFINE_BASE_CLASS_CONSTRUCTOR(GpuAdapter)
 	public:
-		template<typename T>
-		std::shared_ptr<T> GetDevice() {
-			//Application::GetGpuAdapter()->GetDevice<T>()->GetDevice();
-			return std::dynamic_pointer_cast<T>(shared_from_this());
-		}
+		enum class QueueType {
+			Graphics,
+			Compute,
+			Transfer
+		};
+	public:
+		struct SubmitInfo {
+			std::vector<std::shared_ptr<Semaphore>> pWaitSemaphores;
+			std::vector<std::shared_ptr<Semaphore>> pSignalSemaphores;
+			std::vector<std::shared_ptr<CommandBuffer>> pCmdBuffers;
+			std::vector<Core::PipelineStage> pWaitStages;
+		};
+
+		struct PresentInfo {
+			std::vector<std::shared_ptr<Semaphore>> pWaitSemaphores;
+			std::vector<std::shared_ptr<Swapchain>> pSwapchains;
+			int pImageIndex;
+		};
 		virtual void WaitIdle() = 0;
+
+		virtual void SubmitGraphics(SubmitInfo submitInfo, std::shared_ptr<Fence> fence) = 0;
+		virtual void SubmitTransfer(SubmitInfo submitInfo, std::shared_ptr<Fence> fence) = 0;
+		virtual void SubmitCompute(SubmitInfo submitInfo, std::shared_ptr<Fence> fence) = 0;
+
+		virtual void Present(PresentInfo info) = 0;
 
 		virtual void Init() = 0;
 		virtual void Release() = 0;

@@ -166,6 +166,68 @@ namespace Brisk
         ImGui::End();
     }
 
+    void ShowRandomLightsMenu()
+    {
+        ImGui::Begin("Random Light Generator");
+
+        static uint32_t lightCount = 1000;
+        static float range = 50.0f;
+        static float radiusMin = 0.5f;
+        static float radiusMax = 3.0f;
+        static float colorMin = 0.2f;
+        static float colorMax = 1.0f;
+        static float intensityMin = 1.0f;
+        static float intensityMax = 10.0f;
+
+        ImGui::Text("Light Count");
+        ImGui::InputScalar("##LightCount", ImGuiDataType_U32, &lightCount);
+
+        ImGui::Separator();
+
+        ImGui::SliderFloat("Spawn Range", &range, 1.0f, 500.0f);
+
+        ImGui::Separator();
+
+        ImGui::Text("Radius");
+        ImGui::SliderFloat("Radius Min", &radiusMin, 0.01f, 10.0f);
+        ImGui::SliderFloat("Radius Max", &radiusMax, 0.01f, 10.0f);
+
+        ImGui::Separator();
+
+        ImGui::Text("Color Intensity");
+        ImGui::SliderFloat("Color Min", &colorMin, 0.0f, 1.0f);
+        ImGui::SliderFloat("Color Max", &colorMax, 0.0f, 1.0f);
+
+        ImGui::Separator();
+
+        ImGui::Text("Light Intensity");
+        ImGui::SliderFloat("Intensity Min", &intensityMin, 0.0f, 50.0f);
+        ImGui::SliderFloat("Intensity Max", &intensityMax, 0.0f, 50.0f);
+
+        ImGui::Separator();
+
+        // Clamp safety
+        radiusMin = std::min(radiusMin, radiusMax);
+        colorMin = std::min(colorMin, colorMax);
+        intensityMin = std::min(intensityMin, intensityMax);
+
+        if (ImGui::Button("Generate Lights", ImVec2(200, 0)))
+        {
+            Application::GenerateRandomLights(
+                lightCount,
+                range,
+                radiusMin,
+                radiusMax,
+                colorMin,
+                colorMax,
+                intensityMin,
+                intensityMax);
+        }
+
+        ImGui::End();
+    }
+
+
     void MenuBar() {
         if (ImGui::BeginMainMenuBar())
         {
@@ -220,8 +282,8 @@ namespace Brisk
         MaterialPanel* materialPanel = new MaterialPanel();
         m_Panels.insert({ "Material" , materialPanel });
 
-        HeirarchyPanel* heirarchyPanel = new HeirarchyPanel();
-        m_Panels.insert({ "Heirarchy" , heirarchyPanel });
+        //HeirarchyPanel* heirarchyPanel = new HeirarchyPanel();
+        //m_Panels.insert({ "Heirarchy" , heirarchyPanel });
 
         InspectorPanel* inspectorPanel = new InspectorPanel();
         m_Panels.insert({ "Inspector" , inspectorPanel });
@@ -248,6 +310,7 @@ namespace Brisk
         ShowPerformanceStatsWindow(deltaTime);
         ShowRendererSettingsWindow();
         ShowDebugCSMMapsWindow();
+        ShowRandomLightsMenu();
     }
 
     void EditorLayer::OnEvent(Event& e) {

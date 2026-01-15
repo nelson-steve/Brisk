@@ -6,7 +6,7 @@
 namespace Brisk
 {
 	void CommandBufferAllocatorDirectX12::Init() {
-		HRESULT hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator));
+		HRESULT hr = std::static_pointer_cast<GpuAdapterDirectX12>(Application::GetGpuAdapter())->GetDevice()->CreateCommandAllocator(D3D12_COMMAND_LIST_TYPE_DIRECT, IID_PPV_ARGS(&m_CommandAllocator));
 		if (FAILED(hr)) {
 			throw std::runtime_error("Failed to create DirectX 12 Command Allocator");
 		}
@@ -15,7 +15,7 @@ namespace Brisk
 	void CommandBufferAllocatorDirectX12::Allocate(std::shared_ptr<CommandBuffer> cmd) {
         ComPtr<ID3D12GraphicsCommandList6> commandList;
 
-        HRESULT hr = Application::GetGpuAdapter()->GetDevice<GpuAdapterDirectX12>()->GetDevice()->CreateCommandList(
+        HRESULT hr = std::static_pointer_cast<GpuAdapterDirectX12>(Application::GetGpuAdapter())->GetDevice()->CreateCommandList(
             0,
             D3D12_COMMAND_LIST_TYPE_DIRECT,
             m_CommandAllocator.Get(),

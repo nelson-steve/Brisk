@@ -41,9 +41,9 @@ layout(std430, set = 3, binding = 2) readonly buffer LightIndicesBuffer {
     uint lightIndexList[];
 } LightIndices;
 
-layout(std430, set = 3, binding = 3) readonly buffer ClusterLightOffsetListBuffer {
-    uvec2 lightOffsets[];
-} ClusterLightOffsetList;
+layout(std430, set = 3,  binding = 3) buffer ClusterLightCountsListBuffer {
+    uint lightCounts[];
+} ClusterLightCountsList;
 
 layout(std140, set = 0, binding = 6) uniform ShadowData {
     mat4 lightSpaceMatrices[NUM_CASCADES];
@@ -268,10 +268,8 @@ void main() {
     uint clusterIdx = computeClusterIndex(fragPosView);
 
     // Fetch light indices
-    uvec2 offsetCount = ClusterLightOffsetList.lightOffsets[clusterIdx];
-    uint offset = offsetCount.x;
-    uint count = offsetCount.y;
-
+    uint count = ClusterLightCountsList.lightCounts[clusterIdx];
+    uint offset = MAX_LIGHTS_PER_CLUSTER * clusterIdx;
     vec3 LightDir = normalize(-sunLightDir);
     for (uint i = 0; i < count; ++i) {
         uint lightIdx = LightIndices.lightIndexList[offset + i];

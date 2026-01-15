@@ -42,6 +42,8 @@ namespace Brisk
 		void PushLayer(Layer* layer);
 		void PushOverlay(Layer* layer);
 
+		static void GenerateRandomLights(uint32_t count, float range, float radiusMin, float radiusMax, float colorMin, float colorMax, float intensityMin, float intensityMax);
+
 		inline bool ShouldClose() const { return m_Window->WindowShouldClose(); }
 		static std::shared_ptr<WindowsWindow> GetWindow() { return std::static_pointer_cast<WindowsWindow>(m_Window); }
 		static ImGuiLayer* GetGuiLayer() { return m_ImGuiLayer; }
@@ -56,6 +58,7 @@ namespace Brisk
 		bool OnMouseMoved(MouseMovedEvent& e);
 		bool OnMouseScrolled(MouseScrolledEvent& e);
 	private:
+		static std::vector<PointLight> m_RandomLights;
 		static RendererSettings m_RendererSettings;
 		LayerStack m_LayerStack;
 		static JobSystem m_JobSystem;

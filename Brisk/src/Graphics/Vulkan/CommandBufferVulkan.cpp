@@ -14,19 +14,19 @@ namespace Brisk {
 		switch (type)
 		{
 			case PoolType::Graphics:
-				allocInfo.commandPool = Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetGraphicsCommandPool();
+				allocInfo.commandPool = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetGraphicsCommandPool();
 				break;
 			case PoolType::Compute:
-				allocInfo.commandPool = Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetComputeCommandPool();
+				allocInfo.commandPool = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetComputeCommandPool();
 				break;
 			case PoolType::Transfer:
-				allocInfo.commandPool = Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetTransferCommandPool();
+				allocInfo.commandPool = std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetTransferCommandPool();
 				break;
 		}
 		allocInfo.level = VK_COMMAND_BUFFER_LEVEL_PRIMARY;
 		allocInfo.commandBufferCount = 1;
 
-		if (vkAllocateCommandBuffers(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &allocInfo, &m_CommandBuffer) != VK_SUCCESS) {
+		if (vkAllocateCommandBuffers(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &allocInfo, &m_CommandBuffer) != VK_SUCCESS) {
 			throw std::runtime_error("failed to allocate command buffers!");
 		}
 	}
@@ -39,10 +39,10 @@ namespace Brisk {
 		vkResetCommandBuffer(m_CommandBuffer, /*VkCommandBufferResetFlagBits*/ 0);
 	}
 
-	void CommandBufferVulkan::Bind(/*VkCommandBufferUsageFlags usageFlags*/) {
+	void CommandBufferVulkan::Bind(bool singleUse/*VkCommandBufferUsageFlags usageFlags*/) {
 		VkCommandBufferBeginInfo beginInfo{};
 		beginInfo.sType = VK_STRUCTURE_TYPE_COMMAND_BUFFER_BEGIN_INFO;
-		//beginInfo.flags = usageFlags;
+		beginInfo.flags = singleUse ? VK_COMMAND_BUFFER_USAGE_ONE_TIME_SUBMIT_BIT : 0;
 		beginInfo.pInheritanceInfo = nullptr; // Optional
 
 		if (vkBeginCommandBuffer(m_CommandBuffer, &beginInfo) != VK_SUCCESS) {

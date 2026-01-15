@@ -4,7 +4,7 @@
 
 #include "../config.hpp"
 
-layout(local_size_x = 1, local_size_y = 1, local_size_z = 1) in;
+layout(local_size_x = 128, local_size_y = 1, local_size_z = 1) in;
 
 struct TileAABB {
     vec4 minPoint;
@@ -20,6 +20,7 @@ layout (std140, set = 3, binding = 1) uniform ClusterInfoBuffer {
     mat4 invProj;
     uvec4 tileSizes;
     uvec4 screen; // xy = dimensions, zw = near far
+    uint noOfLights;
 } ClusterInfo;
 
 struct LightData {
@@ -30,25 +31,16 @@ struct LightData {
 // xyz = pos, w = radius
 // xyz = color, w = intensity
 layout(std430, set = 0, binding = 1) readonly buffer LightsListBuffer {
-    LightData lights[MAX_LIGHTS];
+    LightData lights[];
 } LightsList;
 
 layout(std430, set = 3,  binding = 2) buffer ClusterLightIndexListBuffer {
     uint lightIndices[]; // flattened light indices
 } ClusterLightIndexList;
 
-layout(std430, set = 3,  binding = 3) buffer ClusterLightOffsetListBuffer {
-    uvec2 lightOffsets[]; // start, count per cluster
-} ClusterLightOffsetList;
-
-// atomic counter for each cluster
-layout(std430, set = 3,  binding = 4) buffer AtomicCountersBuffer {
-    uint counters[];
-} AtomicCounters;
-
-layout (std430, set = 3, binding = 5) buffer GlobalIndexCountBuffer {
-    uint globalIndexCount;
-} GlobalIndex;
+layout(std430, set = 3,  binding = 3) buffer ClusterLightCountsListBuffer {
+    uint lightCounts[];
+} ClusterLightCountsList;
 
 float sqDistPointAABB(vec3 point, uint tile){
     float sqDist = 0.0;
@@ -79,35 +71,41 @@ bool testSphereAABB(uint light, uint tile){
     return squaredDistance < (radius * radius);
 }
 
-void main()
-{
+shared uint sharedIndices[MAX_LIGHTS_PER_CLUSTER];
+shared uint sharedCount;
+
+void main(){
 	uint tileIndex =
 		gl_WorkGroupID.x +
 		gl_WorkGroupID.y * gl_NumWorkGroups.x +
 		gl_WorkGroupID.z * gl_NumWorkGroups.x * gl_NumWorkGroups.y;
 
-    if (gl_GlobalInvocationID.x == 0 && gl_GlobalInvocationID.y == 0 && gl_GlobalInvocationID.z == 0) {
-        GlobalIndex.globalIndexCount = 0;
-    }
+	uint localIndex = gl_LocalInvocationID.x;
+	uint stride = gl_WorkGroupSize.x;
 
-	uint visibleLightIndices[MAX_LIGHTS_PER_CLUSTER];
+	if(localIndex == 0)
+		sharedCount = 0;
 
-	uint lightIter = 0;
-	for (uint i = 0; i < MAX_LIGHTS && lightIter < MAX_LIGHTS_PER_CLUSTER; ++i)
-	{
-		if (testSphereAABB(i, tileIndex))
-		{
-			visibleLightIndices[lightIter++] = i;
+	barrier();
+
+	for (uint i = localIndex; i < ClusterInfo.noOfLights; i += stride) {
+		if (testSphereAABB(i, tileIndex)) {
+		uint index = atomicAdd(sharedCount, 1); 
+		if (index < MAX_LIGHTS_PER_CLUSTER) 
+			sharedIndices[index] = i;
 		}
 	}
 
-	uint offset = atomicAdd(GlobalIndex.globalIndexCount, lightIter);
+	barrier();
 
-	for (uint i = 0; i < lightIter; ++i)
-	{
-		ClusterLightIndexList.lightIndices[offset + i] = visibleLightIndices[i];
+	if(localIndex == 0) {
+		uint count = min(sharedCount, MAX_LIGHTS_PER_CLUSTER);
+		uint offset = tileIndex * MAX_LIGHTS_PER_CLUSTER;
+		for(int i = 0; i < count; i++) {
+			ClusterLightIndexList.lightIndices[offset + i] = sharedIndices[i];
+		}
+
+		ClusterLightCountsList.lightCounts[tileIndex] = count;
 	}
 
-    ClusterLightOffsetList.lightOffsets[tileIndex].x = offset;
-    ClusterLightOffsetList.lightOffsets[tileIndex].y = lightIter;
 }

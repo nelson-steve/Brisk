@@ -175,7 +175,7 @@ namespace Brisk
         nameInfo.pObjectName = desc.p_Name.c_str();
 
 #if _DEBUG
-        vkSetDebugUtilsObjectNameEXT(Application::GetGpuAdapter()->GetDevice<GpuAdapterVulkan>()->GetDevice(), &nameInfo);
+        vkSetDebugUtilsObjectNameEXT(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), &nameInfo);
 #endif
 
         if (allocInfo.flags & VMA_ALLOCATION_CREATE_MAPPED_BIT) {

@@ -28,6 +28,13 @@ namespace Brisk
 		float intensity = 1.0;
 
 		bool CSM = true;
+		bool PCF = true;
+		float PCFScale = 1.0;
+
+		float NearClip = 1.0f;
+		float FarClip = 200.0f;
+		float LightSize = 50;
+		float Scale = 20.0f;
 	};
 
 	class Application {

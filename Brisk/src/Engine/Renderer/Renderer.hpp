@@ -20,7 +20,7 @@
 //---------------
 
 #define MAX_LIGHTS 8192
-#define MAX_LIGHTS_PER_CLUSTER 512
+#define MAX_LIGHTS_PER_CLUSTER 128
 #define NUM_CLUSTERS 16 * 9 * 24
 
 #define SIZE_1KB 1024 
@@ -32,6 +32,8 @@
 
 #define BLOOM_LEVELS 4
 #define BLOOM_DIM 512
+
+#define SHADOW_MAP_CASCADE_COUNT 4
 
 #define FRAMES_IN_FLIGHT 2
 
@@ -70,11 +72,14 @@ namespace Brisk
 		alignas(16) glm::vec3 CamPos;
 	};
 
-	struct alignas(16) BloomSetting {
+	struct alignas(16) RendererSettingUBO {
 		float knee;
 		float threshold;
 		float intensity;
-		uint32_t _pad;
+
+		uint32_t csm;
+		uint32_t pcf;
+		float pcfScale;
 	};
 
 	struct RayTracingProps {
@@ -255,14 +260,12 @@ namespace Brisk
 		std::shared_ptr<Buffer> m_MeshletDataBuffer;
 		std::shared_ptr<Buffer> m_MaterialStorageBuffer;
 		std::shared_ptr<Buffer> m_TransformsBuffer;
-		std::shared_ptr<Buffer> m_BloomSettingBuffer;
+		std::shared_ptr<Buffer> m_RendererSettingBuffer;
 		// Buffer - End
 
 		std::shared_ptr<SBT> m_SBT;
 
 		ScratchAllocator m_ScratchAllocator;
-
-		std::vector<glm::mat4> m_SunMatrices;
 
 		uint64_t m_ImGuiIdScene;
 		uint64_t m_ImGuiIdShadowMap0;

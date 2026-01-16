@@ -1,5 +1,5 @@
 
-#define MAX_LIGHTS_PER_CLUSTER 512
+#define MAX_LIGHTS_PER_CLUSTER 128
 
 #define MESH_MAXVTX 64
 #define MESH_MAXTRI 96
@@ -15,4 +15,4 @@
 #define NearZ 1.0
 #define FarZ 1000.0
 
-#define NUM_CASCADES 4
+#define SHADOW_MAP_CASCADE_COUNT 4

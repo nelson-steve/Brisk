@@ -14,12 +14,14 @@ layout(std140, set = 0, binding = 0) uniform MVPBuffer {
     vec3 CamPos;
 } MVP;
 
-layout(std140, set = 0, binding = 21) uniform BloomSettingBuffer {
+layout(std140, set = 0, binding = 21) uniform RendererSettingBuffer {
     float knee;
     float threshold;
     float intensity;
-    int _pad;
-} BloomSetting;
+    uint csm;
+    uint pcf;
+    float pcfScale;
+} RendererSetting;
 
 // G-buffer textures
 layout(set = 2, binding = 0) uniform sampler2D sampler_Position;
@@ -46,32 +48,15 @@ layout(std430, set = 3,  binding = 3) buffer ClusterLightCountsListBuffer {
 } ClusterLightCountsList;
 
 layout(std140, set = 0, binding = 6) uniform ShadowData {
-    mat4 lightSpaceMatrices[NUM_CASCADES];
+    mat4 lightSpaceMatrices[SHADOW_MAP_CASCADE_COUNT];
     vec4 cascadeSplits;
 } u_Shadow;
 
-layout(set = 0, binding = 7) uniform sampler2D ShadowMaps[NUM_CASCADES];
+layout(set = 0, binding = 7) uniform sampler2D ShadowMaps[SHADOW_MAP_CASCADE_COUNT];
 
 layout(push_constant) uniform PushConstants {
     vec3 sunLightDir;
 };
-
-// --- Light Shading ---
-vec3 applyLight(vec3 fragPos, vec3 normal, uint lightIdx) {
-    vec3 lightPos = LightsList.lights[lightIdx].position.xyz;
-    float radius = LightsList.lights[lightIdx].position.w;
-    vec3 color = LightsList.lights[lightIdx].color.rgb;
-    float intensity = LightsList.lights[lightIdx].color.w;
-
-    vec3 toLight = lightPos - fragPos;
-    float dist = length(toLight);
-    vec3 L = normalize(toLight);
-
-    float attenuation = clamp(1.0 - dist / radius, 0.0, 1.0);
-    float NdotL = max(dot(normal, L), 0.05);
-
-    return color * intensity * attenuation * NdotL;
-}
 
 uint computeClusterIndex(vec3 fragPosView) {
     vec2 fragCoord = gl_FragCoord.xy;
@@ -174,80 +159,79 @@ vec3 evaluateLight(
     return (diffuse + spec) * radiance * NdotL;
 }
 
-float ShadowCalculation(vec4 fragPosLightSpace, vec3 normal, vec3 lightDir, vec3 worldPos)
+const mat4 biasMat = mat4( 
+	0.5, 0.0, 0.0, 0.0,
+	0.0, 0.5, 0.0, 0.0,
+	0.0, 0.0, 1.0, 0.0,
+	0.5, 0.5, 0.0, 1.0 
+);
+
+float textureProj(vec4 shadowCoord, vec2 offset, uint cascadeIndex)
 {
-    vec3 projCoords = fragPosLightSpace.xyz / fragPosLightSpace.w;
-    vec2 coordsXY = projCoords.xy * 0.5 + 0.5;
-    float closestDepth = texture(ShadowMaps[0], coordsXY.xy).r; 
-    float currentDepth = projCoords.z;
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.015);
-    float shadow = 0.0;
-    vec2 texelSize = 1.0 / textureSize(ShadowMaps[0], 0);
-    for(int x = -1; x <= 1; ++x)
-    {
-        for(int y = -1; y <= 1; ++y)
-        {
-            float pcfDepth = texture(ShadowMaps[0], coordsXY.xy + vec2(x, y) * texelSize).r; 
-            shadow += currentDepth - bias > pcfDepth  ? 1.0 : 0.0;        
-        }    
-    }
-    shadow /= 9.0;
-    
-    if (projCoords.z > 1.0 || projCoords.z < 0.0)
-        shadow = 0.0;
-        
+	float shadow = 1.0;
+	float bias = 0.005;
+
+	if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 ) {
+		float dist = texture(ShadowMaps[0], vec2(shadowCoord.st + offset)).r;
+		if (shadowCoord.w > 0 && dist < shadowCoord.z - bias) {
+			shadow = 0.0;
+		}
+	}
+	return shadow;
+
+}
+
+float filterPCF(vec4 sc, uint cascadeIndex)
+{
+	ivec2 texDim = textureSize(ShadowMaps[0], 0).xy;
+	float scale = RendererSetting.pcfScale;
+	float dx = scale * 1.0 / float(texDim.x);
+	float dy = scale * 1.0 / float(texDim.y);
+
+	float shadowFactor = 0.0;
+	int count = 0;
+	int range = 1;
+	
+	for (int x = -range; x <= range; x++) {
+		for (int y = -range; y <= range; y++) {
+			shadowFactor += textureProj(sc, vec2(dx*x, dy*y), cascadeIndex);
+			count++;
+		}
+	}
+	return shadowFactor / count;
+}
+
+float ComputeCSM(vec3 worldPos, mat4 viewMatrix, vec3 N) {
+    uint cascadeIndex = 0;
+    vec4 viewPos = viewMatrix * vec4(worldPos, 1.0);
+	for(uint i = 0; i < SHADOW_MAP_CASCADE_COUNT - 1; ++i) {
+		if(viewPos.z < u_Shadow.cascadeSplits[i]) {	
+			cascadeIndex = i + 1;
+		}
+	}
+
+    cascadeIndex = 0;
+	vec4 shadowCoord = (biasMat * u_Shadow.lightSpaceMatrices[cascadeIndex]) * vec4(worldPos, 1.0);	
+
+	float shadow = 0.0;
+    uint enablePCF = RendererSetting.pcf;
+	if (enablePCF == 1) {
+		shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
+	} else {
+		shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0), cascadeIndex);
+	}
+
     return shadow;
 }
 
-int chooseCascade(vec3 worldPos, mat4 viewMatrix) {
-    vec4 viewPos = viewMatrix * vec4(worldPos, 1.0);
-    float depth = -viewPos.z; // camera looks along -Z
-    for (int i = 0; i < NUM_CASCADES; i++) {
-        if (depth < u_Shadow.cascadeSplits[i]) {
-            return i;
-        }
-    }
-    return NUM_CASCADES - 1; // farthest cascade
-}
-
-vec3 projectToShadowMap(vec3 worldPos, int cascadeIndex) {
-    vec4 lightSpacePos = u_Shadow.lightSpaceMatrices[cascadeIndex] * vec4(worldPos, 1.0);
-    lightSpacePos.xyz /= lightSpacePos.w;
-    vec3 ndc = vec3(lightSpacePos.xy * 0.5 + 0.5, lightSpacePos.z);
-    return ndc;
-}
-
-float sampleShadow(int cascadeIndex, vec3 shadowCoord, vec3 normal, vec3 lightDir) {
-    if (shadowCoord.z > 1.0) return 1.0; // behind light frustum, lit
-    
-    float shadow = 0.0;
-    float bias = max(0.05 * (1.0 - dot(normal, lightDir)), 0.005);
-    int samples = 3; // 3x3 kernel
-    float texelSize = 1.0 / textureSize(ShadowMaps[cascadeIndex], 0).x;
-    
-    for (int x = -1; x <= 1; ++x) {
-        for (int y = -1; y <= 1; ++y) {
-            float pcfDepth = texture(ShadowMaps[cascadeIndex], shadowCoord.xy + vec2(x, y) * texelSize).r;
-            shadow += (shadowCoord.z - bias <= pcfDepth) ? 1.0 : 0.0;
-        }
-    }
-    shadow /= (samples * samples);
-    return shadow;
-}
-
-float computeShadow(vec3 worldPos, mat4 viewMatrix, vec3 normal, vec3 lightDir) {
-    int cascadeIndex = NUM_CASCADES - 1; // farthest cascade
-    vec4 viewPos = viewMatrix * vec4(worldPos, 1.0);
-    float depth = -viewPos.z; // camera looks along -Z
-    for (int i = 0; i < NUM_CASCADES; i++) {
-        if (depth < u_Shadow.cascadeSplits[i]) {
-            cascadeIndex =  i;
-            break;
-        }
-    }
-
-    vec3 shadowCoord = projectToShadowMap(worldPos, cascadeIndex);
-    return sampleShadow(cascadeIndex, shadowCoord, normal, lightDir);
+float ComputeShadow(vec3 worldPos, mat4 viewMatrix, vec3 N) {
+	vec4 shadowCoord = (biasMat * u_Shadow.lightSpaceMatrices[0] * mat4(1.0)) * vec4(worldPos, 1.0);	
+    uint enablePCF = RendererSetting.pcf;
+	if (enablePCF == 1) {
+		return filterPCF(shadowCoord / shadowCoord.w, 0);
+	} else {
+		return textureProj(shadowCoord / shadowCoord.w, vec2(0.0), 0);
+	}
 }
 
 void main() {
@@ -288,22 +272,21 @@ void main() {
         accum += evaluateLight(albedo, metallic, roughness, N, V, L, radiance, ao);
     }
 
-    bool cascadedShadows = true;
+    bool cascadedShadows = RendererSetting.csm == 1;
 
     float shadow = 0.0f;
     if(cascadedShadows){
-        shadow = computeShadow(fragPos, MVP.View, N, LightDir);
+        //shadow = ComputeShadow(fragPos, MVP.View, N);
     }
     else {
-        vec4 fragPosLightSpace = u_Shadow.lightSpaceMatrices[0] * mat4(1.0) * vec4(fragPos, 1.0);
-        shadow = (1 - ShadowCalculation(fragPosLightSpace, N, LightDir, fragPos));
+        shadow = ComputeShadow(fragPos, MVP.View, N);
     }
     
     // Sun light
     vec3 sunColor = vec3(1.0, 0.95, 0.9);
     float sunIntensity = 20.0;
     vec3 radiance = sunColor * sunIntensity;
-    accum +=  shadow * evaluateLight(albedo, metallic, roughness, N, V, LightDir, radiance, ao);
+    accum += shadow * evaluateLight(albedo, metallic, roughness, N, V, LightDir, radiance, ao);
 
     vec3 ambient = vec3(0.03);
     ambient = ambient * albedo * ao;
@@ -317,11 +300,11 @@ void main() {
     //
     float brightness = max(max(finalColor.r, finalColor.g), finalColor.b);
 
-    float soft = brightness - BloomSetting.threshold + BloomSetting.knee;
-    soft = clamp(soft / (2.0 * BloomSetting.knee), 0.0, 1.0);
+    float soft = brightness - RendererSetting.threshold + RendererSetting.knee;
+    soft = clamp(soft / (2.0 * RendererSetting.knee), 0.0, 1.0);
 
-    float contribution = max(brightness - BloomSetting.threshold, 0.0);
-    contribution += soft * soft * BloomSetting.knee;
+    float contribution = max(brightness - RendererSetting.threshold, 0.0);
+    contribution += soft * soft * RendererSetting.knee;
 
     outBrightColor = vec4(outColor.xyz * contribution / max(brightness, 0.0001), 1.0);
 }

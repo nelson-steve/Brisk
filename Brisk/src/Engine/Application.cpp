@@ -96,7 +96,7 @@ namespace Brisk
 		float colorMax = 1.0f;
 		float intensityMin = 3.0f;
 		float intensityMax = 5.0f;
-		GenerateRandomLights(MAX_LIGHTS, range, radiusMin, radiusMax, colorMin, colorMax, intensityMin, intensityMax);
+		GenerateRandomLights(1000, range, radiusMin, radiusMax, colorMin, colorMax, intensityMin, intensityMax);
 
 		m_ImGuiLayer = new ImGuiLayer();
 		PushOverlay(m_ImGuiLayer);

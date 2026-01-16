@@ -115,12 +115,20 @@ namespace Brisk
 
         ImGui::Checkbox("Ray Tracing", &settings.RayTracing);
         ImGui::Checkbox("CSM", &settings.CSM);
+        ImGui::Checkbox("PCF", &settings.PCF);
+        ImGui::DragFloat("PCF Scale", &settings.PCFScale, 0.01f, 0.0f, 2.0f);
 
         ImGui::Separator();
 
         ImGui::DragFloat("Bloom Threshold", &settings.threshold, 0.01f, 0.0f, 10.0f);
         ImGui::DragFloat("Bloom Knee", &settings.knee, 0.01f, 0.0f, 10.0f);
         ImGui::DragFloat("Bloom Intensity", &settings.intensity, 0.01f, 0.0f, 10.0f);
+
+        // Shadow mapping
+        ImGui::DragFloat("Near Clip", &settings.NearClip, 0.01f, 0.01f, 10.0f);
+        ImGui::DragFloat("Far Clip", &settings.FarClip, 0.01f, 0.01f, 1000.0f);
+        ImGui::DragFloat("Light Size", &settings.LightSize, 1.0f, 0.0f, 400.0f);
+        ImGui::DragFloat("Scale Clip", &settings.Scale, 0.01f, 0.0f, 40.0f);
 
         ImGui::End();
     }
@@ -282,8 +290,8 @@ namespace Brisk
         MaterialPanel* materialPanel = new MaterialPanel();
         m_Panels.insert({ "Material" , materialPanel });
 
-        //HeirarchyPanel* heirarchyPanel = new HeirarchyPanel();
-        //m_Panels.insert({ "Heirarchy" , heirarchyPanel });
+        HeirarchyPanel* heirarchyPanel = new HeirarchyPanel();
+        m_Panels.insert({ "Heirarchy" , heirarchyPanel });
 
         InspectorPanel* inspectorPanel = new InspectorPanel();
         m_Panels.insert({ "Inspector" , inspectorPanel });

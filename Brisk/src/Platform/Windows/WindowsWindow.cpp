@@ -156,6 +156,13 @@ namespace Brisk
 			});
 	}
 
+	void WindowsWindow::GetWidthAndHeight(uint32_t& width, uint32_t& height) {
+		int32_t w, h;
+		glfwGetFramebufferSize(m_Window, &w, &h);
+		width = w;
+		height = h;
+	}
+
 	void* WindowsWindow::GetHWNDWindowHandle() {
 		 return glfwGetWin32Window(m_Window);
 	}

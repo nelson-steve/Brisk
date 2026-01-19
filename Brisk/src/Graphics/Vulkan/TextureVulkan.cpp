@@ -102,9 +102,9 @@ namespace Brisk
 
         m_Descriptor.sampler = m_Sampler;
         m_Descriptor.imageView = m_ImageView;
-        //if((specs.p_Usage & Core::TextureUsage::ImageUsageStorage) != Core::TextureUsage::Undefined)
-        //    m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
-        //else 
+        if((specs.p_Usage & Core::TextureUsage::ImageUsageStorage) != Core::TextureUsage::Undefined)
+            m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_GENERAL;
+        else 
             m_Descriptor.imageLayout = VK_IMAGE_LAYOUT_SHADER_READ_ONLY_OPTIMAL;
     }
 

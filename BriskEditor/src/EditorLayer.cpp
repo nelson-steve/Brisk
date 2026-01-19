@@ -54,6 +54,7 @@ namespace Brisk
             {"Clusters AABB", Application::GetRenderer()->m_AABBTime},
             {"Assign Lights", Application::GetRenderer()->m_AssignLightToClustersTime},
             {"Raster", Application::GetRenderer()->m_RasterTime},
+            {"Ray Tracing", Application::GetRenderer()->m_RTTime},
         };
 
         frames.push_back(f);
@@ -117,6 +118,7 @@ namespace Brisk
         ImGui::Checkbox("CSM", &settings.CSM);
         ImGui::Checkbox("PCF", &settings.PCF);
         ImGui::DragFloat("PCF Scale", &settings.PCFScale, 0.01f, 0.0f, 2.0f);
+        ImGui::DragFloat("Split Lambda", &settings.SplitLambda, 0.01f, 0.0f, 1.0f);
 
         ImGui::Separator();
 
@@ -131,6 +133,27 @@ namespace Brisk
         ImGui::DragFloat("Scale Clip", &settings.Scale, 0.01f, 0.0f, 40.0f);
 
         ImGui::End();
+    }
+
+    bool infiniteProjection = true;
+    float camNear = 1.0;
+    float camFar = 200.0;
+    void ShowEditorCameraSettingsWindow()
+    {
+        ImGui::Begin("Editor Camera");
+
+        RendererSettings& settings = Application::GetRendererSettings();
+
+        if (ImGui::Checkbox("Infinite Projection", &infiniteProjection)) {
+            Application::GetEditorCamera()->SetUseInfiniteProjection(infiniteProjection);
+        }
+        ImGui::DragFloat("Near", &camNear, 0.01f, 0.0f, 10.0f);
+        ImGui::DragFloat("Far", &camFar, 1.0f, 1.0f, 1000.0f);
+
+        ImGui::End();
+
+        Application::GetEditorCamera()->SetNearClip(camNear);
+        Application::GetEditorCamera()->SetFarClip(camFar);
     }
 
     void ShowDebugCSMMapsWindow()
@@ -317,7 +340,9 @@ namespace Brisk
         float deltaTime = 0.1;
         ShowPerformanceStatsWindow(deltaTime);
         ShowRendererSettingsWindow();
-        ShowDebugCSMMapsWindow();
+        if(!Application::GetRendererSettings().RayTracing)
+            ShowDebugCSMMapsWindow();
+        ShowEditorCameraSettingsWindow();
         ShowRandomLightsMenu();
     }
 

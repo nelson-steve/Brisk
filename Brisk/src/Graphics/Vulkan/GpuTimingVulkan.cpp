@@ -26,6 +26,12 @@ namespace Brisk
 	}
 
 	void GpuTimingVulkan::TimeStamp(std::shared_ptr<CommandBuffer> cmd, Core::PipelineStage stage, uint32_t frameIndex, uint32_t index) {
+		m_QueryCount++;
+
+		if (m_QueryCount >= 64) {
+			BRISK_CORE_ERROR("Max query count reached");
+		}
+
 		VkPipelineStageFlagBits vkStage = VK_PIPELINE_STAGE_NONE_KHR;
 
 		if ((stage & Core::PipelineStage::TopOfPipe) == Core::PipelineStage::TopOfPipe)
@@ -57,11 +63,12 @@ namespace Brisk
 	}
 
 	void GpuTimingVulkan::Reset(std::shared_ptr<CommandBuffer> cmd, uint32_t index) {
-		vkCmdResetQueryPool(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), m_TimestampQueryPools[index], 0, QUERY_COUNT);
+		vkCmdResetQueryPool(std::static_pointer_cast<CommandBufferVulkan>(cmd)->Get(), m_TimestampQueryPools[index], 0, m_QueryCount);
+		m_QueryCount = 0;
 	}
 
 	float GpuTimingVulkan::QueryTime(uint32_t frameIndex) {
-		if (vkGetQueryPoolResults(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), m_TimestampQueryPools[frameIndex], 0, QUERY_COUNT, sizeof(uint64_t) * QUERY_COUNT, m_Results, sizeof(m_Results[0]), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT) != VK_SUCCESS) {
+		if (vkGetQueryPoolResults(std::static_pointer_cast<GpuAdapterVulkan>(Application::GetGpuAdapter())->GetDevice(), m_TimestampQueryPools[frameIndex], 0, m_QueryCount, sizeof(uint64_t) * m_QueryCount, m_Results, sizeof(m_Results[0]), VK_QUERY_RESULT_64_BIT | VK_QUERY_RESULT_WAIT_BIT) != VK_SUCCESS) {
 			throw std::runtime_error("Failed to create Vulkan framebuffer");
 		}
 	}

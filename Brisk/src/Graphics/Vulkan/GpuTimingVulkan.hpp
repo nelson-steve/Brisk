@@ -7,8 +7,6 @@
 #include <memory>
 #include <vector>
 
-#define QUERY_COUNT 6
-
 namespace Brisk
 {
 	class GpuTimingVulkan : public GpuTiming {
@@ -24,6 +22,7 @@ namespace Brisk
 	private:
 		std::vector<VkQueryPool> m_TimestampQueryPools;
 		float m_TimeStampPeriod;
-		uint64_t m_Results[QUERY_COUNT];
+		uint64_t m_Results[64];
+		uint32_t m_QueryCount = 0;
 	};
 }

@@ -17,98 +17,7 @@ namespace Brisk
     Swapchain::Mode swapchainMode = Swapchain::Mode::DOUBLE_BUFFERING;
     std::shared_ptr<Swapchain> Renderer::m_Swapchain;
 
-    float cascadeSplitLambda = 0.55f;
-    std::vector<float> cascadeSplits;
-    std::vector<glm::mat4> cascadeMatrices;
-
-    std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& projview)
-    {
-        const auto inv = glm::inverse(projview);
-
-        std::vector<glm::vec4> frustumCorners;
-        for (unsigned int x = 0; x < 2; ++x)
-        {
-            for (unsigned int y = 0; y < 2; ++y)
-            {
-                for (unsigned int z = 0; z < 2; ++z)
-                {
-                    const glm::vec4 pt = inv * glm::vec4(2.0f * x - 1.0f, 2.0f * y - 1.0f, z, 1.0f);
-                    frustumCorners.push_back(pt / pt.w);
-                }
-            }
-        }
-
-        return frustumCorners;
-    }
-
-    std::vector<glm::vec4> getFrustumCornersWorldSpace(const glm::mat4& proj, const glm::mat4& view)
-    {
-        return getFrustumCornersWorldSpace(proj * view);
-    }
-
-    glm::mat4 proj;
-    glm::mat4 view;
-    glm::mat4 getLightSpaceMatrix(const float nearPlane, const float farPlane, glm::vec3 lightDir)
-    {
-        auto proj = glm::perspectiveZO(
-            glm::radians(45.0f), (float)1920 / (float)1080, nearPlane,
-            farPlane);
-        proj[1][1] *= -1.0f;
-        view = Application::GetEditorCamera()->GetViewMatrix();
-
-        const auto corners = getFrustumCornersWorldSpace(proj, view);
-
-        glm::vec3 center = glm::vec3(0, 0, 0);
-        for (const auto& v : corners)
-        {
-            center += glm::vec3(v);
-        }
-        center /= corners.size();
-
-        const auto lightView = glm::lookAt(center + lightDir, center, glm::vec3(0.0f, 1.0f, 0.0f));
-
-        float minX = std::numeric_limits<float>::max();
-        float maxX = std::numeric_limits<float>::lowest();
-        float minY = std::numeric_limits<float>::max();
-        float maxY = std::numeric_limits<float>::lowest();
-        float minZ = std::numeric_limits<float>::max();
-        float maxZ = std::numeric_limits<float>::lowest();
-        for (const auto& v : corners)
-        {
-            const auto trf = lightView * v;
-            minX = std::min(minX, trf.x);
-            maxX = std::max(maxX, trf.x);
-            minY = std::min(minY, trf.y);
-            maxY = std::max(maxY, trf.y);
-            minZ = std::min(minZ, trf.z);
-            maxZ = std::max(maxZ, trf.z);
-        }
-
-        // Tune this parameter according to the scene
-        constexpr float zMult = 30.0f;
-        if (minZ < 0)
-        {
-            minZ *= zMult;
-        }
-        else
-        {
-            minZ /= zMult;
-        }
-        if (maxZ < 0)
-        {
-            maxZ /= zMult;
-        }
-        else
-        {
-            maxZ *= zMult;
-        }
-
-        glm::mat4 lightProjection = glm::orthoZO(minX, maxX, minY, maxY, minZ, maxZ);
-        lightProjection[1][1] *= -1.0f;
-        return lightProjection * lightView;
-    }
-
-    void UpdateCascadeMatrices(const glm::vec3& lightDir)
+    void Renderer::UpdateCascadeMatrices(const glm::vec3& lightDir)
     {
         float cascadeSplits[SHADOW_MAP_CASCADE_COUNT];
 
@@ -122,17 +31,14 @@ namespace Brisk
         float range = maxZ - minZ;
         float ratio = maxZ / minZ;
 
-        // Calculate split depths based on view camera frustum
-        // Based on method presented in https://developer.nvidia.com/gpugems/GPUGems3/gpugems3_ch10.html
         for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++) {
             float p = (i + 1) / static_cast<float>(SHADOW_MAP_CASCADE_COUNT);
             float log = minZ * std::pow(ratio, p);
             float uniform = minZ + range * p;
-            float d = cascadeSplitLambda * (log - uniform) + uniform;
+            float d = Application::GetRendererSettings().SplitLambda * (log - uniform) + uniform;
             cascadeSplits[i] = (d - nearClip) / clipRange;
         }
 
-        // Calculate orthographic projection matrix for each cascade
         float lastSplitDist = 0.0;
         for (uint32_t i = 0; i < SHADOW_MAP_CASCADE_COUNT; i++) {
             float splitDist = cascadeSplits[i];
@@ -148,14 +54,12 @@ namespace Brisk
                 glm::vec3(-1.0f, -1.0f,  1.0f),
             };
 
-            //auto proj = glm::perspectiveZO(
-            //    glm::radians(45.0f), (float)1920 / (float)1080, nearClip,
-            //    farClip);
-            //proj[1][1] *= -1.0f;
-            view = Application::GetEditorCamera()->GetViewMatrix();
-            proj = Application::GetEditorCamera()->GetProjection();
-            proj = glm::transpose(proj);
-            // Project frustum corners into world space
+            auto proj = glm::perspectiveZO(
+                glm::radians(45.0f), (float)1920 / (float)1080, nearClip,
+                farClip);
+            proj[1][1] *= -1.0f;
+
+            glm::mat4 view = Application::GetEditorCamera()->GetViewMatrix();
             glm::mat4 invCam = glm::inverse(proj * view);
             for (uint32_t j = 0; j < 8; j++) {
                 glm::vec4 invCorner = invCam * glm::vec4(frustumCorners[j], 1.0f);
@@ -168,7 +72,6 @@ namespace Brisk
                 frustumCorners[j] = frustumCorners[j] + (dist * lastSplitDist);
             }
 
-            // Get frustum center
             glm::vec3 frustumCenter = glm::vec3(0.0f);
             for (uint32_t j = 0; j < 8; j++) {
                 frustumCenter += frustumCorners[j];
@@ -185,14 +88,12 @@ namespace Brisk
             glm::vec3 maxExtents = glm::vec3(radius);
             glm::vec3 minExtents = -maxExtents;
 
-            //glm::vec3 lightDir = normalize(-lightPos);
             glm::mat4 lightViewMatrix = glm::lookAt(frustumCenter - lightDir * -minExtents.z, frustumCenter, glm::vec3(0.0f, 1.0f, 0.0f));
             glm::mat4 lightOrthoMatrix = glm::orthoZO(minExtents.x, maxExtents.x, minExtents.y, maxExtents.y, 0.0f, maxExtents.z - minExtents.z);
-            //lightOrthoMatrix[1][1] *= -1.0f;
+            lightOrthoMatrix[1][1] *= -1.0f;
 
-            // Store split distance and matrix in cascade
-            cascadeSplits[i] = (nearClip + splitDist * clipRange) * -1.0f;
-            cascadeMatrices[i] = lightOrthoMatrix * lightViewMatrix;
+            _cascadeSplits[i] = (nearClip + splitDist * clipRange) * -1.0f;
+            _cascadeMatrices[i] = lightOrthoMatrix * lightViewMatrix;
 
             lastSplitDist = cascadeSplits[i];
         }
@@ -200,8 +101,8 @@ namespace Brisk
 
     void Renderer::Init()
     {
-        cascadeSplits.resize(SHADOW_MAP_CASCADE_COUNT);
-        cascadeMatrices.resize(SHADOW_MAP_CASCADE_COUNT);
+        _cascadeSplits.resize(SHADOW_MAP_CASCADE_COUNT);
+        _cascadeMatrices.resize(SHADOW_MAP_CASCADE_COUNT);
 
         m_ScratchAllocator.m_ScratchBuffer = Buffer::Create();
         BufferDesc scratchBufferDesc{};
@@ -372,7 +273,7 @@ namespace Brisk
                 specs.p_Width = 1920;
                 specs.p_Height = 1080;
                 specs.p_DebugName = "g_Lighting";
-                specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled | Core::TextureUsage::ImageUsageStorage;
+                specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled;
                 specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
                 m_LightingOutput->Init(specs);
             }
@@ -432,11 +333,23 @@ namespace Brisk
                 specs.p_Width = 1920;
                 specs.p_Height = 1080;
                 specs.p_DebugName = "g_Tonemap";
-                specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled | Core::TextureUsage::ImageUsageStorage;
+                specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled;
                 specs.p_Format = Core::Format::FORMAT_R8G8B8A8_UNORM;
                 m_TonemapOutput->Init(specs);
             }
 
+
+            m_RayTracingImage = Texture::Create();
+
+            {
+                Texture::TextureSpecification specs{};
+                specs.p_Width = 1920;
+                specs.p_Height = 1080;
+                specs.p_DebugName = "g_RayTracing";
+                specs.p_Usage = Core::TextureUsage::ImageUsageSampled | Core::TextureUsage::ImageUsageStorage;
+                specs.p_Format = Core::Format::FORMAT_R32G32B32A32_SFLOAT;
+                m_RayTracingImage->Init(specs);
+            }
 
             m_AccumulationImage = Texture::Create();
 
@@ -445,8 +358,8 @@ namespace Brisk
                 specs.p_Width = 1920;
                 specs.p_Height = 1080;
                 specs.p_DebugName = "g_Accumulation";
-                specs.p_Usage = Core::TextureUsage::ImageUsageColorAttachment | Core::TextureUsage::ImageUsageSampled | Core::TextureUsage::ImageUsageStorage;
-                specs.p_Format = Core::Format::FORMAT_R16G16B16A16_SFLOAT;
+                specs.p_Usage = Core::TextureUsage::ImageUsageSampled | Core::TextureUsage::ImageUsageStorage;
+                specs.p_Format = Core::Format::FORMAT_R32G32B32A32_SFLOAT;
                 m_AccumulationImage->Init(specs);
             }
 
@@ -1124,7 +1037,6 @@ namespace Brisk
             m_AssignLightsToClustersPipeline->UpdateResources("ClusterAABB", {}, m_ClusterTilesSSBO, {});
             m_AssignLightsToClustersPipeline->UpdateResources("ClusterLightIndexList", {}, m_ClusterLightIndexList, {});
             m_AssignLightsToClustersPipeline->UpdateResources("ClusterLightCountsList", {}, m_ClusterLightCountsList, {});
-            m_AssignLightsToClustersPipeline->UpdateResources("AtomicCounters", {}, m_AtomicCounters, {});
         }
 
         m_DepthPrePassPipeline->UpdateResources("MVP", {}, m_MVPBuffer, {});
@@ -1299,11 +1211,11 @@ namespace Brisk
 
         m_TonemappingPipeline->UpdateResources("BloomOuput", { m_BloomCombineOutput }, {}, {});
 
-        SceneManager::pActiveScene->LoadGltfScene("../Assets/Sponza/glTF/Sponza.gltf");
+        //SceneManager::pActiveScene->LoadGltfScene("../Assets/Sponza/glTF/Sponza.gltf");
         //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/lancia_fulvia_rallye/scene.gltf");
-        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
+        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/gltf_models/DamagedHelmet/glTF/DamagedHelmet.gltf");
         //SceneManager::pActiveScene->LoadGltfScene("../Data/gltfModels/2.0/Suzanne/glTF/Suzanne.gltf");
-        SceneManager::pActiveScene->LoadGltfScene("../Data/Models/lamborghini_temerario_gt3_2026/scene.gltf");
+        //SceneManager::pActiveScene->LoadGltfScene("../Data/Models/lamborghini_temerario_gt3_2026/scene.gltf");
 
         m_BlurVPipeline->UpdateResources("Glow", 
             { 
@@ -1342,13 +1254,12 @@ namespace Brisk
         m_BLAS->Build(m_VertexBuffer, m_IndexBuffer);
         m_TLAS->Build(m_BLAS);
 
-        //m_RayTracing->UpdateResources("Meshes", {}, m_MeshesBuffer, {});
-        //m_RayTracing->UpdateResources("Indices", {}, m_IndexBuffer, {});
-        //m_RayTracing->UpdateResources("topLevelAS", {}, {}, { m_TLAS });
-        // TODO: Create separate output texture for ray tracing
-        //m_RayTracing->UpdateResources("resultImage", { m_TonemapOutput }, {}, {});
-        //m_RayTracing->UpdateResources("accumulation", { m_AccumulationImage }, {}, {});
-        //m_RayTracing->UpdateResources("camera", {}, { m_RayTracingPropsBuffer }, {});
+        m_RayTracing->UpdateResources("Meshes", {}, m_MeshesBuffer, {});
+        m_RayTracing->UpdateResources("Indices", {}, m_IndexBuffer, {});
+        m_RayTracing->UpdateResources("topLevelAS", {}, {}, { m_TLAS });
+        m_RayTracing->UpdateResources("resultImage", { m_RayTracingImage }, {}, {});
+        m_RayTracing->UpdateResources("accumulation", { m_AccumulationImage }, {}, {});
+        m_RayTracing->UpdateResources("camera", {}, { m_RayTracingPropsBuffer }, {});
     }
 
     uint32_t frameIndex = 0;
@@ -1393,7 +1304,7 @@ namespace Brisk
         }
 
         if (Application::GetRendererSettings().CSM) {
-            UpdateCascadeMatrices(glm::normalize(-lightDir));
+            UpdateCascadeMatrices(glm::normalize(lightDir));
         }
         else {
             glm::mat4 lightProjectionMatrix, lightViewMatrix;
@@ -1410,19 +1321,24 @@ namespace Brisk
             lightViewMatrix = glm::lookAt(lightPos, glm::vec3(0.0f), glm::vec3(0.0, 1.0, 0.0));
             lightSpaceMatrix = lightProjectionMatrix * lightViewMatrix;
 
-            cascadeMatrices[0] = lightSpaceMatrix;
-            cascadeMatrices[1] = lightSpaceMatrix;
-            cascadeMatrices[2] = lightSpaceMatrix;
-            cascadeMatrices[3] = lightSpaceMatrix;
+            _cascadeMatrices[0] = lightSpaceMatrix;
+            _cascadeMatrices[1] = lightSpaceMatrix;
+            _cascadeMatrices[2] = lightSpaceMatrix;
+            _cascadeMatrices[3] = lightSpaceMatrix;
         }
 
         ShadowData shadowData{};
-        shadowData.lightSpaceMatrices[0] = cascadeMatrices[0];
-        shadowData.lightSpaceMatrices[1] = cascadeMatrices[1];
-        shadowData.lightSpaceMatrices[2] = cascadeMatrices[2];
-        shadowData.lightSpaceMatrices[3] = cascadeMatrices[3];
-        shadowData.cascadeSplits = glm::vec4(cascadeSplits[0], cascadeSplits[1], cascadeSplits[2], cascadeSplits[3]);
+        shadowData.lightSpaceMatrices[0] = _cascadeMatrices[0];
+        shadowData.lightSpaceMatrices[1] = _cascadeMatrices[1];
+        shadowData.lightSpaceMatrices[2] = _cascadeMatrices[2];
+        shadowData.lightSpaceMatrices[3] = _cascadeMatrices[3];
+        shadowData.cascadeSplits = glm::vec4(_cascadeSplits[0], _cascadeSplits[1], _cascadeSplits[2], _cascadeSplits[3]);
         m_ShadowDataBuffer->UpdatePersistantData(sizeof(ShadowData), &shadowData);
+
+        if (!m_Swapchain->AcquireNextImage(UINT64_MAX, ImageAvailableSemaphore[m_CurrentFrame], nullptr, &m_ImageIndex)) {
+            RecreateSwapchain();
+            return;
+        }
 
         m_ClusteredCmdBuffer[m_CurrentFrame]->Reset();
         m_ClusteredCmdBuffer[m_CurrentFrame]->Bind();
@@ -1494,10 +1410,6 @@ namespace Brisk
         m_ClusterFence[m_CurrentFrame]->Wait();
         m_ClusterFence[m_CurrentFrame]->Reset();
 
-        if (!m_Swapchain->AcquireNextImage(UINT64_MAX, ImageAvailableSemaphore[m_CurrentFrame], nullptr, &m_ImageIndex)) {
-            RecreateSwapchain();
-        }
-
         if (m_HasTransferWork) {
             GpuAdapter::SubmitInfo transferSubmitInfo{};
             transferSubmitInfo.pSignalSemaphores.push_back(TransferFinishedSemaphore[m_CurrentFrame]);
@@ -1515,7 +1427,7 @@ namespace Brisk
         m_GpuTiming->TimeStamp(m_CmdBuffer[m_CurrentFrame], Core::PipelineStage::EarlyFragmentTest, m_CurrentFrame, 4);
         uint32_t framebuffer = 0;
         m_ShadowMapPipeline->Bind(m_CmdBuffer[m_CurrentFrame]);
-        for (const glm::mat4& lightMatrix : cascadeMatrices) {
+        for (const glm::mat4& lightMatrix : _cascadeMatrices) {
             m_CSMShadowMapPass->Begin(m_CmdBuffer[m_CurrentFrame], framebuffer++);
 
             RenderCommand::SetViewport(m_CmdBuffer[m_CurrentFrame], 0, 0, m_ShadowMapLOD0->GetWidth(), m_ShadowMapLOD0->GetHeight(), 0, 1);
@@ -1818,6 +1730,7 @@ namespace Brisk
 
         m_RayTracingCmdBuffer[m_CurrentFrame]->Reset();
         m_RayTracingCmdBuffer[m_CurrentFrame]->Bind();
+        m_GpuTiming->Reset(m_RayTracingCmdBuffer[m_CurrentFrame], m_CurrentFrame);
 
         //// --- RAY TRACING PASS ---------------------------
         ////------------------------------------------------------------------------------------------------------------------------------------------------
@@ -1830,15 +1743,15 @@ namespace Brisk
             params.srcStage = Core::PipelineStage::RayTracing;
             params.dstStage = Core::PipelineStage::RayTracing;
 
-            m_LightingOutput->TransitionImageLayout(m_RayTracingCmdBuffer[m_CurrentFrame], { params });
+            m_RayTracingImage->TransitionImageLayout(m_RayTracingCmdBuffer[m_CurrentFrame], { params });
+            m_AccumulationImage->TransitionImageLayout(m_RayTracingCmdBuffer[m_CurrentFrame], { params });
         }
 
-        m_RayTracingFence[m_CurrentFrame]->Wait();
-        m_RayTracingFence[m_CurrentFrame]->Reset();
-
+        m_GpuTiming->TimeStamp(m_RayTracingCmdBuffer[m_CurrentFrame], Core::PipelineStage::RayTracing, m_CurrentFrame, 0);
         m_RayTracing->Bind(m_RayTracingCmdBuffer[m_CurrentFrame]);
 
         RenderCommand::TraceRays(m_RayTracingCmdBuffer[m_CurrentFrame], m_SBT, 1920, 1080);
+        m_GpuTiming->TimeStamp(m_RayTracingCmdBuffer[m_CurrentFrame], Core::PipelineStage::RayTracing, m_CurrentFrame, 1);
         m_RayTracingCmdBuffer[m_CurrentFrame]->UnBind();
         GpuAdapter::SubmitInfo rayTracingSubmitInfo{};
         rayTracingSubmitInfo.pCmdBuffers.push_back(m_RayTracingCmdBuffer[m_CurrentFrame]);
@@ -1865,7 +1778,9 @@ namespace Brisk
             params.dstAccess = Core::AccessType::ShaderRead;
             params.srcStage = Core::PipelineStage::RayTracing;
             params.dstStage = Core::PipelineStage::FragmentShader;    
-            m_LightingOutput->TransitionImageLayout(m_RayTracingCmdBuffer[m_CurrentFrame], { params });
+
+            m_RayTracingImage->TransitionImageLayout(m_RayTracingCmdBuffer[m_CurrentFrame], { params });
+            m_AccumulationImage->TransitionImageLayout(m_RayTracingCmdBuffer[m_CurrentFrame], { params });
         }
 
         //// --- UI PASS ---------------------------
@@ -1912,6 +1827,9 @@ namespace Brisk
             Application::GetGpuAdapter()->SubmitGraphics(submitInfo, m_RayTracingFence[m_CurrentFrame]);
         }
 
+        m_RayTracingFence[m_CurrentFrame]->Wait();
+        m_RayTracingFence[m_CurrentFrame]->Reset();
+
         GpuAdapter::PresentInfo presentInfo{};
         presentInfo.pWaitSemaphores.push_back(RenderFinishedSemaphore[m_CurrentFrame]);
         presentInfo.pSwapchains.push_back(m_Swapchain);
@@ -1928,50 +1846,47 @@ namespace Brisk
             m_WindowResized = false;
         }
 
+        if (frameIndex >= FRAMES_IN_FLIGHT - 1) {
+            prevFrame =
+                (m_CurrentFrame + FRAMES_IN_FLIGHT - 1) % FRAMES_IN_FLIGHT;
+
+            m_GpuTiming->QueryTime(prevFrame);
+
+            m_GpuTiming->GetTime(0, 1, m_RTTime);
+        }
+
+        frameIndex++;
+
         m_CurrentFrame = (m_CurrentFrame + 1) % FRAMES_IN_FLIGHT;
     }
 
     void Renderer::RecreateSwapchain() {
+        uint32_t width = 0, height = 0;
+        Application::GetWindow()->GetWidthAndHeight(width, height);
+        while (width == 0 || height == 0) {
+            Application::GetWindow()->GetWidthAndHeight(width, height);
+            Application::GetWindow()->ProcessEvents();            
+        }
+
         Application::GetGpuAdapter()->WaitIdle();
-        m_UIPass->Release();
+
+        ImageAvailableSemaphore[m_CurrentFrame]->Release();
+        ImageAvailableSemaphore[m_CurrentFrame] = Semaphore::Create();
+        ImageAvailableSemaphore[m_CurrentFrame]->Init();
+
         m_Swapchain->Release();
         for (int i = 0; i < m_UIFramebuffers.size(); i++) {
             m_UIFramebuffers[i]->Destroy();
         }
 
         m_Swapchain->Create(swapchainMode);
-
-        m_UIPass->Init(
-            {
-                RenderPassDependency {
-                    -1,
-                    0,
-                    Core::AccessType::None, // src access
-                    Core::AccessType::ColorAttachmentWrite, // dst access
-                    Core::PipelineStage::ColorAttachment, // src stage
-                    Core::PipelineStage::ColorAttachment // dst stage
-                },
-                RenderPassDependency {
-                    -1,
-                    0,
-                    Core::AccessType::ColorAttachmentWrite,
-                    Core::AccessType::ShaderRead,
-                    Core::PipelineStage::ColorAttachment,
-                    Core::PipelineStage::FragmentShader
-                },
-            },
-            {
-                RenderPassAttachment{ 0, AttachmentType::Swapchain, LoadOp::Clear, StoreOp::Store, Core::Format::FORMAT_R8G8B8A8_UNORM, Core::ImageLayout::Undefined, Core::ImageLayout::PresentSrc }
-            }
-        );
-
         m_UIFramebuffers.resize(Application::GetRenderer()->GetSwapchain()->GetImageCount());
         for (int i = 0; i < m_UIFramebuffers.size(); i++) {
             m_UIFramebuffers[i] = Framebuffer::Create();
             {
                 Framebuffer::FramebufferSpecs specs{};
-                specs.p_Width = 1920;
-                specs.p_Height = 1080;
+                specs.p_Width = width;
+                specs.p_Height = height;
                 specs.p_RenderPass = m_UIPass;
                 specs.swapchainIndex = i;
 
@@ -1980,17 +1895,6 @@ namespace Brisk
         }
     }
 
-    glm::mat4 GetWorldTransform(Entity entity) {
-        glm::mat4 local = entity.GetComponent<TransformComponent>().GetTransform();
-
-        //if (entity.HasComponent<ParentComponent>()) {
-        //    Entity parent = entity.GetComponent<ParentComponent>().parent;
-        //    return GetWorldTransform(parent) * local;
-        //}
-
-        return local;
-    }   
-
     void Renderer::Release() {
         m_Pos->Release();
         m_Normal->Release();
@@ -1998,11 +1902,9 @@ namespace Brisk
         m_Material->Release();
         m_Emissive->Release();
         m_DepthPre->Release();
-        //m_ShadowMap->Release();
         m_LightingOutput->Release();
 
         m_DepthPrePass->Release();
-        //m_ShadowMapPass->Release();
         m_GeometryBufferPass->Release();
         m_LightingPass->Release();
         m_UIPass->Release();

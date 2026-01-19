@@ -129,6 +129,7 @@ namespace Brisk
 		}
 		void UpdateRandomLights(const std::vector<PointLight>& lights);
 		void RebuildAccelerationStructures();
+		void UpdateCascadeMatrices(const glm::vec3& lightDir);
 
 		static std::shared_ptr<Swapchain> GetSwapchain() { return m_Swapchain; }
 
@@ -141,6 +142,7 @@ namespace Brisk
 		float m_AABBTime = 0.0f;
 		float m_AssignLightToClustersTime = 0.0f;
 		float m_RasterTime = 0.0f;
+		float m_RTTime = 0.0f;
 		float m_GpuTime = 0.0f;
 
 		std::shared_ptr<GpuTiming> m_GpuTiming;
@@ -156,16 +158,6 @@ namespace Brisk
 
 		std::array<std::shared_ptr<Semaphore>, FRAMES_IN_FLIGHT> RayTracingFinishedSemaphore;
 		std::array<std::shared_ptr<Fence>, FRAMES_IN_FLIGHT> m_RayTracingFence;
-
-		//std::shared_ptr<Queue> m_GraphicsQueue0;
-		//std::shared_ptr<Queue> m_GraphicsQueue1;
-
-		//std::shared_ptr<Queue> m_TransferQueue0;
-		//std::shared_ptr<Queue> m_TransferQueue1;
-
-		//std::shared_ptr<Queue> m_ComputeQueue0;
-		//std::shared_ptr<Queue> m_ComputeQueue1;
-		// Synchronization objects - End
 
 		// Attachments
 		std::shared_ptr<Texture> m_Pos;
@@ -184,6 +176,8 @@ namespace Brisk
 		std::shared_ptr<Texture> m_BloomOutputH;
 		std::shared_ptr<Texture> m_BloomOutputV;
 		std::shared_ptr<Texture> m_BloomCombineOutput;
+
+		std::shared_ptr<Texture> m_RayTracingImage;
 		std::shared_ptr<Texture> m_AccumulationImage;
 		// Attachments - End
 
@@ -268,6 +262,7 @@ namespace Brisk
 		ScratchAllocator m_ScratchAllocator;
 
 		uint64_t m_ImGuiIdScene;
+		uint64_t m_ImGuiIdRT;
 		uint64_t m_ImGuiIdShadowMap0;
 		uint64_t m_ImGuiIdShadowMap1;
 		uint64_t m_ImGuiIdShadowMap2;
@@ -283,6 +278,9 @@ namespace Brisk
 		bool m_HasTransferWork = false;
 
 		uint32_t m_NoOfRandomLights;
+
+		std::vector<float> _cascadeSplits;
+		std::vector<glm::mat4> _cascadeMatrices;
 
 		std::atomic<bool> m_WindowResized = false;
 	};

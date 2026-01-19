@@ -166,13 +166,12 @@ const mat4 biasMat = mat4(
 	0.5, 0.5, 0.0, 1.0 
 );
 
-float textureProj(vec4 shadowCoord, vec2 offset, uint cascadeIndex)
+float textureProj(vec4 shadowCoord, vec2 offset, uint cascadeIndex, float bias)
 {
 	float shadow = 1.0;
-	float bias = 0.005;
 
-	if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 ) {
-		float dist = texture(ShadowMaps[0], vec2(shadowCoord.st + offset)).r;
+    if ( shadowCoord.z > -1.0 && shadowCoord.z < 1.0 ) {
+		float dist = texture(ShadowMaps[cascadeIndex], vec2(shadowCoord.st + offset)).r;
 		if (shadowCoord.w > 0 && dist < shadowCoord.z - bias) {
 			shadow = 0.0;
 		}
@@ -181,9 +180,9 @@ float textureProj(vec4 shadowCoord, vec2 offset, uint cascadeIndex)
 
 }
 
-float filterPCF(vec4 sc, uint cascadeIndex)
+float filterPCF(vec4 sc, uint cascadeIndex, float bias)
 {
-	ivec2 texDim = textureSize(ShadowMaps[0], 0).xy;
+	ivec2 texDim = textureSize(ShadowMaps[cascadeIndex], 0).xy;
 	float scale = RendererSetting.pcfScale;
 	float dx = scale * 1.0 / float(texDim.x);
 	float dy = scale * 1.0 / float(texDim.y);
@@ -194,14 +193,17 @@ float filterPCF(vec4 sc, uint cascadeIndex)
 	
 	for (int x = -range; x <= range; x++) {
 		for (int y = -range; y <= range; y++) {
-			shadowFactor += textureProj(sc, vec2(dx*x, dy*y), cascadeIndex);
+			shadowFactor += textureProj(sc, vec2(dx*x, dy*y), cascadeIndex, bias);
 			count++;
 		}
 	}
 	return shadowFactor / count;
 }
 
-float ComputeCSM(vec3 worldPos, mat4 viewMatrix, vec3 N) {
+float ComputeCSM(vec3 worldPos, mat4 viewMatrix, vec3 N, vec3 L) {
+    float NdotL = max(dot(N, L), 0.0);
+    float bias = max(0.0005 * (1.0 - NdotL), 0.0005);
+
     uint cascadeIndex = 0;
     vec4 viewPos = viewMatrix * vec4(worldPos, 1.0);
 	for(uint i = 0; i < SHADOW_MAP_CASCADE_COUNT - 1; ++i) {
@@ -210,27 +212,27 @@ float ComputeCSM(vec3 worldPos, mat4 viewMatrix, vec3 N) {
 		}
 	}
 
-    cascadeIndex = 0;
 	vec4 shadowCoord = (biasMat * u_Shadow.lightSpaceMatrices[cascadeIndex]) * vec4(worldPos, 1.0);	
 
 	float shadow = 0.0;
     uint enablePCF = RendererSetting.pcf;
 	if (enablePCF == 1) {
-		shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex);
+		shadow = filterPCF(shadowCoord / shadowCoord.w, cascadeIndex, bias);
 	} else {
-		shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0), cascadeIndex);
+		shadow = textureProj(shadowCoord / shadowCoord.w, vec2(0.0), cascadeIndex, bias);
 	}
 
     return shadow;
 }
 
 float ComputeShadow(vec3 worldPos, mat4 viewMatrix, vec3 N) {
+    float bias = 0.005;
 	vec4 shadowCoord = (biasMat * u_Shadow.lightSpaceMatrices[0] * mat4(1.0)) * vec4(worldPos, 1.0);	
     uint enablePCF = RendererSetting.pcf;
 	if (enablePCF == 1) {
-		return filterPCF(shadowCoord / shadowCoord.w, 0);
+		return filterPCF(shadowCoord / shadowCoord.w, 0, bias);
 	} else {
-		return textureProj(shadowCoord / shadowCoord.w, vec2(0.0), 0);
+		return textureProj(shadowCoord / shadowCoord.w, vec2(0.0), 0, bias);
 	}
 }
 
@@ -276,7 +278,7 @@ void main() {
 
     float shadow = 0.0f;
     if(cascadedShadows){
-        //shadow = ComputeShadow(fragPos, MVP.View, N);
+        shadow = ComputeCSM(fragPos, MVP.View, N, LightDir);
     }
     else {
         shadow = ComputeShadow(fragPos, MVP.View, N);

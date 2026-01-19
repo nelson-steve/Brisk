@@ -84,7 +84,8 @@ namespace Brisk
             for (auto set : sets) {
                 uint32_t setIndex = set->set;
 
-                setIndices.push_back(setIndex);
+                if(std::find(setIndices.begin(), setIndices.end(), setIndex) == setIndices.end())
+                    setIndices.push_back(setIndex);
 
                 for (uint32_t i = 0; i < set->binding_count; ++i) {
                     const SpvReflectDescriptorBinding* reflBinding = set->bindings[i];

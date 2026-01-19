@@ -31,7 +31,10 @@ namespace Brisk
         ImGui::PushStyleVar(ImGuiStyleVar_FramePadding, ImVec2(0, 0));
         ImGui::PushStyleColor(ImGuiCol_Border, ImVec4(0.5f, 0.5f, 0.5f, 1.0f));
         ImGui::PushStyleColor(ImGuiCol_WindowBg, ImVec4(0.2f, 0.2f, 0.2f, 1.0f));
-        ImGui::Image((ImTextureID)Application::GetRenderer()->m_ImGuiIdScene, imageSize);
+        if(Application::GetRendererSettings().RayTracing)
+            ImGui::Image((ImTextureID)Application::GetRenderer()->m_ImGuiIdRT, imageSize);
+        else
+            ImGui::Image((ImTextureID)Application::GetRenderer()->m_ImGuiIdScene, imageSize);
 
         ImGui::PopStyleColor(2);
         ImGui::PopStyleVar();

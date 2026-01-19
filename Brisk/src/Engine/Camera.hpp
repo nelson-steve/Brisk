@@ -32,7 +32,10 @@ namespace Brisk
 		inline float GetDistance() const { return m_Distance; }
 		inline float GetFOV() const { return m_FOV; }
 		inline float GetAspectRatio() const { return m_AspectRatio; }
-		inline void SetDistance(float distance) { m_Distance = distance; }
+
+		inline void SetNearClip(float value) { m_NearClip = value; }
+		inline void SetFarClip(float value) { m_FarClip = value; }
+		void SetUseInfiniteProjection(bool value);
 
 		inline void SetMouseOffset(float xOffset, float yOffset) { m_MouseOffset = glm::vec2(xOffset, yOffset); }
 		bool OnMouseScroll(float yOffset);
@@ -74,7 +77,7 @@ namespace Brisk
 		GLFWwindow* m_Window; // cache window ptr
 		bool m_MouseMoved = false;
 		glm::vec2 m_MouseOffset{ 0.0f };
-		float m_FOV = 45.0f, m_AspectRatio = 1.778f, m_NearClip = 1.0f, m_FarClip = 1000.0f;
+		float m_FOV = 45.0f, m_AspectRatio = 1.778f, m_NearClip = 1.0f, m_FarClip = 300.0f;
 
 		glm::mat4 m_Projection = glm::mat4(1.0f);
 		glm::mat4 m_ViewMatrix = glm::mat4(1.0f);
@@ -86,6 +89,8 @@ namespace Brisk
 
 		float m_Distance = 10.0f;
 		float m_Pitch = 0.0f, m_Yaw = 0.0f;
+
+		bool m_UseInfiniteProjection = true;
 
 		float m_ViewportWidth = 1920, m_ViewportHeight = 1080;
 

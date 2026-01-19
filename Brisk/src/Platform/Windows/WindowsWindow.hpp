@@ -23,18 +23,6 @@ namespace Brisk {
 		/// </summary>
 		/// <returns></returns>
 		virtual bool WindowShouldClose() override;
-		/// <summary>
-		/// Queries if the window has been resized
-		/// </summary>
-		/// <param name="resized"></param>
-		virtual inline bool IsWindowResized() override 
-		{
-			if (m_HasWindowResized) {
-				m_HasWindowResized = false;
-				return true;
-			}
-			return false; 
-		}
 
 		/// <summary>
 		/// Processes all events fired
@@ -66,16 +54,12 @@ namespace Brisk {
 		virtual inline uint32_t GetHeight() const override { return m_Height; }
 
 		/// <summary>
-		/// Stores the status of window being resized
-		/// </summary>
-		/// <param name="resized"></param>
-		virtual inline void WindowResized(bool resized) override { m_HasWindowResized = resized; }
-
-		/// <summary>
 		/// Setting the function that will be process every event
 		/// </summary>
 		/// <param name="callback"></param>
 		virtual inline void SetEventCallBack(const EventCallBackFn& callback) override { m_Data.EventCallBack = callback; }
+
+		virtual inline void GetWidthAndHeight(uint32_t& width, uint32_t& height) override;
 	private:
 		GLFWwindow* m_Window = nullptr;
 

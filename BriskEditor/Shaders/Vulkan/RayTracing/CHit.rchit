@@ -45,21 +45,22 @@ struct MeshDraw
 };
 
 struct MaterialData {
-    uint alphaMode; // use 4 bytes to avoid packing issues
+    uint alphaMode;
     float alphaCutoff;
     float metallicFactor;
     float roughnessFactor;
+    bool doubleSided;
 
     vec4 baseColorFactor;
     vec3 emissiveFactor;
 
     float emissiveStrength;
 
-    uint baseColorTextureIndex;
-    uint metallicRoughnessTextureIndex;
-    uint normalTextureIndex;
-    uint occlusionTextureIndex;
-    uint emissiveTextureIndex;
+    int baseColorTextureIndex;
+    int metallicRoughnessTextureIndex;
+    int normalTextureIndex;
+    int occlusionTextureIndex;
+    int emissiveTextureIndex;
 };
 
 struct Transform {
@@ -102,7 +103,8 @@ layout(set = 0, binding = 13) uniform CameraUBO {
     vec3 lightPos;
     vec3 camPos;
     vec2 dimension; // width, height
-    vec2 _pad;
+    uint frame;
+    uint pad;
 } camera;
 
 hitAttributeEXT vec2 attribs;
@@ -301,19 +303,19 @@ void main() {
     vec3 B = cross(N, Tangent.xyz) * Tangent.w;
 
     vec3 NormalMap;
-    if (material.normalTextureIndex != 0) {
+    if (material.normalTextureIndex != -1) {
         NormalMap = texture(GlobalTextures[nonuniformEXT(material.normalTextureIndex)], uv).xyz * 2.0 - 1.0;
 
         N = normalize(Tangent.xyz * NormalMap.x + B * NormalMap.y + N * NormalMap.z);
     }
 
     vec4 albedo = material.baseColorFactor;
-    if (material.baseColorTextureIndex != 0) {
+    if (material.baseColorTextureIndex != -1) {
         albedo = texture(GlobalTextures[nonuniformEXT(material.baseColorTextureIndex)], uv);
     }
     float metallic = material.metallicFactor;
     float roughness = material.roughnessFactor;
-    if (material.metallicRoughnessTextureIndex != 0) {
+    if (material.metallicRoughnessTextureIndex != -1) {
         vec4 sampleTex = texture(GlobalTextures[nonuniformEXT(material.metallicRoughnessTextureIndex)], uv);
         roughness = sampleTex.g;
         metallic = sampleTex.b;
@@ -322,7 +324,7 @@ void main() {
         metallic  = clamp(metallic, 0.0, 1.0);
     }
     float occlusion = 1.0;
-    if (material.occlusionTextureIndex != 0) {
+    if (material.occlusionTextureIndex != -1) {
         occlusion = texture(GlobalTextures[nonuniformEXT(material.occlusionTextureIndex)], uv).r;
     }
 
@@ -333,7 +335,7 @@ void main() {
 
 
     vec3 emission = material.emissiveFactor * material.emissiveStrength;
-    if (material.emissiveTextureIndex != 0)
+    if (material.emissiveTextureIndex != -1)
         emission *= texture(GlobalTextures[nonuniformEXT(material.emissiveTextureIndex)], uv).rgb;
 
     radiancePayload.radiance += radiancePayload.throughput * emission;

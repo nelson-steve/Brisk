@@ -30,11 +30,6 @@ namespace Brisk
 		/// <returns></returns>
 		
 		virtual bool WindowShouldClose() = 0;
-		/// <summary>
-		/// Queries if the window has been resized
-		/// </summary>
-		/// <param name="resized"></param>
-		virtual inline bool IsWindowResized() = 0;
 		
 		/// <summary>
 		/// Processes all events fired
@@ -66,16 +61,12 @@ namespace Brisk
 		virtual inline uint32_t GetHeight() const = 0;
 
 		/// <summary>
-		/// Stores the status of window being resized
-		/// </summary>
-		/// <param name="resized"></param>
-		virtual inline void WindowResized(bool resized) = 0;
-
-		/// <summary>
 		/// Setting the function that will be process every event
 		/// </summary>
 		/// <param name="callback"></param>
 		virtual inline void SetEventCallBack(const EventCallBackFn& callback) = 0;
+
+		virtual inline void GetWidthAndHeight(uint32_t& width, uint32_t& height) = 0;
 	public:
 		/// <summary>
 		/// Static function to create and retrieve the newly created window

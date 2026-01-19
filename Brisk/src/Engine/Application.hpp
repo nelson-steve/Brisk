@@ -21,7 +21,7 @@
 namespace Brisk 
 {
 	struct RendererSettings {
-		bool RayTracing = false;
+		bool RayTracing = true;
 
 		float knee = 1.0;
 		float threshold = 1.0;
@@ -30,6 +30,7 @@ namespace Brisk
 		bool CSM = true;
 		bool PCF = true;
 		float PCFScale = 1.0;
+		float SplitLambda = 0.55;
 
 		float NearClip = 1.0f;
 		float FarClip = 200.0f;
